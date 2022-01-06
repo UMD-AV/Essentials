@@ -224,6 +224,24 @@ namespace PepperDash.Essentials.DM
             {
                 x.Value.FireUpdate();
             }
+            foreach (var x in InputNameFeedbacks)
+            {
+                Debug.Console(0, this, "input {0} name update", x.Key);
+                x.Value.FireUpdate();
+            }
+            foreach (var x in OutputNameFeedbacks)
+            {
+                Debug.Console(0, this, "output {0} name update", x.Key);
+                x.Value.FireUpdate();
+            }
+            foreach (var x in OutputVideoRouteNameFeedbacks)
+            {
+                x.Value.FireUpdate();
+            }
+            foreach (var x in OutputAudioRouteNameFeedbacks)
+            {
+                x.Value.FireUpdate();
+            }
             foreach (var x in OutputEndpointOnlineFeedbacks)
             {
                 x.Value.FireUpdate();
@@ -495,7 +513,7 @@ namespace PepperDash.Essentials.DM
 
                 OutputNameFeedbacks[outputCard.Number] = new StringFeedback(() =>
                 {
-                    if (outputCard.NameFeedback != null && !string.IsNullOrEmpty(outputCard.NameFeedback.StringValue))
+                    if (outputCard.NameFeedback != null && outputCard.NameFeedback != CrestronControlSystem.NullStringOutputSig && !string.IsNullOrEmpty(outputCard.NameFeedback.StringValue))
                     {
                         Debug.Console(2, this, "Output Card {0} Name: {1}", outputCard.Number, outputCard.NameFeedback.StringValue);
                         return outputCard.NameFeedback.StringValue;
@@ -548,7 +566,7 @@ namespace PepperDash.Essentials.DM
 
                     InputNameFeedbacks[inputCard.Number] = new StringFeedback(() =>
                     {
-                        if (inputCard.NameFeedback != null && !string.IsNullOrEmpty(inputCard.NameFeedback.StringValue))
+                        if (inputCard.NameFeedback != null && inputCard.NameFeedback != CrestronControlSystem.NullStringOutputSig && !string.IsNullOrEmpty(inputCard.NameFeedback.StringValue))
                         {
                             Debug.Console(2, this, "Input Card {0} Name: {1}", inputCard.Number, inputCard.NameFeedback.StringValue);
                             return inputCard.NameFeedback.StringValue;
