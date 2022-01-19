@@ -68,7 +68,7 @@ namespace PepperDash.Essentials.DM
 
         void BaseDevice_DMOutputChange(Switch device, DMOutputEventArgs args)
         {
-            Debug.Console(2, this, "Dmps Audio Controller Event Output: {0} EventId: {1}", args.Number, args.EventId.ToString());
+            //Debug.Console(2, this, "Dmps Audio Controller Event Output: {0} EventId: {1}", args.Number, args.EventId.ToString());
             switch (args.EventId)
             {
                 case DMOutputEventIds.OutputVuFeedBackEventId:

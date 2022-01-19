@@ -893,7 +893,7 @@ namespace PepperDash.Essentials.DM
         }
         void Dmps_DMOutputChange(Switch device, DMOutputEventArgs args)
         {
-            Debug.Console(2, this, "DMOutputChange Output: {0} EventId: {1}", args.Number, args.EventId.ToString());
+            //Debug.Console(2, this, "DMOutputChange Output: {0} EventId: {1}", args.Number, args.EventId.ToString());
 
             if (args.EventId == DMOutputEventIds.OutputVuFeedBackEventId)
             {
