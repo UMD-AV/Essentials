@@ -308,7 +308,7 @@ namespace PepperDash.Essentials.DM
             //Link up system power only for non-4k DMPS3
             if (SystemControl is Dmps3SystemControl)
             {
-                trilist.SetBoolSigAction(joinMap.SystemPowerOn.JoinNumber, a => { if (a) { ((Dmps3SystemControl)SystemControl).SystemPowerOff(); } });
+                trilist.SetBoolSigAction(joinMap.SystemPowerOn.JoinNumber, a => { if (a) { ((Dmps3SystemControl)SystemControl).SystemPowerOn(); } });
                 trilist.SetBoolSigAction(joinMap.SystemPowerOff.JoinNumber, a => { if (a) { ((Dmps3SystemControl)SystemControl).SystemPowerOff(); } });
             }
 
@@ -885,7 +885,7 @@ namespace PepperDash.Essentials.DM
         }
         void Dmps_DMOutputChange(Switch device, DMOutputEventArgs args)
         {
-            //Debug.Console(2, this, "DMOutputChange Output: {0} EventId: {1}", args.Number, args.EventId.ToString());
+            Debug.Console(2, this, "DMOutputChange Output: {0} EventId: {1}", args.Number, args.EventId.ToString());
 
             if (args.EventId == DMOutputEventIds.OutputVuFeedBackEventId)
             {
