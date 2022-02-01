@@ -203,6 +203,31 @@ namespace PepperDash.Essentials.DM
 
             SetOutputNames();
 
+            //Fix DM Endpoints for DMPS-4K
+            if(Dmps4kType)
+            {
+                foreach (var x in TxDictionary)
+                {
+                    var endpoint = DeviceManager.GetDeviceForKey(x.Value);
+                    if (endpoint is CrestronGenericBaseDevice)
+                    {
+                        var tx = (endpoint as CrestronGenericBaseDevice);
+                        var input = Dmps.SwitcherInputs[x.Key] as DMInput;
+                        tx.IsOnline = new BoolFeedback("IsOnlineFeedback", () => input.OnlineFeedback.BoolValue);
+                    }
+                }
+                foreach (var x in RxDictionary)
+                {
+                    var endpoint = DeviceManager.GetDeviceForKey(x.Value);
+                    if (endpoint is CrestronGenericBaseDevice)
+                    {
+                        var rx = (endpoint as CrestronGenericBaseDevice);
+                        var output = Dmps.SwitcherOutputs[x.Key] as DMOutput;
+                        rx.IsOnline = new BoolFeedback("IsOnlineFeedback", () => output.OnlineFeedback.BoolValue);
+                    }
+                }
+            }
+
             // Subscribe to events
             Dmps.DMInputChange += Dmps_DMInputChange;
             Dmps.DMOutputChange += Dmps_DMOutputChange;
@@ -859,6 +884,11 @@ namespace PepperDash.Essentials.DM
                         {
                             Debug.Console(2, this, "DM Input OnlineFeedbackEventId for input: {0}. State: {1}", args.Number, device.Inputs[args.Number].EndpointOnlineFeedback);
                             InputEndpointOnlineFeedbacks[args.Number].FireUpdate();
+                            if (TxDictionary.ContainsKey(args.Number))
+                            {
+                                var endpoint = DeviceManager.GetDeviceForKey(TxDictionary[args.Number]);
+                                ((CrestronGenericBaseDevice)endpoint).IsOnline.FireUpdate();
+                            }
                             break;
                         }
                     case (DMInputEventIds.VideoDetectedEventId):
@@ -905,6 +935,11 @@ namespace PepperDash.Essentials.DM
                 && OutputEndpointOnlineFeedbacks.ContainsKey(output))
             {
                 OutputEndpointOnlineFeedbacks[output].FireUpdate();
+                if(RxDictionary.ContainsKey(output))
+                {
+                    var endpoint = DeviceManager.GetDeviceForKey(RxDictionary[output]);
+                    ((CrestronGenericBaseDevice)endpoint).IsOnline.FireUpdate();
+                }
             }
             else if (args.EventId == DMOutputEventIds.VideoOutEventId)
             {

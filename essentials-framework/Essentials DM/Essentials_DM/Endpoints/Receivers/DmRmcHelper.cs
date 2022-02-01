@@ -330,13 +330,26 @@ namespace PepperDash.Essentials.DM
 	        var parentDev = DeviceManager.GetDeviceForKey(pKey);
 	        if (parentDev is DmpsRoutingController)
 	        {
-                if ((parentDev as DmpsRoutingController).Dmps4kType)
+                // Get the DMPS chassis and link stuff up
+                var dmpsDev = (parentDev as DmpsRoutingController);
+                var outputNum = props.ParentOutputNumber;
+                //Check that the input is within range of this chassis' possible inputs
+                if (outputNum <= 0 || outputNum > dmpsDev.Dmps.SwitcherOutputs.Count)
                 {
-                    return GetDmRmcControllerForDmps4k(key, name, typeName, parentDev as DmpsRoutingController, props.ParentOutputNumber);
+                    Debug.Console(0, "Cannot create DMPS device '{0}'. Output number '{1}' is out of range",
+                        key, outputNum);
+                    return null;
+                }
+
+                dmpsDev.RxDictionary.Add(outputNum, key);
+
+                if (dmpsDev.Dmps4kType)
+                {
+                    return GetDmRmcControllerForDmps4k(key, name, typeName, parentDev as DmpsRoutingController, outputNum);
                 }
                 else
                 {
-                    return GetDmRmcControllerForDmps(key, name, typeName, ipid, parentDev as DmpsRoutingController, props.ParentOutputNumber);
+                    return GetDmRmcControllerForDmps(key, name, typeName, ipid, parentDev as DmpsRoutingController, outputNum);
                 }
 	        }
 	        if (!(parentDev is IDmSwitch))
