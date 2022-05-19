@@ -46,9 +46,17 @@
     <GenerateSerializationAssemblies>off</GenerateSerializationAssemblies>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Crestron.DeviceDrivers.API, Version=8.0.0.8, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\packages\RAD\Crestron.DeviceDrivers.API.dll</HintPath>
+    </Reference>
     <Reference Include="Crestron.SimplSharpPro.DeviceSupport, Version=1.0.0.0, Culture=neutral, PublicKeyToken=1099c178b3b54c3b, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\..\..\..\..\..\ProgramData\Crestron\SDK\SSPDevices\Crestron.SimplSharpPro.DeviceSupport.dll</HintPath>
+    </Reference>
+    <Reference Include="Crestron.SimplSharpPro.Fusion, Version=1.0.0.0, Culture=neutral, PublicKeyToken=1099c178b3b54c3b, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\..\..\..\ProgramData\Crestron\SDK\SSPDevices\Crestron.SimplSharpPro.Fusion.dll</HintPath>
     </Reference>
     <Reference Include="Crestron.SimplSharpPro.Gateways, Version=1.0.0.0, Culture=neutral, PublicKeyToken=1099c178b3b54c3b, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -63,9 +71,17 @@
       <HintPath>..\..\..\..\..\..\..\..\..\ProgramData\Crestron\SDK\SSPDevices\Crestron.SimplSharpPro.Lighting.dll</HintPath>
     </Reference>
     <Reference Include="mscorlib" />
-    <Reference Include="PepperDash_Core, Version=1.0.42.30563, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="PepperDash_Core, Version=1.1.1.32703, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\packages\PepperDashCore\lib\net35\PepperDash_Core.dll</HintPath>
+    </Reference>
+    <Reference Include="RADCommon, Version=8.0.0.8, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\packages\RAD\RADCommon.dll</HintPath>
+    </Reference>
+    <Reference Include="RADProTransports, Version=8.0.0.8, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\packages\RAD\RADProTransports.dll</HintPath>
     </Reference>
     <Reference Include="SimplSharpCustomAttributesInterface, Version=1.0.0.0, Culture=neutral, PublicKeyToken=1099c178b3b54c3b, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -100,9 +116,17 @@
     <Compile Include="AudioCodec\Interfaces\IHasAudioCodec.cs" />
     <Compile Include="AudioCodec\MockAC\MockAC.cs" />
     <Compile Include="AudioCodec\MockAC\MockAcPropertiesConfig.cs" />
+    <Compile Include="AvBridges\VaddioBridge\VaddioBridgeConfig.cs" />
+    <Compile Include="AvBridges\VaddioBridge\VaddioBridgeDevice.cs" />
+    <Compile Include="AvBridges\VaddioBridge\VaddioBridgeJoinMap.cs" />
+    <Compile Include="AvBridges\VaddioBridge\VaddioBridgeFactory.cs" />
     <Compile Include="Cameras\CameraBase.cs" />
     <Compile Include="Cameras\CameraVisca.cs" />
     <Compile Include="Cameras\IHasCameraPresets.cs" />
+    <Compile Include="Cameras\Visca\ViscaCameraBridgeJoinMap.cs" />
+    <Compile Include="Cameras\Visca\ViscaCameraConfig.cs" />
+    <Compile Include="Cameras\Visca\ViscaCameraDevice.cs" />
+    <Compile Include="Cameras\Visca\ViscaCameraFactory.cs" />
     <Compile Include="Codec\eCodecCallDirection.cs" />
     <Compile Include="Codec\eCodecCallType.cs" />
     <Compile Include="Codec\eCodecCallStatus.cs" />
@@ -111,6 +135,66 @@
     <Compile Include="Codec\IHasCallHold.cs" />
     <Compile Include="Codec\IHasDoNotDisturb.cs" />
     <Compile Include="Codec\IHasExternalSourceSwitching.cs" />
+    <Compile Include="Display\CCDDisplay\CCDCommunicationMonitor.cs" />
+    <Compile Include="Display\CCDDisplay\CCDDisplayBridgeJoinMap.cs" />
+    <Compile Include="Display\CCDDisplay\CCDDisplayConfigObject.cs" />
+    <Compile Include="Display\CCDDisplay\CCDDisplayDevice.cs" />
+    <Compile Include="Display\CCDDisplay\CCDDisplayFactory.cs" />
+    <Compile Include="DSP\ExtronMlsDsp\ExtronMlsDsp.cs" />
+    <Compile Include="DSP\ExtronMlsDsp\ExtronMlsDspFactory.cs" />
+    <Compile Include="DSP\ExtronMlsDsp\ExtronMlsDspJoinMap.cs" />
+    <Compile Include="DSP\QscDsp\IQscDspBasicLevel.cs" />
+    <Compile Include="DSP\QscDsp\QscDsp.cs" />
+    <Compile Include="DSP\QscDsp\QscDspBridge.cs" />
+    <Compile Include="DSP\QscDsp\QscDspCamera.cs" />
+    <Compile Include="DSP\QscDsp\QscDspCameraJoinMap.cs" />
+    <Compile Include="DSP\QscDsp\QscDspControlPoint.cs" />
+    <Compile Include="DSP\QscDsp\QscDspDialer.cs" />
+    <Compile Include="DSP\QscDsp\QscDspFactory.cs" />
+    <Compile Include="DSP\QscDsp\QscDspLevelControl.cs" />
+    <Compile Include="DSP\QscDsp\QscDspPropertiesConfig.cs" />
+    <Compile Include="DSP\Tesira\Bridge\JoinMaps\TesiraCrosspointStateJoinMap.cs" />
+    <Compile Include="DSP\Tesira\Bridge\JoinMaps\TesiraDeviceJoinMap.cs" />
+    <Compile Include="DSP\Tesira\Bridge\JoinMaps\TesiraDialerJoinMap.cs" />
+    <Compile Include="DSP\Tesira\Bridge\JoinMaps\TesiraFaderJoinMap.cs" />
+    <Compile Include="DSP\Tesira\Bridge\JoinMaps\TesiraMeterJoinMap.cs" />
+    <Compile Include="DSP\Tesira\Bridge\JoinMaps\TesiraPresetJoinMap.cs" />
+    <Compile Include="DSP\Tesira\Bridge\JoinMaps\TesiraRoomCombinerJoinMap.cs" />
+    <Compile Include="DSP\Tesira\Bridge\JoinMaps\TesiraStateJoinMap.cs" />
+    <Compile Include="DSP\Tesira\Bridge\JoinMaps\TesiraSwitcherJoinMap.cs" />
+    <Compile Include="DSP\Tesira\DeviceFactory.cs" />
+    <Compile Include="DSP\Tesira\Extensions\ScalingExtensions.cs" />
+    <Compile Include="DSP\Tesira\Extensions\xSigHelper.cs" />
+    <Compile Include="DSP\Tesira\Interfaces\Interfaces.cs" />
+    <Compile Include="DSP\Tesira\SubscriptionTrackingObject.cs" />
+    <Compile Include="DSP\Tesira\TesiraDsp.cs" />
+    <Compile Include="DSP\Tesira\TesiraDspControlPoint.cs" />
+    <Compile Include="DSP\Tesira\TesiraDspCrosspointState.cs" />
+    <Compile Include="DSP\Tesira\TesiraDspDeviceInfo.cs" />
+    <Compile Include="DSP\Tesira\TesiraDspDialer.cs" />
+    <Compile Include="DSP\Tesira\TesiraDspDialerControlPoint.cs" />
+    <Compile Include="DSP\Tesira\TesiraDspFaderControl.cs" />
+    <Compile Include="DSP\Tesira\TesiraDspMeter.cs" />
+    <Compile Include="DSP\Tesira\TesiraDspPreset.cs" />
+    <Compile Include="DSP\Tesira\TesiraDspPropertiesConfig.cs" />
+    <Compile Include="DSP\Tesira\TesiraDspRoomCombiner.cs" />
+    <Compile Include="DSP\Tesira\TesiraDspStateControl.cs" />
+    <Compile Include="DSP\Tesira\TesiraDspSwitcher.cs" />
+    <Compile Include="DSP\Tesira\TesiraQueue.cs" />
+    <Compile Include="DynFusion\AvailableRooms.cs" />
+    <Compile Include="DynFusion\DynFusionAssetOccupancySensor.cs" />
+    <Compile Include="DynFusion\DynFusionAssetOccupancySensorJoinMap.cs" />
+    <Compile Include="DynFusion\DynFusionAttribute.cs" />
+    <Compile Include="DynFusion\DynFusionConfigObjectTemplate.cs" />
+    <Compile Include="DynFusion\DynFusionDevice.cs" />
+    <Compile Include="DynFusion\DynFusionDeviceUsage.cs" />
+    <Compile Include="DynFusion\DynFusionJoinMap.cs" />
+    <Compile Include="DynFusion\DynFusionPluginFactoryTemplate.cs" />
+    <Compile Include="DynFusion\FeedbackExtensions.cs" />
+    <Compile Include="DynFusion\Scheduling.cs" />
+    <Compile Include="DynFusion\SchedulingConfig.cs" />
+    <Compile Include="DynFusion\SchedulingJoinMap.cs" />
+    <Compile Include="DynFusion\XmlExtensions.cs" />
     <Compile Include="ImageProcessors\TVOneCorio.cs" />
     <Compile Include="ImageProcessors\TVOneCorioPropertiesConfig.cs" />
     <Compile Include="Power Controllers\Digitallogger.cs" />

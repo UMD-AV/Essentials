@@ -1,17 +1,17 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
+using Crestron.SimplSharp.Reflection;
+using Crestron.SimplSharpPro.CrestronThread;
 using PepperDash.Core;
 using PepperDash.Essentials.Core;
-using Crestron.SimplSharp.Reflection;
-using Crestron.SimplSharp;
 using PepperDash.Essentials.Devices.Common.Codec;
-using Crestron.SimplSharpPro.CrestronThread;
 
-namespace PepperDash.Essentials.Devices.Common.DSP
+namespace QscQsysDspPlugin
 {
-	public class QscDspDialer : DspDialerBase, IHasDialer
+	/// <summary>
+	/// QSC DSP Dialer class
+	/// </summary>
+	public class QscDspDialer : IHasDialer 
 	{
 		public QscDialerConfig Tags;
 		public bool IsInCall { get; private set; }
@@ -21,27 +21,78 @@ namespace PepperDash.Essentials.Devices.Common.DSP
 		public bool AutoAnswerState { get; private set; }
 		public bool DoNotDisturbState { get; private set; }
 
+		private string _callerIdNumber;
+		public string CallerIdNumber
+		{
+			get
+			{
+				return _callerIdNumber;
+			}
+			set
+			{
+				_callerIdNumber = value;
+				CallerIdNumberFb.FireUpdate();
+			}
+		}
+
+		private bool _incomingCall;
+		public bool IncomingCall
+		{
+			get { return _incomingCall; }
+			set
+			{
+				_incomingCall = value;
+				IncomingCallFeedback.FireUpdate();
+			}
+		}
+
+		public BoolFeedback IncomingCallFeedback;
 		public BoolFeedback OffHookFeedback;
 		public BoolFeedback AutoAnswerFeedback;
 		public BoolFeedback DoNotDisturbFeedback;
 		public StringFeedback DialStringFeedback;
+		public StringFeedback CallerIdNumberFb;
 
-		// Add requirements for Dialer functionality
-
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="Config">configuration object</param>
+		/// <param name="parent">parent dsp instance</param>
 		public QscDspDialer(QscDialerConfig Config, QscDsp parent)
 		{
 			Tags = Config;
 			Parent = parent;
+
+			IncomingCallFeedback = new BoolFeedback(() => { return IncomingCall; });
 			DialStringFeedback = new StringFeedback(() => { return DialString; });
 			OffHookFeedback = new BoolFeedback(() => { return OffHook; });
 			AutoAnswerFeedback = new BoolFeedback(() => { return AutoAnswerState; });
 			DoNotDisturbFeedback = new BoolFeedback(() => { return DoNotDisturbState; });
+			CallerIdNumberFb = new StringFeedback(() => { return CallerIdNumber; });
+		}
+		
+		/// <summary>
+		/// Call status change event
+		/// Interface requires this
+		/// </summary>
+		public event EventHandler<CodecCallStatusItemChangeEventArgs> CallStatusChange;
+		
+		/// <summary>
+		/// Call status event handler
+		/// </summary>
+		/// <param name="args"></param>
+		void OnCallStatusChange(CodecCallStatusItemChangeEventArgs args)
+		{
+			var handler = CallStatusChange;
+			if (handler != null)
+				CallStatusChange(this, args);
 		}
 
-		public event EventHandler<CodecCallStatusItemChangeEventArgs> CallStatusChange;
-	
+		/// <summary>
+		/// Subscription method
+		/// </summary>
 		public void Subscribe()
-        {
+		{
 			try
 			{
 				// Do subscriptions and blah blah
@@ -53,41 +104,39 @@ namespace PepperDash.Essentials.Devices.Common.DSP
 				foreach (var prop in properties)
 				{
 					//var val = prop.GetValue(obj, null);
-
-					
-					Debug.Console(2, "Property {0}, {1}, {2}\n", prop.GetType().Name, prop.Name, prop.PropertyType.FullName);
-					if (prop.Name.Contains("Tag") && !prop.Name.Contains("keypad"))
+                    if (prop.Name.Contains("Tag") && !prop.Name.ToLower().Contains("keypad"))
 					{
 						var propValue = prop.GetValue(Tags, null) as string;
 						Debug.Console(2, "Property {0}, {1}, {2}\n", prop.GetType().Name, prop.Name, propValue);
-						SendSubscriptionCommand(propValue, "1");
+						SendSubscriptionCommand(propValue);
 					}
-
-
 				}
 			}
 			catch (Exception e)
 			{
-				
-					Debug.Console(2, "QscDspDialer Subscription Error: '{0}'\n", e);
+				Debug.Console(2, "QscDspDialer Subscription Error: '{0}'\n", e);
 			}
-			 
- 
+
 			// SendSubscriptionCommand(, "1");
-            // SendSubscriptionCommand(config. , "mute", 500);
-        }
+			// SendSubscriptionCommand(config. , "mute", 500);
+		}
+		
+		/// <summary>
+		/// Parses subscription messages
+		/// </summary>
+		/// <param name="customName"></param>
+		/// <param name="value"></param>
 		public void ParseSubscriptionMessage(string customName, string value)
 		{
-
 			// Check for valid subscription response
 			Debug.Console(1, "QscDialerTag {0} Response: '{1}'", customName, value);
-			if (customName == Tags.dialStringTag)
+			if (customName == Tags.DialStringTag)
 			{
 				Debug.Console(2, "QscDialerTag DialStringChanged ", value);
 				this.DialString = value;
 				this.DialStringFeedback.FireUpdate();
 			}
-			else if (customName == Tags.doNotDisturbTag)
+			else if (customName == Tags.DoNotDisturbTag)
 			{
 				if (value == "on")
 				{
@@ -99,23 +148,56 @@ namespace PepperDash.Essentials.Devices.Common.DSP
 				}
 				DoNotDisturbFeedback.FireUpdate();
 			}
-			else if (customName == Tags.callStatusTag)
+			else if (customName == Tags.CallStatusTag)
 			{
-				if (value == "Dialing")
+				// TODO [ ] Add incoming call/ringing to parse subscription message
+				if (value == "Incoming")
+				{
+					this.IncomingCall = true;
+				}
+				else if (value.Contains("Ringing"))
+				{
+					this.IncomingCall = false;
+					this.OffHook = true;
+					var splitString = value.Split(' ');
+					if (splitString.Count() >= 2)
+					{
+						CallerIdNumber = splitString[1];
+					}
+				}
+				else if (value.Contains("Dialing") || value.Contains("Connected"))
 				{
 					this.OffHook = true;
+					var splitString = value.Split(' ');
+
+					if (splitString.Count() >= 2)
+					{
+						CallerIdNumber = splitString[1];
+					}
 				}
 				else if (value == "Disconnected")
 				{
+					this.IncomingCall = false;
 					this.OffHook = false;
+					CallerIdNumber = "";
 					if (Tags.ClearOnHangup)
 					{
-						this.SendKeypad(eKeypadKeys.Clear);
+						this.SendKeypad(EKeypadKeys.Clear);
+					}
+				}
+				else if (value == "Idle")
+				{
+					this.IncomingCall = false;
+					this.OffHook = false;
+					CallerIdNumber = "";
+					if (Tags.ClearOnHangup)
+					{
+						this.SendKeypad(EKeypadKeys.Clear);
 					}
 				}
 				this.OffHookFeedback.FireUpdate();
 			}
-			else if (customName == Tags.autoAnswerTag)
+			else if (customName == Tags.AutoAnswerTag)
 			{
 				if (value == "on")
 				{
@@ -127,7 +209,7 @@ namespace PepperDash.Essentials.Devices.Common.DSP
 				}
 				AutoAnswerFeedback.FireUpdate();
 			}
-			else if (customName == Tags.hookStatusTag)
+			else if (customName == Tags.HookStatusTag)
 			{
 				if (value == "true")
 				{
@@ -139,116 +221,209 @@ namespace PepperDash.Essentials.Devices.Common.DSP
 				}
 				this.OffHookFeedback.FireUpdate();
 			}
-
-
 		}
-
+		
+		/// <summary>
+		/// Toggles the do not disturb state
+		/// </summary>
 		public void DoNotDisturbToggle()
 		{
 			int dndStateInt = !DoNotDisturbState ? 1 : 0;
-			Parent.SendLine(string.Format("csv {0} {1}", Tags.doNotDisturbTag, dndStateInt));
+			Parent.SendLine(string.Format("csv \"{0}\" {1}", Tags.DoNotDisturbTag, dndStateInt));
 		}
+
+		/// <summary>
+		/// Sets the do not disturb state on
+		/// </summary>
 		public void DoNotDisturbOn()
 		{
-			Parent.SendLine(string.Format("csv {0} 1", Tags.doNotDisturbTag));
+            Parent.SendLine(string.Format("csv \"{0}\" 1", Tags.DoNotDisturbTag));
 		}
+
+		/// <summary>
+		/// Sets the do not disturb state off
+		/// </summary>
 		public void DoNotDisturbOff()
 		{
-			Parent.SendLine(string.Format("csv {0} 0", Tags.doNotDisturbTag));
+            Parent.SendLine(string.Format("csv \"{0}\" 0", Tags.DoNotDisturbTag));
 		}
+
+		/// <summary>
+		/// Toggles the auto answer state
+		/// </summary>
 		public void AutoAnswerToggle()
 		{
 			int autoAnswerStateInt = !AutoAnswerState ? 1 : 0;
-			Parent.SendLine(string.Format("csv {0} {1}", Tags.autoAnswerTag, autoAnswerStateInt));
+            Parent.SendLine(string.Format("csv \"{0}\" {1}", Tags.AutoAnswerTag, autoAnswerStateInt));
 		}
+
+		/// <summary>
+		/// Sets the auto answer state on
+		/// </summary>
 		public void AutoAnswerOn()
 		{
-			Parent.SendLine(string.Format("csv {0} 1", Tags.autoAnswerTag));
+            Parent.SendLine(string.Format("csv \"{0}\" 1", Tags.AutoAnswerTag));
 		}
+
+		/// <summary>
+		/// Sets the auto answer state off
+		/// </summary>
 		public void AutoAnswerOff()
 		{
-			Parent.SendLine(string.Format("csv {0} 0", Tags.autoAnswerTag));
+            Parent.SendLine(string.Format("csv \"{0}\" 0", Tags.AutoAnswerTag));
 		}
 
 		private void PollKeypad()
 		{
 			Thread.Sleep(50);
-			Parent.SendLine(string.Format("cg {0}", Tags.dialStringTag));
+            Parent.SendLine(string.Format("cg \"{0}\"", Tags.DialStringTag));
 		}
 
-		public void SendKeypad(eKeypadKeys button)
+		/// <summary>
+		/// Sends the pressed keypad number
+		/// </summary>
+		/// <param name="button">Button pressed</param>
+		public void SendKeypad(EKeypadKeys button)
 		{
 			string keypadTag = null;
+			// Debug.Console(2, "DIaler {0} SendKeypad {1}", this.ke);
 			switch (button)
 			{
-				case eKeypadKeys.Num0: keypadTag = Tags.keypad0Tag; break;
-				case eKeypadKeys.Num1: keypadTag = Tags.keypad1Tag; break;
-				case eKeypadKeys.Num2: keypadTag = Tags.keypad2Tag; break;
-				case eKeypadKeys.Num3: keypadTag = Tags.keypad3Tag; break;
-				case eKeypadKeys.Num4: keypadTag = Tags.keypad4Tag; break;
-				case eKeypadKeys.Num5: keypadTag = Tags.keypad5Tag; break;
-				case eKeypadKeys.Num6: keypadTag = Tags.keypad6Tag; break;
-				case eKeypadKeys.Num7: keypadTag = Tags.keypad7Tag; break;
-				case eKeypadKeys.Num8: keypadTag = Tags.keypad8Tag; break;
-				case eKeypadKeys.Num9: keypadTag = Tags.keypad9Tag; break;
-				case eKeypadKeys.Pound: keypadTag = Tags.keypadPoundTag; break;
-				case eKeypadKeys.Star: keypadTag = Tags.keypadStarTag; break;
-				case eKeypadKeys.Backspace: keypadTag = Tags.keypadBackspaceTag; break;
-				case eKeypadKeys.Clear: keypadTag = Tags.keypadClearTag; break;
+				case EKeypadKeys.Num0: keypadTag = Tags.Keypad0Tag; break;
+				case EKeypadKeys.Num1: keypadTag = Tags.Keypad1Tag; break;
+				case EKeypadKeys.Num2: keypadTag = Tags.Keypad2Tag; break;
+				case EKeypadKeys.Num3: keypadTag = Tags.Keypad3Tag; break;
+				case EKeypadKeys.Num4: keypadTag = Tags.Keypad4Tag; break;
+				case EKeypadKeys.Num5: keypadTag = Tags.Keypad5Tag; break;
+				case EKeypadKeys.Num6: keypadTag = Tags.Keypad6Tag; break;
+				case EKeypadKeys.Num7: keypadTag = Tags.Keypad7Tag; break;
+				case EKeypadKeys.Num8: keypadTag = Tags.Keypad8Tag; break;
+				case EKeypadKeys.Num9: keypadTag = Tags.Keypad9Tag; break;
+				case EKeypadKeys.Pound: keypadTag = Tags.KeypadPoundTag; break;
+				case EKeypadKeys.Star: keypadTag = Tags.KeypadStarTag; break;
+				case EKeypadKeys.Backspace: keypadTag = Tags.KeypadBackspaceTag; break;
+				case EKeypadKeys.Clear: keypadTag = Tags.KeypadClearTag; break;
 			}
 			if (keypadTag != null)
 			{
-				var cmdToSend = string.Format("ct {0}", keypadTag);
+                var cmdToSend = string.Format("ct \"{0}\"", keypadTag);
 				Parent.SendLine(cmdToSend);
 				PollKeypad();
 			}
 		}
-		public void SendSubscriptionCommand(string instanceTag, string changeGroup)
-        {
-            // Subscription string format: InstanceTag subscribe attributeCode Index1 customName responseRate
-            // Ex: "RoomLevel subscribe level 1 MyRoomLevel 500"
-			
-			var cmd = string.Format("cga {0} {1}", changeGroup, instanceTag);
 
-            Parent.SendLine(cmd);
-        }
+		/// <summary>
+		/// Sends the subscription command using the provided named control and change group
+		/// </summary>
+		/// <param name="instanceTag">Named control/Instance tag</param>
+		/// <param name="changeGroup">Change group ID</param>
+		public void SendSubscriptionCommand(string instanceTag)
+		{
+			// Subscription string format: InstanceTag subscribe attributeCode Index1 customName responseRate
+			// Ex: "RoomLevel subscribe level 1 MyRoomLevel 500"
+
+            var cmd = string.Format("cga 1 \"{0}\"", instanceTag);
+			Parent.SendLine(cmd);
+		}
+
+		/// <summary>
+		/// Toggles the hook state
+		/// </summary>
 		public void Dial()
 		{
-			if (!this.OffHook)
-			{
-				Parent.SendLine(string.Format("ct {0}", Tags.connectTag));
-			}
-			else
-			{
-				Parent.SendLine(string.Format("ct {0}", Tags.disconnectTag));
-			}
+			Parent.SendLine(!this.OffHook
+                ? string.Format("ct \"{0}\"", Tags.ConnectTag)		// !this.OffHook
+                : string.Format("ct \"{0}\"", Tags.DisconnectTag));	// this.OffHook
 			Thread.Sleep(50);
-			Parent.SendLine(string.Format("cg {0}", Tags.callStatusTag));
+            Parent.SendLine(string.Format("cg \"{0}\"", Tags.CallStatusTag));
 		}
+
+		/// <summary>
+		/// Dial overload
+		/// Dials the number provided
+		/// </summary>
+		/// <param name="number">Number to dial</param>
 		public void Dial(string number)
 		{
+			throw new NotImplementedException();
 		}
-		public void EndCall(CodecActiveCallItem activeCall)
+
+		/// <summary>
+		/// Ends the current call with the provided Id
+		/// </summary>		
+		/// <param name="item">Use "", use of CodecActiveCallItem is not implemented</param>
+		public void EndCall(CodecActiveCallItem item)
 		{
+            Parent.SendLine(string.Format("ct \"{0}\"", Tags.DisconnectTag));
 		}
+
+		/// <summary>
+		/// Ends all connectted calls
+		/// </summary>
 		public void EndAllCalls()
 		{
+            Parent.SendLine(string.Format("ct \"{0}\"", Tags.DisconnectTag));
 		}
+
+		/// <summary>
+		/// Accepts incoming call
+		/// </summary>
+		public void AcceptCall()
+		{
+			this.IncomingCall = false;
+            Parent.SendLine(string.Format("ct \"{0}\"", Tags.ConnectTag));
+			Thread.Sleep(50);
+            Parent.SendLine(string.Format("cg \"{0}\"", Tags.HookStatusTag));
+		}
+
+		/// <summary>
+		/// Accepts the incoming call overload
+		/// </summary>
+		/// <param name="item">Use "", use of CodecActiveCallItem is not implemented</param>
 		public void AcceptCall(CodecActiveCallItem item)
 		{
+			this.IncomingCall = false;
+            Parent.SendLine(string.Format("ct \"{0}\"", Tags.ConnectTag));
+			Thread.Sleep(50);
+            Parent.SendLine(string.Format("cg \"{0}\"", Tags.HookStatusTag));
 		}
 
+		/// <summary>
+		/// Rejects the incoming call
+		/// </summary>
+		public void RejectCall()
+		{
+			this.IncomingCall = false;
+            Parent.SendLine(string.Format("ct \"{0}\"", Tags.DisconnectTag));
+			Thread.Sleep(50);
+            Parent.SendLine(string.Format("cg \"{0}\"", Tags.HookStatusTag));
+		}
+
+		/// <summary>
+		/// Rejects the incoming call overload
+		/// </summary>
+		/// <param name="item"></param>
 		public void RejectCall(CodecActiveCallItem item)
 		{
-
+			this.IncomingCall = false;
+            Parent.SendLine(string.Format("ct \"{0}\"", Tags.DisconnectTag));
+			Thread.Sleep(50);
+            Parent.SendLine(string.Format("cg \"{0}\"", Tags.HookStatusTag));
 		}
 
+		/// <summary>
+		/// Sends the DTMF tone of the keypad digit pressed
+		/// </summary>
+		/// <param name="digit">keypad digit pressed as a string</param>
 		public void SendDtmf(string digit)
 		{
-
+			throw new NotImplementedException();
 		}
 
-		public enum eKeypadKeys
+		/// <summary>
+		/// Keypad digits pressed enum
+		/// </summary>
+		public enum EKeypadKeys
 		{
 			Num1,
 			Num2,
@@ -265,6 +440,5 @@ namespace PepperDash.Essentials.Devices.Common.DSP
 			Clear,
 			Backspace
 		}
-
 	}
 }
