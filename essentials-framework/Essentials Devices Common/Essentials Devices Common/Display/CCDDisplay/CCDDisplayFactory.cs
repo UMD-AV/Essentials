@@ -75,7 +75,7 @@ namespace CCDDisplay
                 //    transportType = typeof(IIr);
                 //    break;
                 default:
-                    Debug.Console(0, "[{0}] Factory: transport `{3}` is not supported by current implementation of plugin {1}", dc.Key, dc.Name, propertiesConfig.Transport);
+                    Debug.Console(0, "[{0}] Factory: transport `{2}` is not supported by current implementation of plugin {1}", dc.Key, dc.Name, propertiesConfig.Transport);
                     return null;
             }
 
@@ -92,7 +92,7 @@ namespace CCDDisplay
                 }
                 catch (Exception)
                 {
-                    Debug.Console(0, "[{0}] Factory: loading driver from `{3}` failed for device {1}", dc.Key, dc.Name, propertiesConfig.Driver);
+                    Debug.Console(0, "[{0}] Factory: loading driver from `{2}` failed for device {1}", dc.Key, dc.Name, propertiesConfig.Driver);
                     return null;
                 }
             }
