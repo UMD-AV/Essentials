@@ -297,10 +297,10 @@ namespace QscQsysDspPlugin
             try
             {
                 _volumeDownLock.WaitForMutex();
-                if (_volumeUpCount > 100)
+                if (_volumeDownCount > 100)
                 {
-                    _volumeUpCount = 0;
-                    _volumeUpRepeatTimer.Stop();
+                    _volumeDownCount = 0;
+                    _volumeDownRepeatTimer.Stop();
                 }
                 else if (press)
                 {

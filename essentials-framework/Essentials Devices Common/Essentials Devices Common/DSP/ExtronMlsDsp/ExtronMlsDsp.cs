@@ -11,6 +11,7 @@ using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Bridges;
 using PepperDash.Essentials.Core.Config;
 using PepperDash.Essentials.Core.Devices;
+using Crestron.SimplSharpPro;
 
 namespace ExtronMlsDspPlugin
 {
@@ -19,10 +20,16 @@ namespace ExtronMlsDspPlugin
         private readonly IBasicCommunication _comms;
         private CommunicationGather _gather;
         private GenericCommunicationMonitor _commsMonitor;
-        private bool muteFb = false;
-        private int volumeFb = 0;
-        private bool volumeUpPress = false;
-        private bool volumeDownPress = false;
+        private bool _muteFb;
+        private ushort _volumeFb;
+        CTimer _volumeUpRepeatTimer;
+        CTimer _volumeDownRepeatTimer;
+        CMutex _volumeUpLock;
+        CMutex _volumeDownLock;
+        private ushort _volumeUpCount;
+        private ushort _volumeDownCount;
+        private bool _readyForLevel;
+        CTimer _readyForLevelTimer;
 
         /// <summary>
         /// Online feedback
@@ -54,9 +61,17 @@ namespace ExtronMlsDspPlugin
 			: base(key, name)
 		{
             _comms = comm;
-			_gather = new CommunicationGather(_comms, "\x0d\x0a");
-			_gather.LineReceived += this.Handle_BytesRecieved;
-            _comms.Connect();
+            _muteFb = false;
+            _readyForLevel = false;
+
+            //Set volume up/down controls
+            _volumeDownLock = new CMutex();
+            _volumeUpLock = new CMutex();
+            _volumeUpCount = 0;
+            _volumeDownCount = 0;
+            _volumeUpRepeatTimer = new CTimer(VolumeUpRepeat, Timeout.Infinite);
+            _volumeDownRepeatTimer = new CTimer(VolumeDownRepeat, Timeout.Infinite);
+            _readyForLevelTimer = new CTimer(EnableLevelSend, Timeout.Infinite);
 
 			// Comm monitoring, will poll every 30s.
 			_commsMonitor = new GenericCommunicationMonitor(this, _comms, 30000, 120000, 300000, Poll);
@@ -65,8 +80,12 @@ namespace ExtronMlsDspPlugin
             //Link feedback
             OnlineFeedback = new BoolFeedback(() => _comms.IsConnected);
             MonitorStatusFeedback = new IntFeedback(() => (int)_commsMonitor.Status);
-            MuteFeedback = new BoolFeedback(() => muteFb);
-            VolumeFeedback = new IntFeedback(() => volumeFb);
+            MuteFeedback = new BoolFeedback(() => _muteFb);
+            VolumeFeedback = new IntFeedback(() => _volumeFb);
+
+            _gather = new CommunicationGather(_comms, "\x0d\x0a");
+            _gather.LineReceived += this.Handle_BytesRecieved;
+            _comms.Connect();
 
             _commsMonitor.IsOnlineFeedback.OutputChange += new EventHandler<FeedbackEventArgs>(IsOnlineFeedback_OutputChange);
 		}
@@ -90,6 +109,7 @@ namespace ExtronMlsDspPlugin
 
             //From Simpl to Plugin
             trilist.SetSigTrueAction(joinMap.Presets.JoinNumber + 1, () => DefaultVolume());
+            trilist.SetBoolSigAction(joinMap.EnableLevelSend.JoinNumber, b => SetLevelSend(b));
             
             //Link main volume to channel 1 feedback
 			trilist.StringInput[joinMap.ChannelName.JoinNumber + 1].StringValue = "Main Volume";
@@ -116,6 +136,24 @@ namespace ExtronMlsDspPlugin
             });
         }
 
+        void SetLevelSend(bool b)
+        {
+            if (b == true)
+            {
+                _readyForLevelTimer.Reset(5000);
+            }
+            else
+            {
+                _readyForLevelTimer.Stop();
+                _readyForLevel = false;
+            }
+        }
+
+        void EnableLevelSend(object callbackObject)
+        {
+            _readyForLevel = true;
+        }
+
 		/// <summary>
 		/// Polls the device, should be called by comm monitor only.
 		/// </summary>
@@ -133,16 +171,19 @@ namespace ExtronMlsDspPlugin
 		/// <param name="args"></param>
 		void Handle_BytesRecieved(object dev, GenericCommMethodReceiveTextArgs args)
 		{
-			Debug.Console(2, this, "RX: '{0}'", args.Text);
+			Debug.Console(1, this, "Extron Mls RX: '{0}'", args.Text);
 			try
 			{
 				if (args.Text.Contains("Vol"))
 				{
                     //Get number after Vol, for example 013 if return is Vol013
                     int start = args.Text.IndexOf("Vol") + 3;
-                    int vol = int.Parse(args.Text.Substring(start, args.Text.Length - start));
-                    volumeFb = vol;
-                    VolumeFeedback.FireUpdate();
+                    ushort volRaw = ushort.Parse(args.Text.Substring(start, 3));
+                    if (volRaw >= 0 && volRaw <= 100)
+                    {
+                        _volumeFb = (ushort)(volRaw * ushort.MaxValue / 100);
+                        VolumeFeedback.FireUpdate();
+                    }
 				}
 
                 else if (args.Text.Contains("Amt"))
@@ -150,12 +191,12 @@ namespace ExtronMlsDspPlugin
                     //Found mute feedback text
                     if(args.Text.Contains("Amt0"))
                     {
-                        muteFb = false;
+                        _muteFb = false;
                         MuteFeedback.FireUpdate();
                     }
                     else if (args.Text.Contains("Amt1"))
                     {
-                        muteFb = true;
+                        _muteFb = true;
                         MuteFeedback.FireUpdate();
                     }
                 }
@@ -165,7 +206,6 @@ namespace ExtronMlsDspPlugin
 				if (Debug.Level == 2)
 					Debug.Console(2, this, "Error parsing response: '{0}'\n{1}", args.Text, e);
 			}
-
 		}
 
         void IsOnlineFeedback_OutputChange(object dev, FeedbackEventArgs args)
@@ -190,7 +230,7 @@ namespace ExtronMlsDspPlugin
 		/// <param name="s">Command to send</param>
 		public void SendText(string s)
 		{
-			Debug.Console(1, this, "TX: '{0}'", s);
+            Debug.Console(1, this, "Extron Mls TX: '{0}'", s);
 			_comms.SendText(s);
 		}
 
@@ -201,37 +241,119 @@ namespace ExtronMlsDspPlugin
 
         public void SetVolume(ushort vol)
         {
-            int scaledVol = vol * 100 / ushort.MaxValue;
-            SendText(string.Format("{0}V", scaledVol));
-        }
-
-        public void VolumeUp(bool press)
-        {
-            volumeUpPress = press;
-            ushort count = 0;
-            while (volumeUpPress && count < 100)
+            if (_readyForLevel)
             {
-                SendText("+V");
-                count++;
-                CrestronEnvironment.Sleep(50);
+                if (_muteFb)
+                {
+                    MuteOff();
+                }
+                int scaledVol = vol * 100 / ushort.MaxValue;
+                SendText(string.Format("{0}V", scaledVol));
             }
         }
 
+
+        /// <summary>
+        /// Increments volume level
+        /// </summary>
+        /// <param name="callbackObject"></param>
+        public void VolumeUpRepeat(object callbackObject)
+        {
+            this.VolumeUp(_volumeUpCount > 0);
+        }
+
+        /// <summary>
+        /// Decrements volume level
+        /// </summary>
+        /// <param name="callbackObject"></param>
+        public void VolumeDownRepeat(object callbackObject)
+        {
+            this.VolumeDown(_volumeDownCount > 0);
+        }
+
+        /// <summary>
+        /// Decrements volume level
+        /// </summary>
+        /// <param name="press"></param>
         public void VolumeDown(bool press)
         {
-            volumeDownPress = press;
-            ushort count = 0;
-            while (volumeDownPress && count < 100)
+            try
             {
-                SendText("-V");
-                count++;
-                CrestronEnvironment.Sleep(50);
+                _volumeDownLock.WaitForMutex();
+                if (_volumeDownCount > 100)
+                {
+                    _volumeDownCount = 0;
+                    _volumeDownRepeatTimer.Stop();
+                }
+                else if (press)
+                {
+                    if (_muteFb)
+                    {
+                        MuteOff();
+                    }
+                    _volumeDownCount++;
+                    SendText("-V");
+                    _volumeDownRepeatTimer.Reset(50);
+                }
+                else
+                {
+                    _volumeDownCount = 0;
+                    _volumeDownRepeatTimer.Stop();
+                }
+            }
+            catch (Exception ex)
+            {
+                ErrorLog.Exception("Extron Mls Dsp Exception in VolumeDown: ", ex);
+            }
+            finally
+            {
+                _volumeDownLock.ReleaseMutex();
+            }
+        }
+
+        /// <summary>
+        /// Increments volume level
+        /// </summary>
+        /// <param name="press"></param>
+        public void VolumeUp(bool press)
+        {
+            try
+            {
+                _volumeUpLock.WaitForMutex();
+                if (_volumeUpCount > 100)
+                {
+                    _volumeUpCount = 0;
+                    _volumeUpRepeatTimer.Stop();
+                }
+                else if (press)
+                {
+                    if (_muteFb)
+                    {
+                        MuteOff();
+                    }
+                    _volumeUpCount++;
+                    SendText("+V");
+                    _volumeUpRepeatTimer.Reset(50);
+                }
+                else
+                {
+                    _volumeUpCount = 0;
+                    _volumeUpRepeatTimer.Stop();
+                }
+            }
+            catch (Exception ex)
+            {
+                ErrorLog.Exception("Extron Mls Dsp Exception in VolumeUp: ", ex);
+            }
+            finally
+            {
+                _volumeUpLock.ReleaseMutex();
             }
         }
 
         public void MuteToggle()
         {
-            if (muteFb == true)
+            if (_muteFb == true)
             {
                 MuteOff();
             }
