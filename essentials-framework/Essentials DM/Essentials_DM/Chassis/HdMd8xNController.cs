@@ -18,7 +18,7 @@ using PepperDash.Essentials.Core.Config;
 namespace PepperDash.Essentials.DM.Chassis
 {
 	[Description("Wrapper class for all HdMd8xN switchers")]
-	public class HdMd8xNBridgeableController : CrestronGenericBridgeableBaseDevice, IRoutingNumericWithFeedback, IHasFeedback
+	public class HdMd8xNController : CrestronGenericBridgeableBaseDevice, IRoutingNumericWithFeedback, IHasFeedback
 	{
 		private HdMd8xN _Chassis;
 
@@ -32,15 +32,17 @@ namespace PepperDash.Essentials.DM.Chassis
 
 		public FeedbackCollection<BoolFeedback> VideoInputSyncFeedbacks { get; private set; }
 		public FeedbackCollection<IntFeedback> VideoOutputRouteFeedbacks { get; private set; }
+        public FeedbackCollection<IntFeedback> AudioOutputRouteFeedbacks { get; private set; }
 		public FeedbackCollection<StringFeedback> InputNameFeedbacks { get; private set; }
 		public FeedbackCollection<StringFeedback> OutputNameFeedbacks { get; private set; }
-		public FeedbackCollection<StringFeedback> OutputRouteNameFeedbacks { get; private set; }
+		public FeedbackCollection<StringFeedback> OutputVideoRouteNameFeedbacks { get; private set; }
+        public FeedbackCollection<StringFeedback> OutputAudioRouteNameFeedbacks { get; private set; }
 		public StringFeedback DeviceNameFeedback { get; private set; }
 
 		#region Constructor
 
-		public HdMd8xNBridgeableController(string key, string name, HdMd8xN chassis,
-            HdMdNxM4kEBridgeablePropertiesConfig props)
+		public HdMd8xNController(string key, string name, HdMd8xN chassis,
+            DMChassisPropertiesConfig props)
 			: base(key, name, chassis)
 		{
 			_Chassis = chassis;
@@ -49,29 +51,30 @@ namespace PepperDash.Essentials.DM.Chassis
 
 			if (props == null)
 			{
-				Debug.Console(1, this, "HdMd8xNBridgeableController properties are null, failed to build the device");
+				Debug.Console(1, this, "HdMd8xNController properties are null, failed to build the device");
 				return;
 			}
-			if (props.Inputs != null)
+			if (props.InputNames != null)
 			{
-				InputNames = props.Inputs;
+				InputNames = props.InputNames;
 			}
-			if (props.Outputs != null)
+			if (props.OutputNames != null)
 			{
-				OutputNames = props.Outputs;
+				OutputNames = props.OutputNames;
 			}
 
             DeviceNameFeedback = new StringFeedback(()=>Name);		    
 
 			VideoInputSyncFeedbacks = new FeedbackCollection<BoolFeedback>();
 			VideoOutputRouteFeedbacks = new FeedbackCollection<IntFeedback>();
+            AudioOutputRouteFeedbacks = new FeedbackCollection<IntFeedback>();
 			InputNameFeedbacks = new FeedbackCollection<StringFeedback>();
 			OutputNameFeedbacks = new FeedbackCollection<StringFeedback>();
-			OutputRouteNameFeedbacks = new FeedbackCollection<StringFeedback>();
+			OutputVideoRouteNameFeedbacks = new FeedbackCollection<StringFeedback>();
+            OutputAudioRouteNameFeedbacks = new FeedbackCollection<StringFeedback>();
 
 			InputPorts = new RoutingPortCollection<RoutingInputPort>();
 			OutputPorts = new RoutingPortCollection<RoutingOutputPort>();
-
 
             //Inputs - should always be 8 audio/video inputs
 			for (uint i = 1; i <= _Chassis.NumberOfInputs; i++)
@@ -97,21 +100,27 @@ namespace PepperDash.Essentials.DM.Chassis
 			}
 
             //Outputs. Either 2 outputs (1 audio, 1 audio/video) for HD-MD8x1 or 4 outputs (2 audio, 2 audio/video) for HD-MD8x2
-            if (_Chassis.SwitchType == Switch.eDmSwitch.HdMd8x1)
+            for (uint i = 1; i <= _Chassis.NumberOfOutputs; i++)
             {
-                CreateAvOutput(1);
-                CreateAudioOutput(2);
-            }
-            else if (_Chassis.SwitchType == Switch.eDmSwitch.HdMd8x2)
-            {
-                CreateAvOutput(1);
-                CreateAvOutput(2);
-                CreateAudioOutput(3);
-                CreateAudioOutput(4);
-            }
-            else
-            {
-                ErrorLog.Error("Error creating HD-MD8xN Chassis, switch type does not match HdMd8x1 or HdMd8x2");
+                try
+                {
+                    var index = i;
+                    string outputName = OutputNames.ContainsKey(index) ? OutputNames[index] : string.Format("Output{0}", index);
+                    OutputPorts.Add(new RoutingOutputPort(OutputNames[index], eRoutingSignalType.AudioVideo,
+                        eRoutingPortConnectionType.Hdmi, _Chassis.Outputs[index], this)
+                    {
+                        FeedbackMatchObject = _Chassis.Outputs[index]
+                    });
+                    VideoOutputRouteFeedbacks.Add(new IntFeedback(outputName, () => _Chassis.Outputs[index].VideoOutFeedback == null ? 0 : (int)_Chassis.Outputs[index].VideoOutFeedback.Number));
+                    AudioOutputRouteFeedbacks.Add(new IntFeedback(outputName, () => _Chassis.Outputs[index].AudioOutFeedback == null ? 0 : (int)_Chassis.Outputs[index].AudioOutFeedback.Number));
+                    OutputNameFeedbacks.Add(new StringFeedback(outputName, () => OutputNames[index]));
+                    OutputVideoRouteNameFeedbacks.Add(new StringFeedback(outputName, () => _Chassis.Outputs[index].VideoOutFeedback.NameFeedback.StringValue));
+                    OutputAudioRouteNameFeedbacks.Add(new StringFeedback(outputName, () => _Chassis.Outputs[index].AudioOutFeedback.NameFeedback.StringValue));
+                }
+                catch (Exception ex)
+                {
+                    ErrorLog.Error("Exception creating output {0} on HD-MD8xN Chassis: {1}", i, ex);
+                }
             }
 
 			_Chassis.DMInputChange += Chassis_DMInputChange;
@@ -119,32 +128,6 @@ namespace PepperDash.Essentials.DM.Chassis
 
 			AddPostActivationAction(AddFeedbackCollections);
 		}
-
-        private void CreateAvOutput(ushort index)
-        {
-            string outputName = OutputNames.ContainsKey(index) ? OutputNames[index] : string.Format("Output{0}", index);
-            OutputPorts.Add(new RoutingOutputPort(OutputNames[index], eRoutingSignalType.AudioVideo,
-                eRoutingPortConnectionType.Hdmi, _Chassis.Outputs[index], this)
-            {
-                FeedbackMatchObject = _Chassis.Outputs[index]
-            });
-            VideoOutputRouteFeedbacks.Add(new IntFeedback(outputName, () => _Chassis.Outputs[index].VideoOutFeedback == null ? 0 : (int)_Chassis.Outputs[index].VideoOutFeedback.Number));
-            OutputNameFeedbacks.Add(new StringFeedback(outputName, () => OutputNames[index]));
-            OutputRouteNameFeedbacks.Add(new StringFeedback(outputName, () => _Chassis.Outputs[index].VideoOutFeedback.NameFeedback.StringValue));
-        }
-
-        private void CreateAudioOutput(ushort index)
-        {
-            string outputName = OutputNames.ContainsKey(index) ? OutputNames[index] : string.Format("Output{0}", index);
-            OutputPorts.Add(new RoutingOutputPort(OutputNames[index], eRoutingSignalType.Audio,
-                eRoutingPortConnectionType.LineAudio, _Chassis.Outputs[index], this)
-            {
-                FeedbackMatchObject = _Chassis.Outputs[index]
-            });
-            VideoOutputRouteFeedbacks.Add(new IntFeedback(outputName, () => _Chassis.Outputs[index].AudioOutFeedback == null ? 0 : (int)_Chassis.Outputs[index].AudioOutFeedback.Number));
-            OutputNameFeedbacks.Add(new StringFeedback(outputName, () => OutputNames[index]));
-            OutputRouteNameFeedbacks.Add(new StringFeedback(outputName, () => _Chassis.Outputs[index].AudioOutFeedback.NameFeedback.StringValue));
-        }
 		#endregion
 
 		#region Methods
@@ -165,8 +148,8 @@ namespace PepperDash.Essentials.DM.Chassis
 		{
             AddFeedbackToList(DeviceNameFeedback);
 			AddCollectionsToList(VideoInputSyncFeedbacks);
-			AddCollectionsToList(VideoOutputRouteFeedbacks);
-			AddCollectionsToList(InputNameFeedbacks, OutputNameFeedbacks, OutputRouteNameFeedbacks);
+            AddCollectionsToList(VideoOutputRouteFeedbacks, AudioOutputRouteFeedbacks);
+            AddCollectionsToList(InputNameFeedbacks, OutputNameFeedbacks, OutputVideoRouteNameFeedbacks, OutputAudioRouteNameFeedbacks);
 		}
 
 		#endregion
@@ -260,7 +243,7 @@ namespace PepperDash.Essentials.DM.Chassis
 
 		    if (output == null)
 		    {
-		        Debug.Console(0, this, "Unable to make switch. output selector is not DMOutput");
+		        Debug.Console(0, this, "Unable to make switch. Output selector is not DMOutput");
 		        return;
 		    }
 
@@ -305,12 +288,12 @@ namespace PepperDash.Essentials.DM.Chassis
 
 		public override void LinkToApi(BasicTriList trilist, uint joinStart, string joinMapKey, EiscApiAdvanced bridge)
 		{
-			var joinMap = new HdMdNxM4kEControllerJoinMap(joinStart);
+			var joinMap = new DmChassisControllerJoinMap(joinStart);
 
 			var joinMapSerialized = JoinMapHelper.GetSerializedJoinMapForDevice(joinMapKey);
 
 			if (!string.IsNullOrEmpty(joinMapSerialized))
-                joinMap = JsonConvert.DeserializeObject<HdMdNxM4kEControllerJoinMap>(joinMapSerialized);
+                joinMap = JsonConvert.DeserializeObject<DmChassisControllerJoinMap>(joinMapSerialized);
 
 			if (bridge != null)
 			{
@@ -322,17 +305,16 @@ namespace PepperDash.Essentials.DM.Chassis
 			}
 
 			IsOnline.LinkInputSig(trilist.BooleanInput[joinMap.IsOnline.JoinNumber]);
-			DeviceNameFeedback.LinkInputSig(trilist.StringInput[joinMap.Name.JoinNumber]);
 
 			for (uint i = 1; i <= _Chassis.NumberOfInputs; i++)
 			{
 				var joinIndex = i - 1;
 			    var input = i;
 				//Digital
-				VideoInputSyncFeedbacks[InputNames[input]].LinkInputSig(trilist.BooleanInput[joinMap.InputSync.JoinNumber + joinIndex]);
+				VideoInputSyncFeedbacks[InputNames[input]].LinkInputSig(trilist.BooleanInput[joinMap.VideoSyncStatus.JoinNumber + joinIndex]);
 
 				//Serial                
-				InputNameFeedbacks[InputNames[input]].LinkInputSig(trilist.StringInput[joinMap.InputName.JoinNumber + joinIndex]);                
+				InputNameFeedbacks[InputNames[input]].LinkInputSig(trilist.StringInput[joinMap.InputNames.JoinNumber + joinIndex]);                
 			}
 
 			for (uint i = 1; i <= _Chassis.NumberOfOutputs; i++)
@@ -340,12 +322,15 @@ namespace PepperDash.Essentials.DM.Chassis
 				var joinIndex = i - 1;
 			    var output = i;
 				//Analog
-				VideoOutputRouteFeedbacks[OutputNames[output]].LinkInputSig(trilist.UShortInput[joinMap.OutputRoute.JoinNumber + joinIndex]);
-				trilist.SetUShortSigAction(joinMap.OutputRoute.JoinNumber + joinIndex, (a) => ExecuteNumericSwitch(a, (ushort) output, eRoutingSignalType.AudioVideo));
+				VideoOutputRouteFeedbacks[OutputNames[output]].LinkInputSig(trilist.UShortInput[joinMap.OutputVideo.JoinNumber + joinIndex]);
+				trilist.SetUShortSigAction(joinMap.OutputVideo.JoinNumber + joinIndex, (a) => ExecuteNumericSwitch(a, (ushort) output, eRoutingSignalType.Video));
+                AudioOutputRouteFeedbacks[OutputNames[output]].LinkInputSig(trilist.UShortInput[joinMap.OutputAudio.JoinNumber + joinIndex]);
+                trilist.SetUShortSigAction(joinMap.OutputAudio.JoinNumber + joinIndex, (a) => ExecuteNumericSwitch(a, (ushort)output, eRoutingSignalType.Audio));
 
 				//Serial
-				OutputNameFeedbacks[OutputNames[output]].LinkInputSig(trilist.StringInput[joinMap.OutputName.JoinNumber + joinIndex]);
-				OutputRouteNameFeedbacks[OutputNames[output]].LinkInputSig(trilist.StringInput[joinMap.OutputRoutedName.JoinNumber + joinIndex]);
+				OutputNameFeedbacks[OutputNames[output]].LinkInputSig(trilist.StringInput[joinMap.OutputNames.JoinNumber + joinIndex]);
+				OutputVideoRouteNameFeedbacks[OutputNames[output]].LinkInputSig(trilist.StringInput[joinMap.OutputCurrentVideoInputNames.JoinNumber + joinIndex]);
+                OutputAudioRouteNameFeedbacks[OutputNames[output]].LinkInputSig(trilist.StringInput[joinMap.OutputCurrentAudioInputNames.JoinNumber + joinIndex]);
 			}
 
 			_Chassis.OnlineStatusChange += Chassis_OnlineStatusChange;
@@ -437,7 +422,7 @@ namespace PepperDash.Essentials.DM.Chassis
 
 		#region Factory
 
-		public class HdMd8xNControllerFactory : EssentialsDeviceFactory<HdMd8xNBridgeableController>
+		public class HdMd8xNControllerFactory : EssentialsDeviceFactory<HdMd8xNController>
 		{
 			public HdMd8xNControllerFactory()
 			{
@@ -448,7 +433,7 @@ namespace PepperDash.Essentials.DM.Chassis
 			{
 				Debug.Console(1, "Factory Attempting to create new HD-MD-8xN Device");
 
-                var props = JsonConvert.DeserializeObject<HdMdNxM4kEBridgeablePropertiesConfig>(dc.Properties.ToString());
+                var props = JsonConvert.DeserializeObject<DMChassisPropertiesConfig>(dc.Properties.ToString());
 
 				var type = dc.Type.ToLower();
 				var control = props.Control;
@@ -457,9 +442,9 @@ namespace PepperDash.Essentials.DM.Chassis
 				switch (type)
 				{
 					case ("hdmd8x2"):
-						return new HdMd8xNBridgeableController(dc.Key, dc.Name, new HdMd8x2(ipid, Global.ControlSystem), props);
+						return new HdMd8xNController(dc.Key, dc.Name, new HdMd8x2(ipid, Global.ControlSystem), props);
 					case ("hdmd8x1"):
-						return new HdMd8xNBridgeableController(dc.Key, dc.Name, new HdMd8x1(ipid, Global.ControlSystem), props);
+						return new HdMd8xNController(dc.Key, dc.Name, new HdMd8x1(ipid, Global.ControlSystem), props);
 					default:
 						return null;
 				}
