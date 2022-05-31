@@ -36,7 +36,6 @@ namespace PepperDash.Essentials.DM.Chassis
 		public FeedbackCollection<StringFeedback> OutputNameFeedbacks { get; private set; }
 		public FeedbackCollection<StringFeedback> OutputRouteNameFeedbacks { get; private set; }
 		public StringFeedback DeviceNameFeedback { get; private set; }
-        public BoolFeedback AutoRouteFeedback { get; private set; }
 
 		#region Constructor
 
@@ -46,6 +45,7 @@ namespace PepperDash.Essentials.DM.Chassis
 		{
 			_Chassis = chassis;
 		    Name = name;
+            _Chassis.EnableAudioBreakaway.BoolValue = true;
 
 			if (props == null)
 			{
@@ -72,36 +72,47 @@ namespace PepperDash.Essentials.DM.Chassis
 			InputPorts = new RoutingPortCollection<RoutingInputPort>();
 			OutputPorts = new RoutingPortCollection<RoutingOutputPort>();
 
+
+            //Inputs - should always be 8 audio/video inputs
 			for (uint i = 1; i <= _Chassis.NumberOfInputs; i++)
 			{
-				var index = i;
-				var inputName = InputNames[index];
-			    _Chassis.Inputs[index].Name.StringValue = inputName;
+                try
+                {
+                    var index = i;
+                    string inputName = InputNames.ContainsKey(index) ? InputNames[index] : string.Format("Input{0}", index);
+                    _Chassis.Inputs[index].Name.StringValue = inputName;
 
-				InputPorts.Add(new RoutingInputPort(inputName, eRoutingSignalType.AudioVideo,
-					eRoutingPortConnectionType.Hdmi, _Chassis.Inputs[index], this)
-				{
-					FeedbackMatchObject = _Chassis.Inputs[index]
-				});
-				VideoInputSyncFeedbacks.Add(new BoolFeedback(inputName, () => _Chassis.Inputs[index].VideoDetectedFeedback.BoolValue));
-                InputNameFeedbacks.Add(new StringFeedback(inputName, () => InputNames[index]));
-
+                    InputPorts.Add(new RoutingInputPort(inputName, eRoutingSignalType.AudioVideo,
+                        eRoutingPortConnectionType.Hdmi, _Chassis.Inputs[index], this)
+                    {
+                        FeedbackMatchObject = _Chassis.Inputs[index]
+                    });
+                    VideoInputSyncFeedbacks.Add(new BoolFeedback(inputName, () => _Chassis.Inputs[index].VideoDetectedFeedback.BoolValue));
+                    InputNameFeedbacks.Add(new StringFeedback(inputName, () => InputNames[index]));
+                }
+                catch (Exception ex)
+                {
+                    ErrorLog.Error("Exception creating input {0} on HD-MD8xN Chassis: {1}", i, ex);
+                }
 			}
 
-			for (uint i = 1; i <= _Chassis.NumberOfOutputs; i++)
-			{
-				var index = i;
-				var outputName = OutputNames[index];
-
-				OutputPorts.Add(new RoutingOutputPort(outputName, eRoutingSignalType.AudioVideo,
-					eRoutingPortConnectionType.Hdmi, _Chassis.Outputs[index], this)
-				{
-					FeedbackMatchObject = _Chassis.Outputs[index]
-				});
-				VideoOutputRouteFeedbacks.Add(new IntFeedback(outputName, () => _Chassis.Outputs[index].VideoOutFeedback == null ? 0 : (int)_Chassis.Outputs[index].VideoOutFeedback.Number));
-				OutputNameFeedbacks.Add(new StringFeedback(outputName, () => OutputNames[index]));
-				OutputRouteNameFeedbacks.Add(new StringFeedback(outputName, () => _Chassis.Outputs[index].VideoOutFeedback.NameFeedback.StringValue));
-			}
+            //Outputs. Either 2 outputs (1 audio, 1 audio/video) for HD-MD8x1 or 4 outputs (2 audio, 2 audio/video) for HD-MD8x2
+            if (_Chassis.SwitchType == Switch.eDmSwitch.HdMd8x1)
+            {
+                CreateAvOutput(1);
+                CreateAudioOutput(2);
+            }
+            else if (_Chassis.SwitchType == Switch.eDmSwitch.HdMd8x2)
+            {
+                CreateAvOutput(1);
+                CreateAvOutput(2);
+                CreateAudioOutput(3);
+                CreateAudioOutput(4);
+            }
+            else
+            {
+                ErrorLog.Error("Error creating HD-MD8xN Chassis, switch type does not match HdMd8x1 or HdMd8x2");
+            }
 
 			_Chassis.DMInputChange += Chassis_DMInputChange;
 			_Chassis.DMOutputChange += Chassis_DMOutputChange;
@@ -109,6 +120,31 @@ namespace PepperDash.Essentials.DM.Chassis
 			AddPostActivationAction(AddFeedbackCollections);
 		}
 
+        private void CreateAvOutput(ushort index)
+        {
+            string outputName = OutputNames.ContainsKey(index) ? OutputNames[index] : string.Format("Output{0}", index);
+            OutputPorts.Add(new RoutingOutputPort(OutputNames[index], eRoutingSignalType.AudioVideo,
+                eRoutingPortConnectionType.Hdmi, _Chassis.Outputs[index], this)
+            {
+                FeedbackMatchObject = _Chassis.Outputs[index]
+            });
+            VideoOutputRouteFeedbacks.Add(new IntFeedback(outputName, () => _Chassis.Outputs[index].VideoOutFeedback == null ? 0 : (int)_Chassis.Outputs[index].VideoOutFeedback.Number));
+            OutputNameFeedbacks.Add(new StringFeedback(outputName, () => OutputNames[index]));
+            OutputRouteNameFeedbacks.Add(new StringFeedback(outputName, () => _Chassis.Outputs[index].VideoOutFeedback.NameFeedback.StringValue));
+        }
+
+        private void CreateAudioOutput(ushort index)
+        {
+            string outputName = OutputNames.ContainsKey(index) ? OutputNames[index] : string.Format("Output{0}", index);
+            OutputPorts.Add(new RoutingOutputPort(OutputNames[index], eRoutingSignalType.Audio,
+                eRoutingPortConnectionType.LineAudio, _Chassis.Outputs[index], this)
+            {
+                FeedbackMatchObject = _Chassis.Outputs[index]
+            });
+            VideoOutputRouteFeedbacks.Add(new IntFeedback(outputName, () => _Chassis.Outputs[index].AudioOutFeedback == null ? 0 : (int)_Chassis.Outputs[index].AudioOutFeedback.Number));
+            OutputNameFeedbacks.Add(new StringFeedback(outputName, () => OutputNames[index]));
+            OutputRouteNameFeedbacks.Add(new StringFeedback(outputName, () => _Chassis.Outputs[index].AudioOutFeedback.NameFeedback.StringValue));
+        }
 		#endregion
 
 		#region Methods
