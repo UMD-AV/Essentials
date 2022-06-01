@@ -306,6 +306,8 @@ namespace PepperDash.Essentials.DM.Chassis
 
 			IsOnline.LinkInputSig(trilist.BooleanInput[joinMap.IsOnline.JoinNumber]);
 
+            trilist.StringInput[joinMap.Name.JoinNumber].StringValue = "HD-MD Switcher";
+
 			for (uint i = 1; i <= _Chassis.NumberOfInputs; i++)
 			{
 				var joinIndex = i - 1;
