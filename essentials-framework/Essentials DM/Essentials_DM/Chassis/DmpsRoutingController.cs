@@ -27,9 +27,6 @@ namespace PepperDash.Essentials.DM
         public ISystemControl SystemControl { get; private set; }
         public bool? EnableRouting { get; private set; }
 
-        //Check if DMPS is a DMPS3-4K type for endpoint creation
-        public bool Dmps4kType { get; private set; }
-
         //IroutingNumericEvent
         public event EventHandler<RoutingNumericEventArgs> NumericSwitchChange;
 
@@ -130,7 +127,6 @@ namespace PepperDash.Essentials.DM
             {
                 case eSystemControlType.Dmps34K150CSystemControl:
                     SystemControl = systemControl as Dmps34K150CSystemControl;
-                    Dmps4kType = true;
                     SystemPowerOnFeedback = new BoolFeedback(() => { return true; });
                     SystemPowerOffFeedback = new BoolFeedback(() => { return false; });
                     break;
@@ -139,13 +135,11 @@ namespace PepperDash.Essentials.DM
                 case eSystemControlType.Dmps34K300CSystemControl:
                 case eSystemControlType.Dmps34K350CSystemControl:
                     SystemControl = systemControl as Dmps34K300CSystemControl;
-                    Dmps4kType = true;
                     SystemPowerOnFeedback = new BoolFeedback(() => { return true; });
                     SystemPowerOffFeedback = new BoolFeedback(() => { return false; });
                     break;
                 default:
                     SystemControl = systemControl as Dmps3SystemControl;
-                    Dmps4kType = false;
                     SystemPowerOnFeedback = new BoolFeedback(() =>
                     {
                         return ((Dmps3SystemControl)SystemControl).SystemPowerOnFeedBack.BoolValue;
@@ -156,7 +150,7 @@ namespace PepperDash.Essentials.DM
                     });
                     break;
             }
-            Debug.Console(1, this, "DMPS Type = {0}, 4K Type = {1}", systemControl.SystemControlType, Dmps4kType);
+            Debug.Console(1, this, "DMPS Type = {0}, 4K Type = {1}", systemControl.SystemControlType, Global.ControlSystemIsDmps4kType);
 
             InputPorts = new RoutingPortCollection<RoutingInputPort>();
             OutputPorts = new RoutingPortCollection<RoutingOutputPort>();
@@ -406,7 +400,7 @@ namespace PepperDash.Essentials.DM
 
         private void LinkInputsToApi(BasicTriList trilist, DmpsRoutingControllerJoinMap joinMap)
         {
-            if (Dmps4kType)
+            if (Global.ControlSystemIsDmps4kType)
             {
                 //DMPS-4K audio inputs 1-5 are aux inputs
                 for (uint i = 1; i <= 5; i++)
@@ -432,7 +426,7 @@ namespace PepperDash.Essentials.DM
                     InputNameFeedbacks[ioSlot].LinkInputSig(trilist.StringInput[joinMap.InputNames.JoinNumber + ioSlotJoin]);
                     InputNameFeedbacks[ioSlot].LinkInputSig(trilist.StringInput[joinMap.InputVideoNames.JoinNumber + ioSlotJoin]);
 
-                    if (Dmps4kType)
+                    if (Global.ControlSystemIsDmps4kType)
                     {
                         //DMPS-4K Audio Inputs are offset by 5
                         InputNameFeedbacks[ioSlot].LinkInputSig(trilist.StringInput[joinMap.InputAudioNames.JoinNumber + ioSlotJoin + 5]);
@@ -858,6 +852,7 @@ namespace PepperDash.Essentials.DM
 
         void Dmps_DMInputChange(Switch device, DMInputEventArgs args)
         {
+            Debug.Console(2, this, "DMInputChange Input: {0} EventId: {1}", args.Number, args.EventId.ToString());
             try
             {
                 switch (args.EventId)
@@ -865,6 +860,12 @@ namespace PepperDash.Essentials.DM
                     case (DMInputEventIds.OnlineFeedbackEventId):
                         {
                             Debug.Console(2, this, "DM Input OnlineFeedbackEventId for input: {0}. State: {1}", args.Number, device.Inputs[args.Number].EndpointOnlineFeedback);
+                            InputEndpointOnlineFeedbacks[args.Number].FireUpdate();
+                            break;
+                        }
+                    case (DMInputEventIds.EndpointOnlineEventId):
+                        {
+                            Debug.Console(2, this, "DM Input EndpointOnlineEventId for input: {0}. State: {1}", args.Number, device.Inputs[args.Number].EndpointOnlineFeedback);
                             InputEndpointOnlineFeedbacks[args.Number].FireUpdate();
                             break;
                         }
@@ -909,6 +910,11 @@ namespace PepperDash.Essentials.DM
                 VolumeControls[args.Number].VolumeEventFromChassis();
             }
             else if (args.EventId == DMOutputEventIds.OnlineFeedbackEventId
+                && OutputEndpointOnlineFeedbacks.ContainsKey(output))
+            {
+                OutputEndpointOnlineFeedbacks[output].FireUpdate();
+            }
+            else if (args.EventId == DMOutputEventIds.EndpointOnlineEventId
                 && OutputEndpointOnlineFeedbacks.ContainsKey(output))
             {
                 OutputEndpointOnlineFeedbacks[output].FireUpdate();

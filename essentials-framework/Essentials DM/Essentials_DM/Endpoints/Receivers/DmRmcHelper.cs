@@ -330,7 +330,7 @@ namespace PepperDash.Essentials.DM
 	        var parentDev = DeviceManager.GetDeviceForKey(pKey);
 	        if (parentDev is DmpsRoutingController)
 	        {
-                if ((parentDev as DmpsRoutingController).Dmps4kType)
+                if (Global.ControlSystemIsDmps4kType)
                 {
                     return GetDmRmcControllerForDmps4k(key, name, typeName, parentDev as DmpsRoutingController, props.ParentOutputNumber);
                 }
