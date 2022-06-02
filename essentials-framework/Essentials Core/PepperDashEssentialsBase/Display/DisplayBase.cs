@@ -144,7 +144,7 @@ namespace PepperDash.Essentials.Core
             {
                 trilist.SetBool(joinMap.IsTwoWayDisplay.JoinNumber, true);
 
-                twoWayDisplay.CurrentInputFeedback.OutputChange += (o, a) => Debug.Console(0, "CurrentInputFeedback_OutputChange {0}", a.StringValue);
+                twoWayDisplay.CurrentInputFeedback.OutputChange += (o, a) => Debug.Console(1, "CurrentInputFeedback_OutputChange {0}", a.StringValue);
 
 
                 inputNumberFeedback.LinkInputSig(trilist.UShortInput[joinMap.InputSelect.JoinNumber]);

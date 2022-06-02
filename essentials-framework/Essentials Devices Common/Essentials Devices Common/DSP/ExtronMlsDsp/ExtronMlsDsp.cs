@@ -210,6 +210,7 @@ namespace ExtronMlsDspPlugin
 
         void IsOnlineFeedback_OutputChange(object dev, FeedbackEventArgs args)
         {
+            OnlineFeedback.FireUpdate();
             if (args.BoolValue == true)
             {
                 //Device is now online

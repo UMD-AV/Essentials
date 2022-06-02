@@ -30,6 +30,16 @@ namespace PepperDash.Essentials.DM
 			: base(key, name, device)
         {
             _rmc = device;
+
+            //Special online feedback for DMPS-4K endpoints
+            if (device.Parent is DmpsRoutingController && Global.ControlSystemIsDmps4kType)
+            {
+                Debug.Console(0, this, "DM endpoint is for DMPS-4K");
+
+                var dmps = device.Parent as DmpsRoutingController;
+                //TODO
+            }
+
 			// if wired to a chassis, skip registration step in base class
             PreventRegistration = _rmc.DMOutput != null;
 			
