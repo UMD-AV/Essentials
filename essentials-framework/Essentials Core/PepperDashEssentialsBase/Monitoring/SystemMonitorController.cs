@@ -17,8 +17,9 @@ namespace PepperDash.Essentials.Core.Monitoring
     /// </summary>
     public class SystemMonitorController : EssentialsBridgeableDevice
     {
-        private const long UptimePollTime = 300000;
+        private const long UptimePollTime = 6000000;
         private CTimer _uptimePollTimer;
+        private uint pollCount;
 
         private string _uptime;
         private string _lastStart;
@@ -74,6 +75,7 @@ namespace PepperDash.Essentials.Core.Monitoring
             CreateEthernetStatusFeedbacks();
             UpdateEthernetStatusFeeedbacks();
 
+            pollCount = 0;
             _uptimePollTimer = new CTimer(PollUptime,null,0, UptimePollTime);
 
             SystemMonitor.ProgramChange += SystemMonitor_ProgramChange;
@@ -101,6 +103,13 @@ namespace PepperDash.Essentials.Core.Monitoring
 
             UptimeFeedback.FireUpdate();
             LastStartFeedback.FireUpdate();
+
+            pollCount++;
+            if (pollCount > 23)
+            {
+                RefreshSystemMonitorData();
+                pollCount = 0;
+            }
         }
 
         private void ParseUptime(string response)
