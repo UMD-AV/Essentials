@@ -33,9 +33,16 @@ namespace PepperDash.Essentials.Devices.Displays
 		bool _IsCoolingDown;
         bool _VideoMuteIsOn;
         int _LampHours;
+        int _LastPowerState; // 0=don't care 1=on 2=off
 
-        CommunicationGather PortGather;
+        readonly CrestronQueue<string> _cmdQueue;
+        readonly CrestronQueue<string> _priorityQueue;
+        CommunicationGather _PortGather;
         RoutingInputPort _CurrentInputPort;
+        CMutex _CommandMutex;
+        CMutex _PowerMutex;
+        CTimer _WarmupTimer;
+        CTimer _CooldownTimer;
 
 		protected override Func<bool> PowerIsOnFeedbackFunc { get { return () => _PowerIsOn; } }
         protected override Func<bool> IsWarmingUpFeedbackFunc { get { return () => _IsWarmingUp; } }
@@ -50,29 +57,37 @@ namespace PepperDash.Essentials.Devices.Displays
 			: base(key, name)
 		{
 			Communication = comm;
-            PortGather = new CommunicationGather(Communication, '\x0D');
-            PortGather.IncludeDelimiter = false;
-            PortGather.LineReceived += new EventHandler<GenericCommMethodReceiveTextArgs>(Communication_TextReceived);
+            _PortGather = new CommunicationGather(Communication, '\x0D');
+            _PortGather.IncludeDelimiter = false;
+            _PortGather.LineReceived += new EventHandler<GenericCommMethodReceiveTextArgs>(Communication_TextReceived);
+
+            _cmdQueue = new CrestronQueue<string>();
+            _priorityQueue = new CrestronQueue<string>();
+            _CommandMutex = new CMutex();
+            _PowerMutex = new CMutex();
 
             LampHoursFeedback = new IntFeedback(() => { return _LampHours; });
             VideoMuteIsOnFeedback = new BoolFeedback(() => { return _VideoMuteIsOn; });
 
+            _LastPowerState = 0;
             WarmupTime = 30000;
             CooldownTime = 20000;
+            _WarmupTimer = new CTimer(WarmupCallback, Timeout.Infinite);
+            _CooldownTimer = new CTimer(CooldownCallback, Timeout.Infinite);
 
-            CommunicationMonitor = new GenericCommunicationMonitor(this, Communication, 2000, 120000, 300000, StatusGet, true);
+            CommunicationMonitor = new GenericCommunicationMonitor(this, Communication, 30000, 120000, 300000, StatusGet, true);
             DeviceManager.AddDevice(CommunicationMonitor);
 
-            AddRoutingInputPort(new RoutingInputPort(RoutingPortNames.HdmiIn, eRoutingSignalType.Audio | eRoutingSignalType.Video,
-                eRoutingPortConnectionType.Hdmi, new Action(InputHdmi), this), "30");
+            AddRoutingInputPort(new RoutingInputPort("HDMI 1", eRoutingSignalType.Audio | eRoutingSignalType.Video,
+                eRoutingPortConnectionType.Hdmi, new Action(InputHdmi1), this), "30");
 
-            AddRoutingInputPort(new RoutingInputPort(RoutingPortNames.DviIn, eRoutingSignalType.Audio | eRoutingSignalType.Video,
-                eRoutingPortConnectionType.Dvi, new Action(InputDvi), this), "A0");
+            AddRoutingInputPort(new RoutingInputPort("HDMI 2", eRoutingSignalType.Audio | eRoutingSignalType.Video,
+                eRoutingPortConnectionType.Hdmi, new Action(InputHdmi2), this), "A0");
 
-            AddRoutingInputPort(new RoutingInputPort(RoutingPortNames.DmIn, eRoutingSignalType.Audio | eRoutingSignalType.Video,
+            AddRoutingInputPort(new RoutingInputPort("HdBaseT", eRoutingSignalType.Audio | eRoutingSignalType.Video,
                 eRoutingPortConnectionType.DmCat, new Action(InputNetwork), this), "80");
 
-            AddRoutingInputPort(new RoutingInputPort(RoutingPortNames.VgaIn, eRoutingSignalType.Video,
+            AddRoutingInputPort(new RoutingInputPort("VGA", eRoutingSignalType.Video,
                 eRoutingPortConnectionType.Vga, new Action(InputVga), this), "11");
 
             StatusGet();
@@ -112,32 +127,98 @@ namespace PepperDash.Essentials.Devices.Displays
             LampHoursFeedback.LinkInputSig(trilist.UShortInput[joinMap.LampHours.JoinNumber]);
 	    }
 
-	    public override FeedbackCollection<Feedback> Feedbacks
-		{
-			get
-			{
-				var list = base.Feedbacks;
-				list.AddRange(new List<Feedback>
-				{
-                    CurrentInputFeedback, IsWarmingUpFeedback, IsCoolingDownFeedback, VideoMuteIsOnFeedback, LampHoursFeedback
-				});
-				return list;
-			}
-		}
-
         /// <summary>
-        /// /
+        /// 
         /// </summary>
         /// <param name="sender"></param>
         void Communication_TextReceived(object sender, GenericCommMethodReceiveTextArgs e)
         {
             try
             {
-                Debug.Console(1, this, "Feedback: {0}", e.Text);
+                string feedback = e.Text.Replace(":", "").Trim();
+                Debug.Console(1, this, "Feedback: {0}", feedback);
+                string[] data = feedback.Split('=');
+
+                if(data.Length > 1)
+                {
+                    if (data[0] == "PWR")
+                    {
+                        if (data[1] == "01")
+                        {
+                            _PowerIsOn = true;
+                            if (_IsWarmingUp)
+                            {
+                                WarmupDone();
+                            }
+                        }
+                        else if (data[1] == "02")
+                        {
+                            _PowerIsOn = true;
+                            _IsWarmingUp = true;
+                            _IsCoolingDown = false;
+                            IsWarmingUpFeedback.FireUpdate();
+                            IsCoolingDownFeedback.FireUpdate();
+                        }
+                        else if (data[1] == "03")
+                        {
+                            _PowerIsOn = false;
+                            _IsWarmingUp = false;
+                            _IsCoolingDown = true;
+                            IsWarmingUpFeedback.FireUpdate();
+                            IsCoolingDownFeedback.FireUpdate();
+                        }
+                        else if (data[1] == "00" || data[1] == "04" || data[1] == "09")
+                        {
+                            _PowerIsOn = false;
+                            if (_IsCoolingDown)
+                            {
+                                CooldownDone();
+                            }
+                        }
+                        PowerIsOnFeedback.FireUpdate();
+
+                    }
+                    else if (data[0] == "SOURCE")
+                    {
+                        Debug.Console(1, this, "Feedback found SOURCE");
+                        var newInput = InputPorts.FirstOrDefault(i => i.FeedbackMatchObject.Equals(data[1]));
+                        if (newInput != null && newInput != _CurrentInputPort)
+                        {
+                            _CurrentInputPort = newInput;
+                            CurrentInputFeedback.FireUpdate();
+                            OnSwitchChange(new RoutingNumericEventArgs(null, _CurrentInputPort, eRoutingSignalType.AudioVideo));
+                        }
+                    }
+                    else if (data[0] == "LAMP")
+                    {
+                        Debug.Console(1, this, "Feedback found LAMP");
+                        int newHours = int.Parse(data[1]);
+
+                        if(_LampHours != newHours)
+                        {
+                            _LampHours = newHours;
+                            LampHoursFeedback.FireUpdate();
+                        }
+                    }
+                    else if (data[0] == "MUTE")
+                    {
+                        Debug.Console(1, this, "Feedback found MUTE");
+                        if (data[1] == "ON")
+                        {
+                            _VideoMuteIsOn = true;
+
+                        }
+                        else if (data[1] == "OFF")
+                        {
+                            _VideoMuteIsOn = false;
+                        }
+                        VideoMuteIsOnFeedback.FireUpdate();
+                    }
+                }
             }
-            catch (Exception err)
+            catch (Exception ex)
             {
-                Debug.Console(1, this, "Error parsing feedback: {0}", err);
+                Debug.Console(1, this, "Error parsing feedback: {0}", ex);
             }
         }
 
@@ -146,7 +227,38 @@ namespace PepperDash.Essentials.Devices.Displays
         /// </summary>
         public void SendCommand(string cmd)
         {
-            Communication.SendText(cmd + "\x0D");
+            Debug.Console(1, this, "Enqueuing command: {0}", cmd);
+            _cmdQueue.Enqueue(cmd);
+
+            ProcessQueue();
+        }
+
+        private void ProcessQueue()
+        {
+            bool test = _CommandMutex.WaitForMutex(100);
+            if (test)
+            {
+                //Pace the commands sending out
+                while (_cmdQueue.Count > 0)
+                {
+                    Debug.Console(1, this, "Processing Queue");
+                    try
+                    {
+                        string cmd = _cmdQueue.Dequeue();
+                        if (cmd != null)
+                        {
+                            Debug.Console(1, this, "Sending Text: {0}", cmd);
+                            Communication.SendText(cmd + "\x0D");
+                            Thread.Sleep(500);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.Console(0, this, "Caught an exception in SendCommand {0}\r{1}\r{2}", ex.Message, ex.InnerException, ex.StackTrace);
+                    }
+                }
+                _CommandMutex.ReleaseMutex();
+            }
         }
 
         /// <summary>
@@ -154,9 +266,44 @@ namespace PepperDash.Essentials.Devices.Displays
         /// </summary>
         public void StatusGet()
         {
-            SendCommand("PWR?");
-            SendCommand("LAMP?");
-            SendCommand("MUTE?");
+            PowerGet();
+            LampHoursGet();
+            if (_PowerIsOn == true && _IsWarmingUp == false)
+            {
+                //Only poll these while projector is warmed up and on, otherwise it responds "ERR"
+                VideoMuteGet();
+                InputGet();
+            }
+        }
+
+        private void WarmupCallback(object o)
+        {
+            WarmupDone();
+        }
+
+        private void CooldownCallback(object o)
+        {
+            CooldownDone();
+        }
+
+        private void WarmupDone()
+        {
+            _WarmupTimer.Stop();
+            _IsCoolingDown = false;
+            _IsWarmingUp = false;
+            IsWarmingUpFeedback.FireUpdate();
+            IsCoolingDownFeedback.FireUpdate();
+            ProcessPower();
+        }
+
+        private void CooldownDone()
+        {
+            _CooldownTimer.Stop();
+            _IsWarmingUp = false;
+            _IsCoolingDown = false;
+            IsWarmingUpFeedback.FireUpdate();
+            IsCoolingDownFeedback.FireUpdate();
+            ProcessPower();
         }
 
         /// <summary>
@@ -164,22 +311,8 @@ namespace PepperDash.Essentials.Devices.Displays
         /// </summary>
         public override void PowerOn()
 		{
-            Debug.Console(1, this, Debug.ErrorLogLevel.Notice, "Powering On Display");
-
-            SendCommand("PWR ON");
-			if (!PowerIsOnFeedback.BoolValue && !_IsWarmingUp && !_IsCoolingDown)
-			{
-				_IsWarmingUp = true;
-				IsWarmingUpFeedback.FireUpdate();
-				// Fake power-up cycle
-				WarmupTimer = new CTimer(o =>
-					{
-						_IsWarmingUp = false;
-						_PowerIsOn = true;
-						IsWarmingUpFeedback.FireUpdate();
-						PowerIsOnFeedback.FireUpdate();
-					}, WarmupTime);
-			}
+            _LastPowerState = 1;
+            ProcessPower();
 		}
 
         /// <summary>
@@ -187,31 +320,80 @@ namespace PepperDash.Essentials.Devices.Displays
         /// </summary>
 		public override void PowerOff()
 		{
-            Debug.Console(1, this, Debug.ErrorLogLevel.Notice, "Powering Off Display");
+            _LastPowerState = 2;
+            ProcessPower();
+		}
 
-            if (!_IsWarmingUp && !_IsCoolingDown) // PowerIsOnFeedback.BoolValue &&
-			{
-                //Send(PowerOffCmd);
-                SendCommand("PWR OFF");
-				_IsCoolingDown = true;
-				_PowerIsOn = false;
-				PowerIsOnFeedback.FireUpdate();
-				IsCoolingDownFeedback.FireUpdate();
-				// Fake cool-down cycle
-				CooldownTimer = new CTimer(o =>
-					{
-						_IsCoolingDown = false;
-						IsCoolingDownFeedback.FireUpdate();
-					}, CooldownTime);
-			}
-		}		
+        private void PowerOnGo()
+        {
+            _priorityQueue.Enqueue("PWR ON");
+            _PowerIsOn = true;
+            _IsWarmingUp = true;
+            _IsCoolingDown = false;
+            PowerIsOnFeedback.FireUpdate();
+            IsWarmingUpFeedback.FireUpdate();
+            IsCoolingDownFeedback.FireUpdate();
+            _WarmupTimer.Reset(WarmupTime);
+            while (_IsWarmingUp)
+            {
+                _priorityQueue.Enqueue("PWR?");
+                Thread.Sleep(1000);
+            }
+        }
+
+        private void PowerOffGo()
+        {
+            _priorityQueue.Enqueue("PWR OFF");
+            _PowerIsOn = false;
+            _IsCoolingDown = true;
+            _IsWarmingUp = false;
+            PowerIsOnFeedback.FireUpdate();
+            IsWarmingUpFeedback.FireUpdate();
+            IsCoolingDownFeedback.FireUpdate();
+            _CooldownTimer.Reset(CooldownTime);
+            while (_IsCoolingDown)
+            {
+                _priorityQueue.Enqueue("PWR?");
+                Thread.Sleep(1000);
+            }
+        }
+
+        private void ProcessPower()
+        {
+            bool test = _PowerMutex.WaitForMutex(100);
+            if (test)
+            {
+                if (!_IsWarmingUp && !_IsCoolingDown)
+                {
+                    if (_LastPowerState == 1 && _PowerIsOn == false)
+                    {
+                        _LastPowerState = 0;
+                        PowerOnGo();                        
+                    }
+                    else if (_LastPowerState == 2 && _PowerIsOn == true)
+                    {
+                        _LastPowerState = 0;
+                        PowerOffGo();
+                    }
+                    else
+                    {
+                        _LastPowerState = 0;
+                    }
+                }
+                _PowerMutex.ReleaseMutex();
+            }
+        }
 		
 		public override void PowerToggle()
 		{
-			if (PowerIsOnFeedback.BoolValue && !IsWarmingUpFeedback.BoolValue)
-				PowerOff();
-			else if (!PowerIsOnFeedback.BoolValue && !IsCoolingDownFeedback.BoolValue)
-				PowerOn();
+            if (_PowerIsOn)
+            {
+                PowerOff();
+            }
+            else
+            {
+                PowerOn();
+            }
 		}
 
         public void PowerGet()
@@ -229,12 +411,22 @@ namespace PepperDash.Essentials.Devices.Displays
             SendCommand("MUTE OFF");
         }
 
-		public void InputHdmi()
+        public void VideoMuteGet()
+        {
+            SendCommand("MUTE?");
+        }
+
+        public void LampHoursGet()
+        {
+            SendCommand("LAMP?");
+        }
+
+		public void InputHdmi1()
 		{
             SendCommand("SOURCE 30");
 		}
 
-        public void InputDvi()
+        public void InputHdmi2()
         {
             SendCommand("SOURCE A0");
         }
