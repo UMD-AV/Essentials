@@ -72,7 +72,7 @@ namespace PepperDash.Essentials.UIDrivers.VC
 
         SmartObjectDynamicList CameraModeList;
 
-        SmartObjectDynamicList CameraSelectList;
+        //SmartObjectDynamicList CameraSelectList;
         
         BoolFeedback DirectoryBackButtonVisibleFeedback;
 
@@ -92,7 +92,7 @@ namespace PepperDash.Essentials.UIDrivers.VC
 
         eKeypadMode KeypadMode;
 
-		bool CodecHasFavorites;
+		//bool CodecHasFavorites;
 
         bool ShowCameraModeControls;
 
@@ -1132,7 +1132,7 @@ namespace PepperDash.Essentials.UIDrivers.VC
 			var c = Codec as IHasCallFavorites;
 			if (c != null && c.CallFavorites != null)
 			{
-				CodecHasFavorites = true;
+				//CodecHasFavorites = true;
 				var favs = c.CallFavorites.Favorites;
 				for (uint i = 0; i <= 3; i++)
 				{

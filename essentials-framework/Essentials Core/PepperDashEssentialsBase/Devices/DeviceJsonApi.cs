@@ -32,7 +32,7 @@ namespace PepperDash.Essentials.Core
 
 		        DoDeviceAction(action);
 		    }
-		    catch (Exception ex)
+		    catch
 		    {
 		        CrestronConsole.ConsoleCommandResponse("Incorrect format for JSON. Please check that the format matches {\"deviceKey\":\"myDevice\", \"methodName\":\"someMethod\", \"params\": [\"param1\", true]}");
 		    }

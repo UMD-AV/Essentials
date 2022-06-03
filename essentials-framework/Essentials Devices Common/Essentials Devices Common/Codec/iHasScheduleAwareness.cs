@@ -37,9 +37,9 @@ namespace PepperDash.Essentials.Devices.Common.Codec
 
         private int _meetingWarningMinutes = 5;
 
-        private Meeting _previousChangedMeeting;
+        //private Meeting _previousChangedMeeting;
 
-        private eMeetingEventChangeType _previousChangeType = eMeetingEventChangeType.Unknown;
+        //private eMeetingEventChangeType _previousChangeType = eMeetingEventChangeType.Unknown;
 
         public int MeetingWarningMinutes
         {

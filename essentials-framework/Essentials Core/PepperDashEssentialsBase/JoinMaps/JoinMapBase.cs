@@ -286,7 +286,7 @@ namespace PepperDash.Essentials.Core
                     @"Join Number: {0} | JoinSpan: '{1}' | Description: '{2}' | Type: '{3}' | Capabilities: '{4}'",
                         join.Value.JoinNumber,
                         join.Value.JoinSpan,
-                        String.IsNullOrEmpty(join.Value.AttributeName) ? join.Value.Metadata.Label : join.Value.AttributeName,
+                        String.IsNullOrEmpty(join.Value.AttributeName) ? join.Value.Metadata.Description : join.Value.AttributeName,
                         join.Value.Metadata.JoinType.ToString(),
                         join.Value.Metadata.JoinCapabilities.ToString());
             }

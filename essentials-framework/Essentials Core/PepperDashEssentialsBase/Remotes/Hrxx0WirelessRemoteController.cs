@@ -23,8 +23,6 @@ namespace PepperDash.Essentials.Core
     {
         private CenRfgwController _gateway;
 
-        private GatewayBase _gatewayBase;
-
         private Hr1x0WirelessRemoteBase _remote;
 
         public FeedbackCollection<Feedback> Feedbacks { get; set; }

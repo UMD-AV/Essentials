@@ -391,7 +391,7 @@ namespace PepperDash.Essentials
                                 }
                             }
                         }
-                        catch (NotSupportedException e)
+                        catch (NotSupportedException)
                         {
                             //this happens for dlls that aren't PD dlls, like ports of Mono classes into S#. Swallowing.
                                

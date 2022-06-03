@@ -1746,7 +1746,7 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec
 
         // Following fields only used for Bridging
         private int _selectedRecentCallItemIndex;
-        private CodecCallHistory.CallHistoryEntry _selectedRecentCallItem;
+        //private CodecCallHistory.CallHistoryEntry _selectedRecentCallItem;
         private DirectoryItem _selectedDirectoryItem;
 
         private void LinkVideoCodecCallHistoryToApi(IHasCallHistory codec, BasicTriList trilist, VideoCodecControllerJoinMap joinMap)
@@ -1793,7 +1793,7 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec
         {
             // Clear out selected item
             _selectedRecentCallItemIndex = 0;
-            _selectedRecentCallItem = null;
+            //_selectedRecentCallItem = null;
             trilist.SetUshort(joinMap.SelectRecentCallItem.JoinNumber, 0);
             trilist.SetString(joinMap.SelectedRecentCallName.JoinNumber, string.Empty);
             trilist.SetString(joinMap.SelectedRecentCallNumber.JoinNumber, string.Empty);

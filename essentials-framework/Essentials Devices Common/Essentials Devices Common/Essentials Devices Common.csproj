@@ -195,11 +195,7 @@
     <Compile Include="Codec\IHasCallHold.cs" />
     <Compile Include="Codec\IHasDoNotDisturb.cs" />
     <Compile Include="Codec\IHasExternalSourceSwitching.cs" />
-    <Compile Include="Display\CCDDisplay\CCDCommunicationMonitor.cs" />
-    <Compile Include="Display\CCDDisplay\CCDDisplayBridgeJoinMap.cs" />
-    <Compile Include="Display\CCDDisplay\CCDDisplayConfigObject.cs" />
-    <Compile Include="Display\CCDDisplay\CCDDisplayDevice.cs" />
-    <Compile Include="Display\CCDDisplay\CCDDisplayFactory.cs" />
+    <Compile Include="Display\EpsonProjector.cs" />
     <Compile Include="DSP\ExtronMlsDsp\ExtronMlsDsp.cs" />
     <Compile Include="DSP\ExtronMlsDsp\ExtronMlsDspFactory.cs" />
     <Compile Include="DSP\ExtronMlsDsp\ExtronMlsDspJoinMap.cs" />
@@ -288,7 +284,6 @@
     <Compile Include="Display\AvocorVTFDisplay.cs" />
     <Compile Include="Display\InputInterfaces.cs" />
     <Compile Include="Display\SamsungMDCDisplay.cs" />
-    <Compile Include="Display\NecPaSeriesProjector.cs" />
     <Compile Include="Display\NECPSXMDisplay.cs" />
     <Compile Include="DSP\BiampTesira\BiampTesiraForteDspLevel.cs" />
     <Compile Include="DSP\BiampTesira\TesiraForteControlPoint.cs" />

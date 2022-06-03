@@ -42,7 +42,7 @@ namespace PepperDash.Essentials.Devices.Common.Cameras
         public byte PanSpeedFast = 0x13;
         public byte TiltSpeedFast = 0x13;
 
-		private bool IsMoving;
+		//private bool IsMoving;
 		private bool IsZooming;
 
         bool _powerIsOn;
@@ -446,12 +446,12 @@ namespace PepperDash.Essentials.Devices.Common.Cameras
 		public void PanLeft() 
 		{
 			SendPanTiltCommand(new byte[] {0x01, 0x03}, false);
-			IsMoving = true;
+			//IsMoving = true;
 		}
 		public void PanRight() 
 		{
             SendPanTiltCommand(new byte[] { 0x02, 0x03 }, false);
-			IsMoving = true;
+			//IsMoving = true;
 		}
         public void PanStop()
         {
@@ -460,12 +460,12 @@ namespace PepperDash.Essentials.Devices.Common.Cameras
 		public void TiltDown() 
 		{
             SendPanTiltCommand(new byte[] { 0x03, 0x02 }, false);
-			IsMoving = true;
+			//IsMoving = true;
 		}
 		public void TiltUp() 
 		{
             SendPanTiltCommand(new byte[] { 0x03, 0x01 }, false);
-			IsMoving = true;
+			//IsMoving = true;
 		}
         public void TiltStop()
         {
@@ -504,7 +504,7 @@ namespace PepperDash.Essentials.Devices.Common.Cameras
 			{
                 StopSpeedTimer();
                 SendPanTiltCommand(new byte[] { 0x03, 0x03 }, false);
-				IsMoving = false;
+				//IsMoving = false;
 			}
 		}
         public void PositionHome()
