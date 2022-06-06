@@ -33,8 +33,7 @@ namespace PepperDash.Essentials.Devices.Displays
         public BoolFeedback Input4Feedback { get; private set; }
 
         byte[] _tcpHandshake = new byte[] { 0x45, 0x53, 0x43, 0x2F, 0x56, 0x50, 0x2E, 0x6E, 0x65, 0x74, 0x10, 0x03, 0x00, 0x00, 0x00, 0x00 };
-        string _escVpNetHeader = "ESC/VP.net\u0010\u0003\u0000\u0000";
-        bool _tcpControl;
+        byte[] _tcpHeader = new byte[] { 0x45, 0x53, 0x43, 0x2F, 0x56, 0x50, 0x2E, 0x6E, 0x65, 0x74, 0x10, 0x03, 0x00, 0x00 };
         bool _readyForCommands;
         ushort _pollTracker;
 		bool _PowerIsOn;
@@ -67,14 +66,14 @@ namespace PepperDash.Essentials.Devices.Displays
 			: base(key, name)
 		{
 			Communication = comm;
+            Communication.BytesReceived += new EventHandler<GenericCommMethodReceiveBytesArgs>(BytesReceived);
             _PortGather = new CommunicationGather(Communication, '\x0D');
             _PortGather.IncludeDelimiter = false;
-            _PortGather.LineReceived += new EventHandler<GenericCommMethodReceiveTextArgs>(Communication_TextReceived);
+            _PortGather.LineReceived += new EventHandler<GenericCommMethodReceiveTextArgs>(DelimitedTextReceived);
 
             var tcpComm = comm as GenericTcpIpClient;
             if (tcpComm != null)
             {
-                _tcpControl = true;
                 _readyForCommands = false;
                 tcpComm.AutoReconnect = true;
                 tcpComm.AutoReconnectIntervalMs = 10000;
@@ -82,7 +81,6 @@ namespace PepperDash.Essentials.Devices.Displays
             }
             else
             {
-                _tcpControl = false;
                 _readyForCommands = true;
             }
 
@@ -169,9 +167,11 @@ namespace PepperDash.Essentials.Devices.Displays
             {
                 while (e.Client.IsConnected && !_readyForCommands)
                 {
-                    Debug.Console(1, this, "Sending tcp handshake: {0}", _tcpHandshake.ToString());
+                    CrestronEnvironment.Sleep(5000);
+                    Debug.Console(1, this, "Sending tcp handshake");
                     e.Client.SendBytes(_tcpHandshake);
                     CrestronEnvironment.Sleep(5000);
+                    e.Client.SendBytes(new byte[] { 0x0D });
                 }
             }
             else
@@ -182,35 +182,54 @@ namespace PepperDash.Essentials.Devices.Displays
             }
         }
 
+        void BytesReceived(object sender, GenericCommMethodReceiveBytesArgs e)
+        {
+            if(!_readyForCommands)
+            {
+                Debug.Console(1, this, "Handshake response length: {0}", e.Bytes.Length);
+                for (int i = 0; i < e.Bytes.Length; i++)
+                {
+                    int j = 0;
+                    while((e.Bytes.Length > (i+j+1)) && (e.Bytes[i + j] == _tcpHeader[j]))
+                    {
+                        j++;
+                        Debug.Console(1, this, "Handshake response j: {0}", j);
+                        if(j == _tcpHeader.Length)
+                        {
+                            //found header match
+                            byte statusCode = e.Bytes[i+j];
+                            Debug.Console(0, this, "EpsonProjector status code: {0}", statusCode);
+                            if (statusCode == 0x20)
+                            {
+                                Debug.Console(0, this, "EpsonProjector connected");
+                                _readyForCommands = true;
+                                Resync();
+                            }
+                            else
+                            {
+                                Debug.Console(0, this, "EpsonProjector password required");
+                                _readyForCommands = false;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         /// <summary>
         /// 
         /// </summary>
         /// <param name="sender"></param>
-        void Communication_TextReceived(object sender, GenericCommMethodReceiveTextArgs e)
+        void DelimitedTextReceived(object sender, GenericCommMethodReceiveTextArgs e)
         {
             try
             {
                 string feedback = e.Text.Replace(":", "").Trim();
                 Debug.Console(1, this, "Feedback: {0}", feedback);
 
-                //Check for tcpHeader reponse
-                if (_tcpControl && !_readyForCommands && feedback.StartsWith(_escVpNetHeader))
+                if (feedback == "ERR")
                 {
-                    if (feedback.Length > _escVpNetHeader.Length + 1)
-                    {
-                        char statusCode = feedback[_escVpNetHeader.Length];
-                        if (statusCode == '\x20')
-                        {
-                            Debug.Console(0, this, "EpsonProjector connected");
-                            _readyForCommands = true;
-                            Resync();
-                        }
-                        else
-                        {
-                            Debug.Console(0, this, "EpsonProjector password required");
-                            _readyForCommands = false;
-                        }
-                    }
+                    _readyForCommands = true;
                     return;
                 }
 
@@ -218,7 +237,7 @@ namespace PepperDash.Essentials.Devices.Displays
 
                 if(data.Length > 1)
                 {
-                    if (data[0] == "PWR")
+                    if (data[0].EndsWith("PWR"))
                     {
                         if (data[1] == "01")
                         {
@@ -281,7 +300,7 @@ namespace PepperDash.Essentials.Devices.Displays
                             }
                         }
                     }
-                    else if (data[0] == "SOURCE")
+                    else if (data[0].EndsWith("SOURCE"))
                     {
                         try
                         {
@@ -308,7 +327,7 @@ namespace PepperDash.Essentials.Devices.Displays
                             Debug.Console(1, this, "Invalid input feedback: {0}", data[1]);
                         }
                     }
-                    else if (data[0] == "LAMP")
+                    else if (data[0].EndsWith("LAMP"))
                     {
                         int newHours = int.Parse(data[1]);
 
@@ -318,7 +337,7 @@ namespace PepperDash.Essentials.Devices.Displays
                             LampHoursFeedback.FireUpdate();
                         }
                     }
-                    else if (data[0] == "MUTE")
+                    else if (data[0].EndsWith("MUTE"))
                     {
                         if (data[1] == "ON")
                         {
