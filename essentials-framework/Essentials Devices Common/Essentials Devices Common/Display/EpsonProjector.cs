@@ -167,11 +167,13 @@ namespace PepperDash.Essentials.Devices.Displays
             {
                 while (e.Client.IsConnected && !_readyForCommands)
                 {
-                    CrestronEnvironment.Sleep(5000);
                     Debug.Console(1, this, "Sending tcp handshake");
                     e.Client.SendBytes(_tcpHandshake);
                     CrestronEnvironment.Sleep(5000);
-                    e.Client.SendBytes(new byte[] { 0x0D });
+                    if (e.Client.IsConnected && !_readyForCommands)
+                    {
+                        e.Client.SendBytes(new byte[] { 0x0D });
+                    }
                 }
             }
             else
@@ -186,14 +188,12 @@ namespace PepperDash.Essentials.Devices.Displays
         {
             if(!_readyForCommands)
             {
-                Debug.Console(1, this, "Handshake response length: {0}", e.Bytes.Length);
                 for (int i = 0; i < e.Bytes.Length; i++)
                 {
                     int j = 0;
                     while((e.Bytes.Length > (i+j+1)) && (e.Bytes[i + j] == _tcpHeader[j]))
                     {
                         j++;
-                        Debug.Console(1, this, "Handshake response j: {0}", j);
                         if(j == _tcpHeader.Length)
                         {
                             //found header match
@@ -203,7 +203,7 @@ namespace PepperDash.Essentials.Devices.Displays
                             {
                                 Debug.Console(0, this, "EpsonProjector connected");
                                 _readyForCommands = true;
-                                Resync();
+                                CrestronInvoke.BeginInvoke((o) => Resync());
                             }
                             else
                             {
@@ -596,31 +596,28 @@ namespace PepperDash.Essentials.Devices.Displays
 
         private void ProcessPower()
         {
-            bool test = _PowerMutex.WaitForMutex(100);
-            if (test)
+            _PowerMutex.WaitForMutex();
+            try
             {
-                try
+                if (!_IsWarmingUp && !_IsCoolingDown)
                 {
-                    if (!_IsWarmingUp && !_IsCoolingDown)
+                    if (_RequestedPowerState == 1 && _PowerIsOn == false)
                     {
-                        if (_RequestedPowerState == 1 && _PowerIsOn == false)
-                        {
-                            PowerOnGo();
-                        }
-                        else if (_RequestedPowerState == 2 && _PowerIsOn == true)
-                        {
-                            PowerOffGo();
-                        }
+                        PowerOnGo();
+                    }
+                    else if (_RequestedPowerState == 2 && _PowerIsOn == true)
+                    {
+                        PowerOffGo();
                     }
                 }
-                catch (Exception ex)
-                {
-                    Debug.Console(0, this, "Caught an exception in ProcessPower {0}\r{1}\r{2}", ex.Message, ex.InnerException, ex.StackTrace);
-                }
-                finally
-                {
-                    _PowerMutex.ReleaseMutex();
-                }
+            }
+            catch (Exception ex)
+            {
+                Debug.Console(0, this, "Caught an exception in ProcessPower {0}\r{1}\r{2}", ex.Message, ex.InnerException, ex.StackTrace);
+            }
+            finally
+            {
+                _PowerMutex.ReleaseMutex();
             }
         }
 		
