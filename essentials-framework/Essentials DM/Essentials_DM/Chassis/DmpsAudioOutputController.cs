@@ -305,6 +305,9 @@ namespace PepperDash.Essentials.DM
                 Debug.Console(1, "DMPS Recalling Preset {0}", preset);
                 presetMixer.PresetNumber.UShortValue = preset;
                 presetMixer.RecallPreset();
+
+                //Recall startup volume for main volume level as DMPS3(non-4K) presets don't affect the main volume
+                RecallStartupVolume();
             }
             else if (Mixer is CrestronControlSystem.Dmps3AttachableOutputMixer)
             {
@@ -313,8 +316,7 @@ namespace PepperDash.Essentials.DM
                 presetMixer.PresetNumber.UShortValue = preset;
                 presetMixer.RecallPreset();
             }
-            //Recall startup volume for main volume level as DMPS presets don't affect the main volume
-            RecallStartupVolume();
+
         }
 
         public void RecallStartupVolume()
