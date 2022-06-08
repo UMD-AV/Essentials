@@ -698,6 +698,9 @@ namespace PepperDash.Essentials.DM
                 var cecPort = hdmiOutputCard.HdmiOutputPort;
 
                 AddHdmiOutputPort(number, cecPort);
+
+                var audioOutput = new DmpsAudioOutputController(string.Format("processor-digitalAudioOutput{0}", number), string.Format("Hdmi Audio Output {0}", number), outputCard as Card.Dmps3HdmiOutput);
+                DeviceManager.AddDevice(audioOutput);
             }
             else if (outputCard is Card.Dmps3HdmiOutputBackend)
             {
@@ -710,6 +713,9 @@ namespace PepperDash.Essentials.DM
             else if (outputCard is Card.Dmps3DmOutput)
             {
                 AddDmOutputPort(number);
+
+                var audioOutput = new DmpsAudioOutputController(string.Format("processor-digitalAudioOutput{0}", number), string.Format("Dm Audio Output {0}", number), outputCard as Card.Dmps3DmOutput);
+                DeviceManager.AddDevice(audioOutput);
             }
             else if (outputCard is Card.Dmps3DmOutputBackend)
             {
@@ -767,6 +773,10 @@ namespace PepperDash.Essentials.DM
             {
                 AddAudioOnlyOutputPort(number, "Dialer");
             }
+            else if (outputCard is Card.Dmps3AecOutput)
+            {
+                AddAudioOnlyOutputPort(number, "Aec");
+            }
             else if (outputCard is Card.Dmps3DigitalMixOutput)
             {
                 if (number == (uint)CrestronControlSystem.eDmps34K250COutputs.Mix1
@@ -777,10 +787,9 @@ namespace PepperDash.Essentials.DM
                     || number == (uint)CrestronControlSystem.eDmps34K300COutputs.Mix2
                     || number == (uint)CrestronControlSystem.eDmps34K350COutputs.Mix2)
                     AddAudioOnlyOutputPort(number, CrestronControlSystem.eDmps34K250COutputs.Mix2.ToString());
-            }
-            else if (outputCard is Card.Dmps3AecOutput)
-            {
-                AddAudioOnlyOutputPort(number, "Aec");
+
+                var audioOutput = new DmpsAudioOutputController(string.Format("processor-digitalAudioOutput{0}", number % 2 + 1), string.Format("Digital Audio Output {0}", number % 2 + 1), outputCard as Card.Dmps3DigitalMixOutput);
+                DeviceManager.AddDevice(audioOutput);
             }
             else
             {

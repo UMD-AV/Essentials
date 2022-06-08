@@ -35,6 +35,7 @@ namespace PepperDash.Essentials.Devices.Displays
         byte[] _tcpHandshake = new byte[] { 0x45, 0x53, 0x43, 0x2F, 0x56, 0x50, 0x2E, 0x6E, 0x65, 0x74, 0x10, 0x03, 0x00, 0x00, 0x00, 0x00 };
         byte[] _tcpHeader = new byte[] { 0x45, 0x53, 0x43, 0x2F, 0x56, 0x50, 0x2E, 0x6E, 0x65, 0x74, 0x10, 0x03, 0x00, 0x00 };
         bool _readyForCommands;
+        bool _tcpComm;
         ushort _pollTracker;
 		bool _PowerIsOn;
 		bool _IsWarmingUp;
@@ -46,8 +47,8 @@ namespace PepperDash.Essentials.Devices.Displays
         ushort _RequestedInputState; // 0:none 1-4:inputs 1-4 
         ushort _RequestedVideoMuteState; // 0:none/off 1:on
 
-        readonly CrestronQueue<string> _cmdQueue;
-        readonly CrestronQueue<string> _priorityQueue;
+        readonly EpsonQueue _cmdQueue;
+        readonly EpsonQueue _priorityQueue;
         CommunicationGather _PortGather;
         RoutingInputPort _CurrentInputPort;
         CMutex _CommandMutex;
@@ -72,20 +73,21 @@ namespace PepperDash.Essentials.Devices.Displays
             _PortGather.LineReceived += new EventHandler<GenericCommMethodReceiveTextArgs>(DelimitedTextReceived);
 
             var tcpComm = comm as GenericTcpIpClient;
+            _readyForCommands = false;
             if (tcpComm != null)
             {
-                _readyForCommands = false;
+                _tcpComm = true;
                 tcpComm.AutoReconnect = true;
                 tcpComm.AutoReconnectIntervalMs = 10000;
                 tcpComm.ConnectionChange += new EventHandler<GenericSocketStatusChageEventArgs>(tcpComm_ConnectionChange);
             }
             else
             {
-                _readyForCommands = true;
+                _tcpComm = false;
             }
 
-            _cmdQueue = new CrestronQueue<string>();
-            _priorityQueue = new CrestronQueue<string>();
+            _cmdQueue = new EpsonQueue();
+            _priorityQueue = new EpsonQueue();
             _CommandMutex = new CMutex();
             _PowerMutex = new CMutex();
 
@@ -102,7 +104,7 @@ namespace PepperDash.Essentials.Devices.Displays
             _RequestedPowerState = 0;
             _RequestedInputState = 0;
             _RequestedVideoMuteState = 0;
-            WarmupTime = 30000;
+            WarmupTime = 60000;
             CooldownTime = 30000;
             WarmupTimer = new CTimer(WarmupCallback, Timeout.Infinite);
             CooldownTimer = new CTimer(CooldownCallback, Timeout.Infinite);
@@ -121,8 +123,6 @@ namespace PepperDash.Essentials.Devices.Displays
 
             AddRoutingInputPort(new RoutingInputPort("VGA", eRoutingSignalType.Video,
                 eRoutingPortConnectionType.Vga, new Action(InputVga), this), "11");
-
-            StatusGet();
 		}
 
         void AddRoutingInputPort(RoutingInputPort port, string fbMatch)
@@ -131,17 +131,18 @@ namespace PepperDash.Essentials.Devices.Displays
             InputPorts.Add(port);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
-		public override bool CustomActivate()
-		{
-			Communication.Connect();
-			CommunicationMonitor.StatusChange += (o, a) => Debug.Console(2, this, "Communication monitor state: {0}", CommunicationMonitor.Status);
-			CommunicationMonitor.Start();
-			return true;
-		}
+        public override bool CustomActivate()
+        {
+            Communication.Connect();
+            if (!_tcpComm)
+            {
+                _readyForCommands = true;
+            }
+
+            CommunicationMonitor.StatusChange += (o, a) => Debug.Console(1, this, "Communication monitor state: {0}", CommunicationMonitor.Status);
+            CommunicationMonitor.Start();
+            return true;
+        }
 
 	    public void LinkToApi(BasicTriList trilist, uint joinStart, string joinMapKey, EiscApiAdvanced bridge)
 	    {
@@ -157,30 +158,19 @@ namespace PepperDash.Essentials.Devices.Displays
             IsCoolingDownFeedback.LinkInputSig(trilist.BooleanInput[joinMap.Cooling.JoinNumber]);
             VideoMuteIsOnFeedback.LinkInputSig(trilist.BooleanInput[joinMap.VideoMuteOn.JoinNumber]);
             LampHoursFeedback.LinkInputSig(trilist.UShortInput[joinMap.LampHours.JoinNumber]);
-
+            Input1Feedback.LinkInputSig(trilist.BooleanInput[joinMap.InputSelectOffset.JoinNumber + 0]);
+            Input2Feedback.LinkInputSig(trilist.BooleanInput[joinMap.InputSelectOffset.JoinNumber + 1]);
+            Input3Feedback.LinkInputSig(trilist.BooleanInput[joinMap.InputSelectOffset.JoinNumber + 2]);
+            Input4Feedback.LinkInputSig(trilist.BooleanInput[joinMap.InputSelectOffset.JoinNumber + 3]);
 	    }
 
         void tcpComm_ConnectionChange(object sender, GenericSocketStatusChageEventArgs e)
         {
-            Debug.Console(1, this, "Tcp status: {0}", e.Client.ClientStatus);
-            if (e.Client.IsConnected)
-            {
-                while (e.Client.IsConnected && !_readyForCommands)
-                {
-                    Debug.Console(1, this, "Sending tcp handshake");
-                    e.Client.SendBytes(_tcpHandshake);
-                    CrestronEnvironment.Sleep(5000);
-                    if (e.Client.IsConnected && !_readyForCommands)
-                    {
-                        e.Client.SendBytes(new byte[] { 0x0D });
-                    }
-                }
-            }
-            else
+            if (!e.Client.IsConnected)
             {
                 _readyForCommands = false;
-                _cmdQueue.Clear();
-                _priorityQueue.Clear();
+                _cmdQueue.ClearQueue();
+                _priorityQueue.ClearQueue();
             }
         }
 
@@ -188,30 +178,40 @@ namespace PepperDash.Essentials.Devices.Displays
         {
             if(!_readyForCommands)
             {
-                for (int i = 0; i < e.Bytes.Length; i++)
+                try
                 {
-                    int j = 0;
-                    while((e.Bytes.Length > (i+j+1)) && (e.Bytes[i + j] == _tcpHeader[j]))
+                    Debug.Console(1, this, "EpsonProjector BytesReceived: {0}", ComTextHelper.GetEscapedText(e.Bytes));
+                    //Try to trim any beginning garbage
+                    for (int startPos = 0; (startPos + _tcpHeader.Length) < e.Bytes.Length; startPos++)
                     {
-                        j++;
-                        if(j == _tcpHeader.Length)
+                        int headerPos = 0;
+                        while (e.Bytes[startPos + headerPos] == _tcpHeader[headerPos])
                         {
-                            //found header match
-                            byte statusCode = e.Bytes[i+j];
-                            Debug.Console(0, this, "EpsonProjector status code: {0}", statusCode);
-                            if (statusCode == 0x20)
+                            //Iterate through byte array looking for a match to the tcp header byte array
+                            headerPos++;
+                            if (headerPos == _tcpHeader.Length)
                             {
-                                Debug.Console(0, this, "EpsonProjector connected");
-                                _readyForCommands = true;
-                                CrestronInvoke.BeginInvoke((o) => Resync());
-                            }
-                            else
-                            {
-                                Debug.Console(0, this, "EpsonProjector password required");
-                                _readyForCommands = false;
+                                //found header match
+                                byte statusCode = e.Bytes[startPos + headerPos];
+                                Debug.Console(1, this, "EpsonProjector tcp status code: {0}", string.Format(@"[{0:X2}]", (int)statusCode));
+                                if (statusCode == 0x20)
+                                {
+                                    Debug.Console(0, this, "EpsonProjector connected");
+                                    _readyForCommands = true;
+                                    Resync();
+                                }
+                                else
+                                {
+                                    Debug.Console(0, this, "EpsonProjector password required");
+                                }
+                                return;
                             }
                         }
                     }
+                }
+                catch (Exception ex)
+                {
+                    Debug.Console(1, this, "Error parsing BytesReceived: {0}", ex);
                 }
             }
         }
@@ -229,7 +229,11 @@ namespace PepperDash.Essentials.Devices.Displays
 
                 if (feedback == "ERR")
                 {
-                    _readyForCommands = true;
+                    if (!_readyForCommands)
+                    {
+                        _readyForCommands = true;
+                        Resync();
+                    }
                     return;
                 }
 
@@ -259,21 +263,21 @@ namespace PepperDash.Essentials.Devices.Displays
                             //Finish warming up process
                             if (_IsWarmingUp)
                             {
-                                WarmupDone();
+                                CrestronInvoke.BeginInvoke((o) => WarmupDone());
                             }
                         }
                         else if (data[1] == "02")
                         {
                             if (!_IsWarmingUp)
                             {
-                                WarmupStart();
+                                CrestronInvoke.BeginInvoke((o) => WarmupStart());
                             }
                         }
                         else if (data[1] == "03")
                         {
                             if (!_IsCoolingDown)
                             {
-                                CooldownStart();
+                                CrestronInvoke.BeginInvoke((o) => CooldownStart());
                             }
                         }
                         else if (data[1] == "00" || data[1] == "04" || data[1] == "09")
@@ -296,7 +300,7 @@ namespace PepperDash.Essentials.Devices.Displays
                             //Finish cooling down process
                             if (_IsCoolingDown)
                             {
-                                CooldownDone();
+                                CrestronInvoke.BeginInvoke((o) =>CooldownDone());
                             }
                         }
                     }
@@ -360,6 +364,7 @@ namespace PepperDash.Essentials.Devices.Displays
 
         private void Resync()
         {
+            StatusGet();
             ProcessPower();
             if (!_IsCoolingDown && !_IsWarmingUp)
             {
@@ -375,26 +380,27 @@ namespace PepperDash.Essentials.Devices.Displays
                         InputSelectGo(_RequestedInputState);
                     }
                 }
-            }
+            } 
         }
 
         /// <summary>
         /// 
         /// </summary>
-        public void SendCommand(string cmd, bool priority)
+        public void SendCommand(eCommandType type, string cmd, bool priority)
         {
             if (_readyForCommands)
             {
+                var kvp = new KeyValuePair<eCommandType, string>(type, cmd);
                 Debug.Console(1, this, "Enqueuing command: {0}", cmd);
                 if (priority)
-                {
-                    _priorityQueue.Enqueue(cmd);
+                {                    
+                    _priorityQueue.AddOrUpdateCommand(kvp);
                 }
                 else
                 {
-                    _cmdQueue.Enqueue(cmd);
+                    _cmdQueue.AddOrUpdateCommand(kvp);
                 }
-                ProcessQueue();
+                CrestronInvoke.BeginInvoke((o) => ProcessQueue());
             }
             else
             {
@@ -410,28 +416,27 @@ namespace PepperDash.Essentials.Devices.Displays
                 //Pace the commands sending out
                 while (_cmdQueue.Count > 0 || _priorityQueue.Count > 0)
                 {
-                    Debug.Console(1, this, "Processing Queue");
                     try
                     {
-                        string cmd;
+                        KeyValuePair<eCommandType, string> kvp;
                         if (_priorityQueue.Count > 0)
                         {
-                            cmd = _priorityQueue.Dequeue();
+                            kvp = _priorityQueue.Dequeue();
                         }
                         else
                         {
-                            cmd = _cmdQueue.Dequeue();
+                            kvp = _cmdQueue.Dequeue();
                         }
-                        if (cmd != null)
+                        if (kvp.Value != null)
                         {
-                            Debug.Console(1, this, "Sending Text: {0}", cmd);
-                            Communication.SendText(cmd + "\x0D");
-                            Thread.Sleep(200);
+                            Debug.Console(1, this, "Sending Text: {0}", kvp.Value);
+                            Communication.SendText(kvp.Value + "\x0D");
+                            Thread.Sleep(500);
                         }
                     }
                     catch (Exception ex)
                     {
-                        Debug.Console(0, this, "Caught an exception in SendCommand {0}\r{1}\r{2}", ex.Message, ex.InnerException, ex.StackTrace);
+                        Debug.Console(0, this, "Caught an exception in ProcessQueue {0}\r{1}\r{2}", ex.Message, ex.InnerException, ex.StackTrace);
                     }
                 }
                 _CommandMutex.ReleaseMutex();
@@ -447,7 +452,7 @@ namespace PepperDash.Essentials.Devices.Displays
             {
                 PowerGet();
 
-                if (_PowerIsOn && !_IsWarmingUp && (_pollTracker % 4 == 0))
+                if (_PowerIsOn && !_IsWarmingUp)
                 {
                     //Only poll these while projector is warmed up and on, otherwise it responds "ERR"
                     VideoMuteGet();
@@ -460,27 +465,39 @@ namespace PepperDash.Essentials.Devices.Displays
                 }
                 _pollTracker++;
             }
+            else if(Communication.IsConnected)
+            {
+                Debug.Console(1, this, "Sending tcp handshake");
+                Communication.SendBytes(_tcpHandshake);
+                CrestronEnvironment.Sleep(500);
+                if (!_readyForCommands)
+                {
+                    //Try to get response by sending return char
+                    Communication.SendText("\x0D");
+                }
+            }
         }
 
         private void WarmupCallback(object o)
         {
+            Debug.Console(0, this, "Warmup timed out");
             WarmupDone();
         }
 
         private void WarmupStart()
         {
             CooldownTimer.Stop();
-            _PowerIsOn = true;
-            PowerIsOnFeedback.FireUpdate();
+            _PowerIsOn = true;  
             _IsWarmingUp = true;
             _IsCoolingDown = false;
             IsWarmingUpFeedback.FireUpdate();
             IsCoolingDownFeedback.FireUpdate();
+            PowerIsOnFeedback.FireUpdate();
             WarmupTimer.Reset(WarmupTime);
             while (_IsWarmingUp)
             {
-                SendCommand("PWR?", true);
-                Thread.Sleep(1000);
+                SendCommand(eCommandType.PowerPoll, "PWR?", true);
+                CrestronEnvironment.Sleep(2000);
             }
         }
 
@@ -492,6 +509,9 @@ namespace PepperDash.Essentials.Devices.Displays
             IsWarmingUpFeedback.FireUpdate();
             IsCoolingDownFeedback.FireUpdate();
 
+            VideoMuteGet();
+            InputGet();
+
             if (_RequestedVideoMuteState == 1)
             {
                 _RequestedVideoMuteState = 0;
@@ -499,10 +519,7 @@ namespace PepperDash.Essentials.Devices.Displays
             }
             if (_RequestedInputState != 0)
             {
-                if (_RequestedInputState != 0)
-                {
-                    InputSelectGo(_RequestedInputState);
-                }
+                InputSelectGo(_RequestedInputState);
             }
 
             ProcessPower();
@@ -518,6 +535,7 @@ namespace PepperDash.Essentials.Devices.Displays
 
         private void CooldownCallback(object o)
         {
+            Debug.Console(0, this, "Cooldown timed out");
             CooldownDone();
         }
 
@@ -533,8 +551,8 @@ namespace PepperDash.Essentials.Devices.Displays
             CooldownTimer.Reset(CooldownTime);
             while (_IsCoolingDown)
             {
-                SendCommand("PWR?", true);
-                Thread.Sleep(1000);
+                SendCommand(eCommandType.PowerPoll, "PWR?", true);
+                CrestronEnvironment.Sleep(2000);
             }
         }
 
@@ -545,6 +563,8 @@ namespace PepperDash.Essentials.Devices.Displays
             _IsCoolingDown = false;
             IsWarmingUpFeedback.FireUpdate();
             IsCoolingDownFeedback.FireUpdate();
+            _VideoMuteIsOn = false;
+            VideoMuteIsOnFeedback.FireUpdate();
 
             ProcessPower();
 
@@ -576,48 +596,36 @@ namespace PepperDash.Essentials.Devices.Displays
             _PowerMutex.WaitForMutex();
             _RequestedPowerState = 2;
             _PowerMutex.ReleaseMutex();
-            ProcessPower();
             _RequestedInputState = 0;
             _RequestedVideoMuteState = 0;
             _RequestedInputState = 0;
+            ProcessPower();
 		}
 
         private void PowerOnGo()
         {
-            SendCommand("PWR ON", true);
+            SendCommand(eCommandType.Power, "PWR ON", true);
             CrestronInvoke.BeginInvoke((o) => WarmupStart());
         }
 
         private void PowerOffGo()
         {
-            SendCommand("PWR OFF", true);
+            SendCommand(eCommandType.Power, "PWR OFF", true);
             CrestronInvoke.BeginInvoke((o) => CooldownStart());
         }
 
         private void ProcessPower()
         {
-            _PowerMutex.WaitForMutex();
-            try
+            if (!_IsWarmingUp && !_IsCoolingDown)
             {
-                if (!_IsWarmingUp && !_IsCoolingDown)
+                if (_RequestedPowerState == 1 && _PowerIsOn == false)
                 {
-                    if (_RequestedPowerState == 1 && _PowerIsOn == false)
-                    {
-                        PowerOnGo();
-                    }
-                    else if (_RequestedPowerState == 2 && _PowerIsOn == true)
-                    {
-                        PowerOffGo();
-                    }
+                    PowerOnGo();
                 }
-            }
-            catch (Exception ex)
-            {
-                Debug.Console(0, this, "Caught an exception in ProcessPower {0}\r{1}\r{2}", ex.Message, ex.InnerException, ex.StackTrace);
-            }
-            finally
-            {
-                _PowerMutex.ReleaseMutex();
+                else if (_RequestedPowerState == 2 && _PowerIsOn == true)
+                {
+                    PowerOffGo();
+                }
             }
         }
 		
@@ -635,12 +643,12 @@ namespace PepperDash.Essentials.Devices.Displays
 
         public void PowerGet()
         {
-            SendCommand("PWR?", false);
+            SendCommand(eCommandType.PowerPoll, "PWR?", false);
         }
 
         public void VideoMuteOn()
         {
-            if (_PowerIsOn)
+            if (_PowerIsOn && !_IsWarmingUp)
             {
                 _RequestedVideoMuteState = 0;
                 VideoMuteOnGo();
@@ -653,15 +661,14 @@ namespace PepperDash.Essentials.Devices.Displays
 
         private void VideoMuteOnGo()
         {
-            SendCommand("MUTE ON", false);
-            CrestronEnvironment.Sleep(500);
+            SendCommand(eCommandType.VideoMute, "MUTE ON", false);
             VideoMuteGet();
         }
 
         public void VideoMuteOff()
         {
             _RequestedVideoMuteState = 0;
-            if (_PowerIsOn)
+            if (_PowerIsOn && !_IsWarmingUp)
             {
                 VideoMuteOffGo();
             }
@@ -669,19 +676,18 @@ namespace PepperDash.Essentials.Devices.Displays
 
         private void VideoMuteOffGo()
         {
-            SendCommand("MUTE OFF", false);
-            CrestronEnvironment.Sleep(500);
+            SendCommand(eCommandType.VideoMute, "MUTE OFF", false);
             VideoMuteGet();
         }
 
         public void VideoMuteGet()
         {
-            SendCommand("MUTE?", false);
+            SendCommand(eCommandType.VideoMutePoll, "MUTE?", false);
         }
 
         public void LampHoursGet()
         {
-            SendCommand("LAMP?", false);
+            SendCommand(eCommandType.LampPoll, "LAMP?", false);
         }
 
         public void InputSelect(ushort input)
@@ -725,7 +731,7 @@ namespace PepperDash.Essentials.Devices.Displays
 
 		public void InputHdmi1()
 		{
-            if (_PowerIsOn)
+            if (_PowerIsOn && !_IsWarmingUp)
             {
                 _RequestedInputState = 0;
                 InputHdmi1Go();
@@ -738,7 +744,7 @@ namespace PepperDash.Essentials.Devices.Displays
 
         public void InputHdmi2()
         {
-            if (_PowerIsOn)
+            if (_PowerIsOn && !_IsWarmingUp)
             {
                 _RequestedInputState = 0;
                 InputHdmi2Go();
@@ -751,7 +757,7 @@ namespace PepperDash.Essentials.Devices.Displays
 
         public void InputNetwork()
         {
-            if (_PowerIsOn)
+            if (_PowerIsOn && !_IsWarmingUp)
             {
                 _RequestedInputState = 0;
                 InputNetworkGo();
@@ -764,7 +770,7 @@ namespace PepperDash.Essentials.Devices.Displays
 
         public void InputVga()
         {
-            if (_PowerIsOn)
+            if (_PowerIsOn && !_IsWarmingUp)
             {
                 _RequestedInputState = 0;
                 InputVgaGo();
@@ -777,61 +783,131 @@ namespace PepperDash.Essentials.Devices.Displays
 
         private void InputHdmi1Go()
         {
-            SendCommand("SOURCE 30", false);
-            CrestronEnvironment.Sleep(500);
+            SendCommand(eCommandType.Input, "SOURCE 30", false);
             InputGet();
         }
 
         public void InputHdmi2Go()
         {
-            SendCommand("SOURCE A0", false);
-            CrestronEnvironment.Sleep(500);
+            SendCommand(eCommandType.Input, "SOURCE A0", false);
             InputGet();
         }
 
 		public void InputNetworkGo()
 		{
-            SendCommand("SOURCE 80", false);
-            CrestronEnvironment.Sleep(500);
+            SendCommand(eCommandType.Input, "SOURCE 80", false);
             InputGet();
         }
 
         public void InputVgaGo()
         {
-            SendCommand("SOURCE 11", false);
-            CrestronEnvironment.Sleep(500);
+            SendCommand(eCommandType.Input, "SOURCE 11", false);
             InputGet();
         }
 
         public void InputGet()
         {
-            SendCommand("SOURCE?", false);
+            SendCommand(eCommandType.InputPoll, "SOURCE?", false);
         }
 
         /// <summary>
-        /// Executes a switch, turning on display if necessary.
+        /// Executes a switch.
         /// </summary>
         /// <param name="selector"></param>
 		public override void ExecuteSwitch(object selector)
 		{
-            if (_PowerIsOn)
-                (selector as Action)();
-            else
-            {
-                // One-time event handler to wait for power on before executing switch
-                EventHandler<FeedbackEventArgs> handler = null; // necessary to allow reference inside lambda to handler
-                handler = (o, a) =>
-                {
-                    if (!_IsWarmingUp) // Done warming
-                    {
-                        IsWarmingUpFeedback.OutputChange -= handler;
-                        (selector as Action)();
-                    }
-                };
-                IsWarmingUpFeedback.OutputChange += handler; // attach and wait for on FB
-                PowerOn();
-            }
+            (selector as Action)();
 		}
+
+        public enum eCommandType
+        {
+            Power,
+            Input,
+            VideoMute,
+            PowerPoll,
+            InputPoll,
+            VideoMutePoll,
+            LampPoll
+        }
+
+        private class EpsonQueue
+        {
+            public List<KeyValuePair<eCommandType, string>> Q = new List<KeyValuePair<eCommandType, string>>();
+            public ushort Count { get { return (ushort)Q.Count; } }
+            private CMutex mutex = new CMutex();
+
+            /// <summary>
+            /// Creates a queue for processing Epson Projector commands
+            /// </summary>
+            public EpsonQueue()
+            {
+            }
+
+            public void AddOrUpdateCommand(KeyValuePair<eCommandType, string> command)
+            {
+                mutex.WaitForMutex();
+                try
+                {
+                    int i = Q.FindIndex(x => x.Key.Equals(command.Key));
+                    if (i != -1 && (command.Key == eCommandType.Input || command.Key == eCommandType.VideoMute))
+                    {
+                        Q[i] = command;                        
+                    }
+                    else
+                    {
+                        Q.Add(command);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Debug.Console(1, "Exception in Epson command queue add/update: {0}", ex);
+                }
+                finally
+                {
+                    mutex.ReleaseMutex();
+                }
+            }
+
+            public void ClearQueue()
+            {
+                mutex.WaitForMutex();
+                try
+                {
+                    Q.Clear();
+                }
+                catch (Exception ex)
+                {
+                    Debug.Console(1, "Exception in Epson command queue clear: {0}", ex);
+                }
+                finally
+                {
+                    mutex.ReleaseMutex();
+                }
+            }
+
+            public KeyValuePair<eCommandType, string> Dequeue()
+            {
+                KeyValuePair<eCommandType, string> kvp = new KeyValuePair<eCommandType, string>();
+                mutex.WaitForMutex();
+                try
+                {
+                    if (Q.Count > 0)
+                    {
+                        kvp = Q[0];
+                        Q.RemoveAt(0);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Debug.Console(1, "Exception in Epson command queue dequeue: {0}", ex);
+                }
+                finally
+                {
+                    mutex.ReleaseMutex();
+                }
+                return kvp;
+            }
+        }
 	}
 
     public class EpsonProjectorJoinMap : DisplayControllerJoinMap
@@ -959,5 +1035,4 @@ namespace PepperDash.Essentials.Devices.Displays
                 return null;
         }
     }
-
 }

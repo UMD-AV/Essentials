@@ -31,23 +31,14 @@ namespace PepperDash.Essentials.DM
         {
             _rmc = device;
 
-            //Special online feedback for DMPS-4K endpoints
-            if (device.Parent is DmpsRoutingController && Global.ControlSystemIsDmps4kType)
-            {
-                Debug.Console(0, this, "DM endpoint is for DMPS-4K");
-
-                var dmps = device.Parent as DmpsRoutingController;
-                //TODO
-            }
-
 			// if wired to a chassis, skip registration step in base class
             PreventRegistration = _rmc.DMOutput != null;
 			
             AddToFeedbackList(VideoOutputResolutionFeedback, EdidManufacturerFeedback, EdidSerialNumberFeedback, EdidNameFeedback, EdidPreferredTimingFeedback);
-
+            
             DeviceInfo = new DeviceInfo();
 
-            _rmc.OnlineStatusChange += (currentDevice, args) => { if (args.DeviceOnLine) UpdateDeviceInfo(); };
+            IsOnline.OutputChange += (currentDevice, args) => { if (args.BoolValue) UpdateDeviceInfo(); };
         }
 
         protected void LinkDmRmcToApi(DmRmcControllerBase rmc, BasicTriList trilist, uint joinStart, string joinMapKey, EiscApiAdvanced bridge)
@@ -70,7 +61,7 @@ namespace PepperDash.Essentials.DM
 
             Debug.Console(1, rmc, "Linking to Trilist '{0}'", trilist.ID.ToString("X"));
 
-            rmc.IsOnline.LinkInputSig(trilist.BooleanInput[joinMap.IsOnline.JoinNumber]);
+            IsOnline.LinkInputSig(trilist.BooleanInput[joinMap.IsOnline.JoinNumber]);
             trilist.StringInput[joinMap.Name.JoinNumber].StringValue = rmc.Name;
             if (rmc.VideoOutputResolutionFeedback != null)
                 rmc.VideoOutputResolutionFeedback.LinkInputSig(trilist.StringInput[joinMap.CurrentOutputResolution.JoinNumber]);
@@ -340,53 +331,84 @@ namespace PepperDash.Essentials.DM
 	        var parentDev = DeviceManager.GetDeviceForKey(pKey);
 	        if (parentDev is DmpsRoutingController)
 	        {
+                var dmps = parentDev as DmpsRoutingController;
+                //Check that the input is within range of this chassis' possible inputs
+                var num = props.ParentOutputNumber;
+                Debug.Console(1, "Creating DMPS device '{0}'. Output number '{1}'.", key, num);
+                if (num <= 0 || num > dmps.Dmps.SwitcherOutputs.Count)
+                {
+                    Debug.Console(0, "Cannot create DMPS device '{0}'. Output number '{1}' is out of range",
+                        key, num);
+                    return null;
+                }
+                // Must use different constructor for DMPS4K types. No IPID
                 if (Global.ControlSystemIsDmps4kType)
                 {
-                    return GetDmRmcControllerForDmps4k(key, name, typeName, parentDev as DmpsRoutingController, props.ParentOutputNumber);
+                    var rmc = GetDmRmcControllerForDmps4k(key, name, typeName, dmps, props.ParentOutputNumber);
+                    Debug.Console(0, "DM endpoint output {0} is for Dmps4k, changing online feedback to chassis", num);
+                    rmc.IsOnline = dmps.OutputEndpointOnlineFeedbacks[num];
+                    rmc.IsOnline.OutputChange += (currentDevice, args) =>
+                    {
+                        foreach (var feedback in rmc.Feedbacks)
+                        {
+                            if (feedback != null)
+                                feedback.FireUpdate();
+                        }
+                    };
+                    return rmc;
                 }
-                else
+                return GetDmRmcControllerForDmps(key, name, typeName, ipid, dmps, props.ParentOutputNumber);
+	        }
+            else if (parentDev is DmChassisController)
+            {
+                var controller = parentDev as DmChassisController;
+                var chassis = controller.Chassis;
+                var num = props.ParentOutputNumber;
+                Debug.Console(1, "Creating DM Chassis device '{0}'. Output number '{1}'.", key, num);
+
+                if (num <= 0 || num > chassis.NumberOfOutputs)
                 {
-                    return GetDmRmcControllerForDmps(key, name, typeName, ipid, parentDev as DmpsRoutingController, props.ParentOutputNumber);
+                    Debug.Console(0, "Cannot create DM device '{0}'. Output number '{1}' is out of range",
+                        key, num);
+                    return null;
+                }                
+                controller.RxDictionary.Add(num, key);
+                // Catch constructor failures, mainly dues to IPID
+                try
+                {
+                    // Must use different constructor for CPU3 chassis types. No IPID
+                    if (chassis is DmMd8x8Cpu3 || chassis is DmMd16x16Cpu3 ||
+                        chassis is DmMd32x32Cpu3 || chassis is DmMd8x8Cpu3rps ||
+                        chassis is DmMd16x16Cpu3rps || chassis is DmMd32x32Cpu3rps ||
+                        chassis is DmMd128x128 || chassis is DmMd64x64)
+                    {
+                        var rmc = GetDmRmcControllerForCpu3Chassis(key, name, typeName, chassis, num, parentDev);
+                        Debug.Console(0, "DM endpoint output {0} is for Cpu3, changing online feedback to chassis", num);
+                        rmc.IsOnline = controller.OutputEndpointOnlineFeedbacks[num];
+                        rmc.IsOnline.OutputChange += (currentDevice, args) =>
+                        {
+                            foreach (var feedback in rmc.Feedbacks)
+                            {
+                                if (feedback != null)
+                                    feedback.FireUpdate();
+                            }
+                        };
+                        return rmc;
+                    }
+                    return GetDmRmcControllerForCpu2Chassis(key, name, typeName, ipid, chassis, num, parentDev);
                 }
-	        }
-	        if (!(parentDev is IDmSwitch))
-	        {
-	            Debug.Console(0, "Cannot create DM device '{0}'. '{1}' is not a DM Chassis.",
-	                key, pKey);
-	            return null;
-	        }
-
-	        var chassis = (parentDev as IDmSwitch).Chassis;
-	        var num = props.ParentOutputNumber;
-
-	        if (num <= 0 || num > chassis.NumberOfOutputs)
-	        {
-	            Debug.Console(0, "Cannot create DM device '{0}'. Output number '{1}' is out of range",
-	                key, num);
-	            return null;
-	        }
-
-	        var controller = parentDev as IDmSwitch;
-	        controller.RxDictionary.Add(num, key);
-	        // Catch constructor failures, mainly dues to IPID
-	        try
-	        {
-	            // Must use different constructor for CPU3 chassis types. No IPID
-	            if (chassis is DmMd8x8Cpu3 || chassis is DmMd16x16Cpu3 ||
-	                chassis is DmMd32x32Cpu3 || chassis is DmMd8x8Cpu3rps ||
-	                chassis is DmMd16x16Cpu3rps || chassis is DmMd32x32Cpu3rps ||
-	                chassis is DmMd128x128 || chassis is DmMd64x64)
-	            {
-	                return GetDmRmcControllerForCpu3Chassis(key, name, typeName, chassis, num, parentDev);
-	            }
-
-	            return GetDmRmcControllerForCpu2Chassis(key, name, typeName, ipid, chassis, num, parentDev);
-	        }
-	        catch (Exception e)
-	        {
-	            Debug.Console(0, "[{0}] WARNING: Cannot create DM-RMC device: {1}", key, e.Message);
-	            return null;
-	        }
+                catch (Exception e)
+                {
+                    Debug.Console(0, "[{0}] WARNING: Cannot create DM-RMC device: {1}", key, e.Message);
+                    return null;
+                }
+            }
+            else
+            {
+                Debug.Console(0, "Cannot create DM device '{0}'. '{1}' is not a DM Chassis or DMPS.",
+                    key, pKey);
+                return null;
+            }
 	    }
 
 	    private static CrestronGenericBaseDevice GetDmRmcControllerForCpu2Chassis(string key, string name, string typeName,
