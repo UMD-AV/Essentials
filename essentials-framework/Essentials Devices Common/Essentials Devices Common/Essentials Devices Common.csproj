@@ -195,6 +195,7 @@
     <Compile Include="Codec\IHasCallHold.cs" />
     <Compile Include="Codec\IHasDoNotDisturb.cs" />
     <Compile Include="Codec\IHasExternalSourceSwitching.cs" />
+    <Compile Include="Display\NecDisplay.cs" />
     <Compile Include="Display\EpsonProjector.cs" />
     <Compile Include="DSP\ExtronMlsDsp\ExtronMlsDsp.cs" />
     <Compile Include="DSP\ExtronMlsDsp\ExtronMlsDspFactory.cs" />
