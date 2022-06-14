@@ -1482,7 +1482,7 @@ namespace PepperDash.Essentials.DM
 
             LinkChassisToApi(trilist, joinMap);
 
-            trilist.StringInput[joinMap.Name.JoinNumber].StringValue = "DM Switcher";
+            trilist.StringInput[joinMap.Name.JoinNumber].StringValue = this.Name;
 
             // Link up inputs & outputs
             for (uint i = 1; i <= Chassis.NumberOfOutputs; i++)

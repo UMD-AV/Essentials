@@ -22,11 +22,12 @@ namespace PepperDash.Essentials.DM
     public class DmpsAudioOutputController : EssentialsBridgeableDevice
     {
         Card.Dmps3OutputBase OutputCard;
-        public DmpsAudioOutput MasterVolumeLevel;
-        public DmpsAudioOutput SourceVolumeLevel;
-        public DmpsAudioOutput MicsMasterVolumeLevel;
-        public DmpsAudioOutput Codec1VolumeLevel;
-        public DmpsAudioOutput Codec2VolumeLevel;
+
+        public DmpsAudioOutput MasterVolumeLevel { get; private set; }
+        public DmpsAudioOutput SourceVolumeLevel { get; private set; }
+        public DmpsAudioOutput MicsMasterVolumeLevel { get; private set; }
+        public DmpsAudioOutput Codec1VolumeLevel { get; private set; }
+        public DmpsAudioOutput Codec2VolumeLevel { get; private set; }
 
         public DmpsAudioOutputController(string key, string name, Card.Dmps3OutputBase card)
             : base(key, name)
@@ -166,11 +167,6 @@ namespace PepperDash.Essentials.DM
                         }
                         break;
                     }
-                case DMOutputEventIds.StartupVolumeFeedBackEventId:
-                    {
-                        Debug.Console(1, this, "StartupVolumeFeedBackEventId: {0}", args.Index);
-                        break;
-                    }
             }
         }
 
@@ -228,7 +224,7 @@ namespace PepperDash.Essentials.DM
         static void SetUpDmpsAudioOutputJoins(BasicTriList trilist, DmpsAudioOutput output, uint joinStart)
         {
             var volumeLevelJoin = joinStart;
-            var volumeLevelScaledJoin = joinStart + 1;
+            var volumeLevelScaledJoin = joinStart + 1;            
             var muteOnJoin = joinStart;
             var muteOffJoin = joinStart + 1;
             var volumeUpJoin = joinStart + 2;

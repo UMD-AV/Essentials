@@ -201,7 +201,7 @@ namespace PepperDash.Essentials.DM
             Dmps.DMInputChange += Dmps_DMInputChange;
             Dmps.DMOutputChange += Dmps_DMOutputChange;
             Dmps.DMSystemChange += Dmps_DMSystemChange;
-
+            
             foreach (var x in VideoOutputFeedbacks)
             {
                 x.Value.FireUpdate();
@@ -309,9 +309,9 @@ namespace PepperDash.Essentials.DM
             SystemPowerOnFeedback.LinkInputSig(trilist.BooleanInput[joinMap.SystemPowerOn.JoinNumber]);
             SystemPowerOffFeedback.LinkInputSig(trilist.BooleanInput[joinMap.SystemPowerOff.JoinNumber]);
 
-            trilist.SetBoolSigAction(joinMap.FrontPanelLockOn.JoinNumber, a => { if (a) { SystemControl.FrontPanelLockOn(); } });
-            trilist.SetBoolSigAction(joinMap.FrontPanelLockOff.JoinNumber, a => { if (a) { SystemControl.FrontPanelLockOff(); } });
-
+            trilist.SetBoolSigAction(joinMap.FrontPanelLockOn.JoinNumber, a => { if (a) {SystemControl.FrontPanelLockOn();}});
+            trilist.SetBoolSigAction(joinMap.FrontPanelLockOff.JoinNumber, a => { if (a) {SystemControl.FrontPanelLockOff();}});
+            
             FrontPanelLockOnFeedback.LinkInputSig(trilist.BooleanInput[joinMap.FrontPanelLockOn.JoinNumber]);
             FrontPanelLockOffFeedback.LinkInputSig(trilist.BooleanInput[joinMap.FrontPanelLockOff.JoinNumber]);
 
@@ -333,9 +333,9 @@ namespace PepperDash.Essentials.DM
 
                 // Control
                 trilist.SetUShortSigAction(joinMap.OutputVideo.JoinNumber + ioSlotJoin,
-                    o => ExecuteNumericSwitch(o, (ushort)ioSlot, eRoutingSignalType.Video));
+                    o => ExecuteNumericSwitch(o, (ushort) ioSlot, eRoutingSignalType.Video));
                 trilist.SetUShortSigAction(joinMap.OutputAudio.JoinNumber + ioSlotJoin,
-                    o => ExecuteNumericSwitch(o, (ushort)ioSlot, eRoutingSignalType.Audio));
+                    o => ExecuteNumericSwitch(o, (ushort) ioSlot, eRoutingSignalType.Audio));
 
                 trilist.SetStringSigAction(joinMap.OutputNames.JoinNumber + ioSlotJoin, s =>
                 {
@@ -605,7 +605,7 @@ namespace PepperDash.Essentials.DM
 
                 var cecPort = hdmiInputCard.HdmiInputPort;
 
-                AddInputPortWithDebug(number, string.Format("HdmiIn{0}", number), eRoutingSignalType.Audio | eRoutingSignalType.Video, eRoutingPortConnectionType.Hdmi, cecPort);
+                AddInputPortWithDebug(number, string.Format("HdmiIn{0}", number), eRoutingSignalType.Audio | eRoutingSignalType.Video, eRoutingPortConnectionType.Hdmi, cecPort);              
             }
             else if (inputCard is Card.Dmps3HdmiInput)
             {
@@ -675,7 +675,7 @@ namespace PepperDash.Essentials.DM
             var inputPort = new RoutingInputPort(portKey, sigType, portType, Dmps.SwitcherInputs[cardNum], this)
             {
                 FeedbackMatchObject = Dmps.SwitcherInputs[cardNum]
-            };
+            }; 
 
             if (cecPort != null)
                 inputPort.Port = cecPort;
@@ -887,7 +887,7 @@ namespace PepperDash.Essentials.DM
                     case (DMInputEventIds.InputNameEventId):
                         {
                             Debug.Console(2, this, "DM Input {0} NameFeedbackEventId", args.Number);
-                            if (InputNameFeedbacks.ContainsKey(args.Number))
+                            if(InputNameFeedbacks.ContainsKey(args.Number))
                             {
                                 InputNameFeedbacks[args.Number].FireUpdate();
                             }
@@ -985,18 +985,18 @@ namespace PepperDash.Essentials.DM
             {
                 case DMSystemEventIds.SystemPowerOnEventId:
                 case DMSystemEventIds.SystemPowerOffEventId:
-                    {
-                        SystemPowerOnFeedback.FireUpdate();
-                        SystemPowerOffFeedback.FireUpdate();
-                        break;
-                    }
+                {
+                    SystemPowerOnFeedback.FireUpdate();
+                    SystemPowerOffFeedback.FireUpdate();
+                    break;
+                }
                 case DMSystemEventIds.FrontPanelLockOnEventId:
                 case DMSystemEventIds.FrontPanelLockOffEventId:
-                    {
-                        FrontPanelLockOnFeedback.FireUpdate();
-                        FrontPanelLockOffFeedback.FireUpdate();
-                        break;
-                    }
+                {
+                    FrontPanelLockOnFeedback.FireUpdate();
+                    FrontPanelLockOffFeedback.FireUpdate();
+                    break;
+                }
             }
         }
 
@@ -1063,7 +1063,7 @@ namespace PepperDash.Essentials.DM
                         }
                     }
 
-
+                    
                     //DMOutput dmOutputCard = output == 0 ? null : Dmps.SwitcherOutputs[output] as DMOutput;
 
                     //if (inCard != null)
@@ -1071,7 +1071,7 @@ namespace PepperDash.Essentials.DM
                     // NOTE THAT BITWISE COMPARISONS - TO CATCH ALL ROUTING TYPES 
                     if ((sigType & eRoutingSignalType.Video) == eRoutingSignalType.Video)
                     {
-                        output.VideoOut = input;
+                            output.VideoOut = input;
                     }
 
                     if ((sigType & eRoutingSignalType.Audio) == eRoutingSignalType.Audio)
@@ -1083,8 +1083,8 @@ namespace PepperDash.Essentials.DM
                         catch (NotSupportedException)
                         {
                             Debug.Console(1, this, "Routing input {0} audio to output {1}",
-                                (eDmps34KAudioOutSource)(input == null ? 0 : input.Number),
-                                (CrestronControlSystem.eDmps34K350COutputs)output.Number);
+                                (eDmps34KAudioOutSource) (input == null ? 0 : input.Number),
+                                (CrestronControlSystem.eDmps34K350COutputs) output.Number);
 
                             output.AudioOutSource = input == null
                                 ? eDmps34KAudioOutSource.NoRoute
@@ -1094,7 +1094,7 @@ namespace PepperDash.Essentials.DM
 
                     if ((sigType & eRoutingSignalType.UsbOutput) == eRoutingSignalType.UsbOutput)
                     {
-                        output.USBRoutedTo = input;
+                            output.USBRoutedTo = input;
                     }
 
                     if ((sigType & eRoutingSignalType.UsbInput) != eRoutingSignalType.UsbInput)
