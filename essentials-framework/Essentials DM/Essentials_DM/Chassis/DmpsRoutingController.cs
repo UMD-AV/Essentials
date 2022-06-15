@@ -418,7 +418,7 @@ namespace PepperDash.Essentials.DM
 
         private void LinkInputsToApi(BasicTriList trilist, DmpsRoutingControllerJoinMap joinMap)
         {
-            if (Global.ControlSystemIsDmps4kType)
+            if (!Global.ControlSystemIsDmps4k3xxType)
             {
                 //DMPS-4K audio inputs 1-5 are aux inputs, add them after regular dm cards
                 for (ushort i = 1; i <= 5; i++)
@@ -509,7 +509,7 @@ namespace PepperDash.Essentials.DM
                     });
                     AudioOutputFeedbacks[outputCard.Number] = new IntFeedback(() =>
                     {
-                        if (!Global.ControlSystemIsDmps4kType)
+                        if (!Global.ControlSystemIsDmps4k3xxType)
                         {
                             if (outputCard.AudioOutFeedback != null)
                             {
@@ -586,7 +586,7 @@ namespace PepperDash.Essentials.DM
                     });
                     OutputAudioRouteNameFeedbacks[outputCard.Number] = new StringFeedback(() =>
                     {
-                        if (!Global.ControlSystemIsDmps4kType)
+                        if (!Global.ControlSystemIsDmps4k3xxType)
                         {
                             if (outputCard.AudioOutFeedback != null && outputCard.AudioOutFeedback.NameFeedback != null)
                             {
@@ -1041,7 +1041,7 @@ namespace PepperDash.Essentials.DM
             }
             else if (args.EventId == DMOutputEventIds.AudioOutEventId)
             {
-                if (!Global.ControlSystemIsDmps4kType)
+                if (!Global.ControlSystemIsDmps4k3xxType)
                 {
                     if (outputCard != null && outputCard.AudioOutFeedback != null)
                     {
@@ -1180,7 +1180,7 @@ namespace PepperDash.Essentials.DM
 
                     if ((sigType & eRoutingSignalType.Audio) == eRoutingSignalType.Audio)
                     {
-                        if(!Global.ControlSystemIsDmps4kType)
+                        if (!Global.ControlSystemIsDmps4k3xxType)
                         {
                             output.AudioOut = input;
                         }
@@ -1261,7 +1261,7 @@ namespace PepperDash.Essentials.DM
             else if ((sigType & eRoutingSignalType.Audio) == eRoutingSignalType.Audio)
             {
                 //Special case for DMPS-4K digital audio output
-                if (Global.ControlSystemIsDmps4kType)
+                if (Global.ControlSystemIsDmps4k3xxType)
                 {
                     if (DigitalAudioOutputs.ContainsKey(outputSelector))
                     {
