@@ -1014,6 +1014,10 @@ namespace PepperDash.Essentials.DM
                 {
                     OutputVideoRouteNameFeedbacks[output].FireUpdate();
                 }
+                if (outputCard is Card.Dmps3DmOutputBackend || outputCard is Card.Dmps3HdmiOutputBackend)
+                {
+                    DigitalAudioOutputs[output].AudioSourceNumericFeedback.FireUpdate();
+                }
             }
             else if (args.EventId == DMOutputEventIds.AudioOutEventId)
             {
