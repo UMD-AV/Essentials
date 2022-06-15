@@ -421,8 +421,8 @@ namespace PepperDash.Essentials.DM
             if (Global.ControlSystemIsDmps4k3xxType)
             {
                 //Add DMPS-4K mixer input names to end of inputs
-                trilist.StringInput[joinMap.InputAudioNames.JoinNumber + (uint)Dmps.SwitcherInputs.Count + 5].StringValue = "Digital Mixer 1";
-                trilist.StringInput[joinMap.InputAudioNames.JoinNumber + (uint)Dmps.SwitcherInputs.Count + 6].StringValue = "Digital Mixer 2";
+                trilist.StringInput[joinMap.InputAudioNames.JoinNumber + (uint)Dmps.SwitcherInputs.Count + 4].StringValue = "Digital Mixer 1";
+                trilist.StringInput[joinMap.InputAudioNames.JoinNumber + (uint)Dmps.SwitcherInputs.Count + 5].StringValue = "Digital Mixer 2";
             }
             for (uint i = 1; i <= Dmps.SwitcherInputs.Count; i++)
             {
