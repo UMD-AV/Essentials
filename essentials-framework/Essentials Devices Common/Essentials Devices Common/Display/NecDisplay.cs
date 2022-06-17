@@ -307,10 +307,9 @@ namespace PepperDash.Essentials.Devices.Displays
                         Debug.Console(1, this, "Found valid power status feedback: {0}", parsedFb[15]);
                         ProcessPowerFb(parsedFb.Substring(12, 4));
                     }
-                    else if (parsedFb.Length >= 16 && parsedFb.StartsWith("00C203D6"))
+                    else if (parsedFb.Length >= 12 && parsedFb.StartsWith("00C203D6"))
                     {
                         Debug.Console(1, this, "Found valid power setting confirmation: {0}", parsedFb[11]);
-                        ProcessPowerFb(parsedFb.Substring(8, 4));
                     }
                     else if(parsedFb.StartsWith("0201D6") || parsedFb.StartsWith("01C203D6"))
                     {
