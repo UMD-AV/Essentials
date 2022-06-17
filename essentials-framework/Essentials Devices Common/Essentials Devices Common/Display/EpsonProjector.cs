@@ -487,18 +487,21 @@ namespace PepperDash.Essentials.Devices.Displays
 
         private void WarmupStart()
         {
-            CooldownTimer.Stop();
-            _PowerIsOn = true;  
-            _IsWarmingUp = true;
-            _IsCoolingDown = false;
-            IsWarmingUpFeedback.FireUpdate();
-            IsCoolingDownFeedback.FireUpdate();
-            PowerIsOnFeedback.FireUpdate();
-            WarmupTimer.Reset(WarmupTime);
-            while (_IsWarmingUp)
+            if (!_IsWarmingUp)
             {
-                SendCommand(eCommandType.PowerPoll, "PWR?", true);
-                CrestronEnvironment.Sleep(2000);
+                CooldownTimer.Stop();
+                _PowerIsOn = true;
+                _IsWarmingUp = true;
+                _IsCoolingDown = false;
+                IsWarmingUpFeedback.FireUpdate();
+                IsCoolingDownFeedback.FireUpdate();
+                PowerIsOnFeedback.FireUpdate();
+                WarmupTimer.Reset(WarmupTime);
+                while (_IsWarmingUp)
+                {
+                    SendCommand(eCommandType.PowerPoll, "PWR?", true);
+                    CrestronEnvironment.Sleep(2000);
+                }
             }
         }
 
@@ -542,18 +545,21 @@ namespace PepperDash.Essentials.Devices.Displays
 
         private void CooldownStart()
         {
-            WarmupTimer.Stop();
-            _PowerIsOn = false;
-            PowerIsOnFeedback.FireUpdate();
-            _IsCoolingDown = true;
-            _IsWarmingUp = false;
-            IsWarmingUpFeedback.FireUpdate();
-            IsCoolingDownFeedback.FireUpdate();
-            CooldownTimer.Reset(CooldownTime);
-            while (_IsCoolingDown)
+            if (!_IsCoolingDown)
             {
-                SendCommand(eCommandType.PowerPoll, "PWR?", true);
-                CrestronEnvironment.Sleep(2000);
+                WarmupTimer.Stop();
+                _PowerIsOn = false;
+                PowerIsOnFeedback.FireUpdate();
+                _IsCoolingDown = true;
+                _IsWarmingUp = false;
+                IsWarmingUpFeedback.FireUpdate();
+                IsCoolingDownFeedback.FireUpdate();
+                CooldownTimer.Reset(CooldownTime);
+                while (_IsCoolingDown)
+                {
+                    SendCommand(eCommandType.PowerPoll, "PWR?", true);
+                    CrestronEnvironment.Sleep(2000);
+                }
             }
         }
 
@@ -619,11 +625,11 @@ namespace PepperDash.Essentials.Devices.Displays
         {
             if (!_IsWarmingUp && !_IsCoolingDown)
             {
-                if (_RequestedPowerState == 1 && _PowerIsOn == false)
+                if (_RequestedPowerState == 1 && (_PowerIsOn == false || !CommunicationMonitor.IsOnline))
                 {
                     PowerOnGo();
                 }
-                else if (_RequestedPowerState == 2 && _PowerIsOn == true)
+                else if (_RequestedPowerState == 2 && (_PowerIsOn == true || !CommunicationMonitor.IsOnline))
                 {
                     PowerOffGo();
                 }

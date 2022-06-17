@@ -49,6 +49,7 @@ namespace PepperDash.Essentials.Devices.Displays
         public BoolFeedback Input3Feedback { get; private set; }
         public BoolFeedback Input4Feedback { get; private set; }
 
+        byte _displayID = Convert.ToByte('A');
         bool _readyForCommands;
         bool _tcpComm;
 		bool _PowerIsOn;
@@ -118,16 +119,16 @@ namespace PepperDash.Essentials.Devices.Displays
             DeviceManager.AddDevice(CommunicationMonitor);
 
             AddRoutingInputPort(new RoutingInputPort("HDMI 1", eRoutingSignalType.Audio | eRoutingSignalType.Video,
-                eRoutingPortConnectionType.Hdmi, new Action(InputHdmi1), this), "00600011");
+                eRoutingPortConnectionType.Hdmi, new Action(InputHdmi1), this), "11");
 
             AddRoutingInputPort(new RoutingInputPort("HDMI 2", eRoutingSignalType.Audio | eRoutingSignalType.Video,
-                eRoutingPortConnectionType.Hdmi, new Action(InputHdmi2), this), "00600012");
+                eRoutingPortConnectionType.Hdmi, new Action(InputHdmi2), this), "12");
 
             AddRoutingInputPort(new RoutingInputPort("DP 1", eRoutingSignalType.Audio | eRoutingSignalType.Video,
-                eRoutingPortConnectionType.DisplayPort, new Action(InputDp1), this), "0060000F");
+                eRoutingPortConnectionType.DisplayPort, new Action(InputDp1), this), "0F");
 
             AddRoutingInputPort(new RoutingInputPort("DP 2", eRoutingSignalType.Audio | eRoutingSignalType.Video,
-                eRoutingPortConnectionType.DisplayPort, new Action(InputDp2), this), "00600010");
+                eRoutingPortConnectionType.DisplayPort, new Action(InputDp2), this), "10");
 		}
 
         void AddRoutingInputPort(RoutingInputPort port, string fbMatch)
@@ -165,6 +166,16 @@ namespace PepperDash.Essentials.Devices.Displays
             Input4Feedback.LinkInputSig(trilist.BooleanInput[joinMap.InputSelectOffset.JoinNumber + 3]);
 	    }
 
+        private enum eNecMessageType : byte
+        {
+            Command = 0x41,
+            CommandReply = 0x42,
+            Get = 0x43,
+            GetReply = 0x44,
+            Set = 0x45,
+            SetReply = 0x46            
+        }
+
         public byte[] PrepareCommand(string command)
         {
             int commandLength = command.Length + 2; // Add STX and ETX
@@ -174,16 +185,16 @@ namespace PepperDash.Essentials.Devices.Displays
             //Build the header for the first 7 bytes
             commandB[0] = 0x01; //SOH
             commandB[1] = 0x30; //Reserved
-            commandB[2] = 0x41; //Display ID
+            commandB[2] = _displayID; //Display ID
             commandB[3] = 0x30; //Reserved
 
             //Header byte 4
             if (command == InputGetCmd)
-                commandB[4] = 0x43; //'C' = Get
+                commandB[4] = (byte)eNecMessageType.Get;
             else if (command == PowerOnCmd || command == PowerOffCmd || command == PowerGetCmd)
-                commandB[4] = 0x41; //'A' = Command
+                commandB[4] = (byte)eNecMessageType.Command;
             else
-                commandB[4] = 0x45; //'F' = Set
+                commandB[4] = (byte)eNecMessageType.Set;
 
             //Header byte 5 & 6 are ASCII representation of hex length of command
             byte lengthB = Convert.ToByte(commandLength);
@@ -255,85 +266,72 @@ namespace PepperDash.Essentials.Devices.Displays
         {
             try
             {
-                Debug.Console(1, this, "Feedback: {0}", ComTextHelper.GetEscapedText(e.Text));
-                /*byte[] feedback = Encoding.UTF8.GetBytes(e.Text);
+                byte[] feedbackBytes = Encoding.GetEncoding(28591).GetBytes(e.Text);
+                Debug.Console(1, this, "Feedback: {0}", ComTextHelper.GetEscapedText(feedbackBytes));
 
                 int startPos = -1;
-                //Try to trim any beginning garbage
-                for (int i = 0; (i + 10) < feedback.Length; startPos++)
+                //Try to trim any beginning garbage, but only check to (length - 10) for start position since min length is at least 10 bytes
+                for (int i = 0; (i + 10) < feedbackBytes.Length; i++)
                 {
-                    if(feedback[i] == 0x01
-                    && feedback[i + 1] == 0x30
-                    && feedback[i + 2] == 0x30
-                    && feedback[i + 4] == 0x42
-                    && feedback[i + 7] == 0x02)
+                    if(feedbackBytes[i] == 0x01 
+                    && feedbackBytes[i + 1] == '0'
+                    && feedbackBytes[i + 2] == '0'
+                    && feedbackBytes[i + 3] == _displayID
+                    && feedbackBytes[i + 7] == 0x02)
                     {
                         startPos = i;
+                        break;
                     }
                 }
 
-                if(startPos > 0)
+                //Check for header
+                if (startPos == -1)
                 {
-                    byte[] parsedFb = feedback.Skip(startPos + 8).Take(feedback.Length - 10).ToArray();
-                    Debug.Console(1, this, "Found valid feedback reply: {0}", ComTextHelper.GetEscapedText(parsedFb));
+                    Debug.Console(1, this, "Feedback does not have a valid header");
+                    return;
+                }
+                if (!Enum.IsDefined(typeof(eNecMessageType), feedbackBytes[startPos + 4]))
+                {
+                    Debug.Console(1, this, "Feedback is not a valid message type: {0:X2}", feedbackBytes[startPos + 4]);
+                    return;
+                }
 
-                    if (parsedFb.Length > 16 && parsedFb[5] == 0x44 && parsedFb[6] == 0x36)
+                eNecMessageType messageType = (eNecMessageType)feedbackBytes[startPos + 4];
+                //Found a valid get reply, now trim the header, STX (start of message byte)
+                string parsedFb = e.Text.Substring(startPos + 8);
+
+                if(messageType == eNecMessageType.CommandReply)
+                {
+                    if (parsedFb.Length >= 16 && parsedFb.StartsWith("0200D6"))
                     {
-                        Debug.Console(1, this, "Found valid power feedback reply: {0:X2}", parsedFb[16]);
-                        //Found power feedback
-                        if(parsedFb[16] == 0x01)
-                        {
-                            //Update power on feedback
-                            if (_PowerIsOn == false)
-                            {
-                                _PowerIsOn = true;
-                                PowerIsOnFeedback.FireUpdate();
-                            }
-
-                            //Clear power check
-                            _PowerMutex.WaitForMutex();
-                            if (_RequestedPowerState == 1)
-                            {
-                                _RequestedPowerState = 0;
-                            }
-                            _PowerMutex.ReleaseMutex();
-
-                            //Finish warming up process
-                            if (_IsWarmingUp)
-                            {
-                                CrestronInvoke.BeginInvoke((o) => WarmupDone());
-                            }
-                        }
-                        else if (parsedFb[16] == 0x02 || parsedFb[16] == 0x03 || parsedFb[16] == 0x04)
-                        {
-                            //Update power on feedback
-                            if (_PowerIsOn == true)
-                            {
-                                _PowerIsOn = false;
-                                PowerIsOnFeedback.FireUpdate();
-                            }
-
-                            //Clear power check
-                            _PowerMutex.WaitForMutex();
-                            if (_RequestedPowerState == 2)
-                            {
-                                _RequestedPowerState = 0;
-                            }
-                            _PowerMutex.ReleaseMutex();
-
-                            //Finish cooling down process
-                            if (_IsCoolingDown)
-                            {
-                                CrestronInvoke.BeginInvoke((o) => CooldownDone());
-                            }
-                        }
+                        Debug.Console(1, this, "Found valid power status feedback: {0}", parsedFb[15]);
+                        ProcessPowerFb(parsedFb.Substring(12, 4));
                     }
-
-                    /*else if (parsedFb.Length > 16 && parsedFb[5] == 0x44 && parsedFb[6] == 0x36)
+                    else if (parsedFb.Length >= 16 && parsedFb.StartsWith("00C203D6"))
+                    {
+                        Debug.Console(1, this, "Found valid power setting confirmation: {0}", parsedFb[11]);
+                        ProcessPowerFb(parsedFb.Substring(8, 4));
+                    }
+                    else if(parsedFb.StartsWith("0201D6") || parsedFb.StartsWith("01C203D6"))
+                    {
+                        Debug.Console(1, this, "Command reply result code is an error: {0}", ComTextHelper.GetEscapedText(parsedFb));
+                        return;
+                    }
+                }
+                else if (messageType == eNecMessageType.GetReply)
+                {
+                    if (parsedFb.StartsWith("01"))
+                    {
+                        Debug.Console(1, this, "Get reply result code is an error: {0}", ComTextHelper.GetEscapedText(parsedFb));
+                        return;
+                    }
+                    if (parsedFb.Length >= 16 && parsedFb.StartsWith("00006000"))
                     {
                         try
                         {
-                            int index = InputPorts.FindIndex(i => i.FeedbackMatchObject.Equals(feedback));
+                            string inputFb = parsedFb.Substring(14, 2);
+                            Debug.Console(1, this, "Found valid input feedback reply: {0}", inputFb);
+                            int index = InputPorts.FindIndex(i => i.FeedbackMatchObject.Equals(inputFb));
                             var newInput = InputPorts[index];
                             if (_CurrentInputIndex != (index + 1))
                             {
@@ -353,14 +351,68 @@ namespace PepperDash.Essentials.Devices.Displays
                         }
                         catch
                         {
-                            Debug.Console(1, this, "Invalid input feedback: {0}", feedback);
+                            Debug.Console(1, this, "Invalid input feedback: {0}", feedbackBytes);
                         }
                     }
-                }*/
+                }
+                else if(messageType == eNecMessageType.SetReply)
+                {
+                    Debug.Console(1, this, "Found set reply: {0}", ComTextHelper.GetEscapedText(parsedFb));
+                }
             }
             catch (Exception ex)
             {
                 Debug.Console(1, this, "Error parsing feedback: {0}", ex);
+            }
+        }
+
+        private void ProcessPowerFb(string powerFb)
+        {
+            if (powerFb == "0001")
+            {
+                //Update power on feedback
+                if (_PowerIsOn == false)
+                {
+                    _PowerIsOn = true;
+                    PowerIsOnFeedback.FireUpdate();
+                }
+
+                //Clear power check
+                _PowerMutex.WaitForMutex();
+                if (_RequestedPowerState == 1)
+                {
+                    _RequestedPowerState = 0;
+                }
+                _PowerMutex.ReleaseMutex();
+
+                //Finish warming up process
+                if (_IsWarmingUp)
+                {
+                    CrestronInvoke.BeginInvoke((o) => WarmupDone());
+                }
+            }
+            else if (powerFb == "0002" || powerFb == "0003" || powerFb == "0004")
+            {
+                //Update power on feedback
+                if (_PowerIsOn == true)
+                {
+                    _PowerIsOn = false;
+                    PowerIsOnFeedback.FireUpdate();
+                }
+
+                //Clear power check
+                _PowerMutex.WaitForMutex();
+                if (_RequestedPowerState == 2)
+                {
+                    _RequestedPowerState = 0;
+                }
+                _PowerMutex.ReleaseMutex();
+
+                //Finish cooling down process
+                if (_IsCoolingDown)
+                {
+                    CrestronInvoke.BeginInvoke((o) => CooldownDone());
+                }
             }
         }
 
@@ -461,14 +513,17 @@ namespace PepperDash.Essentials.Devices.Displays
 
         private void WarmupStart()
         {
-            CooldownTimer.Stop();
-            _PowerIsOn = true;  
-            _IsWarmingUp = true;
-            _IsCoolingDown = false;
-            IsWarmingUpFeedback.FireUpdate();
-            IsCoolingDownFeedback.FireUpdate();
-            PowerIsOnFeedback.FireUpdate();
-            WarmupTimer.Reset(WarmupTime);
+            if (!_IsWarmingUp)
+            {
+                CooldownTimer.Stop();
+                _PowerIsOn = true;
+                _IsWarmingUp = true;
+                _IsCoolingDown = false;
+                IsWarmingUpFeedback.FireUpdate();
+                IsCoolingDownFeedback.FireUpdate();
+                PowerIsOnFeedback.FireUpdate();
+                WarmupTimer.Reset(WarmupTime);
+            }
         }
 
         private void WarmupDone()
@@ -505,14 +560,17 @@ namespace PepperDash.Essentials.Devices.Displays
 
         private void CooldownStart()
         {
-            WarmupTimer.Stop();
-            _PowerIsOn = false;
-            PowerIsOnFeedback.FireUpdate();
-            _IsCoolingDown = true;
-            _IsWarmingUp = false;
-            IsWarmingUpFeedback.FireUpdate();
-            IsCoolingDownFeedback.FireUpdate();
-            CooldownTimer.Reset(CooldownTime);
+            if (!_IsCoolingDown)
+            {
+                WarmupTimer.Stop();
+                _PowerIsOn = false;
+                PowerIsOnFeedback.FireUpdate();
+                _IsCoolingDown = true;
+                _IsWarmingUp = false;
+                IsWarmingUpFeedback.FireUpdate();
+                IsCoolingDownFeedback.FireUpdate();
+                CooldownTimer.Reset(CooldownTime);
+            }
         }
 
         private void CooldownDone()
@@ -574,11 +632,11 @@ namespace PepperDash.Essentials.Devices.Displays
         {
             if (!_IsWarmingUp && !_IsCoolingDown)
             {
-                if (_RequestedPowerState == 1 && _PowerIsOn == false)
+                if (_RequestedPowerState == 1 && (_PowerIsOn == false || !CommunicationMonitor.IsOnline))
                 {
                     PowerOnGo();
                 }
-                else if (_RequestedPowerState == 2 && _PowerIsOn == true)
+                else if (_RequestedPowerState == 2 && (_PowerIsOn == true || !CommunicationMonitor.IsOnline))
                 {
                     PowerOffGo();
                 }
