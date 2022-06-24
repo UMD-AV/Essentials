@@ -670,6 +670,10 @@ namespace PepperDash.Essentials.Devices.Displays
         {
             SendCommand(eCommandType.VideoMute, "MUTE ON", false);
             VideoMuteGet();
+            CrestronInvoke.BeginInvoke((o) => {
+                CrestronEnvironment.Sleep(1000);
+                VideoMuteGet();
+            });
         }
 
         public void VideoMuteOff()
@@ -685,6 +689,11 @@ namespace PepperDash.Essentials.Devices.Displays
         {
             SendCommand(eCommandType.VideoMute, "MUTE OFF", false);
             VideoMuteGet();
+            CrestronInvoke.BeginInvoke((o) =>
+            {
+                CrestronEnvironment.Sleep(1000);
+                VideoMuteGet();
+            });
         }
 
         public void VideoMuteGet()
