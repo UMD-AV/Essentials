@@ -46,18 +46,6 @@
     <GenerateSerializationAssemblies>off</GenerateSerializationAssemblies>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Crestron.DeviceDrivers.API, Version=8.0.0.8, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\packages\RAD\Crestron.DeviceDrivers.API.dll</HintPath>
-    </Reference>
-    <Reference Include="Crestron.DeviceDrivers.Core, Version=8.0.8.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\packages\RAD\Crestron.DeviceDrivers.Core.dll</HintPath>
-    </Reference>
-    <Reference Include="Crestron.DeviceDrivers.SDK, Version=8.0.8.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\packages\RAD\Crestron.DeviceDrivers.SDK.dll</HintPath>
-    </Reference>
     <Reference Include="Crestron.SimplSharpPro.DeviceSupport, Version=1.0.0.0, Culture=neutral, PublicKeyToken=1099c178b3b54c3b, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\..\..\..\..\..\ProgramData\Crestron\SDK\SSPDevices\Crestron.SimplSharpPro.DeviceSupport.dll</HintPath>
@@ -110,38 +98,6 @@
     <Reference Include="PepperDash_Core, Version=1.1.1.32703, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\packages\PepperDashCore\lib\net35\PepperDash_Core.dll</HintPath>
-    </Reference>
-    <Reference Include="RADAVReceiver, Version=8.0.0.8, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\packages\RAD\RADAVReceiver.dll</HintPath>
-    </Reference>
-    <Reference Include="RADBlurayPlayer, Version=8.0.0.8, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\packages\RAD\RADBlurayPlayer.dll</HintPath>
-    </Reference>
-    <Reference Include="RADCableBox, Version=8.0.0.8, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\packages\RAD\RADCableBox.dll</HintPath>
-    </Reference>
-    <Reference Include="RADCommon, Version=8.0.0.8, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\packages\RAD\RADCommon.dll</HintPath>
-    </Reference>
-    <Reference Include="RADDisplay, Version=8.0.0.8, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\packages\RAD\RADDisplay.dll</HintPath>
-    </Reference>
-    <Reference Include="RADProTransports, Version=8.0.0.8, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\packages\RAD\RADProTransports.dll</HintPath>
-    </Reference>
-    <Reference Include="RADSecuritySystem, Version=8.0.0.8, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\packages\RAD\RADSecuritySystem.dll</HintPath>
-    </Reference>
-    <Reference Include="RADVideoServer, Version=8.0.0.8, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\packages\RAD\RADVideoServer.dll</HintPath>
     </Reference>
     <Reference Include="SimplSharpCustomAttributesInterface, Version=1.0.0.0, Culture=neutral, PublicKeyToken=1099c178b3b54c3b, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
