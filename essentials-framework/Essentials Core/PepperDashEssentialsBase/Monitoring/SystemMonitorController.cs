@@ -246,6 +246,8 @@ namespace PepperDash.Essentials.Core.Monitoring
             UptimeFeedback.LinkInputSig(trilist.StringInput[joinMap.Uptime.JoinNumber]);
             LastStartFeedback.LinkInputSig(trilist.StringInput[joinMap.LastBoot.JoinNumber]);
 
+            trilist.BooleanOutput[joinMap.Refresh.JoinNumber].SetSigFalseAction(() => RefreshSystemMonitorData());
+
             // iterate the program status feedback collection and map all the joins
             LinkProgramInfoJoins(this, trilist, joinMap);
 

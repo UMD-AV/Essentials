@@ -4,6 +4,10 @@ namespace PepperDash.Essentials.Core.Bridges
 {
     public class SystemMonitorJoinMap : JoinMapBaseAdvanced
     {
+        [JoinName("Refresh Data")]
+        public JoinDataComplete Refresh = new JoinDataComplete(new JoinData { JoinNumber = 1, JoinSpan = 1 },
+            new JoinMetadata { Description = "Refresh System Monitor Data", JoinCapabilities = eJoinCapabilities.FromSIMPL, JoinType = eJoinType.Digital });
+
         [JoinName("TimeZone")]
         public JoinDataComplete TimeZone = new JoinDataComplete(new JoinData { JoinNumber = 1, JoinSpan = 1 },
             new JoinMetadata { Description = "Processor Timezone", JoinCapabilities = eJoinCapabilities.ToSIMPL, JoinType = eJoinType.Analog });
