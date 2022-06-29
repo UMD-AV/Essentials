@@ -19,6 +19,7 @@ namespace PepperDash.Essentials.Core.CrestronIO
     public class GenericRelayDevice : EssentialsBridgeableDevice, ISwitchedOutput
     {
         public Relay RelayOutput { get; private set; }
+        public ushort RelayHoldTimeSeconds { get; private set; }
 
         public BoolFeedback OutputIsOnFeedback { get; private set; }
 
@@ -34,11 +35,19 @@ namespace PepperDash.Essentials.Core.CrestronIO
             RelayOutput.StateChange += RelayOutput_StateChange;
         }
 
-        public GenericRelayDevice(string key, string name, Func<IOPortConfig, Relay> postActivationFunc,
-            IOPortConfig config)
+        public GenericRelayDevice(string key, string name, Func<RelayPortConfig, Relay> postActivationFunc,
+            RelayPortConfig config)
             : base(key, name)
         {
             OutputIsOnFeedback = new BoolFeedback(() => RelayOutput.State);
+            if (config.RelayHoldTimeSeconds >= 1)
+            {
+                RelayHoldTimeSeconds = config.RelayHoldTimeSeconds;
+            }
+            else
+            {
+                RelayHoldTimeSeconds = (ushort)1;
+            }
 
             AddPostActivationAction(() =>
             {
@@ -58,9 +67,8 @@ namespace PepperDash.Essentials.Core.CrestronIO
 
         #region PreActivate
 
-        private static Relay GetRelay(IOPortConfig dc)
+        private static Relay GetRelay(RelayPortConfig dc)
         {
-
             IRelayPorts relayDevice;
 
             if(dc.PortDeviceKey.Equals("processor"))
@@ -183,8 +191,11 @@ namespace PepperDash.Essentials.Core.CrestronIO
             });
 
             // feedback for relay state
-
             OutputIsOnFeedback.LinkInputSig(trilist.BooleanInput[joinMap.Relay.JoinNumber]);
+
+            //feedback for name and relay time settings
+            trilist.StringInput[joinMap.Name.JoinNumber].StringValue = Name;
+            trilist.UShortInput[joinMap.RelayHoldTimeSeconds.JoinNumber].UShortValue = RelayHoldTimeSeconds;
         }
 
         #endregion
@@ -202,7 +213,7 @@ namespace PepperDash.Essentials.Core.CrestronIO
             {
                 Debug.Console(1, "Factory Attempting to create new Generic Relay Device");
 
-                var props = JsonConvert.DeserializeObject<IOPortConfig>(dc.Properties.ToString());
+                var props = JsonConvert.DeserializeObject<RelayPortConfig>(dc.Properties.ToString());
 
                 if (props == null) return null;
 
