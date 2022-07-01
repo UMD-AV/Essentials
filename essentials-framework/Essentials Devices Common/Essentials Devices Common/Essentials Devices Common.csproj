@@ -153,6 +153,10 @@
     <Compile Include="Codec\IHasExternalSourceSwitching.cs" />
     <Compile Include="Display\NecDisplay.cs" />
     <Compile Include="Display\EpsonProjector.cs" />
+    <Compile Include="Display\SamsungMdc\SamsungMdc.cs" />
+    <Compile Include="Display\SamsungMdc\SamsungMdcConfigObject.cs" />
+    <Compile Include="Display\SamsungMdc\SamsungMdcControllerFactory.cs" />
+    <Compile Include="Display\SamsungMdc\SamsungMdcControllerJoinMap.cs" />
     <Compile Include="DSP\ExtronMlsDsp\ExtronMlsDsp.cs" />
     <Compile Include="DSP\ExtronMlsDsp\ExtronMlsDspFactory.cs" />
     <Compile Include="DSP\ExtronMlsDsp\ExtronMlsDspJoinMap.cs" />
@@ -240,7 +244,6 @@
     <Compile Include="Display\ComTcpDisplayBase.cs" />
     <Compile Include="Display\AvocorVTFDisplay.cs" />
     <Compile Include="Display\InputInterfaces.cs" />
-    <Compile Include="Display\SamsungMDCDisplay.cs" />
     <Compile Include="Display\NECPSXMDisplay.cs" />
     <Compile Include="DSP\BiampTesira\BiampTesiraForteDspLevel.cs" />
     <Compile Include="DSP\BiampTesira\TesiraForteControlPoint.cs" />

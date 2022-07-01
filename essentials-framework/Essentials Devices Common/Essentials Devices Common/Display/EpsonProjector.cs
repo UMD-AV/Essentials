@@ -605,7 +605,6 @@ namespace PepperDash.Essentials.Devices.Displays
             _PowerMutex.ReleaseMutex();
             _RequestedInputState = 0;
             _RequestedVideoMuteState = 0;
-            _RequestedInputState = 0;
             ProcessPower();
 		}
 
