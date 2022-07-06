@@ -28,7 +28,7 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec
 		IUsageTracking, IHasDialer, IHasContentSharing, ICodecAudio, iVideoCodecInfo, IBridgeAdvanced, IHasStandbyMode
 	{
 		private const int XSigEncoding = 28591;
-        protected const int MaxParticipants = 50;
+        protected const int MaxParticipants = 100;
 		private readonly byte[] _clearBytes = XSigHelpers.ClearOutputs();
 		protected VideoCodecBase(DeviceConfig config)
 			: base(config)
