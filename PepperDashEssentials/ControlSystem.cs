@@ -157,7 +157,7 @@ namespace PepperDash.Essentials
                     {
                         is4series = true;
                         // Set path to user/
-                        userFolder = "User";
+                        userFolder = "user";
                     }
                     else
                     {
