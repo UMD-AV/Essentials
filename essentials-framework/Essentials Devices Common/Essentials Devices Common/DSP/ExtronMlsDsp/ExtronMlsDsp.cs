@@ -28,6 +28,7 @@ namespace ExtronMlsDspPlugin
         CMutex _volumeDownLock;
         private ushort _volumeUpCount;
         private ushort _volumeDownCount;
+        private ushort _defaultVolume;
         private bool _readyForLevel;
         CTimer _readyForLevelTimer;
 
@@ -57,7 +58,7 @@ namespace ExtronMlsDspPlugin
 		/// <param name="key">String</param>
 		/// <param name="name">String</param>
 		/// <param name="comm">IBasicCommunication</param>
-		public ExtronMlsDsp(string key, string name, IBasicCommunication comm)
+		public ExtronMlsDsp(string key, string name, ExtronMlsDspPropertiesConfig config, IBasicCommunication comm)
 			: base(key, name)
 		{
             _comms = comm;
@@ -69,6 +70,8 @@ namespace ExtronMlsDspPlugin
             _volumeUpLock = new CMutex();
             _volumeUpCount = 0;
             _volumeDownCount = 0;
+            _defaultVolume = (config.defaultVolume != null && config.defaultVolume < 100 && config.defaultVolume >= 0) ? (ushort)config.defaultVolume : (ushort)50;
+
             _volumeUpRepeatTimer = new CTimer(VolumeUpRepeat, Timeout.Infinite);
             _volumeDownRepeatTimer = new CTimer(VolumeDownRepeat, Timeout.Infinite);
             _readyForLevelTimer = new CTimer(EnableLevelSend, Timeout.Infinite);

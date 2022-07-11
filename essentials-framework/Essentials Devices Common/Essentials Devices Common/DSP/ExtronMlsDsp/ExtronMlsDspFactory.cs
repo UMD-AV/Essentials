@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using PepperDash.Core;
+using Newtonsoft.Json;
 using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Config;
 
@@ -29,7 +30,25 @@ namespace ExtronMlsDspPlugin
                 return null;
             }
 
-            return new ExtronMlsDsp(dc.Key, dc.Name, comms); ;
+            var config = dc.Properties.ToObject<ExtronMlsDspPropertiesConfig>();
+
+            if (config != null)
+            {
+                return new ExtronMlsDsp(dc.Key, dc.Name, config, comms); ;
+            }
+
+            Debug.Console(0, Debug.ErrorLogLevel.Error, "Unable to deserialize config for device {0}", dc.Key);
+            return null;            
+        }
+    }
+
+    public class ExtronMlsDspPropertiesConfig
+    {
+        [JsonProperty("defaultVolume")]
+        public int? defaultVolume { get; set; }
+
+        public ExtronMlsDspPropertiesConfig()
+        {
         }
     }
 }
