@@ -91,15 +91,15 @@ namespace PepperDash.Essentials.Core.Bridges
             });
 
         [JoinName("OutputCurrentVideoInputNames")]
-        public JoinDataComplete OutputCurrentVideoInputNames = new JoinDataComplete(new JoinData { JoinNumber = 2001, JoinSpan = 32 },
+        public JoinDataComplete OutputCurrentVideoInputNames = new JoinDataComplete(new JoinData { JoinNumber = 1201, JoinSpan = 32 },
             new JoinMetadata { Description = "DM Chassis Video Output Currently Routed Video Input Name", JoinCapabilities = eJoinCapabilities.ToSIMPL, JoinType = eJoinType.Serial });
 
         [JoinName("OutputCurrentAudioInputNames")]
-        public JoinDataComplete OutputCurrentAudioInputNames = new JoinDataComplete(new JoinData { JoinNumber = 2201, JoinSpan = 32 },
+        public JoinDataComplete OutputCurrentAudioInputNames = new JoinDataComplete(new JoinData { JoinNumber = 1601, JoinSpan = 32 },
             new JoinMetadata { Description = "DM Chassis Audio Output Currently Routed Video Input Name", JoinCapabilities = eJoinCapabilities.ToSIMPL, JoinType = eJoinType.Serial });
 
         [JoinName("InputCurrentResolution")]
-        public JoinDataComplete InputCurrentResolution = new JoinDataComplete(new JoinData { JoinNumber = 2401, JoinSpan = 32 },
+        public JoinDataComplete InputCurrentResolution = new JoinDataComplete(new JoinData { JoinNumber = 1401, JoinSpan = 32 },
             new JoinMetadata { Description = "DM Chassis Input Current Resolution", JoinCapabilities = eJoinCapabilities.ToSIMPL, JoinType = eJoinType.Serial });
 
         /// <summary>

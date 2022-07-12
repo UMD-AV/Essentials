@@ -240,7 +240,7 @@ namespace ExtronMlsDspPlugin
 
         public void DefaultVolume()
         {
-            SendText("35V");
+            SendText(string.Format("{0}V", _defaultVolume));
         }
 
         public void SetVolume(ushort vol)

@@ -44,11 +44,11 @@ namespace PepperDash.Essentials.Core.Bridges {
             new JoinMetadata { Description = "DM Blade Chassis Output Name", JoinCapabilities = eJoinCapabilities.ToSIMPL, JoinType = eJoinType.Serial });
 
         [JoinName("OutputCurrentVideoInputNames")]
-        public JoinDataComplete OutputCurrentVideoInputNames = new JoinDataComplete(new JoinData { JoinNumber = 2001, JoinSpan = 128 },
+        public JoinDataComplete OutputCurrentVideoInputNames = new JoinDataComplete(new JoinData { JoinNumber = 1201, JoinSpan = 128 },
             new JoinMetadata { Description = "DM Blade Chassis Video Output Currently Routed Video Input Name", JoinCapabilities = eJoinCapabilities.ToSIMPL, JoinType = eJoinType.Serial });
 
         [JoinName("InputCurrentResolution")]
-        public JoinDataComplete InputCurrentResolution = new JoinDataComplete(new JoinData { JoinNumber = 2401, JoinSpan = 128 },
+        public JoinDataComplete InputCurrentResolution = new JoinDataComplete(new JoinData { JoinNumber = 1401, JoinSpan = 128 },
             new JoinMetadata { Description = "DM Blade Chassis Input Current Resolution", JoinCapabilities = eJoinCapabilities.ToSIMPL, JoinType = eJoinType.Serial });
 
 
