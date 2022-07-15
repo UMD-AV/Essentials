@@ -167,7 +167,7 @@ namespace DynFusion
 				CreateStandardJoin(JoinMapStatic.AuthenticationFailed, FusionSymbol.AuthenticateFailed);
 
 				CreateStandardJoin(JoinMapStatic.DeviceUsage, FusionSymbol.DisplayUsage);
-				CreateStandardJoin(JoinMapStatic.BoradcasetMsgType, FusionSymbol.BroadcastMessageType);
+				CreateStandardJoin(JoinMapStatic.BroadcastMsgType, FusionSymbol.BroadcastMessageType);
 
 				CreateStandardJoin(JoinMapStatic.HelpMsg, FusionSymbol.Help);
 				CreateStandardJoin(JoinMapStatic.ErrorMsg, FusionSymbol.ErrorMessage);
@@ -428,7 +428,7 @@ namespace DynFusion
 					{
 						var sigDetails = args.UserConfiguredSigDetail as UShortSigDataFixedName;
 						DynFusionAnalogAttribute output;
-						if (AnalogAttributesFromFusion.TryGetValue(JoinMapStatic.BoradcasetMsgType.JoinNumber, out output))
+						if (AnalogAttributesFromFusion.TryGetValue(JoinMapStatic.BroadcastMsgType.JoinNumber, out output))
 						{
 							output.UShortValue = sigDetails.OutputSig.UShortValue;
 						}

@@ -17,7 +17,7 @@ namespace DynFusion
 		public JoinDataComplete AuthenticationFailed = new JoinDataComplete(new JoinData { JoinNumber = 31, JoinSpan = 1 }, new JoinMetadata { Label = "AuthenticationFailed", JoinCapabilities = eJoinCapabilities.ToSIMPL, JoinType = eJoinType.Digital });
 
 		public JoinDataComplete DisplayUsage = new JoinDataComplete(new JoinData { JoinNumber = 2, JoinSpan = 1 }, new JoinMetadata { Label = "DisplayUsage", JoinCapabilities = eJoinCapabilities.FromSIMPL, JoinType = eJoinType.Analog });
-		public JoinDataComplete BoradcasetMsgType = new JoinDataComplete(new JoinData { JoinNumber = 22, JoinSpan = 1 }, new JoinMetadata { Label = "BoradcasetMsgType", JoinCapabilities = eJoinCapabilities.ToSIMPL, JoinType = eJoinType.Analog });
+		public JoinDataComplete BroadcastMsgType = new JoinDataComplete(new JoinData { JoinNumber = 22, JoinSpan = 1 }, new JoinMetadata { Label = "BroadcastMsgType", JoinCapabilities = eJoinCapabilities.ToSIMPL, JoinType = eJoinType.Analog });
 
 		public JoinDataComplete HelpMsg = new JoinDataComplete(new JoinData { JoinNumber = 1, JoinSpan = 1 }, new JoinMetadata { Label = "HelpMsg", JoinCapabilities = eJoinCapabilities.ToFromSIMPL, JoinType = eJoinType.Serial });
 		public JoinDataComplete ErrorMsg = new JoinDataComplete(new JoinData { JoinNumber = 2, JoinSpan = 1 }, new JoinMetadata { Label = "ErrorMsg", JoinCapabilities = eJoinCapabilities.FromSIMPL, JoinType = eJoinType.Serial });
