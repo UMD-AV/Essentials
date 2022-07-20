@@ -314,10 +314,6 @@ namespace PepperDash.Essentials.Devices.Displays
                             if (_CurrentInputIndex != (index + 1))
                             {
                                 _CurrentInputIndex = index + 1; //Offset from 0 based index
-                                Input1Feedback.FireUpdate();
-                                Input2Feedback.FireUpdate();
-                                Input3Feedback.FireUpdate();
-                                Input4Feedback.FireUpdate();
                             }
 
                             if (newInput != null && newInput != _CurrentInputPort)
@@ -326,6 +322,10 @@ namespace PepperDash.Essentials.Devices.Displays
                                 CurrentInputFeedback.FireUpdate();
                                 OnSwitchChange(new RoutingNumericEventArgs(null, _CurrentInputPort, eRoutingSignalType.AudioVideo));
                             }
+                            Input1Feedback.FireUpdate();
+                            Input2Feedback.FireUpdate();
+                            Input3Feedback.FireUpdate();
+                            Input4Feedback.FireUpdate();
                         }
                         catch
                         {

@@ -1532,6 +1532,41 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.ZoomRoom
 				HandStatus = new HandStatus();
 			}
 
+            /// <summary>
+            /// Converts ZoomRoom pariticpant response to an Essentials participant
+            /// </summary>
+            /// <param name="participants"></param>
+            /// <returns></returns>
+            public static Participant GetGenericParticipantFromParticipantResult(
+                ListParticipant p)
+            {
+                //return participants.Select(p => new Participant
+                //            {
+                //                UserId = p.UserId,
+                //                Name = p.UserName,
+                //                IsHost = p.IsHost,
+                //                CanMuteVideo = p.IsVideoCanMuteByHost,
+                //                CanUnmuteVideo = p.IsVideoCanUnmuteByHost,
+                //                AudioMuteFb = p.AudioStatusState == "AUDIO_MUTED",
+                //                VideoMuteFb = p.VideoStatusIsSending,
+                //                HandIsRaisedFb = p.HandStatus.HandIsRaisedAndValid,
+                //            }).ToList();
+
+                return new Participant
+                {
+                    UserId = p.UserId,
+                    Name = p.UserName,
+                    IsHost = p.IsHost,
+                    IsMyself = p.IsMyself,
+                    CanMuteVideo = p.IsVideoCanMuteByHost,
+                    CanUnmuteVideo = p.IsVideoCanUnmuteByHost,
+                    AudioMuteFb = p.AudioStatusState == "AUDIO_MUTED",
+                    VideoMuteFb = !p.VideoStatusIsSending,
+                    HandIsRaisedFb = p.HandStatus.HandIsRaisedAndValid,
+                    AudioConnected = p.AudioStatusType == "AUDIO_VOIP" || p.AudioStatusType == "AUDIO_TELE"
+                };
+            }
+
 			/// <summary>
 			/// Converts ZoomRoom pariticpant list response to an Essentials participant list
 			/// </summary>
@@ -1568,6 +1603,7 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.ZoomRoom
 					AudioMuteFb = p.AudioStatusState == "AUDIO_MUTED",
 					VideoMuteFb = !p.VideoStatusIsSending,
 					HandIsRaisedFb = p.HandStatus.HandIsRaisedAndValid,
+                    AudioConnected = p.AudioStatusType == "AUDIO_VOIP" || p.AudioStatusType == "AUDIO_TELE"
 				}).ToList();
 			}
 

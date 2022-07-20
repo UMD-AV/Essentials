@@ -224,6 +224,7 @@
     <Compile Include="VideoCodec\CiscoCodec\RoomPresets.cs" />
     <Compile Include="Cameras\CameraControl.cs" />
     <Compile Include="Display\PanasonicThDisplay.cs" />
+    <Compile Include="VideoCodec\Interfaces\IHasWaitingRoom.cs" />
     <Compile Include="VideoCodec\Interfaces\IHasMeetingInfo.cs" />
     <Compile Include="VideoCodec\Interfaces\IHasMeetingLock.cs" />
     <Compile Include="VideoCodec\Interfaces\IHasMeetingRecording.cs" />

@@ -136,11 +136,6 @@ namespace PepperDash.Essentials.UIDrivers.VC
 
                 VCControlsInterlock.HideAndClear();
 
-                /* if (CodecHasFavorites || codec is IHasZoomRoomLayouts) //Checking for Zoom Room...picked a ZoomRoom specific interface to check for
-                    VCControlsInterlock.SetButDontShow(UIBoolJoin.VCKeypadWithFavoritesVisible);
-                else
-                    VCControlsInterlock.SetButDontShow(UIBoolJoin.VCKeypadVisible); */
-
                 StagingBarsInterlock = new JoinedSigInterlock(triList);
                 if(Codec is IHasCallHistory)
                     StagingBarsInterlock.SetButDontShow(UIBoolJoin.VCStagingInactivePopoverWithRecentsVisible);

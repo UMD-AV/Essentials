@@ -80,7 +80,6 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.Interfaces
 			set
 			{
 				_currentParticipants = value;
-				OnParticipantsChanged();
 			}
 		}
 
@@ -93,13 +92,16 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.Interfaces
         }
 
 		public event EventHandler<EventArgs> ParticipantsListHasChanged;
+        public event EventHandler<ParticipantEventArgs> ParticipantUpdated;
+        public event EventHandler<EventArgs> ParticipantAdded;
+        public event EventHandler<EventArgs> ParticipantRemoved;
 
 		public CodecParticipants()
 		{
 			_currentParticipants = new List<Participant>();
 		}
 
-		public void OnParticipantsChanged()
+        public void OnParticipantsChanged()
 		{
 			var handler = ParticipantsListHasChanged;
 
@@ -107,7 +109,46 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.Interfaces
 
 			handler(this, new EventArgs());
 		}
+
+        public void OnParticipantUpdated(int index, Participant participant)
+        {
+            var handler = ParticipantUpdated;
+
+            if (handler == null) return;
+
+            handler(this, new ParticipantEventArgs(index, participant));
+        }
+
+        public void OnParticipantAdded()
+        {
+            var handler = ParticipantAdded;
+
+            if (handler == null) return;
+
+            handler(this, new EventArgs());
+        }
+
+        public void OnParticipantRemoved()
+        {
+            var handler = ParticipantRemoved;
+
+            if (handler == null) return;
+
+            handler(this, new EventArgs());
+        }
 	}
+
+    public class ParticipantEventArgs : EventArgs
+    {
+        public Participant Participant;
+        public int Index;
+
+        public ParticipantEventArgs(int index, Participant participant)
+        {
+            Participant = participant;
+            Index = index;
+        }
+    }
 
 	/// <summary>
 	/// Represents a call participant
@@ -118,6 +159,7 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.Interfaces
 		public bool IsHost { get; set; }
         public bool IsMyself { get; set; }
 		public string Name { get; set; }
+        public bool AudioConnected { get; set; }
 		public bool CanMuteVideo { get; set; }
 		public bool CanUnmuteVideo { get; set; }
 		public bool VideoMuteFb { get; set; }

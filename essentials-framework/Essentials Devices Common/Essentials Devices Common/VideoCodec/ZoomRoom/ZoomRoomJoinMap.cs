@@ -8,7 +8,20 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.ZoomRoom
 	{
 		#region Digital
 
-        // TODO [ ] Issue #868
+        [JoinName("InWaitingRoom")]
+        public JoinDataComplete InWaitingRoom = new JoinDataComplete(
+            new JoinData
+            {
+                JoinNumber = 5,
+                JoinSpan = 1
+            },
+            new JoinMetadata
+            {
+                Description = "FB Indicates to show the zoom room is in the waiting room",
+                JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                JoinType = eJoinType.Digital
+            });
+
         [JoinName("ShowPasswordPrompt")]
         public JoinDataComplete ShowPasswordPrompt = new JoinDataComplete(
             new JoinData
@@ -23,7 +36,6 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.ZoomRoom
                 JoinType = eJoinType.Digital
             });
 
-        // TODO [ ] Issue #868
         [JoinName("PasswordIncorrect")]
         public JoinDataComplete PasswordIncorrect = new JoinDataComplete(
             new JoinData
@@ -38,7 +50,6 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.ZoomRoom
                 JoinType = eJoinType.Digital
             });
 
-        // TODO [ ] Issue #868
         [JoinName("PassowrdLoginFailed")]
         public JoinDataComplete PasswordLoginFailed = new JoinDataComplete(
             new JoinData
@@ -53,7 +64,6 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.ZoomRoom
                 JoinType = eJoinType.Digital
             });
 
-        // TODO [ ] Issue #868
         [JoinName("WaitingForHost")]
         public JoinDataComplete WaitingForHost = new JoinDataComplete(
             new JoinData
@@ -68,7 +78,6 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.ZoomRoom
                 JoinType = eJoinType.Digital
             });
 
-        // TODO [ ] Issue #868
         [JoinName("IsHost")]
         public JoinDataComplete IsHost = new JoinDataComplete(
             new JoinData
@@ -83,7 +92,6 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.ZoomRoom
                 JoinType = eJoinType.Digital
             });
 
-        // TODO [ ] Issue #868
         [JoinName("StartMeetingNow")]
         public JoinDataComplete StartMeetingNow = new JoinDataComplete(
             new JoinData
@@ -98,7 +106,6 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.ZoomRoom
                 JoinType = eJoinType.Digital
             });
 
-        // TODO [ ] Issue #868
         [JoinName("ShareOnlyMeeting")]
         public JoinDataComplete ShareOnlyMeeting = new JoinDataComplete(
             new JoinData
@@ -113,7 +120,6 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.ZoomRoom
                 JoinType = eJoinType.Digital
             });
 
-        // TODO [ ] Issue #868
         [JoinName("StartNormalMeetingFromSharingOnlyMeeting")]
         public JoinDataComplete StartNormalMeetingFromSharingOnlyMeeting = new JoinDataComplete(
             new JoinData
