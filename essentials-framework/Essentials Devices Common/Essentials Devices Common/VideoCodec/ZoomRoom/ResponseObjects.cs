@@ -795,7 +795,7 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.ZoomRoom
 
             public CallRecordInfo()
             {
-                Debug.Console(2, Debug.ErrorLogLevel.Notice, "********************************************* CallRecordInfo() ******************************************");
+                Debug.Console(2, "********************************************* CallRecordInfo() ******************************************");
             }
 		}
 	}

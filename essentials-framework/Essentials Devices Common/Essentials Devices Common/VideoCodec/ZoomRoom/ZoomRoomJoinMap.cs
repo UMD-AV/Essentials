@@ -22,6 +22,20 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.ZoomRoom
                 JoinType = eJoinType.Digital
             });
 
+        [JoinName("ClearPasswordPrompt")]
+        public JoinDataComplete ClearPasswordPrompt = new JoinDataComplete(
+            new JoinData
+            {
+                JoinNumber = 6,
+                JoinSpan = 1
+            },
+            new JoinMetadata
+            {
+                Description = "Clear the password prompt and cancel call attempt",
+                JoinCapabilities = eJoinCapabilities.FromSIMPL,
+                JoinType = eJoinType.Digital
+            });
+
         [JoinName("ShowPasswordPrompt")]
         public JoinDataComplete ShowPasswordPrompt = new JoinDataComplete(
             new JoinData
@@ -453,7 +467,6 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.ZoomRoom
 
 		#region Serials
 
-        // TODO [ ] Issue #868
         [JoinName("SubmitPassword")]
         public JoinDataComplete SubmitPassword = new JoinDataComplete(
             new JoinData
@@ -468,7 +481,6 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.ZoomRoom
                 JoinType = eJoinType.Serial
             });
 
-        // TODO [ ] Issue #868
         [JoinName("PasswordPromptMessage")]
         public JoinDataComplete PasswordPromptMessage = new JoinDataComplete(
             new JoinData
@@ -483,7 +495,20 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.ZoomRoom
                 JoinType = eJoinType.Serial
             });
 
-        // TODO [ ] Issue #868
+        [JoinName("CallConnectErrorMessage")]
+        public JoinDataComplete CallConnectErrorMessage = new JoinDataComplete(
+            new JoinData
+            {
+                JoinNumber = 7,
+                JoinSpan = 1
+            },
+            new JoinMetadata
+            {
+                Description = "DCall Connect Error Message",
+                JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                JoinType = eJoinType.Serial
+            });
+
         [JoinName("MeetingInfoId")]
         public JoinDataComplete MeetingInfoId = new JoinDataComplete(
             new JoinData
@@ -498,7 +523,6 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.ZoomRoom
                 JoinType = eJoinType.Serial
             });
 
-        // TODO [ ] Issue #868
         [JoinName("MeetingInfoHostt")]
         public JoinDataComplete MeetingInfoHost = new JoinDataComplete(
             new JoinData
@@ -513,7 +537,6 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.ZoomRoom
                 JoinType = eJoinType.Serial
             });
 
-        // TODO [ ] Issue #868
         [JoinName("MeetingInfoPassword")]
         public JoinDataComplete MeetingInfoPassword = new JoinDataComplete(
             new JoinData

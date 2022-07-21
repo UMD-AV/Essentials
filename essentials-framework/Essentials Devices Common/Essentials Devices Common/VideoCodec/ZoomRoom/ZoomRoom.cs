@@ -30,6 +30,7 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.ZoomRoom
         IHasMeetingLock, IHasMeetingRecordingWithPrompt, IHasWaitingRoom
 	{
         public event EventHandler VideoUnmuteRequested;
+        public event EventHandler<StringChangeEventArgs> CallConnectError;
 
 		private const long MeetingRefreshTimer = 60000;
         public uint DefaultMeetingDurationMin { get; private set; }
@@ -63,6 +64,7 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.ZoomRoom
 		private int _previousVolumeLevel;
 		private CameraBase _selectedCamera;
         private string _lastDialedMeetingNumber;
+        private CTimer _errorMessageTimer;
 
 		private readonly ZoomRoomPropertiesConfig _props;
 
@@ -1653,14 +1655,18 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.ZoomRoom
 								Debug.Console(1, this,
 									"[DeserializeResponse] zEvent.calldisconnect ********************************************");
 
-                                ClearPasswordPrompt();
 								UpdateCallStatus();
 								break;
 							}
 							case "callconnecterror":
 							{
-                                var errorMessage = message["error_message"].Value<string>();
-								UpdateCallStatus();
+                                string errorMessage = responseObj["error_message"].Value<string>();
+                                var handler = CallConnectError;
+                                if (handler != null)
+                                {
+                                    handler(this, new StringChangeEventArgs(errorMessage, 0));
+                                }
+								//UpdateCallStatus();
 								break;
 							}
 							case "videounmuterequest":
@@ -1683,11 +1689,18 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.ZoomRoom
                                 {
                                     var prompt = "Password required to join this meeting.  Please enter the meeting password.";
 
-                                    OnPasswordRequired(meetingNeedsPassword.WrongAndRetry, false, false, prompt);
-                                }
-                                else
-                                {
-                                    ClearPasswordPrompt();
+                                    if (ActiveCalls.Count > 0)
+									{
+										var activeCall = ActiveCalls.FirstOrDefault(c => c.IsActiveCall);
+
+										if (activeCall != null)
+										{
+											activeCall.Status = eCodecCallStatus.Disconnected;
+											OnCallStatusChange(activeCall);
+										}
+									}
+
+                                    OnPasswordRequired(meetingNeedsPassword.WrongAndRetry, true, false, prompt);
                                 }
 
 								break;
@@ -2037,7 +2050,6 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.ZoomRoom
 								break;
 							case zStatus.eCallStatus.IN_MEETING:
 								newStatus = eCodecCallStatus.Connected;
-                                ClearPasswordPrompt();
 								break;
 						}
 
@@ -2082,6 +2094,21 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.ZoomRoom
                             OnCallStatusChange(newCall);
                             GetCurrentCallParticipants();
 						}
+                        else
+                        {
+                            //Connection attempt in progress
+                            var newCall = new CodecActiveCallItem
+                            {
+                                Name = "",
+                                Number = "",
+                                Id = "",
+                                Status = newStatus,
+                                Type = eCodecCallType.Video,
+                            };
+
+                            ActiveCalls.Add(newCall);
+                            OnCallStatusChange(newCall);
+                        }
 					}
 				}
 				else
@@ -2098,7 +2125,6 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.ZoomRoom
 							existingCall.Status = eCodecCallStatus.Connected;
 
                             InWaitingRoom = Status.Call.Info.is_waiting_room;
-                            ClearPasswordPrompt();
                             GetCurrentCallParticipants();
 							break;
 						case zStatus.eCallStatus.NOT_IN_MEETING:
@@ -2157,6 +2183,7 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.ZoomRoom
 
                 var host = "";
 
+                ClearPasswordPrompt();
                 if (Participants.Host != null)
                     host = Participants.Host.Name;
 
@@ -2173,7 +2200,7 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.ZoomRoom
                     MeetingIsRecordingFeedback.BoolValue
                     );
             }
-            // TODO [ ] Issue #868
+
             else if (item.Status == eCodecCallStatus.Disconnected)
             {
                 MeetingInfo = new MeetingInfo(
@@ -2188,6 +2215,11 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.ZoomRoom
                     false,
                     false
                     );
+            }
+
+            else if (item.Status == eCodecCallStatus.Connecting)
+            {
+                ClearPasswordPrompt();
             }
 
             base.OnCallStatusChange(item);
@@ -2543,27 +2575,13 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.ZoomRoom
 
 
 			trilist.SetStringSigAction(joinMap.SubmitPassword.JoinNumber, SubmitPassword);
+            trilist.SetSigFalseAction(joinMap.ClearPasswordPrompt.JoinNumber, () => ClearPasswordPrompt());
 			PasswordRequired += (devices, args) =>
 			{
-				if (args.LoginAttemptCancelled)
-				{
-					trilist.SetBool(joinMap.ShowPasswordPrompt.JoinNumber, false);
-					return;
-				}
-
-				if (!string.IsNullOrEmpty(args.Message))
-				{
-					trilist.SetString(joinMap.PasswordPromptMessage.JoinNumber, args.Message);
-				}
-
-				if (args.LoginAttemptFailed)
-				{
-					// login attempt failed
-					return;
-				}
-
+				trilist.SetString(joinMap.PasswordPromptMessage.JoinNumber, args.Message);
 				trilist.SetBool(joinMap.PasswordIncorrect.JoinNumber, args.LastAttemptWasIncorrect);
-				trilist.SetBool(joinMap.ShowPasswordPrompt.JoinNumber, true);
+                trilist.SetBool(joinMap.PasswordLoginFailed.JoinNumber, args.LoginAttemptFailed);
+                trilist.SetBool(joinMap.ShowPasswordPrompt.JoinNumber, !args.LoginAttemptCancelled);
 			};
 
 			trilist.OnlineStatusChange += (device, args) =>
@@ -2579,6 +2597,13 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.ZoomRoom
 				pinCodec.NumberOfScreensFeedback.FireUpdate();
 				layoutSizeCodec.SelfviewPipSizeFeedback.FireUpdate();
 			};
+
+            _errorMessageTimer = new CTimer(o => { trilist.SetString(joinMap.CallConnectErrorMessage.JoinNumber, ""); }, Timeout.Infinite);
+            CallConnectError += (devices, args) =>
+            {
+                trilist.SetString(joinMap.CallConnectErrorMessage.JoinNumber, args.StringValue);
+                _errorMessageTimer.Reset(5000);
+            };
 		}
 
 		public override void ExecuteSwitch(object selector)
