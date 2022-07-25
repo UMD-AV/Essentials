@@ -58,9 +58,6 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.ZoomRoom
 		private readonly ZoomRoomSyncState _syncState;
 		public bool CommDebuggingIsOn;
 		private CodecDirectory _currentDirectoryResult;
-		private uint _jsonCurlyBraceCounter;
-		private bool _jsonFeedbackMessageIsIncoming;
-		private StringBuilder _jsonMessage;
 		private int _previousVolumeLevel;
 		private CameraBase _selectedCamera;
         private string _lastDialedMeetingNumber;
@@ -75,7 +72,7 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.ZoomRoom
 
 			_props = JsonConvert.DeserializeObject<ZoomRoomPropertiesConfig>(config.Properties.ToString());
 
-			_receiveQueue = new GenericQueue(Key + "-rxQueue", Thread.eThreadPriority.MediumPriority, 2048);
+			_receiveQueue = new GenericQueue(Key + "-rxQueue", Thread.eThreadPriority.LowestPriority, 2048);
 
 			Communication = comm;
 
@@ -960,25 +957,18 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.ZoomRoom
 		/// <param name="args"></param>
 		private void Port_LineReceived(object dev, GenericCommMethodReceiveTextArgs args)
 		{
-            //Debug.Console(0, this, "Port_LineReceived");
-
             if (args.Delimiter != JsonDelimiter)
             {
-//                Debug.Console(0, this, 
-//@"Non JSON response: 
-//Delimiter: {0}
-//{1}",  ComTextHelper.GetDebugText(args.Delimiter), args.Text);
                 ProcessNonJsonResponse(args.Text);
                 return;
             }
             else
             {
-//                Debug.Console(0, this,
-//@"JSON response: 
-//Delimiter: {0}
-//{1}", ComTextHelper.GetDebugText(args.Delimiter), args.Text);
+                if (_props.DisablePhonebookAutoDownload && args.Text.Substring(7, 9) == "Phonebook")
+                {
+                    return;
+                }
                 _receiveQueue.Enqueue(new ProcessStringMessage(args.Text, DeserializeResponse));
-                //_receiveQueue.Enqueue(new ProcessStringMessage(args.Text, ProcessMessage));
             }
 		}
 
@@ -1043,9 +1033,13 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.ZoomRoom
 
         private void SetupSession()
         {
-            // disable echo of commands
+            _syncState.LoginResponseReceived();
+
+            Thread.Sleep(100);
+            // disable echo off commands
             SendText("echo off");
-            // switch to json format
+            Thread.Sleep(100);
+
             // set feedback exclusions
             if (_props.DisablePhonebookAutoDownload)
             {
@@ -1058,6 +1052,9 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.ZoomRoom
             SendText("zFeedback Register Op: ex Path: /Event/InfoResult/Info/callout_country_list");
             SendText("zFeedback Register Op: ex Path: /Event/InfoResult/Info/toll_free_callinLlist");
 
+            Thread.Sleep(100);
+            //switch to json format
+            SendText("format json");
             SendText("zStatus SystemUnit");
         }
 
@@ -1088,172 +1085,10 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.ZoomRoom
             {
                 if(response.ToLower().Contains("*r login successful"))
                 {
-                     _syncState.LoginResponseReceived();
-                        
-                    SendText("format json");
-
                     SetupSession();
                 }
-
-                //switch (response.Trim().ToLower()) // remove the whitespace
-                //{
-                //    case "*r login successful":
-                //        {
-                //            _syncState.LoginMessageReceived();
-
-                //            //// Fire up a thread to send the intial commands.
-                //            //CrestronInvoke.BeginInvoke(o =>
-                //            //{
-                //                // disable echo of commands
-                //                SendText("echo off");
-                //                // switch to json format
-                //                SendText("format json");
-                //                // set feedback exclusions
-                //                // Currently the feedback exclusions don't work when using the API in JSON response mode
-                //                // But leave these here in case the API gets updated in the future 
-                //                // These may work as of 5.9.4
-                //                if (_props.DisablePhonebookAutoDownload)
-                //                {
-                //                    SendText("zFeedback Register Op: ex Path: /Event/Phonebook/AddedContact");
-                //                }
-                //                SendText("zFeedback Register Op: ex Path: /Event/InfoResult/Info/callin_country_list");
-                //                SendText("zFeedback Register Op: ex Path: /Event/InfoResult/Info/callout_country_list");
-                //                SendText("zFeedback Register Op: ex Path: /Event/InfoResult/Info/toll_free_callinLlist");
-
-                //            //});
-
-                //            break;
-                //        }
-                //}
             }
         }
-
-		/// <summary>
-		/// Processes messages as they are dequeued
-		/// </summary>
-		/// <param name="message"></param>
-		private void ProcessMessage(string message)
-		{
-			// Counts the curly braces
-			if (message.Contains("client_loop: send disconnect: Broken pipe"))
-			{
-				Debug.Console(1, this, Debug.ErrorLogLevel.Error,
-					"Zoom Room Controller or App connected. Essentials will NOT control the Zoom Room until it is disconnected.");
-
-				return;
-			}
-
-			if (message.Contains('{'))
-			{
-				_jsonCurlyBraceCounter++;
-			}
-
-			if (message.Contains('}'))
-			{
-				_jsonCurlyBraceCounter--;
-			}
-
-			//Debug.Console(2, this, "JSON Curly Brace Count: {0}", _jsonCurlyBraceCounter);
-
-			if (!_jsonFeedbackMessageIsIncoming && message.Trim('\x20') == "{" + EchoDelimiter)
-				// Check for the beginning of a new JSON message
-			{
-				_jsonFeedbackMessageIsIncoming = true;
-				_jsonCurlyBraceCounter = 1; // reset the counter for each new message
-
-				_jsonMessage = new StringBuilder();
-
-				_jsonMessage.Append(message);
-
-				if (CommDebuggingIsOn)
-				{
-					Debug.Console(2, this, "Incoming JSON message...");
-				}
-
-				return;
-			}
-			if (_jsonFeedbackMessageIsIncoming && message.Trim('\x20') == "}" + EchoDelimiter)
-				// Check for the end of a JSON message
-			{
-				_jsonMessage.Append(message);
-
-				if (_jsonCurlyBraceCounter == 0)
-				{
-					_jsonFeedbackMessageIsIncoming = false;
-
-					if (CommDebuggingIsOn)
-					{
-						Debug.Console(2, this, "Complete JSON Received:\n{0}", _jsonMessage.ToString());
-					}
-
-					// Forward the complete message to be deserialized
-					DeserializeResponse(_jsonMessage.ToString());
-				}
-
-				//JsonMessage = new StringBuilder();
-				return;
-			}
-
-			// NOTE: This must happen after the above conditions have been checked
-			// Append subsequent partial JSON fragments to the string builder
-			if (_jsonFeedbackMessageIsIncoming)
-			{
-				_jsonMessage.Append(message);
-
-				//Debug.Console(1, this, "Building JSON:\n{0}", JsonMessage.ToString());
-				return;
-			}
-
-			if (CommDebuggingIsOn)
-			{
-				Debug.Console(1, this, "Non-JSON response: '{0}'", message);
-			}
-
-			_jsonCurlyBraceCounter = 0; // reset on non-JSON response
-
-			if (!_syncState.InitialSyncComplete)
-			{
-				switch (message.Trim().ToLower()) // remove the whitespace
-				{
-					case "*r login successful":
-					{
-						_syncState.LoginResponseReceived();
-
-
-						// Fire up a thread to send the intial commands.
-						CrestronInvoke.BeginInvoke(o =>
-						{
-                            // Currently the feedback exclusions don't work when using the API in JSON response mode
-                            // But leave these here in case the API gets updated in the future 
-
-
-							Thread.Sleep(100);
-							// disable echo of commands
-							SendText("echo off");
-							Thread.Sleep(100);
-							// set feedback exclusions
-							SendText("zFeedback Register Op: ex Path: /Event/InfoResult/Info/callin_country_list");
-							Thread.Sleep(100);
-							SendText("zFeedback Register Op: ex Path: /Event/InfoResult/Info/callout_country_list");
-							Thread.Sleep(100);
-							SendText("zFeedback Register Op: ex Path: /Event/InfoResult/Info/toll_free_callinLlist");
-							Thread.Sleep(100);
-
-							if (_props.DisablePhonebookAutoDownload)
-							{
-                                SendText("zFeedback Register Op: ex Path: /Event/Phonebook");
-                                SendText("zFeedback Register Op: ex Path: /Event/Phonebook/AddedContact");
-                                SendText("zFeedback Register Op: ex Path: /Event/Phonebook/UpdatedContact");
-							}
-							// switch to json format
-							SendText("format json");
-						});
-
-						break;
-					}
-				}
-			}
-		}
 
 		/// <summary>
 		/// Deserializes a JSON formatted response
