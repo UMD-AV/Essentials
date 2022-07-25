@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using PepperDash.Essentials.Core;
 namespace PepperDash.Essentials.Core.Bridges.JoinMaps
 {
@@ -1590,6 +1590,36 @@ namespace PepperDash.Essentials.Core.Bridges.JoinMaps
 				JoinType = eJoinType.Serial
 			});
 
+        [JoinName("AvailableLayoutsFb")]
+        public JoinDataComplete AvailableLayoutsFb = new JoinDataComplete(
+            new JoinData
+            {
+                JoinNumber = 142,
+                JoinSpan = 1
+            },
+            new JoinMetadata
+            {
+                Description = "xSig of all available layouts",
+                JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                JoinType = eJoinType.Serial
+            });
+
+        [JoinName("SelectLayout")]
+        public JoinDataComplete SelectLayout = new JoinDataComplete(
+            new JoinData
+            {
+                JoinNumber = 142,
+                JoinSpan = 1
+            },
+            new JoinMetadata
+            {
+                Description = "Select Layout by string",
+                JoinCapabilities = eJoinCapabilities.FromSIMPL,
+                JoinType = eJoinType.Serial
+            });
+
+
+
 		[JoinName("CurrentParticipants")]
 		public JoinDataComplete CurrentParticipants = new JoinDataComplete(
 			new JoinData
@@ -3027,6 +3057,35 @@ namespace PepperDash_Essentials_Core.Bridges.JoinMaps
 				JoinCapabilities = eJoinCapabilities.ToSIMPL,
 				JoinType = eJoinType.Serial
 			});
+
+        [JoinName("AvailableLayoutsFb")]
+        public JoinDataComplete AvailableLayoutsFb = new JoinDataComplete(
+            new JoinData
+            {
+                JoinNumber = 142,
+                JoinSpan = 1
+            },
+            new JoinMetadata
+            {
+                Description = "xSig of all available layouts",
+                JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                JoinType = eJoinType.Serial
+            });
+
+        [JoinName("SelectLayout")]
+        public JoinDataComplete SelectLayout = new JoinDataComplete(
+            new JoinData
+            {
+                JoinNumber = 142,
+                JoinSpan = 1
+            },
+            new JoinMetadata
+            {
+                Description = "Select Layout by string",
+                JoinCapabilities = eJoinCapabilities.FromSIMPL,
+                JoinType = eJoinType.Serial
+            });
+
 
 		[JoinName("CurrentParticipants")]
 		public JoinDataComplete CurrentParticipants = new JoinDataComplete(
