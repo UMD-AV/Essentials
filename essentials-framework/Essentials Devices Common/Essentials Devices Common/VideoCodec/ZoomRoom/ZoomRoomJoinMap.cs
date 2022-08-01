@@ -8,6 +8,21 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.ZoomRoom
 	{
 		#region Digital
 
+
+        [JoinName("IsCoHost")]
+        public JoinDataComplete IsCoHost = new JoinDataComplete(
+            new JoinData
+            {
+                JoinNumber = 4,
+                JoinSpan = 1
+            },
+            new JoinMetadata
+            {
+                Description = "FB Indicates system is a co-host",
+                JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                JoinType = eJoinType.Digital
+            });
+
         [JoinName("InWaitingRoom")]
         public JoinDataComplete InWaitingRoom = new JoinDataComplete(
             new JoinData
@@ -103,6 +118,20 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.ZoomRoom
             {
                 Description = "FB Indicates system is the host",
                 JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                JoinType = eJoinType.Digital
+            });
+
+        [JoinName("LeaveMeeting")]
+        public JoinDataComplete LeaveMeeting = new JoinDataComplete(
+            new JoinData
+            {
+                JoinNumber = 23,
+                JoinSpan = 1
+            },
+            new JoinMetadata
+            {
+                Description = "Leave a zoom meeting without ending it for all",
+                JoinCapabilities = eJoinCapabilities.FromSIMPL,
                 JoinType = eJoinType.Digital
             });
 
@@ -548,6 +577,20 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.ZoomRoom
             {
                 Description = "Meeting info Password text feedback",
                 JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                JoinType = eJoinType.Serial
+            });
+
+        [JoinName("CustomTx")]
+        public JoinDataComplete CustomTx = new JoinDataComplete(
+            new JoinData
+            {
+                JoinNumber = 31,
+                JoinSpan = 1
+            },
+            new JoinMetadata
+            {
+                Description = "Send custom tx to zoom",
+                JoinCapabilities = eJoinCapabilities.FromSIMPL,
                 JoinType = eJoinType.Serial
             });
 

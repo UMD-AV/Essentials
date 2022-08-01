@@ -706,7 +706,7 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec
                 tokenArray[3] = new XSigDigitalToken(digitalIndex + 2, participant.VideoMuteFb);
                 tokenArray[4] = new XSigDigitalToken(digitalIndex + 3, participant.CanMuteVideo);
                 tokenArray[5] = new XSigDigitalToken(digitalIndex + 4, participant.CanUnmuteVideo);
-                tokenArray[6] = new XSigDigitalToken(digitalIndex + 5, participant.IsHost);
+                tokenArray[6] = new XSigDigitalToken(digitalIndex + 5, participant.IsHost || participant.IsCohost);
                 tokenArray[7] = new XSigDigitalToken(digitalIndex + 6, participant.HandIsRaisedFb);
                 tokenArray[8] = new XSigDigitalToken(digitalIndex + 7, participant.IsPinnedFb);
                 tokenArray[9] = new XSigDigitalToken(digitalIndex + 8, participant.AudioConnected);
@@ -749,7 +749,7 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec
 				tokenArray[digitalIndex + 1] = new XSigDigitalToken(digitalIndex + 2, participant.VideoMuteFb);
 				tokenArray[digitalIndex + 2] = new XSigDigitalToken(digitalIndex + 3, participant.CanMuteVideo);
                 tokenArray[digitalIndex + 3] = new XSigDigitalToken(digitalIndex + 4, participant.CanUnmuteVideo);
-                tokenArray[digitalIndex + 4] = new XSigDigitalToken(digitalIndex + 5, participant.IsHost);
+                tokenArray[digitalIndex + 4] = new XSigDigitalToken(digitalIndex + 5, participant.IsHost || participant.IsCohost);
                 tokenArray[digitalIndex + 5] = new XSigDigitalToken(digitalIndex + 6, participant.HandIsRaisedFb);
                 tokenArray[digitalIndex + 6] = new XSigDigitalToken(digitalIndex + 7, participant.IsPinnedFb);
                 tokenArray[digitalIndex + 7] = new XSigDigitalToken(digitalIndex + 8, participant.AudioConnected);

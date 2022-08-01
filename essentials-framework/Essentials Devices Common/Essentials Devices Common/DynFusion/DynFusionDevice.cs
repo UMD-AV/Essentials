@@ -39,6 +39,7 @@ namespace DynFusion
 		public RoomInformation RoomInformation;
 
 		public DynFusionDeviceUsage DeviceUsage;
+        public DynFusionHelpRequest HelpRequest;
 		public FusionRoom FusionSymbol;
 		private CTimer ErrorLogTimer;
         private CTimer EiscOfflineTimer;
@@ -59,6 +60,8 @@ namespace DynFusion
 			JoinMapStatic = new DynFusionJoinMap(1);
 			Debug.Console(2, "Creating Fusion Symbol {0} {1}", _Config.control.IpId, Key);
 			FusionSymbol = new FusionRoom(_Config.control.IpIdInt, Global.ControlSystem, Key, Guid.NewGuid().ToString());
+
+            HelpRequest = new DynFusionHelpRequest(FusionSymbol.Help);
 			
 			if (FusionSymbol.Register() != eDeviceRegistrationUnRegistrationResponse.Success)
 			{
@@ -169,7 +172,6 @@ namespace DynFusion
 				CreateStandardJoin(JoinMapStatic.DeviceUsage, FusionSymbol.DisplayUsage);
 				CreateStandardJoin(JoinMapStatic.BroadcastMsgType, FusionSymbol.BroadcastMessageType);
 
-				CreateStandardJoin(JoinMapStatic.HelpMsg, FusionSymbol.Help);
 				CreateStandardJoin(JoinMapStatic.ErrorMsg, FusionSymbol.ErrorMessage);
 				CreateStandardJoin(JoinMapStatic.LogText, FusionSymbol.LogText);
 		
@@ -202,6 +204,8 @@ namespace DynFusion
 						}
 					}
 				}
+
+                HelpRequest.GetOpenItems();
 
 				DeviceUsageFactory(); 
 				// Scheduling Bits for Future 
@@ -436,17 +440,14 @@ namespace DynFusion
 					}
 				case FusionEventIds.HelpMessageReceivedEventId:
 					{
-						var sigDetails = args.UserConfiguredSigDetail as UShortSigDataFixedName;
-						DynFusionSerialAttribute output;
-						if (SerialAttributesFromFusion.TryGetValue(JoinMapStatic.SystemPowerOn.JoinNumber, out output))
-						{
-							output.StringValue = sigDetails.OutputSig.StringValue;
-						}
-						break;
+						var sigDetails = args.UserConfiguredSigDetail as StringSigDataFixedName;
+                        Debug.Console(0, "Help Message: {0}", sigDetails.OutputSig.StringValue);
+                        HelpRequest.ParseFeedback(sigDetails.OutputSig.StringValue);                        
+                        break;
 					}
 				case FusionEventIds.TextMessageFromRoomReceivedEventId:
 					{
-						var sigDetails = args.UserConfiguredSigDetail as UShortSigDataFixedName;
+						var sigDetails = args.UserConfiguredSigDetail as StringSigDataFixedName;
 						DynFusionSerialAttribute output;
 						if (SerialAttributesFromFusion.TryGetValue(JoinMapStatic.TextMessage.JoinNumber, out output))
 						{
@@ -456,7 +457,7 @@ namespace DynFusion
 					}
 				case FusionEventIds.BroadcastMessageReceivedEventId:
 					{
-						var sigDetails = args.UserConfiguredSigDetail as UShortSigDataFixedName;
+						var sigDetails = args.UserConfiguredSigDetail as StringSigDataFixedName;
 						DynFusionSerialAttribute output;
 						if (SerialAttributesFromFusion.TryGetValue(JoinMapStatic.BroadcastMsg.JoinNumber, out output))
 						{
@@ -466,7 +467,7 @@ namespace DynFusion
 					}
 				case FusionEventIds.GroupMembershipRequestReceivedEventId:
 					{
-						var sigDetails = args.UserConfiguredSigDetail as UShortSigDataFixedName;
+						var sigDetails = args.UserConfiguredSigDetail as StringSigDataFixedName;
 						DynFusionSerialAttribute output;
 						if (SerialAttributesFromFusion.TryGetValue(JoinMapStatic.GroupMembership.JoinNumber, out output))
 						{
@@ -476,7 +477,7 @@ namespace DynFusion
 					}
 				case FusionEventIds.AuthenticateFailedReceivedEventId:
 					{
-						var sigDetails = args.UserConfiguredSigDetail as UShortSigDataFixedName;
+						var sigDetails = args.UserConfiguredSigDetail as StringSigDataFixedName;
 						DynFusionSerialAttribute output;
 						if (SerialAttributesFromFusion.TryGetValue(JoinMapStatic.AuthenticationFailed.JoinNumber, out output))
 						{
@@ -487,7 +488,7 @@ namespace DynFusion
 					}
 				case FusionEventIds.AuthenticateSucceededReceivedEventId:
 					{
-						var sigDetails = args.UserConfiguredSigDetail as UShortSigDataFixedName;
+						var sigDetails = args.UserConfiguredSigDetail as StringSigDataFixedName;
 						DynFusionSerialAttribute output;
 						if (SerialAttributesFromFusion.TryGetValue(JoinMapStatic.AuthenticationSucceeded.JoinNumber, out output))
 						{
@@ -564,6 +565,7 @@ namespace DynFusion
                 {
                     CrestronEnvironment.Sleep(200);
                     GetRoomConfig();
+                    HelpRequest.GetOpenItems();
                 });
             }
             else
@@ -821,6 +823,21 @@ namespace DynFusion
                 }
             }
 
+            //HelpRequest
+            HelpRequest.HelpMessageFromFusionEvent += (o, a) =>
+            {
+                trilist.BooleanInput[joinMap.HelpRequestActiveFb.JoinNumber].BoolValue = a.Active > 0;
+                trilist.StringInput[joinMap.HelpMsg.JoinNumber].StringValue = a.StringVal;
+            };
+            HelpRequest.ClearHelpEvent += (o, a) =>
+            {
+                trilist.BooleanInput[joinMap.HelpRequestActiveFb.JoinNumber].BoolValue = false;
+                trilist.StringInput[joinMap.HelpMsg.JoinNumber].StringValue = "";
+            };
+            trilist.SetSigTrueAction(joinMap.HelpRequestCancel.JoinNumber, () => HelpRequest.CancelRequest("User"));            
+            trilist.SetStringSigAction(joinMap.HelpMsg.JoinNumber, (a) => HelpRequest.CreateRequest(a, "User"));
+            //Help Request End
+
 			trilist.SetSigTrueAction(joinMap.RoomConfig.JoinNumber, () => GetRoomConfig());
 
 			if (DeviceUsage != null)
@@ -876,6 +893,9 @@ namespace DynFusion
                     EiscOfflineTimer.Stop();
                 }
                 FusionOnlineFeedback.FireUpdate();
+
+                HelpRequest.Clear();
+                HelpRequest.GetOpenItems();
             }
             else
             {

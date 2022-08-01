@@ -8,7 +8,9 @@ namespace DynFusion
 
 		// Bools 
 		public JoinDataComplete Online = new JoinDataComplete(new JoinData { JoinNumber = 1, JoinSpan = 1 }, new JoinMetadata { Label = "Fusion Online", JoinCapabilities = eJoinCapabilities.ToSIMPL, JoinType = eJoinType.Digital });
-		public JoinDataComplete SystemPowerOn = new JoinDataComplete(new JoinData { JoinNumber = 3, JoinSpan = 1 }, new JoinMetadata { Label = "SystemPowerOn", JoinCapabilities = eJoinCapabilities.ToFromSIMPL, JoinType = eJoinType.Digital });
+        public JoinDataComplete HelpRequestActiveFb = new JoinDataComplete(new JoinData { JoinNumber = 2, JoinSpan = 1 }, new JoinMetadata { Label = "Help Request Active Fb", JoinCapabilities = eJoinCapabilities.ToSIMPL, JoinType = eJoinType.Digital });	
+        public JoinDataComplete HelpRequestCancel = new JoinDataComplete(new JoinData { JoinNumber = 2, JoinSpan = 1 }, new JoinMetadata { Label = "Help Request Cancel", JoinCapabilities = eJoinCapabilities.FromSIMPL, JoinType = eJoinType.Digital });		
+        public JoinDataComplete SystemPowerOn = new JoinDataComplete(new JoinData { JoinNumber = 3, JoinSpan = 1 }, new JoinMetadata { Label = "SystemPowerOn", JoinCapabilities = eJoinCapabilities.ToFromSIMPL, JoinType = eJoinType.Digital });
 		public JoinDataComplete SystemPowerOff = new JoinDataComplete(new JoinData { JoinNumber = 4, JoinSpan = 1 }, new JoinMetadata { Label = "SystemPowerOff", JoinCapabilities = eJoinCapabilities.ToSIMPL, JoinType = eJoinType.Digital });
 		public JoinDataComplete DisplayPowerOn = new JoinDataComplete(new JoinData { JoinNumber = 5, JoinSpan = 1 }, new JoinMetadata { Label = "DisplayPowerOn", JoinCapabilities = eJoinCapabilities.ToFromSIMPL, JoinType = eJoinType.Digital });
 		public JoinDataComplete DisplayPowerOff = new JoinDataComplete(new JoinData { JoinNumber = 6, JoinSpan = 1 }, new JoinMetadata { Label = "DisplayPowerOoff", JoinCapabilities = eJoinCapabilities.ToSIMPL, JoinType = eJoinType.Digital });

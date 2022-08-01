@@ -1540,23 +1540,12 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.ZoomRoom
             public static Participant GetGenericParticipantFromParticipantResult(
                 ListParticipant p)
             {
-                //return participants.Select(p => new Participant
-                //            {
-                //                UserId = p.UserId,
-                //                Name = p.UserName,
-                //                IsHost = p.IsHost,
-                //                CanMuteVideo = p.IsVideoCanMuteByHost,
-                //                CanUnmuteVideo = p.IsVideoCanUnmuteByHost,
-                //                AudioMuteFb = p.AudioStatusState == "AUDIO_MUTED",
-                //                VideoMuteFb = p.VideoStatusIsSending,
-                //                HandIsRaisedFb = p.HandStatus.HandIsRaisedAndValid,
-                //            }).ToList();
-
                 return new Participant
                 {
                     UserId = p.UserId,
                     Name = p.UserName,
                     IsHost = p.IsHost,
+                    IsCohost = p.IsCohost,
                     IsMyself = p.IsMyself,
                     CanMuteVideo = p.IsVideoCanMuteByHost,
                     CanUnmuteVideo = p.IsVideoCanUnmuteByHost,
@@ -1579,17 +1568,6 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.ZoomRoom
 			    {
 			        return new List<Participant>();
 			    }
-				//return participants.Select(p => new Participant
-				//            {
-				//                UserId = p.UserId,
-				//                Name = p.UserName,
-				//                IsHost = p.IsHost,
-				//                CanMuteVideo = p.IsVideoCanMuteByHost,
-				//                CanUnmuteVideo = p.IsVideoCanUnmuteByHost,
-				//                AudioMuteFb = p.AudioStatusState == "AUDIO_MUTED",
-				//                VideoMuteFb = p.VideoStatusIsSending,
-				//                HandIsRaisedFb = p.HandStatus.HandIsRaisedAndValid,
-				//            }).ToList();
 
 				var sortedParticipants = SortParticipantListByHandStatus(participants);
 				return sortedParticipants.Select(p => new Participant
@@ -1597,6 +1575,7 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.ZoomRoom
 					UserId = p.UserId,
 					Name = p.UserName,
 					IsHost = p.IsHost,
+                    IsCohost = p.IsCohost,
                     IsMyself = p.IsMyself,
 					CanMuteVideo = p.IsVideoCanMuteByHost,
 					CanUnmuteVideo = p.IsVideoCanUnmuteByHost,
@@ -1616,25 +1595,14 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.ZoomRoom
 			{
 				if (participants == null)
 				{
-					//Debug.Console(1, "SortParticiapntListByHandStatu(participants == null)");
 					return null;
 				}
-
-				// debug testing
-				//foreach (ListParticipant participant in participants)
-				//{
-				//    Debug.Console(1, "{0} | IsValid: {1} | IsRaiseHand: {2} | HandIsRaisedAndValid: {3}", 
-				//        participant.UserName, participant.HandStatus.IsValid, participant.HandStatus.IsRaiseHand.ToString(), participant.HandStatus.HandIsRaisedAndValid.ToString());
-				//}
 
 				List<ListParticipant> handRaisedParticipantsList = participants.Where(p => p.HandStatus.HandIsRaisedAndValid).ToList();
 
 				if (handRaisedParticipantsList != null)
 				{
 					IOrderedEnumerable<ListParticipant> orderByDescending = handRaisedParticipantsList.OrderByDescending(p => p.HandStatus.TimeStamp);
-
-					//foreach (var participant in handRaisedParticipantsList)
-					//    Debug.Console(1, "handRaisedParticipantList: {0} | {1}", participant.UserName, participant.UserId);
 				}
 
 				List<ListParticipant> allOtherParticipantsList = participants.Where(p => !p.HandStatus.HandIsRaisedAndValid).ToList();
@@ -1642,9 +1610,6 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.ZoomRoom
 				if (allOtherParticipantsList != null)
 				{
 					allOtherParticipantsList.OrderBy(p => p.UserName);
-
-					//foreach (var participant in allOtherParticipantsList)
-					//    Debug.Console(1, "allOtherParticipantsList: {0} | {1}", participant.UserName, participant.UserId);
 				}
 
 				// merge the lists
