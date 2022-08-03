@@ -79,7 +79,7 @@ namespace PepperDash.Essentials.DM
             Debug.Console(1, this, "Linking to Trilist '{0}'", trilist.ID.ToString("X"));
 
             this.IsOnline.LinkInputSig(trilist.BooleanInput[joinMap.IsOnline.JoinNumber]);
-
+            trilist.StringInput[joinMap.Name.JoinNumber].StringValue = this.Name;
         }
 
         #endregion
@@ -100,6 +100,10 @@ namespace PepperDash.Essentials.DM
                 JoinCapabilities = eJoinCapabilities.ToSIMPL,
                 JoinType = eJoinType.Digital
             });
+
+        [JoinName("Name")]
+        public JoinDataComplete Name = new JoinDataComplete(new JoinData { JoinNumber = 6, JoinSpan = 1 },
+            new JoinMetadata { Description = "DM Tx Name", JoinCapabilities = eJoinCapabilities.ToSIMPL, JoinType = eJoinType.Serial });
 	
         /// <summary>
 		/// Plugin device BridgeJoinMap constructor

@@ -5,6 +5,7 @@ using System.Text;
 using Crestron.SimplSharp;
 using Crestron.SimplSharpPro.DeviceSupport;
 using Crestron.SimplSharp.Net.Http;
+using Crestron.SimplSharp.Net.Https;
 using PepperDash.Core;
 using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Config;
@@ -32,6 +33,7 @@ namespace PepperDash.Essentials.Devices.Common.ImageProcessors
         private bool autoSwitchOn;
         private string currentLayout;
         private HttpClient client;
+        private HttpsClient secureClient;
         private CTimer pollTimer;
         private CTimer offlineTimer;
         private int pollTime = 60000;
@@ -109,14 +111,26 @@ namespace PepperDash.Essentials.Devices.Common.ImageProcessors
         {
             try
             {
-                client = new HttpClient()
+                if (port == 4443)
                 {
-                    Port = port,
-                    UserName = "",
-                    Password = "",
-                    KeepAlive = false,
-                    AllowAutoRedirect = false
-                };
+                    secureClient = new HttpsClient()
+                    {
+                        UserAgent = "crestron",
+                        KeepAlive = false,
+                        Accept = "application/json",
+                        AllowAutoRedirect = false
+                    };
+                }
+                else
+                {
+                    client = new HttpClient()
+                    {
+                        UserAgent = "crestron",
+                        KeepAlive = false,
+                        Accept = "application/json",
+                        AllowAutoRedirect = false
+                    };
+                }
             }
             catch
             {
@@ -128,16 +142,36 @@ namespace PepperDash.Essentials.Devices.Common.ImageProcessors
         {
             try
             {
-                Debug.Console(1, this, "Getting token");
-                var req = new HttpClientRequest();
-                string auth = Convert.ToBase64String(ASCIIEncoding.ASCII.GetBytes(username + ":" + password));
-                string url = string.Format("http://{0}:{1}/api/get-token", hostname, port);
-                req.Header.ContentType = "application/json";
-                req.Header.SetHeaderValue("Authorization", auth);
-                req.ContentString = "";
-                req.RequestType = RequestType.Post;
-                req.Url.Parse(url);
-                client.DispatchAsyncEx(req, HttpCallback, "get-token");
+                if (port == 4443)
+                {
+                    Debug.Console(1, this, "Getting token for https");
+                    var req = new HttpsClientRequest();
+                    string auth = Convert.ToBase64String(ASCIIEncoding.ASCII.GetBytes(username + ":" + password));
+                    string url = string.Format("https://{0}:{1}/get-token", hostname, port);
+                    req.Header.ContentType = "application/json";
+                    req.Header.SetHeaderValue("Authorization", auth);
+                    req.Header.SetHeaderValue("Content-Length", "0");
+                    req.Encoding = Encoding.UTF8;
+                    req.ContentString = "";
+                    req.RequestType = Crestron.SimplSharp.Net.Https.RequestType.Post;
+                    req.Url.Parse(url);
+                    secureClient.DispatchAsyncEx(req, HttpsCallback, "get-token");
+                }
+                else
+                {
+                    Debug.Console(1, this, "Getting token for http");
+                    var req = new HttpClientRequest();
+                    string auth = Convert.ToBase64String(ASCIIEncoding.ASCII.GetBytes(username + ":" + password));
+                    string url = string.Format("http://{0}:{1}/get-token", hostname, port);
+                    req.Header.ContentType = "application/json";
+                    req.Header.SetHeaderValue("Authorization", auth);
+                    req.Header.SetHeaderValue("Content-Length", "0");
+                    req.Encoding = Encoding.UTF8;
+                    req.ContentString = "";
+                    req.RequestType = Crestron.SimplSharp.Net.Http.RequestType.Post;
+                    req.Url.Parse(url);
+                    client.DispatchAsyncEx(req, HttpCallback, "get-token");
+                }
             }
             catch(Exception ex)
             {
@@ -151,15 +185,34 @@ namespace PepperDash.Essentials.Devices.Common.ImageProcessors
             {
                 if (token != null)
                 {
-                    Debug.Console(1, this, "Posting:{0}", data);
-                    var req = new HttpClientRequest();
-                    string url = string.Format("http://{0}:{1}/api/{2}", hostname, port, requestName);
-                    req.Header.ContentType = "application/json";
-                    req.Header.SetHeaderValue("Authorization", token);
-                    req.ContentString = data;
-                    req.RequestType = RequestType.Post;
-                    req.Url.Parse(url);
-                    client.DispatchAsyncEx(req, HttpCallback, requestName);
+                    if (port == 4443)
+                    {
+                        Debug.Console(1, this, "Posting https:{0}", data);
+                        var req = new HttpsClientRequest();
+                        string url = string.Format("https://{0}:{1}/api/{2}", hostname, port, requestName);
+                        req.Header.ContentType = "application/json";
+                        req.Header.SetHeaderValue("Authorization", token);
+                        req.Header.SetHeaderValue("Content-Length", data.Length.ToString());
+                        req.Encoding = Encoding.UTF8;
+                        req.ContentString = data;
+                        req.RequestType = Crestron.SimplSharp.Net.Https.RequestType.Post;
+                        req.Url.Parse(url);
+                        secureClient.DispatchAsyncEx(req, HttpsCallback, requestName);
+                    }
+                    else
+                    {
+                        Debug.Console(1, this, "Posting http:{0}", data);
+                        var req = new HttpClientRequest();
+                        string url = string.Format("http://{0}:{1}/api/{2}", hostname, port, requestName);
+                        req.Header.ContentType = "application/json";
+                        req.Header.SetHeaderValue("Authorization", token);
+                        req.Header.SetHeaderValue("Content-Length", data.Length.ToString());
+                        req.Encoding = Encoding.UTF8;
+                        req.ContentString = data;
+                        req.RequestType = Crestron.SimplSharp.Net.Http.RequestType.Post;
+                        req.Url.Parse(url);
+                        client.DispatchAsyncEx(req, HttpCallback, requestName);
+                    }
                 }
                 else
                 {
@@ -285,11 +338,61 @@ namespace PepperDash.Essentials.Devices.Common.ImageProcessors
             client.Dispose();
         }
 
+        private void HttpsCallback(HttpsClientResponse response, HTTPS_CALLBACK_ERROR error, object requestName)
+        {
+            try
+            {
+                Debug.Console(1, this, "Https client response code:{0}", response.Code.ToString());
+                if (error != HTTPS_CALLBACK_ERROR.COMPLETED)
+                {
+                    Debug.Console(0, this, "Https client callback error: {0}", error);
+                    return;
+                }
+                else
+                {
+                    if (response.Code < 200 || response.Code >= 300)
+                    {
+                        Debug.Console(0, this, "Https client callback code error: {0}", response.Code);
+                        return;
+                    }
+                    else
+                    {
+                        try
+                        {
+                            Debug.Console(1, this, "Https client response content:{0}", response.ContentString.ToString());
+                            JObject obj = JObject.Parse(response.ContentString);
+                            var status = obj["status"];
+                            if ((string)status == "OK")
+                            {
+                                deviceOnline();
+                                ProcessFeedback((string)requestName, obj);
+                            }
+                            else if ((string)status == "Error")
+                            {
+                                Debug.Console(0, this, "Https client JSON returned and error: {0}", (string)obj["error"]);
+                            }
+                            else
+                            {
+                                Debug.Console(0, this, "Unknown https client response");
+                            }
+                        }
+                        catch
+                        {
+                            Debug.Console(0, this, "Error parsing https client JSON {0}", response.ContentString);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.Console(0, this, "Https client callback exception: {0}", ex.Message);
+            }
+        }
+
         private void HttpCallback(HttpClientResponse response, HTTP_CALLBACK_ERROR error, object requestName)
         {
             try
             {
-                Debug.Console(1, this, "Http client response code:{0}", response.Code.ToString());
                 if (error != HTTP_CALLBACK_ERROR.COMPLETED)
                 {
                     Debug.Console(0, this, "Http client callback error: {0}", error);
@@ -297,6 +400,7 @@ namespace PepperDash.Essentials.Devices.Common.ImageProcessors
                 }
                 else
                 {
+                    Debug.Console(1, this, "Http client response code:{0}", response.Code.ToString());
                     if (response.Code < 200 || response.Code >= 300)
                     {
                         Debug.Console(0, this, "Http client callback code error: {0}", response.Code);

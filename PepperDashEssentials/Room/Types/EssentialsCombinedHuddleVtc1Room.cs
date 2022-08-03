@@ -226,7 +226,7 @@ namespace PepperDash.Essentials
             }
         }
 
-        void Initialize()
+        public override void Initialize()
         {
             try
             {

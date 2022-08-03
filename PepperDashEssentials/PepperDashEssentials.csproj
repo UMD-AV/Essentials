@@ -70,34 +70,6 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\..\..\..\..\ProgramData\Crestron\SDK\SSPDevices\Crestron.SimplSharpPro.UI.dll</HintPath>
     </Reference>
-    <Reference Include="CrestronCertifiedDriverResourcesLibrary, Version=8.0.0.8, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\RAD\CrestronCertifiedDriverResourcesLibrary.dll</HintPath>
-    </Reference>
-    <Reference Include="IrAvReceiver, Version=8.0.11.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\RAD\IrAvReceiver.dll</HintPath>
-    </Reference>
-    <Reference Include="IrAVSwitcher, Version=8.0.11.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\RAD\IrAVSwitcher.dll</HintPath>
-    </Reference>
-    <Reference Include="IrBlurayPlayer, Version=8.0.11.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\RAD\IrBlurayPlayer.dll</HintPath>
-    </Reference>
-    <Reference Include="IrCableBox, Version=8.0.11.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\RAD\IrCableBox.dll</HintPath>
-    </Reference>
-    <Reference Include="IrDisplay, Version=8.0.11.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\RAD\IrDisplay.dll</HintPath>
-    </Reference>
-    <Reference Include="IrVideoServer, Version=8.0.11.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\RAD\IrVideoServer.dll</HintPath>
-    </Reference>
     <Reference Include="mscorlib" />
     <Reference Include="PepperDash_Core, Version=1.1.1.32703, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -133,7 +105,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Audio\EssentialsVolumeLevelConfig.cs" />
-    <Compile Include="Bridges\EiscBridge.cs" />
     <Compile Include="Bridges\JoinMaps\AirMediaControllerJoinMap.cs" />
     <Compile Include="Bridges\JoinMaps\AppleTvJoinMap.cs" />
     <Compile Include="Bridges\BridgeFactory.cs" />

@@ -25,9 +25,6 @@ namespace PepperDash.Essentials
         {
             var eiscApiAdvancedFactory = new EiscApiAdvancedFactory() as IDeviceFactory;
             eiscApiAdvancedFactory.LoadTypeFactories();
-
-            var eiscApiFactory = new EiscApiFactory() as IDeviceFactory;
-            eiscApiFactory.LoadTypeFactories();
         }
 
     }

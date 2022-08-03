@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using Crestron.SimplSharp;
 using Crestron.SimplSharpPro.DeviceSupport;
 using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Bridges;
@@ -13,11 +14,12 @@ namespace ViscaCameraPlugin
 	public class ViscaCameraDevice : EssentialsBridgeableDevice
 	{
 		private readonly IBasicCommunication _comms;
-		private byte[] _commsByteBuffer = new byte[] { };
 		private readonly GenericCommunicationMonitor _commsMonitor;
 		private readonly bool _commsIsSerial;
 		private readonly bool _useHeader;
 		private uint _counter = 0;
+        private bool _autoTrackingCapable = false;
+        private eViscaCameraInquiry _lastInquiry = eViscaCameraInquiry.None;
 
 		private readonly ViscaCameraConfig _config;
 
@@ -52,6 +54,24 @@ namespace ViscaCameraPlugin
 			}
 		}
 
+        private bool _autoTrackingOn;
+        /// <summary>
+        /// Auto tracking on feedback
+        /// </summary>
+        public BoolFeedback AutoTrackingOnFeedback { get; private set; }
+        /// <summary>
+        /// Auto tracking on property
+        /// </summary>
+        public bool AutoTrackingOn
+        {
+            get { return _autoTrackingOn; }
+            set
+            {
+                if (_autoTrackingOn == value) return;
+                _autoTrackingOn = value;
+                AutoTrackingOnFeedback.FireUpdate();
+            }
+        }
 
 		private bool _autoFocus;
 		/// <summary>
@@ -91,7 +111,6 @@ namespace ViscaCameraPlugin
 				PresetCountFeedback.FireUpdate();
 			}
 		}
-
 
 		/// <summary>
 		/// Preset name feedbacks
@@ -140,7 +159,6 @@ namespace ViscaCameraPlugin
 			}
 		}
 
-
 		private const uint ZoomSpeedDefault = 4; // 00...07 (hex)
 		private const uint ZoomSpeedMax = 7;
 		private uint _zoomSpeed = ZoomSpeedDefault;
@@ -162,7 +180,6 @@ namespace ViscaCameraPlugin
 			}
 		}
 
-
 		private const uint FocusSpeedDefault = 4; // 00...07 (hex)
 		private const uint FocusSpeedMax = 7;
 		private uint _focusSpeed = FocusSpeedDefault;
@@ -183,7 +200,14 @@ namespace ViscaCameraPlugin
 				FocusSpeedFeedback.FireUpdate();
 			}
 		}
-
+        
+        public enum eViscaCameraInquiry
+        {
+            None,
+            Power,
+            Focus,
+            Preset
+        }
 
 		/// <summary>
 		/// Move PTZ direction enumeration
@@ -221,6 +245,15 @@ namespace ViscaCameraPlugin
 		/// </summary>
 		public IntFeedback MonitorStatusFeedback { get; private set; }
 
+        /// <summary>
+        /// Auto Tracking Capable Feedback
+        /// </summary>
+        public BoolFeedback AutoTrackingCapable { get; private set; }
+
+        /// <summary>
+        /// Preset Saved Feedback
+        /// </summary>
+        public event EventHandler PresetSaved;
 
 		/// <summary>
 		/// Constructor
@@ -238,15 +271,20 @@ namespace ViscaCameraPlugin
 
 			OnlineFeedback = new BoolFeedback(() => _comms.IsConnected);
 			MonitorStatusFeedback = new IntFeedback(() => (int)_commsMonitor.Status);
+            AutoTrackingCapable = new BoolFeedback(() => _autoTrackingCapable);
 
 			PowerFeedback = new BoolFeedback(() => Power);
 			AutoFocusFeedback = new BoolFeedback(() => AutoFocus);
+            AutoTrackingOnFeedback = new BoolFeedback(() => AutoTrackingOn);
 			PanSpeedFeedback = new IntFeedback(() => (int)PanSpeed);
 			TiltSpeedFeedback = new IntFeedback(() => (int)TiltSpeed);
 			ZoomSpeedFeedback = new IntFeedback(() => (int)ZoomSpeed);
 			FocusSpeedFeedback = new IntFeedback(() => (int)FocusSpeed);
 			PresetCountFeedback = new IntFeedback(() => (int)PresetCount);
 			PresetNameFeedbacks = new Dictionary<uint, StringFeedback>();
+
+            if (_config.AutoTracking == true)
+                _autoTrackingCapable = true;
 
 			if (_config.PollTimeMs > 0 && _config.PollTimeMs != _pollTimeMs)
 				_pollTimeMs = _config.PollTimeMs;
@@ -375,6 +413,8 @@ namespace ViscaCameraPlugin
 			// link joins to bridge
 			trilist.SetString(joinMap.DeviceName.JoinNumber, Name);
 
+            AutoTrackingCapable.LinkInputSig(trilist.BooleanInput[joinMap.AutoTrackingCapable.JoinNumber]);
+
             _commsMonitor.IsOnlineFeedback.LinkInputSig(trilist.BooleanInput[joinMap.IsOnline.JoinNumber]);
 			// must null check so LinkToApi doesn't except when the device is TCP or UDP
 			if (SocketStatusFeedback != null)
@@ -409,6 +449,14 @@ namespace ViscaCameraPlugin
 			trilist.SetUShortSigAction(joinMap.ZoomSpeed.JoinNumber, value => SetZoomSpeed(value));
 			ZoomSpeedFeedback.LinkInputSig(trilist.UShortInput[joinMap.ZoomSpeed.JoinNumber]);
 
+            // auto tracking on
+            trilist.SetSigTrueAction(joinMap.AutoTrackingOn.JoinNumber, SetAutoTrackingOn);
+            AutoTrackingOnFeedback.LinkInputSig(trilist.BooleanInput[joinMap.AutoTrackingOn.JoinNumber]);
+
+            // auto tracking off
+            trilist.SetSigTrueAction(joinMap.AutoTrackingOff.JoinNumber, SetAutoTrackingOff);
+            AutoTrackingOnFeedback.LinkComplementInputSig(trilist.BooleanInput[joinMap.AutoTrackingOff.JoinNumber]);
+
 			// focus
 			trilist.SetBoolSigAction(joinMap.AutoFocus.JoinNumber, sig => Move(sig, EDirection.FocusAuto));
 			AutoFocusFeedback.LinkInputSig(trilist.BooleanInput[joinMap.AutoFocus.JoinNumber]);
@@ -418,6 +466,12 @@ namespace ViscaCameraPlugin
 			trilist.SetBoolSigAction(joinMap.PrivacyOff.JoinNumber, sig => Move(sig, EDirection.PrivacyOff));
 			UpdateFeedbacks();
 
+            // preset saved
+            PresetSaved += (o, a) =>
+            {
+                trilist.BooleanInput[joinMap.PresetSaved.JoinNumber].BoolValue = true;
+                new CTimer((object x) => trilist.BooleanInput[joinMap.PresetSaved.JoinNumber].BoolValue = false, 3000);
+            };
 
 			// preset - analog recall & save by number
 			trilist.SetUShortSigAction(joinMap.PresetRecallByNumber.JoinNumber, value =>
@@ -482,6 +536,8 @@ namespace ViscaCameraPlugin
 			TiltSpeedFeedback.FireUpdate();
 			ZoomSpeedFeedback.FireUpdate();
 			PresetCountFeedback.FireUpdate();
+            AutoTrackingCapable.FireUpdate();
+            AutoTrackingOnFeedback.FireUpdate();
 
 			foreach (var item in PresetNameFeedbacks)
 				item.Value.FireUpdate();
@@ -518,27 +574,6 @@ namespace ViscaCameraPlugin
 
 				if (_useHeader)
 				{
-
-					// from Sony SRG-300SE IP v1.1.umc
-					// S-2.3 : Serial I/O > String_To_Send
-					// Power_On_B:		"\x8\[#Address (1-7)\]\x01\x04\x00\x02\xFF"
-					// Power_Off_B:		"\x8\[#Address (1-7)\]\x01\x04\x00\x03\xFF"
-
-					// from Sony SRG-300SE IP Visco Processor v1.0
-					//CHANGE String_To_Send
-					//{
-					//    sStringToSend = String_To_Send;
-					//    if(iCounter = 0xFFFFFFFF)
-					//        iCounter = 0;
-					//    else
-					//        iCounter = iCounter + 1;
-					//		Bitwise operators: {{ = rotate left - rotate X to the left by Y bits; full 16 bits ues, same as rotateLeft();
-					//				ex. X {{ Y
-					//    makestring(sCommand, "\x01\x00\x00%s%s%s%s%s%s", chr(len(sStringToSend)), chr(iCounter {{ 8), chr(iCounter {{ 16), chr(iCounter {{ 24), chr(iCounter {{ 32),  sStringToSend);
-					//    // generate command
-					//    To_Device = sCommand;
-					//}
-
 					// VISCA-over-IP counter
 					if (_counter != 0xFFFFFFFF)
 						_counter++;
@@ -571,38 +606,63 @@ namespace ViscaCameraPlugin
 
 			Debug.Console(2, this, "Handle_BytesRecieved: {0}", args.Bytes);
 
-			var byteBuffer = new byte[_commsByteBuffer.Length + args.Bytes.Length];
-			_commsByteBuffer.CopyTo(byteBuffer, 0);
-			args.Bytes.CopyTo(byteBuffer, _commsByteBuffer.Length);
+            if (_lastInquiry != eViscaCameraInquiry.None)
+            {
+                switch (_lastInquiry)
+                {
+                    case eViscaCameraInquiry.Power:
+                        if (args.Bytes.Length > 3 && args.Bytes[1] == 0x50  && args.Bytes[3] == 0xFF)
+                        {
+                            if(args.Bytes[2] == 02)
+                            {
+                                Power = true;
+                            }
+                            else if(args.Bytes[2] == 03 || args.Bytes[2] == 04)
+                            {
+                                Power = false;
+                            }
+                        }
+                        break;
+                    case eViscaCameraInquiry.Focus:
+                        if (args.Bytes.Length > 3 && args.Bytes[1] == 0x50 && args.Bytes[3] == 0xFF)
+                        {
+                            if (args.Bytes[2] == 02)
+                            {
+                                AutoFocus = true;
+                            }
+                            else if (args.Bytes[2] == 03)
+                            {
+                                AutoFocus = false;
+                            }
+                        }
+                        break;
+                    case eViscaCameraInquiry.Preset:
+                        if (args.Bytes.Length > 3 && args.Bytes[1] == 0x50 && args.Bytes[3] == 0xFF)
+                        {
+                            var preset = Convert.ToUInt16(args.Bytes[2]);
+                            if (preset == 80)
+                            {
+                                AutoTrackingOn = true;
+                            }
+                            else
+                            {
+                                AutoTrackingOn = false;
+                            }
 
-			Debug.Console(2, this, "Handle_BytesRecieved byteBuffer: {0}", ComTextHelper.GetEscapedText(byteBuffer));
+                            if (preset == _config.PrivacyOnPreset)
+                            {
+                                //Set privacy feedback on
+                            }
+                            else
+                            {
+                                //Set privacy feedback off
+                            }
 
-			// TODO [ ] complete method
-
-			// power on:	0xy0, 0x50, 0x02, 0xFF
-			// power off:	0xy0, 0x50, 0x03, 0xFF
-
-			// focus auto:		0xy0, 0x50, 0x02, 0xFF	??? same as power on in document
-			// focus manual:	0xy0, 0x50, 0x03, 0xFF	??? same as power off in document
-
-			// from Sony SRG-300SE IP Visco Processor v1.0
-			//CHANGE From_Device
-			//{
-			//    if(left(From_Device, 7) = "\x02\x00\x00\x02\x00\x00\x00" && right(From_Device, 2) = "\x0F\x01")	// if camera didn't like the sequence number in the command that was sent
-			//    {
-			//        iCounter = 0xFFFFFFFF; // reset the sequence number to it's highest value
-			//        makestring(sCommand, "\x01\x00\x00%s%s%s%s%s%s", chr(len(sStringToSend)), chr(iCounter {{ 8), chr(iCounter {{ 16), chr(iCounter {{ 24), chr(iCounter {{ 32),  sStringToSend);
-			//        // generate command w/ new sequence number
-			//        To_Device = sCommand;  // resend command
-			//    }
-			//    else if(left(From_Device, 2) = "\x01\x11" && right(From_Device, 1) = "\xFF")	// if valid response
-			//    {
-			//        Response = mid(From_Device, 9, byte(From_Device, 4));
-			//    }
-			//}
-
-			// save partial message here
-			//_commsByteBuffer = byteBuffer;
+                            //Todo - set preset feedback
+                        }
+                        break;
+                }
+            }
 		}
 
 		/// <summary>
@@ -648,6 +708,24 @@ namespace ViscaCameraPlugin
 
 			SendBytes(cmd);
 		}
+
+        /// <summary>
+        /// Turn AutoTracking On
+        /// </summary>
+        public void SetAutoTrackingOn()
+        {
+            var cmd = new byte[] { _address, 0x01, 0x04, 0x3F, 0x02, 0x50, 0xFF };
+            SendBytes(cmd);
+        }
+
+        /// <summary>
+        /// Turn AutoTracking Off
+        /// </summary>
+        public void SetAutoTrackingOff()
+        {
+            var cmd = new byte[] { _address, 0x01, 0x04, 0x3F, 0x02, 0x51, 0xFF };
+            SendBytes(cmd);
+        }
 
 		/// <summary>
 		/// Move camera
@@ -786,6 +864,10 @@ namespace ViscaCameraPlugin
 
 			var cmd = new byte[] { _address, 0x01, 0x04, 0x3F, 0x01, Convert.ToByte(preset), 0xFF };
 			SendBytes(cmd);
+            if (PresetSaved != null)
+            {
+                PresetSaved(this, null);
+            }
 		}
 
 		/// <summary>

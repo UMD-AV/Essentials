@@ -188,7 +188,7 @@ namespace PepperDash.Essentials.DM
         #endregion
     }
 
-    public abstract class DmHdBaseTControllerBase : CrestronGenericBaseDevice
+    public abstract class DmHdBaseTControllerBase : CrestronGenericBridgeableBaseDevice
     {
         protected HDBaseTBase Rmc;
 
@@ -521,8 +521,7 @@ namespace PepperDash.Essentials.DM
 
             var props = JsonConvert.DeserializeObject
                 <DmRmcPropertiesConfig>(dc.Properties.ToString());
-            return DmRmcHelper.GetDmRmcController(dc.Key, dc.Name, type, props);
-            
+            return DmRmcHelper.GetDmRmcController(dc.Key, dc.Name, type, props);            
         }
     }
 

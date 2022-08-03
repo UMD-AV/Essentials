@@ -45,6 +45,9 @@ namespace ViscaCameraPlugin
 		[JsonProperty("errorTimeoutMs")]
 		public long ErrorTimeoutMs { get; set; }
 
+        [JsonProperty("autoTracking")]
+        public bool AutoTracking { get; set; }
+
 		[JsonProperty("presets")]
 		public List<ViscaCameraPresetConfig> Presets { get; set; }
 	}

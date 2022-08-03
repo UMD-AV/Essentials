@@ -114,7 +114,7 @@ namespace ViscaCameraPlugin
 			new JoinMetadata()
 			{
 				Description = "Power Off",
-				JoinCapabilities = eJoinCapabilities.FromSIMPL,
+				JoinCapabilities = eJoinCapabilities.ToFromSIMPL,
 				JoinType = eJoinType.Digital
 			});
 
@@ -131,6 +131,20 @@ namespace ViscaCameraPlugin
 				JoinCapabilities = eJoinCapabilities.ToSIMPL,
 				JoinType = eJoinType.Digital
 			});
+
+        [JoinName("AutoTrackingCapable")]
+        public JoinDataComplete AutoTrackingCapable = new JoinDataComplete(
+            new JoinData()
+            {
+                JoinNumber = 10,
+                JoinSpan = 1
+            },
+            new JoinMetadata()
+            {
+                Description = "Auto Tracking Capable",
+                JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                JoinType = eJoinType.Digital
+            });
 
 		[JoinName("Home")]
 		public JoinDataComplete Home = new JoinDataComplete(
@@ -156,24 +170,65 @@ namespace ViscaCameraPlugin
 			new JoinMetadata()
 			{
 				Description = "Preset Recall",
-				JoinCapabilities = eJoinCapabilities.FromSIMPL,
-				JoinType = eJoinType.Digital
-			});
-
-		[JoinName("AutoFocus")]
-		public JoinDataComplete AutoFocus = new JoinDataComplete(
-			new JoinData()
-			{
-				JoinNumber = 30,
-				JoinSpan = 1
-			},
-			new JoinMetadata()
-			{
-				Description = "AutoFocus",
 				JoinCapabilities = eJoinCapabilities.ToFromSIMPL,
 				JoinType = eJoinType.Digital
 			});
 
+        [JoinName("PresetSaved")]
+        public JoinDataComplete PresetSaved = new JoinDataComplete(
+            new JoinData()
+            {
+                JoinNumber = 26,
+                JoinSpan = 1
+            },
+            new JoinMetadata()
+            {
+                Description = "Preset Saved Feedback",
+                JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                JoinType = eJoinType.Digital
+            });
+
+        [JoinName("AutoTrackingOn")]
+        public JoinDataComplete AutoTrackingOn = new JoinDataComplete(
+            new JoinData()
+            {
+                JoinNumber = 27,
+                JoinSpan = 1
+            },
+            new JoinMetadata()
+            {
+                Description = "Auto Tracking On",
+                JoinCapabilities = eJoinCapabilities.ToFromSIMPL,
+                JoinType = eJoinType.Digital
+            });
+
+        [JoinName("AutoTrackingOff")]
+        public JoinDataComplete AutoTrackingOff = new JoinDataComplete(
+            new JoinData()
+            {
+                JoinNumber = 28,
+                JoinSpan = 1
+            },
+            new JoinMetadata()
+            {
+                Description = "Auto Tracking Off",
+                JoinCapabilities = eJoinCapabilities.ToFromSIMPL,
+                JoinType = eJoinType.Digital
+            });
+
+        [JoinName("AutoFocus")]
+        public JoinDataComplete AutoFocus = new JoinDataComplete(
+            new JoinData()
+            {
+                JoinNumber = 30,
+                JoinSpan = 1
+            },
+            new JoinMetadata()
+            {
+                Description = "AutoFocus",
+                JoinCapabilities = eJoinCapabilities.ToFromSIMPL,
+                JoinType = eJoinType.Digital
+            });
 
 		[JoinName("PresetSave")]
 		public JoinDataComplete PresetSave = new JoinDataComplete(
