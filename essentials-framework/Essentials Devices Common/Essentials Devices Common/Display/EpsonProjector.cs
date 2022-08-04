@@ -470,7 +470,7 @@ namespace PepperDash.Essentials.Devices.Displays
             {
                 Debug.Console(1, this, "Sending tcp handshake");
                 Communication.SendBytes(_tcpHandshake);
-                CrestronEnvironment.Sleep(500);
+                Thread.Sleep(500);
                 if (!_readyForCommands)
                 {
                     //Try to get response by sending return char
@@ -500,7 +500,7 @@ namespace PepperDash.Essentials.Devices.Displays
                 while (_IsWarmingUp)
                 {
                     SendCommand(eCommandType.PowerPoll, "PWR?", true);
-                    CrestronEnvironment.Sleep(2000);
+                    Thread.Sleep(2000);
                 }
             }
         }
@@ -558,7 +558,7 @@ namespace PepperDash.Essentials.Devices.Displays
                 while (_IsCoolingDown)
                 {
                     SendCommand(eCommandType.PowerPoll, "PWR?", true);
-                    CrestronEnvironment.Sleep(2000);
+                    Thread.Sleep(2000);
                 }
             }
         }
@@ -670,7 +670,7 @@ namespace PepperDash.Essentials.Devices.Displays
             SendCommand(eCommandType.VideoMute, "MUTE ON", false);
             VideoMuteGet();
             CrestronInvoke.BeginInvoke((o) => {
-                CrestronEnvironment.Sleep(1000);
+                Thread.Sleep(1000);
                 VideoMuteGet();
             });
         }
@@ -690,7 +690,7 @@ namespace PepperDash.Essentials.Devices.Displays
             VideoMuteGet();
             CrestronInvoke.BeginInvoke((o) =>
             {
-                CrestronEnvironment.Sleep(1000);
+                Thread.Sleep(1000);
                 VideoMuteGet();
             });
         }

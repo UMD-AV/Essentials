@@ -1259,12 +1259,23 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.ZoomRoom
 																	existingParticipant);
 
                                                                 int sortedIndex = Participants.CurrentParticipants.FindIndex(p => p.UserId.Equals(participant.UserId));
-                                                                Participants.OnParticipantUpdated(sortedIndex, zCommand.ListParticipant.GetGenericParticipantFromParticipantResult(existingParticipant));
+                                                                if (Participants.CurrentParticipants[sortedIndex].HandIsRaisedFb != participant.HandStatus.HandIsRaisedAndValid)
+                                                                {
+                                                                    //If hand status has changed, resort the hole list and update everyone
+                                                                    Participants.CurrentParticipants = zCommand.ListParticipant.GetGenericParticipantListFromParticipantsResult(Status.Call.Participants);
+                                                                    Participants.OnParticipantsChanged();
+                                                                }
+                                                                else
+                                                                {
+                                                                    //If hand status has not changed, no need to resort and update the whole list, just update the changed entry
+                                                                    Participants.OnParticipantUpdated(sortedIndex, zCommand.ListParticipant.GetGenericParticipantFromParticipantResult(existingParticipant));
+                                                                }
 																break;
-														}
+														   }
 													}
-												}
-													break;
+											    }
+												break;
+
 												case "ZRCUserChangedEventJoinedMeeting":
 												{
                                                     int index = Status.Call.Participants.FindIndex(p => p.UserId.Equals(participant.UserId));                                                    
@@ -1287,21 +1298,24 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.ZoomRoom
 															"[DeserializeResponse] zCommands.listparticipantresult - participant.event: {0} ...adding participant with UserId: {1} UserName: {2}",
 															participant.Event, participant.UserId, participant.UserName);
 
+                                                        if(GetIsHostMyself())
+                                                        {
+                                                            //If room is host, auto-admit from waiting room since API does not notify of people in waiting room
+                                                            AdmitParticipant(participant);
+                                                        }
 														Status.Call.Participants.Add(participant);
                                                         Participants.CurrentParticipants = zCommand.ListParticipant.GetGenericParticipantListFromParticipantsResult(Status.Call.Participants);
                                                         Participants.OnParticipantAdded();
 													}
-
 													break;
 												}
 											}
-
 											Debug.Console(1, this,
 												"[DeserializeResponse] zCommands.listparticipantresult - participant.event: {0} ***********************************",
 												participant.Event);
 										}
 									}
-										break;
+								    break;
 								}
 
                                 // Update the share status of the meeting info
@@ -1819,6 +1833,11 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.ZoomRoom
 		{
 			SendText("zCommand Call ListParticipants");
 		}
+
+        public void AdmitParticipant(zCommand.ListParticipant p)
+        {
+            SendText(string.Format("zCommand Call Admit Participant: {0}", p.UserId));
+        }
 
 		/// <summary>
 		/// Prints the current call particiapnts list

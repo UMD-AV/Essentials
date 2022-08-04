@@ -1618,7 +1618,6 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.ZoomRoom
 				// return the sorted list
 				return sortedList;				
 			}
-
 		}
 
 		public class CallinCountryList

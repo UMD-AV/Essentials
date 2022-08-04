@@ -216,8 +216,22 @@ namespace ViscaCameraPlugin
                 JoinType = eJoinType.Digital
             });
 
-        [JoinName("AutoFocus")]
-        public JoinDataComplete AutoFocus = new JoinDataComplete(
+        [JoinName("AutoFocusOff")]
+        public JoinDataComplete AutoFocusOff = new JoinDataComplete(
+            new JoinData()
+            {
+                JoinNumber = 29,
+                JoinSpan = 1
+            },
+            new JoinMetadata()
+            {
+                Description = "AutoFocus Off",
+                JoinCapabilities = eJoinCapabilities.ToFromSIMPL,
+                JoinType = eJoinType.Digital
+            });
+
+        [JoinName("AutoFocusOn")]
+        public JoinDataComplete AutoFocusOn = new JoinDataComplete(
             new JoinData()
             {
                 JoinNumber = 30,
@@ -225,7 +239,7 @@ namespace ViscaCameraPlugin
             },
             new JoinMetadata()
             {
-                Description = "AutoFocus",
+                Description = "AutoFocus On",
                 JoinCapabilities = eJoinCapabilities.ToFromSIMPL,
                 JoinType = eJoinType.Digital
             });
@@ -254,7 +268,7 @@ namespace ViscaCameraPlugin
 			new JoinMetadata()
 			{
 				Description = "Privacy On",
-				JoinCapabilities = eJoinCapabilities.FromSIMPL,
+				JoinCapabilities = eJoinCapabilities.ToFromSIMPL,
 				JoinType = eJoinType.Digital
 			});
 
@@ -268,7 +282,7 @@ namespace ViscaCameraPlugin
 			new JoinMetadata()
 			{
 				Description = "Privacy Off",
-				JoinCapabilities = eJoinCapabilities.FromSIMPL,
+				JoinCapabilities = eJoinCapabilities.ToFromSIMPL,
 				JoinType = eJoinType.Digital
 			});
 
@@ -329,7 +343,7 @@ namespace ViscaCameraPlugin
 			new JoinMetadata()
 			{
 				Description = "Preset Recall by Number",
-				JoinCapabilities = eJoinCapabilities.FromSIMPL,
+				JoinCapabilities = eJoinCapabilities.ToFromSIMPL,
 				JoinType = eJoinType.Analog
 			});
 
