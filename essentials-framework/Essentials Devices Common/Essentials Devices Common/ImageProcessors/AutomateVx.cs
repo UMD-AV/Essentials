@@ -6,6 +6,7 @@ using Crestron.SimplSharp;
 using Crestron.SimplSharpPro.DeviceSupport;
 using Crestron.SimplSharp.Net.Http;
 using Crestron.SimplSharp.Net.Https;
+using Crestron.SimplSharpPro.CrestronThread;
 using PepperDash.Core;
 using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Config;
@@ -36,7 +37,7 @@ namespace PepperDash.Essentials.Devices.Common.ImageProcessors
         private HttpsClient secureClient;
         private CTimer pollTimer;
         private CTimer offlineTimer;
-        private int pollTime = 60000;
+        private int pollTime = 30000;
         private int offlineTime = 200000;
         
 		public AutomateVx(string key, string name, AutomateVxPropertiesConfig props) :
@@ -187,7 +188,7 @@ namespace PepperDash.Essentials.Devices.Common.ImageProcessors
                 {
                     if (port == 4443)
                     {
-                        Debug.Console(1, this, "Posting https:{0}", data);
+                        Debug.Console(1, this, "Posting https:{0}", requestName);
                         var req = new HttpsClientRequest();
                         string url = string.Format("https://{0}:{1}/api/{2}", hostname, port, requestName);
                         req.Header.ContentType = "application/json";
@@ -201,7 +202,7 @@ namespace PepperDash.Essentials.Devices.Common.ImageProcessors
                     }
                     else
                     {
-                        Debug.Console(1, this, "Posting http:{0}", data);
+                        Debug.Console(1, this, "Posting http:{0}", requestName);
                         var req = new HttpClientRequest();
                         string url = string.Format("http://{0}:{1}/api/{2}", hostname, port, requestName);
                         req.Header.ContentType = "application/json";
@@ -228,10 +229,14 @@ namespace PepperDash.Essentials.Devices.Common.ImageProcessors
         public void Sleep()
         {
             PostData("", "Sleep");
+            Thread.Sleep(1000);
+            PostData("", "AutoSwitchStatus");
         }
         public void Wake()
         {
             PostData("", "Wake");
+            Thread.Sleep(1000);
+            PostData("", "AutoSwitchStatus");
         }
         public void CloseWirecast()
         {
@@ -319,6 +324,8 @@ namespace PepperDash.Essentials.Devices.Common.ImageProcessors
         {
             onlineStatus = false;
             OnlineFeedback.FireUpdate();
+            autoSwitchOn = false;
+            AutoSwitchFeedback.FireUpdate();
         }
 
         private void CrestronEnvironmentOnProgramStatusEventHandler(eProgramStatusEventType programEventType)

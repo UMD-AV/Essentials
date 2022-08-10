@@ -6,6 +6,7 @@ using Crestron.SimplSharp;
 using Crestron.SimplSharpPro;
 using Crestron.SimplSharpPro.DeviceSupport;
 using Crestron.SimplSharpPro.DM.Endpoints.Transmitters;
+using Crestron.SimplSharpPro.DM;
 using Newtonsoft.Json;
 
 using PepperDash.Core;
@@ -18,7 +19,7 @@ namespace PepperDash.Essentials.DM
     /// Controller class for suitable for HDBaseT transmitters
     /// </summary>
     [Description("Wrapper Class for HDBaseT devices based on HDTx3CB class")]
-    public class HDBaseTTxController: BasicDmTxControllerBase, IRoutingInputsOutputs, IComPorts
+    public class HDBaseTTxController : BasicDmTxControllerBase, IRoutingInputsOutputs, IComPorts
     {
         public RoutingInputPort HdmiIn { get; private set; }
         public RoutingOutputPort DmOut { get; private set; }
@@ -34,6 +35,21 @@ namespace PepperDash.Essentials.DM
 
             InputPorts = new RoutingPortCollection<RoutingInputPort> { HdmiIn };
             OutputPorts = new RoutingPortCollection<RoutingOutputPort> { DmOut };
+
+            var parentDev = DeviceManager.GetDeviceForKey(key);
+            var num = tx.DMInputOutput.Number;
+            if (parentDev is DmpsRoutingController)
+            {
+                var dmps = parentDev as DmpsRoutingController;
+                IsOnline.SetValueFunc(() => dmps.InputEndpointOnlineFeedbacks[num].BoolValue);
+                dmps.InputEndpointOnlineFeedbacks[num].OutputChange += (o, a) => IsOnline.FireUpdate();
+            }
+            else if (parentDev is DmChassisController)
+            {
+                var controller = parentDev as DmChassisController;
+                IsOnline.SetValueFunc(() => controller.InputEndpointOnlineFeedbacks[num].BoolValue);
+                controller.InputEndpointOnlineFeedbacks[num].OutputChange += (o, a) => IsOnline.FireUpdate();
+            }
         }
 
         #region IRoutingInputs Members

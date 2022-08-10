@@ -148,18 +148,19 @@ namespace PepperDash.Essentials.Core
 
 		public override void Start()
 		{
-            if (MonitorBytesReceived) 
+            if (PollTimer == null)
             {
-			    Client.BytesReceived += Client_BytesReceived;
-            }
-            else
-            {
-                Client.TextReceived += Client_TextReceived;
-            }
+                if (MonitorBytesReceived)
+                {
+                    Client.BytesReceived += Client_BytesReceived;
+                }
+                else
+                {
+                    Client.TextReceived += Client_TextReceived;
+                }
 
-            if (!IsSocket)
-            {
-                BeginPolling();
+                Poll();
+                PollTimer = new CTimer(o => Poll(), null, PollTime, PollTime);
             }
 		}
 
@@ -168,23 +169,23 @@ namespace PepperDash.Essentials.Core
             if (!e.Client.IsConnected)
             {
                 // Immediately stop polling and notify that device is offline
-                Stop();
-                Status = MonitorStatus.InError;
-                ResetErrorTimers();
+                if (PollTimer != null)
+                {
+                    PollTimer.Stop();
+                    Status = MonitorStatus.InError;
+                    ResetErrorTimers();
+                }
             }
             else
             {
                 // Start polling and set status to unknow and let poll result update the status to IsOk when a response is received
-                Status = MonitorStatus.StatusUnknown;
-                Start();
-                BeginPolling();
+                if (PollTimer != null)
+                {
+                    Status = MonitorStatus.StatusUnknown;
+                    Poll();
+                    PollTimer.Reset(PollTime, PollTime);
+                }
             }
-        }
-
-        void BeginPolling()
-        {
-            Poll();
-            PollTimer = new CTimer(o => Poll(), null, PollTime, PollTime);
         }
 
 		public override void Stop()

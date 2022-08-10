@@ -401,6 +401,7 @@ namespace ViscaCameraPlugin
 			{
 				// device is configured for IP control
 				_commsIsSerial = false;
+                _commsMonitor.Start();
 				socket.ConnectionChange += socket_ConnectionChange;
 				SocketStatusFeedback = new IntFeedback(() => (int)socket.ClientStatus);
 			}
@@ -620,9 +621,7 @@ namespace ViscaCameraPlugin
 		private void UpdateFeedbacks()
 		{
 			OnlineFeedback.FireUpdate();
-			// must null check so LinkToApi doesn't except when the device is TCP or UDP
 			if (SocketStatusFeedback != null) SocketStatusFeedback.FireUpdate();
-			//MonitorStatusFeedback.FireUpdate();
 
 			PowerFeedback.FireUpdate();
 			PanSpeedFeedback.FireUpdate();
@@ -645,10 +644,10 @@ namespace ViscaCameraPlugin
 
 		private void socket_ConnectionChange(object sender, GenericSocketStatusChageEventArgs args)
 		{
-			Debug.Console(1, this, args.Client.ClientStatus.ToString());
+			Debug.Console(0, this, args.Client.ClientStatus.ToString());
 
 			OnlineFeedback.FireUpdate();
-			// must null check so LinkToApi doesn't except when the device is TCP or UDP
+
 			if (SocketStatusFeedback != null) SocketStatusFeedback.FireUpdate();
 
 			if (args.Client.IsConnected) InitializeCamera();
@@ -656,7 +655,7 @@ namespace ViscaCameraPlugin
 
         private void readyForNextCommand(object o)
         {
-            _lastInquiry = eViscaCameraInquiry.NoFeedback;
+            _commandTimer.Stop(); //No need for timeout on last command
             _commandReady = true;
             ProcessQueue();
         }
@@ -718,6 +717,7 @@ namespace ViscaCameraPlugin
 			if (bytes == null) return;
 
             _commandReady = false; //Block new commands until ready for more
+            Debug.Console(1, this, "Tx: {0}", ComTextHelper.GetEscapedText(bytes));
 
 			if (_commsIsSerial)
 				_comms.SendBytes(bytes);
@@ -757,9 +757,7 @@ namespace ViscaCameraPlugin
 				Debug.Console(2, this, "Handle_BytesRecieved args or args.Bytes is null");
 				return;
 			}
-
-            _commandTimer.Stop(); //No need for timeout on last command
-			Debug.Console(2, this, "Handle_BytesRecieved: {0}", args.Bytes);
+			Debug.Console(1, this, "Rx: {0}", ComTextHelper.GetEscapedText(args.Bytes));
 
             if (_lastInquiry != eViscaCameraInquiry.NoFeedback)
             {
@@ -770,18 +768,22 @@ namespace ViscaCameraPlugin
                         {
                             PresetSaved(this, null);
                         }
+                        _lastInquiry = eViscaCameraInquiry.NoFeedback;
+                        readyForNextCommand(null);
                         break;
                     case eViscaCameraInquiry.PowerInquiry:
-                        if (args.Bytes.Length > 3 && args.Bytes[1] == 0x50  && args.Bytes[3] == 0xFF)
+                        if (args.Bytes.Length > 3 && args.Bytes[1] == 0x50 && args.Bytes[3] == 0xFF)
                         {
-                            if(args.Bytes[2] == 02)
+                            if (args.Bytes[2] == 02)
                             {
                                 Power = true;
                             }
-                            else if(args.Bytes[2] == 03 || args.Bytes[2] == 04)
+                            else if (args.Bytes[2] == 03 || args.Bytes[2] == 04)
                             {
                                 Power = false;
                             }
+                            _lastInquiry = eViscaCameraInquiry.NoFeedback;
+                            readyForNextCommand(null);
                         }
                         break;
                     case eViscaCameraInquiry.FocusInquiry:
@@ -795,20 +797,14 @@ namespace ViscaCameraPlugin
                             {
                                 AutoFocus = false;
                             }
+                            _lastInquiry = eViscaCameraInquiry.NoFeedback;
+                            readyForNextCommand(null);
                         }
                         break;
                     case eViscaCameraInquiry.PresetInquiry:
                         if (args.Bytes.Length > 3 && args.Bytes[1] == 0x50 && args.Bytes[3] == 0xFF)
                         {
                             var preset = Convert.ToUInt16(args.Bytes[2]);
-                            if (preset == 80)
-                            {
-                                AutoTrackingOn = true;
-                            }
-                            else
-                            {
-                                AutoTrackingOn = false;
-                            }
 
                             if (preset == _config.PrivacyOnPreset)
                             {
@@ -820,11 +816,16 @@ namespace ViscaCameraPlugin
                             }
 
                             ActivePreset = preset;
+                            _lastInquiry = eViscaCameraInquiry.NoFeedback;
+                            readyForNextCommand(null);
                         }
                         break;
                 }
             }
-            readyForNextCommand(null);
+            else
+            {
+                readyForNextCommand(null);
+            }
 		}
 
 		/// <summary>
@@ -888,6 +889,11 @@ namespace ViscaCameraPlugin
                 : new byte[] { _address, 0x01, 0x04, 0x00, 0x02, 0xFF };
 
             QueueCommand(cmd);
+            if (state == false)
+            {
+                ActivePreset = 0;
+            }
+            Thread.Sleep(1000);
             PollPower();
         }
 
@@ -898,6 +904,8 @@ namespace ViscaCameraPlugin
         {
             var cmd = new byte[] { _address, 0x01, 0x04, 0x3F, 0x02, 0x50, 0xFF };
             QueueCommand(cmd);
+            AutoTrackingOn = true;
+            Thread.Sleep(1000);
             PollPreset();
         }
 
@@ -908,6 +916,8 @@ namespace ViscaCameraPlugin
         {
             var cmd = new byte[] { _address, 0x01, 0x04, 0x3F, 0x02, 0x51, 0xFF };
             QueueCommand(cmd);
+            AutoTrackingOn = false;
+            Thread.Sleep(1000);
             PollPreset();
         }
 
@@ -918,6 +928,7 @@ namespace ViscaCameraPlugin
 		/// <param name="direction">EMoveDirection direction</param>
 		public void Move(bool state, EDirection direction)
 		{
+            ActivePreset = 0;
 			switch (direction)
 			{
 				case EDirection.Home:
@@ -1049,7 +1060,7 @@ namespace ViscaCameraPlugin
 				return;
 
 			var cmd = new byte[] { _address, 0x01, 0x04, 0x3F, 0x01, Convert.ToByte(preset), 0xFF };
-            QueueCommand(cmd);
+            QueueCommand(eViscaCameraInquiry.PresetSave, cmd);
 		}
 
 		/// <summary>

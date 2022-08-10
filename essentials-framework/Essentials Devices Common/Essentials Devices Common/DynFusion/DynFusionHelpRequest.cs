@@ -126,6 +126,10 @@ namespace DynFusion
 
         public void ParseFeedback(string data)
         {
+            if (data.Length < 2)
+            {
+                return;
+            }
             mutex.WaitForMutex();
             try
             {
@@ -188,7 +192,7 @@ namespace DynFusion
             }
             catch (Exception ex)
             {
-                ErrorLog.Exception("Error in help request parsing: {0}", ex);
+                ErrorLog.Exception("Error in help request parsing", ex);
             }
             finally
             {
