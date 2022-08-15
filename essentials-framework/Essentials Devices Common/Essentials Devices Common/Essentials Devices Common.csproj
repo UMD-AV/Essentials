@@ -120,6 +120,7 @@
     <Compile Include="Codec\eCodecCallStatus.cs" />
     <Compile Include="Codec\eMeetingPrivacy.cs" />
     <Compile Include="Codec\iCodecAudio.cs" />
+    <Compile Include="Display\PanasonicDisplay.cs" />
     <Compile Include="DynFusion\DynFusionHelpRequest.cs" />
     <Compile Include="ImageProcessors\AutomateVx.cs" />
     <Compile Include="VideoCodec\IConvertiblePreset.cs" />
@@ -198,7 +199,6 @@
     <Compile Include="VideoCodec\CiscoCodec\CiscoCodecJoinMap.cs" />
     <Compile Include="VideoCodec\CiscoCodec\RoomPresets.cs" />
     <Compile Include="Cameras\CameraControl.cs" />
-    <Compile Include="Display\PanasonicThDisplay.cs" />
     <Compile Include="VideoCodec\Interfaces\IHasWaitingRoom.cs" />
     <Compile Include="VideoCodec\Interfaces\IHasMeetingInfo.cs" />
     <Compile Include="VideoCodec\Interfaces\IHasMeetingLock.cs" />
