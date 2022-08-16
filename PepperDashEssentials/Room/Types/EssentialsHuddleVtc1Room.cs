@@ -713,6 +713,7 @@ namespace PepperDash.Essentials
 				dest = DefaultDisplay;
 			else
 				dest = DeviceManager.GetDeviceForKey(route.DestinationKey) as IRoutingSink;
+            
 
 			if (dest == null)
 			{
