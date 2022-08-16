@@ -28,14 +28,7 @@ namespace PepperDash.Essentials.Devices.Displays
 		public const string InputGetCmd = "\x02QMI\x03";
 		public const string Hdmi1Cmd = "\x02IMS:HM1\x03";
 		public const string Hdmi2Cmd = "\x02IMS:HM2\x03";
-		public const string Hdmi3Cmd = "";
-		public const string Hdmi4Cmd = "";
-		public const string Dp1Cmd = "";
-		public const string Dp2Cmd = "";
-		public const string Dvi1Cmd = "\x02IMS:DV1";
-		public const string Video1Cmd = "";
-		public const string VgaCmd = "";
-		public const string RgbCmd = "";
+        public const string Pc1Cmd = "\x02IMS:PC1\x03";
 
         public const string PowerGetCmd = "\x02QPW\x03";
 		public const string PowerOnCmd = "\x02PON\x03";
@@ -54,7 +47,6 @@ namespace PepperDash.Essentials.Devices.Displays
         public BoolFeedback Input1Feedback { get; private set; }
         public BoolFeedback Input2Feedback { get; private set; }
         public BoolFeedback Input3Feedback { get; private set; }
-        public BoolFeedback Input4Feedback { get; private set; }
 
         bool _readyForCommands;
         bool _tcpComm;
@@ -63,7 +55,7 @@ namespace PepperDash.Essentials.Devices.Displays
 		bool _IsCoolingDown;
         int _CurrentInputIndex;
         ushort _RequestedPowerState; // 0:none 1:on 2:off
-        ushort _RequestedInputState; // 0:none 1-4:inputs 1-4 
+        ushort _RequestedInputState; // 0:none 1-3:inputs 1-3 
 
         readonly PanasonicQueue _cmdQueue;
         readonly PanasonicQueue _priorityQueue;
@@ -85,7 +77,7 @@ namespace PepperDash.Essentials.Devices.Displays
 			: base(key, name)
 		{
 			Communication = comm;
-            _PortGather = new CommunicationGather(Communication, '\x0D');
+            _PortGather = new CommunicationGather(Communication, '\x03');
             _PortGather.IncludeDelimiter = false;
             _PortGather.LineReceived += new EventHandler<GenericCommMethodReceiveTextArgs>(DelimitedTextReceived);
 
@@ -111,7 +103,6 @@ namespace PepperDash.Essentials.Devices.Displays
             Input1Feedback = new BoolFeedback(() => { return _CurrentInputIndex == 1; });
             Input2Feedback = new BoolFeedback(() => { return _CurrentInputIndex == 2; });
             Input3Feedback = new BoolFeedback(() => { return _CurrentInputIndex == 3; });
-            Input4Feedback = new BoolFeedback(() => { return _CurrentInputIndex == 4; });
 
             _CurrentInputIndex = 0;
             _RequestedPowerState = 0;
@@ -125,16 +116,13 @@ namespace PepperDash.Essentials.Devices.Displays
             DeviceManager.AddDevice(CommunicationMonitor);
 
             AddRoutingInputPort(new RoutingInputPort("HDMI 1", eRoutingSignalType.Audio | eRoutingSignalType.Video,
-                eRoutingPortConnectionType.Hdmi, new Action(InputHdmi1), this), "11");
+                eRoutingPortConnectionType.Hdmi, new Action(InputHdmi1), this), "HM1");
 
             AddRoutingInputPort(new RoutingInputPort("HDMI 2", eRoutingSignalType.Audio | eRoutingSignalType.Video,
-                eRoutingPortConnectionType.Hdmi, new Action(InputHdmi2), this), "12");
+                eRoutingPortConnectionType.Hdmi, new Action(InputHdmi2), this), "HM2");
 
-            AddRoutingInputPort(new RoutingInputPort("DP 1", eRoutingSignalType.Audio | eRoutingSignalType.Video,
-                eRoutingPortConnectionType.DisplayPort, new Action(InputDp1), this), "0F");
-
-            AddRoutingInputPort(new RoutingInputPort("DP 2", eRoutingSignalType.Audio | eRoutingSignalType.Video,
-                eRoutingPortConnectionType.DisplayPort, new Action(InputDp2), this), "10");
+            AddRoutingInputPort(new RoutingInputPort("PC 1", eRoutingSignalType.Audio | eRoutingSignalType.Video,
+                eRoutingPortConnectionType.Vga, new Action(InputPc1), this), "PC1");
 		}
 
         void AddRoutingInputPort(RoutingInputPort port, string fbMatch)
@@ -169,14 +157,7 @@ namespace PepperDash.Essentials.Devices.Displays
             Input1Feedback.LinkInputSig(trilist.BooleanInput[joinMap.InputSelectOffset.JoinNumber + 0]);
             Input2Feedback.LinkInputSig(trilist.BooleanInput[joinMap.InputSelectOffset.JoinNumber + 1]);
             Input3Feedback.LinkInputSig(trilist.BooleanInput[joinMap.InputSelectOffset.JoinNumber + 2]);
-            Input4Feedback.LinkInputSig(trilist.BooleanInput[joinMap.InputSelectOffset.JoinNumber + 3]);
 	    }
-
-
-        public byte[] PrepareCommand(string command)
-        {
-
-        }
 
         void tcpComm_ConnectionChange(object sender, GenericSocketStatusChageEventArgs e)
         {
@@ -201,7 +182,30 @@ namespace PepperDash.Essentials.Devices.Displays
         {
             try
             {
-
+                if (e.Text.Contains("\x02"))
+                {
+                    int start = e.Text.IndexOf("\x02");
+                    string fb = e.Text.Remove(0, start + 1);    //Remove STX and any possible data before the STX
+                    Debug.Console(1, this, "Received feedback: {0}", fb);
+                    if (fb.StartsWith("QPW"))
+                    {
+                        ProcessPowerFb(fb);
+                    }
+                    else if (fb.StartsWith("QMI:"))
+                    {
+                        string inputFb = fb.Remove(0, 4);
+                        if (inputFb.Length > 0)
+                        {
+                            if (inputFb.Length > 3)
+                                inputFb = inputFb.Substring(0, 3);
+                            ProcessInputFb(inputFb);
+                        }
+                    }
+                }
+                else
+                {
+                    Debug.Console(1, this, "Garbage feedback, discarding: {0}", e.Text);
+                }
             }
             catch (Exception ex)
             {
@@ -211,7 +215,7 @@ namespace PepperDash.Essentials.Devices.Displays
 
         private void ProcessPowerFb(string powerFb)
         {
-            if (powerFb == "0001")
+            if (powerFb == "QPW:1")
             {
                 //Update power on feedback
                 if (_PowerIsOn == false)
@@ -234,7 +238,7 @@ namespace PepperDash.Essentials.Devices.Displays
                     CrestronInvoke.BeginInvoke((o) => WarmupDone());
                 }
             }
-            else if (powerFb == "0002" || powerFb == "0003" || powerFb == "0004")
+            else if(powerFb == "QPW:0")
             {
                 //Update power on feedback
                 if (_PowerIsOn == true)
@@ -256,6 +260,34 @@ namespace PepperDash.Essentials.Devices.Displays
                 {
                     CrestronInvoke.BeginInvoke((o) => CooldownDone());
                 }
+            }
+        }
+
+        private void ProcessInputFb(string inputFb)
+        {
+            try
+            {
+                Debug.Console(1, this, "Found valid input feedback reply: {0}", inputFb);
+                int index = InputPorts.FindIndex(i => i.FeedbackMatchObject.Equals(inputFb));
+                var newInput = InputPorts[index];
+                if (_CurrentInputIndex != (index + 1))
+                {
+                    _CurrentInputIndex = index + 1; //Offset from 0 based index
+                    Input1Feedback.FireUpdate();
+                    Input2Feedback.FireUpdate();
+                    Input3Feedback.FireUpdate();
+                }
+
+                if (newInput != null && newInput != _CurrentInputPort)
+                {
+                    _CurrentInputPort = newInput;
+                    CurrentInputFeedback.FireUpdate();
+                    OnSwitchChange(new RoutingNumericEventArgs(null, _CurrentInputPort, eRoutingSignalType.AudioVideo));
+                }
+            }
+            catch
+            {
+                Debug.Console(1, this, "Invalid input feedback: {0}", inputFb);
             }
         }
 
@@ -321,9 +353,8 @@ namespace PepperDash.Essentials.Devices.Displays
                         }
                         if (kvp.Value != null)
                         {
-                            byte[] command = PrepareCommand(kvp.Value);
-                            Debug.Console(1, this, "Sending bytes: {0}", ComTextHelper.GetEscapedText(command));
-                            Communication.SendBytes(PrepareCommand(kvp.Value));
+                            Debug.Console(1, this, "Sending command: {0}", ComTextHelper.GetEscapedText(kvp.Value));
+                            Communication.SendText(kvp.Value);
                             Thread.Sleep(500);
                         }
                     }
@@ -514,10 +545,7 @@ namespace PepperDash.Essentials.Devices.Displays
                     InputHdmi2();
                     break;
                 case 3:
-                    InputDp1();
-                    break;
-                case 4:
-                    InputDp2();
+                    InputPc1();
                     break;
             }
         }
@@ -533,10 +561,7 @@ namespace PepperDash.Essentials.Devices.Displays
                     InputHdmi2Go();
                     break;
                 case 3:
-                    InputDp1Go();
-                    break;
-                case 4:
-                    InputDp2Go();
+                    InputPc1Go();
                     break;
             }
             _RequestedInputState = 0;
@@ -568,29 +593,16 @@ namespace PepperDash.Essentials.Devices.Displays
             }
         }
 
-        public void InputDp1()
+        public void InputPc1()
         {
             if (_PowerIsOn && !_IsWarmingUp)
             {
                 _RequestedInputState = 0;
-                InputDp1Go();
+                InputPc1Go();
             }
             else if (_RequestedPowerState == 1)
             {
                 _RequestedInputState = 3;
-            }
-        }
-
-        public void InputDp2()
-        {
-            if (_PowerIsOn && !_IsWarmingUp)
-            {
-                _RequestedInputState = 0;
-                InputDp2Go();
-            }
-            else if (_RequestedPowerState == 1)
-            {
-                _RequestedInputState = 4;
             }
         }
 
@@ -612,20 +624,11 @@ namespace PepperDash.Essentials.Devices.Displays
             }
         }
 
-		public void InputDp1Go()
+		public void InputPc1Go()
 		{
             if (_CurrentInputIndex != 3)
             {
-                SendCommand(eCommandType.Input, Dp1Cmd, false);
-                InputGet();
-            }
-        }
-
-        public void InputDp2Go()
-        {
-            if (_CurrentInputIndex != 4)
-            {
-                SendCommand(eCommandType.Input, Dp2Cmd, false);
+                SendCommand(eCommandType.Input, Pc1Cmd, false);
                 InputGet();
             }
         }

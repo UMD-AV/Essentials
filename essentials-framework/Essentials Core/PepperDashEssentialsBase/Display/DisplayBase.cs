@@ -18,7 +18,7 @@ namespace PepperDash.Essentials.Core
 	/// <summary>
 	/// 
 	/// </summary>
-    public abstract class DisplayBase : EssentialsDevice, IHasFeedback, IRoutingSinkWithSwitching, IHasPowerControl, IWarmingCooling, IUsageTracking, IPower
+    public abstract class DisplayBase : EssentialsDevice, IHasFeedback, IRoutingSinkWithSwitching, IHasPowerControl, IWarmingCooling, IUsageTracking
 	{
         public event SourceInfoChangeHandler CurrentSourceChange;
 
@@ -48,9 +48,6 @@ namespace PepperDash.Essentials.Core
 
 		public BoolFeedback IsCoolingDownFeedback { get; protected set; }
 		public BoolFeedback IsWarmingUpFeedback { get; private set; }
-
-        [Obsolete("This property will be removed in version 2.0.0")]
-        public abstract BoolFeedback PowerIsOnFeedback { get; protected set; }
 
         public UsageTracking UsageTracker { get; set; }
 
@@ -267,10 +264,9 @@ namespace PepperDash.Essentials.Core
 
         abstract protected Func<string> CurrentInputFeedbackFunc { get; }
 
-        public override BoolFeedback PowerIsOnFeedback { get; protected set; }
+        public BoolFeedback PowerIsOnFeedback { get; protected set; }
 
         abstract protected Func<bool> PowerIsOnFeedbackFunc { get; }
-
 
         public static MockDisplay DefaultDisplay
         { 
