@@ -1,10 +1,8 @@
-﻿// For Basic SIMPL# Classes
-// For Basic SIMPL#Pro classes
-
-using System;
+﻿using System;
 using System.Text;
 using System.Linq;
 using System.Collections.Generic;
+using Crestron.SimplSharpPro.CrestronThread;
 using Crestron.SimplSharpPro.DeviceSupport;
 using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Bridges;
@@ -20,6 +18,7 @@ namespace VaddioBridgePlugin
 		private readonly GenericCommunicationMonitor _commsMonitor;
         private readonly bool _commsIsSerial;
         private bool _loggedIn;
+        private bool _usernameSent;
         private CMutex _bufferMutex;
 
 		private readonly VaddioBridgeConfig _config;
@@ -205,6 +204,7 @@ namespace VaddioBridgePlugin
 
 			_config = config;
             _loggedIn = false;
+            _usernameSent = false;
 
             _bufferMutex = new CMutex();
 
@@ -472,27 +472,34 @@ namespace VaddioBridgePlugin
                 if (_loggedIn == false)
                 {
                     _loggedIn = true;
-                    InitializeBridge();
+                    CrestronInvoke.BeginInvoke((o) => InitializeBridge());
                 }
             }
             else if (temp.StartsWith(incorrectPasswordSearch))
             {
                 Debug.Console(1, this, "Vaddio Bridge feedback: login incorrect");
                 _loggedIn = false;
-                SendText("exit");
+                _usernameSent = true;
+                string username = _config.Username == null ? "admin" : _config.Username;
+                CrestronInvoke.BeginInvoke((o) => SendText(username));
             }
             else if (temp.Contains(usernameSearch))
             {
                 Debug.Console(1, this, "Vaddio Bridge feedback: login");
                 _loggedIn = false;
-                string username = _config.Username == null ? "admin" : _config.Username;
-                SendText(username);
+                if (_usernameSent == false)
+                {
+                    _usernameSent = true;
+                    string username = _config.Username == null ? "admin" : _config.Username;
+                    CrestronInvoke.BeginInvoke((o) => SendText(username));                   
+                }
             }
             else if (temp.Contains(passwordSearch))
             {
                 Debug.Console(1, this, "Vaddio Bridge feedback: password");
                 string password = _config.Password == null ? "" : _config.Password;
-                SendText(password);
+                CrestronInvoke.BeginInvoke((o) => SendText(password));
+                _usernameSent = false;
             }
             else if (temp.StartsWith(pipSearch))
             {

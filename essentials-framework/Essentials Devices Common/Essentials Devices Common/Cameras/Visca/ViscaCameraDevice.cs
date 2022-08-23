@@ -504,10 +504,10 @@ namespace ViscaCameraPlugin
 			//MonitorStatusFeedback.LinkInputSig(trilist.UShortInput[joinMap.Status.JoinNumber]);
 
 			// power on
-			trilist.SetSigTrueAction(joinMap.PowerOn.JoinNumber, () => SetPower(true));
+			trilist.SetSigTrueAction(joinMap.PowerOn.JoinNumber, () => SetPowerOn());
 			PowerFeedback.LinkInputSig(trilist.BooleanInput[joinMap.PowerOn.JoinNumber]);
 			// power off
-			trilist.SetSigTrueAction(joinMap.PowerOff.JoinNumber, () => SetPower(false));
+			trilist.SetSigTrueAction(joinMap.PowerOff.JoinNumber, () => SetPowerOff());
 			PowerFeedback.LinkComplementInputSig(trilist.BooleanInput[joinMap.PowerOff.JoinNumber]);
 
 			// home
@@ -878,21 +878,22 @@ namespace ViscaCameraPlugin
         }
 
         /// <summary>
-        /// Set power state
+        /// Set power state on
         /// </summary>
-        /// <param name="state">power on/off</param>
-        public void SetPower(bool state)
+        public void SetPowerOn()
         {
-            // Power ? [send off] : [send on]
-            var cmd = Power
-                ? new byte[] { _address, 0x01, 0x04, 0x00, 0x03, 0xFF }
-                : new byte[] { _address, 0x01, 0x04, 0x00, 0x02, 0xFF };
+            QueueCommand(new byte[] { _address, 0x01, 0x04, 0x00, 0x02, 0xFF });
+            Thread.Sleep(1000);
+            PollPower();
+        }
 
-            QueueCommand(cmd);
-            if (state == false)
-            {
-                ActivePreset = 0;
-            }
+        /// <summary>
+        /// Set power state off
+        /// </summary>
+        public void SetPowerOff()
+        {
+            QueueCommand(new byte[] { _address, 0x01, 0x04, 0x00, 0x03, 0xFF });
+            ActivePreset = 0;
             Thread.Sleep(1000);
             PollPower();
         }
