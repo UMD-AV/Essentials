@@ -108,6 +108,7 @@
     <Compile Include="AvBridges\VaddioBridge\VaddioBridgeDevice.cs" />
     <Compile Include="AvBridges\VaddioBridge\VaddioBridgeJoinMap.cs" />
     <Compile Include="AvBridges\VaddioBridge\VaddioBridgeFactory.cs" />
+    <Compile Include="CameraControllers\BlackmagicAtem.cs" />
     <Compile Include="Cameras\CameraBase.cs" />
     <Compile Include="Cameras\CameraVisca.cs" />
     <Compile Include="Cameras\IHasCameraPresets.cs" />
@@ -122,7 +123,7 @@
     <Compile Include="Codec\iCodecAudio.cs" />
     <Compile Include="Display\PanasonicDisplay.cs" />
     <Compile Include="DynFusion\DynFusionHelpRequest.cs" />
-    <Compile Include="ImageProcessors\AutomateVx.cs" />
+    <Compile Include="CameraControllers\AutomateVx.cs" />
     <Compile Include="VideoCodec\IConvertiblePreset.cs" />
     <Compile Include="Codec\IHasCallHold.cs" />
     <Compile Include="Codec\IHasDoNotDisturb.cs" />
