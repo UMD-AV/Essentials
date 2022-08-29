@@ -903,11 +903,14 @@ namespace ViscaCameraPlugin
         /// </summary>
         public void SetAutoTrackingOn()
         {
-            var cmd = new byte[] { _address, 0x01, 0x04, 0x3F, 0x02, 0x50, 0xFF };
-            QueueCommand(cmd);
-            AutoTrackingOn = true;
-            Thread.Sleep(1000);
-            PollPreset();
+            if (this._autoTrackingCapable)
+            {
+                var cmd = new byte[] { _address, 0x01, 0x04, 0x3F, 0x02, 0x50, 0xFF };
+                QueueCommand(cmd);
+                AutoTrackingOn = true;
+                Thread.Sleep(1000);
+                PollPreset();
+            }
         }
 
         /// <summary>
@@ -915,11 +918,14 @@ namespace ViscaCameraPlugin
         /// </summary>
         public void SetAutoTrackingOff()
         {
-            var cmd = new byte[] { _address, 0x01, 0x04, 0x3F, 0x02, 0x51, 0xFF };
-            QueueCommand(cmd);
-            AutoTrackingOn = false;
-            Thread.Sleep(1000);
-            PollPreset();
+            if (this._autoTrackingCapable)
+            {
+                var cmd = new byte[] { _address, 0x01, 0x04, 0x3F, 0x02, 0x51, 0xFF };
+                QueueCommand(cmd);
+                AutoTrackingOn = false;
+                Thread.Sleep(1000);
+                PollPreset();
+            }
         }
 
 		/// <summary>
