@@ -9,10 +9,10 @@ using PepperDash.Core;
 
 namespace ViscaCameraPlugin
 {
-	public class ViscaCameraDevice : EssentialsBridgeableDevice
+	public class ViscaCameraDevice : EssentialsBridgeableDevice, ICommunicationMonitor
 	{
+        public StatusMonitorBase CommunicationMonitor { get; private set; }
 		private readonly IBasicCommunication _comms;
-		private readonly GenericCommunicationMonitor _commsMonitor;
         private CrestronQueue<ViscaCameraCommand> _commandQueue;
         private CMutex _commandMutex;
         private CTimer _commandTimer;
@@ -336,7 +336,7 @@ namespace ViscaCameraPlugin
 			_config = config;
 
 			OnlineFeedback = new BoolFeedback(() => _comms.IsConnected);
-			MonitorStatusFeedback = new IntFeedback(() => (int)_commsMonitor.Status);
+            MonitorStatusFeedback = new IntFeedback(() => (int)CommunicationMonitor.Status);
             AutoTrackingCapable = new BoolFeedback(() => _autoTrackingCapable);
 
 			PowerFeedback = new BoolFeedback(() => Power);
@@ -390,7 +390,8 @@ namespace ViscaCameraPlugin
 
 			_comms = comms;
 			_comms.BytesReceived += Handle_BytesRecieved;
-			_commsMonitor = new GenericCommunicationMonitor(this, _comms, _pollTimeMs, _warningTimeoutMs, _errorTimeoutMs, Poll);
+            CommunicationMonitor = new GenericCommunicationMonitor(this, _comms, _pollTimeMs, _warningTimeoutMs, _errorTimeoutMs, Poll, true);
+            DeviceManager.AddDevice(CommunicationMonitor);
 
             _commandQueue = new CrestronQueue<ViscaCameraCommand>(10);
             _commandMutex = new CMutex();
@@ -401,7 +402,6 @@ namespace ViscaCameraPlugin
 			{
 				// device is configured for IP control
 				_commsIsSerial = false;
-                _commsMonitor.Start();
 				socket.ConnectionChange += socket_ConnectionChange;
 				SocketStatusFeedback = new IntFeedback(() => (int)socket.ClientStatus);
 			}
@@ -409,7 +409,6 @@ namespace ViscaCameraPlugin
 			{
 				// device is configured for RS232 control
 				_commsIsSerial = true;
-				_commsMonitor.Start();
 				InitializeCamera();
 			}
 
@@ -426,7 +425,7 @@ namespace ViscaCameraPlugin
 			// Essentials will handle the connect method to the device
 			_comms.Connect();
 			// Essentials will handle starting the comms monitor
-			_commsMonitor.Start();
+            CommunicationMonitor.Start();
 
 			return base.CustomActivate();
 		}
@@ -497,7 +496,7 @@ namespace ViscaCameraPlugin
 
             AutoTrackingCapable.LinkInputSig(trilist.BooleanInput[joinMap.AutoTrackingCapable.JoinNumber]);
 
-            _commsMonitor.IsOnlineFeedback.LinkInputSig(trilist.BooleanInput[joinMap.IsOnline.JoinNumber]);
+            CommunicationMonitor.IsOnlineFeedback.LinkInputSig(trilist.BooleanInput[joinMap.IsOnline.JoinNumber]);
 			// must null check so LinkToApi doesn't except when the device is TCP or UDP
 			if (SocketStatusFeedback != null)
 				SocketStatusFeedback.LinkInputSig(trilist.UShortInput[joinMap.Status.JoinNumber]);
@@ -847,16 +846,23 @@ namespace ViscaCameraPlugin
 		/// </summary>
 		public void Poll()
 		{
-			// power inquiry
-            PollPower();
-
-            if (!Power)
+            try
             {
-                ActivePreset = 0;
-                return;
+                // power inquiry
+                PollPower();
+
+                if (!Power)
+                {
+                    ActivePreset = 0;
+                    return;
+                }
+                PollPreset();
+                PollFocus();
             }
-            PollPreset();
-            PollFocus();
+            catch (Exception e)
+            {
+                Debug.Console(1, this, "Exception in poll command: {0}", e.Message);
+            }
 		}
 
         public void PollPower()
