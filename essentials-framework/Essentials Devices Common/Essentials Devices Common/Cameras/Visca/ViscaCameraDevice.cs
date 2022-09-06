@@ -649,7 +649,14 @@ namespace ViscaCameraPlugin
 
 			if (SocketStatusFeedback != null) SocketStatusFeedback.FireUpdate();
 
-			if (args.Client.IsConnected) InitializeCamera();
+            if (args.Client.IsConnected)
+            {
+                InitializeCamera();
+            }
+            else
+            {
+                _commandQueue.Clear();
+            }
 		}
 
         private void readyForNextCommand(object o)
@@ -661,36 +668,46 @@ namespace ViscaCameraPlugin
 
         private void ProcessQueue()
         {
-            //Thread safe queue processing below
-            if (_queueWaiting == false)
+            CrestronInvoke.BeginInvoke((o) =>
             {
-                _queueWaiting = true;
-                CrestronInvoke.BeginInvoke((o) => {
-                    bool test = _commandMutex.WaitForMutex();                    
-                    if (test)
+                //Thread safe queue processing below
+                if (_queueWaiting == false)
+                {
+                    _queueWaiting = true;
+                    if (_commandMutex.WaitForMutex())
                     {
                         _queueWaiting = false;
                         try
                         {
-                            if(!_commandQueue.IsEmpty && _commandReady)
+                            if (!_commandQueue.IsEmpty)
                             {
+                                int count = 0;
+                                while (!_commandReady && count < 10)
+                                {
+                                    Thread.Sleep(100);
+                                    Debug.Console(2, this, "Command queue waiting count: {0}", count);
+                                    count++;
+                                }
                                 ViscaCameraCommand cmd = _commandQueue.TryToDequeue();
                                 _lastInquiry = cmd.Command;
                                 SendBytes(cmd.Bytes);
-                                _commandTimer.Reset(500);   //Wait maximum 500 ms for response before sending next command
                             }
                         }
-                        catch(Exception ex)
+                        catch (Exception ex)
                         {
                             Debug.Console(0, this, "Exception processing command queue: {0}", ex);
                         }
                         finally
                         {
-                            _commandMutex.ReleaseMutex();                            
+                            _commandMutex.ReleaseMutex();
                         }
                     }
-                });
-            }
+                    else
+                    {
+                        _queueWaiting = false;
+                    }
+                }   
+            });
         }
 
         public void QueueCommand(byte[] bytes)
@@ -705,6 +722,11 @@ namespace ViscaCameraPlugin
                 _commandQueue.TryToEnqueue(new ViscaCameraCommand(inquiry, bytes));
                 ProcessQueue();
             }
+            else
+            {                
+                Debug.Console(0, this, "Command queue is full! Dropping command.");
+                readyForNextCommand(null);
+            }
         }
 
 		/// <summary>
@@ -713,9 +735,13 @@ namespace ViscaCameraPlugin
 		/// <param name="bytes"></param>
 		private void SendBytes(byte[] bytes)
 		{
-			if (bytes == null) return;
+            if (bytes == null)
+            {
+                return;
+            }
 
-            _commandReady = false; //Block new commands until ready for more
+            _commandReady = false;  //Block new commands until ready for more
+            _commandTimer.Reset(500);   //Wait maximum 500 ms for response before sending next command
             Debug.Console(1, this, "Tx: {0}", ComTextHelper.GetEscapedText(bytes));
 
 			if (_commsIsSerial)
@@ -745,7 +771,6 @@ namespace ViscaCameraPlugin
 				}
 				else
 					_comms.SendBytes(bytes);
-
 			}
 		}
 
@@ -818,6 +843,10 @@ namespace ViscaCameraPlugin
                             _lastInquiry = eViscaCameraInquiry.NoFeedback;
                             readyForNextCommand(null);
                         }
+                        break;
+                    default:
+                        _lastInquiry = eViscaCameraInquiry.NoFeedback;
+                        readyForNextCommand(null);
                         break;
                 }
             }
