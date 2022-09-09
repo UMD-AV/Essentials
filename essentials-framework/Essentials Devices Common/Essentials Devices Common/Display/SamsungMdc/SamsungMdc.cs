@@ -21,9 +21,7 @@ namespace PepperDash.Plugin.Display.SamsungMdc
         IBridgeAdvanced, IDeviceInfoProvider
     {
         public const int InputPowerOn = 101;
-
         public const int InputPowerOff = 102;
-        public static string MinimumEssentialsFrameworkVersion = "1.4.32";
         public static List<string> InputKeys = new List<string>();
         private readonly SamsungMDCDisplayPropertiesConfig _config;
         private readonly uint _coolingTimeMs;
@@ -59,7 +57,7 @@ namespace PepperDash.Plugin.Display.SamsungMdc
         ushort _RequestedPowerState; // 0:none 1:on 2:off
         ushort _RequestedInputState; // 0:none 1-4:inputs 1-4 
         CMutex _PowerMutex;
-
+        private ushort _defaultVolume;
 		private bool _showVolumeControls;
 
         /// <summary>
@@ -80,8 +78,9 @@ namespace PepperDash.Plugin.Display.SamsungMdc
 
             Id = _config.Id == null ? (byte) 0x01 : Convert.ToByte(_config.Id, 16);
 
-            _upperLimit = _config.volumeUpperLimit;
-            _lowerLimit = _config.volumeLowerLimit;
+            _defaultVolume = (ushort)(config.defaultVolume == null ? 20 : config.defaultVolume);
+            _upperLimit = (ushort)(config.volumeUpperLimit == null ? 100 : config.volumeUpperLimit);
+            _lowerLimit = (ushort)(config.volumeLowerLimit == null ? 0 : config.volumeLowerLimit);
             _pollIntervalMs = _config.pollIntervalMs;
             _coolingTimeMs = _config.coolingTimeMs;
             _warmingTimeMs = _config.warmingTimeMs;
@@ -551,11 +550,11 @@ namespace PepperDash.Plugin.Display.SamsungMdc
                 _lastVolumeSent = level;
                 if (!ScaleVolume)
                 {
-                    scaled = (int)NumericalHelpers.Scale(level, 0, 65535, 0, 100);
+                    scaled = (int)Math.Round(NumericalHelpers.Scale(level, 0, 65535, 0, 100));
                 }
                 else
                 {
-                    scaled = (int)NumericalHelpers.Scale(level, 0, 65535, _lowerLimit, _upperLimit);
+                    scaled = (int)Math.Round(NumericalHelpers.Scale(level, 0, 65535, _lowerLimit, _upperLimit));
                 }
                 // The inputs to Scale ensure that byte won't overflow
                 SendBytes(new byte[] { Header, VolumeLevelControlCmd, 0x00, 0x01, Convert.ToByte(scaled), 0x00 });
@@ -564,6 +563,20 @@ namespace PepperDash.Plugin.Display.SamsungMdc
                     MuteOff();
                 }
             }
+        }
+
+        public void DefaultVolume()
+        {
+            ushort scaled;
+            if (!ScaleVolume)
+            {
+                scaled = (ushort)NumericalHelpers.Scale(_defaultVolume, 0, 100, 0, 65535);
+            }
+            else
+            {
+                scaled = (ushort)NumericalHelpers.Scale(_defaultVolume, _lowerLimit, _upperLimit, 0, 65535);
+            }
+            SetVolume(scaled);
         }
 
         /// <summary>
@@ -747,6 +760,7 @@ namespace PepperDash.Plugin.Display.SamsungMdc
     
 
             // Volume
+            trilist.SetSigTrueAction(joinMap.DefaultVolume.JoinNumber, DefaultVolume);
             trilist.SetBoolSigAction(joinMap.VolumeUp.JoinNumber, VolumeUp);
             trilist.SetBoolSigAction(joinMap.VolumeDown.JoinNumber, VolumeDown);
             trilist.SetSigTrueAction(joinMap.VolumeMute.JoinNumber, MuteToggle);
@@ -757,9 +771,6 @@ namespace PepperDash.Plugin.Display.SamsungMdc
             MuteFeedback.LinkInputSig(trilist.BooleanInput[joinMap.VolumeMuteOn.JoinNumber]);
             MuteFeedback.LinkInputSig(trilist.BooleanInput[joinMap.VolumeMute.JoinNumber]);
             MuteFeedback.LinkComplementInputSig(trilist.BooleanInput[joinMap.VolumeMuteOff.JoinNumber]);
-
-            trilist.UShortInput[joinMap.DefaultVolumeFb.JoinNumber].UShortValue = (ushort)_config.defaultVolume;
-
 
 			// LED temperature analog feedback 
 			CurrentLedTemperatureCelsiusFeedback.LinkInputSig(

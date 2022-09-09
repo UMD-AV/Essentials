@@ -19,6 +19,10 @@ namespace PepperDash.Essentials.Core.Bridges
         [JoinName("IsTwoWayDisplay")]
         public JoinDataComplete IsTwoWayDisplay = new JoinDataComplete(new JoinData { JoinNumber = 3, JoinSpan = 1 }, 
             new JoinMetadata { Description = "Is Two Way Display", JoinCapabilities = eJoinCapabilities.ToSIMPL, JoinType = eJoinType.Digital });
+        
+        [JoinName("DefaultVolume")]
+        public JoinDataComplete DefaultVolume = new JoinDataComplete(new JoinData { JoinNumber = 4, JoinSpan = 1 },
+            new JoinMetadata { Description = "Default Volume", JoinCapabilities = eJoinCapabilities.FromSIMPL, JoinType = eJoinType.Digital });
 
         [JoinName("VolumeUp")]
         public JoinDataComplete VolumeUp = new JoinDataComplete(new JoinData { JoinNumber = 5, JoinSpan = 1 }, 

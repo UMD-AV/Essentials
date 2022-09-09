@@ -10,13 +10,13 @@ namespace PepperDash.Plugin.Display.SamsungMdc
 		public string Id { get; set; }
 
         [JsonProperty("volumeUpperLimit")]
-        public int volumeUpperLimit { get; set; }
+        public int? volumeUpperLimit { get; set; }
 
         [JsonProperty("volumeLowerLimit")]
-        public int volumeLowerLimit { get; set; }
+        public int? volumeLowerLimit { get; set; }
 
         [JsonProperty("defaultVolume")]
-        public int defaultVolume { get; set; }
+        public int? defaultVolume { get; set; }
 
         [JsonProperty("pollIntervalMs")]
         public long pollIntervalMs { get; set; }
@@ -37,7 +37,6 @@ namespace PepperDash.Plugin.Display.SamsungMdc
 	    {
 	        FriendlyNames = new List<FriendlyName>();
 	    }
-
 	}
 
     public class FriendlyName

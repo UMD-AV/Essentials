@@ -11,6 +11,7 @@ using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Bridges;
 using PepperDash.Essentials.Core.Config;
 using PepperDash.Essentials.Core.Routing;
+using Newtonsoft.Json;
 using Feedback = PepperDash.Essentials.Core.Feedback;
 
 using Newtonsoft.Json.Linq;
@@ -20,7 +21,7 @@ namespace PepperDash.Essentials.Devices.Displays
 	/// <summary>
 	/// 
 	/// </summary>
-    public class EpsonProjector : TwoWayDisplayBase, ICommunicationMonitor, IBridgeAdvanced
+    public class EpsonProjector : TwoWayDisplayBase, ICommunicationMonitor, IBridgeAdvanced, IBasicVolumeWithFeedback
 	{
 		public IBasicCommunication Communication { get; private set; }				
         public StatusMonitorBase CommunicationMonitor { get; private set; }
@@ -31,10 +32,12 @@ namespace PepperDash.Essentials.Devices.Displays
         public BoolFeedback Input2Feedback { get; private set; }
         public BoolFeedback Input3Feedback { get; private set; }
         public BoolFeedback Input4Feedback { get; private set; }
+        public StringFeedback ErrorFeedback { get; private set; }
 
         byte[] _tcpHandshake = new byte[] { 0x45, 0x53, 0x43, 0x2F, 0x56, 0x50, 0x2E, 0x6E, 0x65, 0x74, 0x10, 0x03, 0x00, 0x00, 0x00, 0x00 };
         byte[] _tcpHeader = new byte[] { 0x45, 0x53, 0x43, 0x2F, 0x56, 0x50, 0x2E, 0x6E, 0x65, 0x74, 0x10, 0x03, 0x00, 0x00 };
         bool _readyForCommands;
+        bool _readyForNextCommand;
         bool _tcpComm;
         ushort _pollTracker;
 		bool _PowerIsOn;
@@ -46,6 +49,17 @@ namespace PepperDash.Essentials.Devices.Displays
         ushort _RequestedPowerState; // 0:none 1:on 2:off
         ushort _RequestedInputState; // 0:none 1-4:inputs 1-4 
         ushort _RequestedVideoMuteState; // 0:none/off 1:on
+        string _errorFeedback;
+        public string ErrorFb
+        {
+            get { return _errorFeedback; }
+            set
+            {
+                if (_errorFeedback == value) return;
+                _errorFeedback = value;
+                ErrorFeedback.FireUpdate();
+            }
+        }
 
         readonly EpsonQueue _cmdQueue;
         readonly EpsonQueue _priorityQueue;
@@ -53,6 +67,40 @@ namespace PepperDash.Essentials.Devices.Displays
         RoutingInputPort _CurrentInputPort;
         CMutex _CommandMutex;
         CMutex _PowerMutex;
+
+        //Volume Stuff
+        private CCriticalSection _rampLock;
+        private eRampDirection _rampDirection;
+        private bool _isMuted;
+        private ushort _lastVolumeFb;
+        private int? _lastVolumeRaw;
+        private ushort _defaultVolume;
+        private ushort _volumeSteps;
+        private ushort _upperLimit;
+        private ushort _lowerLimit;
+        public bool MuteFb
+        {
+            get { return _isMuted; }
+            set
+            {
+                if (_isMuted == value) return;
+                _isMuted = value;
+                MuteFeedback.FireUpdate();
+            }
+        }
+        public ushort VolumeFb
+        {
+            get { return _lastVolumeFb; }
+            set
+            {
+                if (_lastVolumeFb == value)
+                {
+                    return;
+                }
+                _lastVolumeFb = value;
+                VolumeLevelFeedback.FireUpdate();
+            }
+        }
 
 		protected override Func<bool> PowerIsOnFeedbackFunc { get { return () => _PowerIsOn; } }
         protected override Func<bool> IsWarmingUpFeedbackFunc { get { return () => _IsWarmingUp; } }
@@ -63,7 +111,7 @@ namespace PepperDash.Essentials.Devices.Displays
 		/// <summary>
 		/// Constructor for IBasicCommunication
 		/// </summary>
-		public EpsonProjector(string key, string name, IBasicCommunication comm)
+		public EpsonProjector(string key, string name, EpsonProjectorPropertiesConfig config, IBasicCommunication comm)
 			: base(key, name)
 		{
 			Communication = comm;
@@ -90,13 +138,15 @@ namespace PepperDash.Essentials.Devices.Displays
             _priorityQueue = new EpsonQueue();
             _CommandMutex = new CMutex();
             _PowerMutex = new CMutex();
+            _readyForNextCommand = true;
 
-            LampHoursFeedback = new IntFeedback(() => { return _LampHours; });
-            VideoMuteIsOnFeedback = new BoolFeedback(() => { return _VideoMuteIsOn; });
+            LampHoursFeedback = new IntFeedback(() => _LampHours);
+            VideoMuteIsOnFeedback = new BoolFeedback(() => _VideoMuteIsOn);
             Input1Feedback = new BoolFeedback(() => { return _CurrentInputIndex == 1; });
             Input2Feedback = new BoolFeedback(() => { return _CurrentInputIndex == 2; });
             Input3Feedback = new BoolFeedback(() => { return _CurrentInputIndex == 3; });
             Input4Feedback = new BoolFeedback(() => { return _CurrentInputIndex == 4; });
+            ErrorFeedback = new StringFeedback(() => _errorFeedback);
 
             _pollTracker = 0;
             _LampHours = 0;
@@ -104,10 +154,17 @@ namespace PepperDash.Essentials.Devices.Displays
             _RequestedPowerState = 0;
             _RequestedInputState = 0;
             _RequestedVideoMuteState = 0;
+            _errorFeedback = "";
             WarmupTime = 60000;
             CooldownTime = 30000;
             WarmupTimer = new CTimer(WarmupCallback, Timeout.Infinite);
             CooldownTimer = new CTimer(CooldownCallback, Timeout.Infinite);
+
+            _defaultVolume = (ushort)(config.defaultVolume == null ? 10 : config.defaultVolume);
+            _volumeSteps = (ushort)(config.volumeSteps == null ? 20 : config.volumeSteps);
+            _upperLimit = (ushort)(config.volumeUpperLimit == null ? 255 : config.volumeUpperLimit);
+            _lowerLimit = (ushort)(config.volumeLowerLimit == null ? 0 : config.volumeLowerLimit);
+            InitVolumeControls();
 
             CommunicationMonitor = new GenericCommunicationMonitor(this, Communication, 30000, 120000, 300000, StatusGet, true);
             DeviceManager.AddDevice(CommunicationMonitor);
@@ -162,7 +219,28 @@ namespace PepperDash.Essentials.Devices.Displays
             Input2Feedback.LinkInputSig(trilist.BooleanInput[joinMap.InputSelectOffset.JoinNumber + 1]);
             Input3Feedback.LinkInputSig(trilist.BooleanInput[joinMap.InputSelectOffset.JoinNumber + 2]);
             Input4Feedback.LinkInputSig(trilist.BooleanInput[joinMap.InputSelectOffset.JoinNumber + 3]);
+            ErrorFeedback.LinkInputSig(trilist.StringInput[joinMap.ErrorMessage.JoinNumber]);
+
+            // Volume
+            trilist.SetSigTrueAction(joinMap.DefaultVolume.JoinNumber, DefaultVolume);
+            trilist.SetBoolSigAction(joinMap.VolumeUp.JoinNumber, VolumeUp);
+            trilist.SetBoolSigAction(joinMap.VolumeDown.JoinNumber, VolumeDown);
+            trilist.SetSigTrueAction(joinMap.VolumeMute.JoinNumber, MuteToggle);
+            trilist.SetSigTrueAction(joinMap.VolumeMuteOn.JoinNumber, MuteOn);
+            trilist.SetSigTrueAction(joinMap.VolumeMuteOff.JoinNumber, MuteOff);
+            trilist.SetUShortSigAction(joinMap.VolumeLevel.JoinNumber, SetVolume);
+            VolumeLevelFeedback.LinkInputSig(trilist.UShortInput[joinMap.VolumeLevel.JoinNumber]);
+            MuteFeedback.LinkInputSig(trilist.BooleanInput[joinMap.VolumeMuteOn.JoinNumber]);
+            MuteFeedback.LinkInputSig(trilist.BooleanInput[joinMap.VolumeMute.JoinNumber]);
+            MuteFeedback.LinkComplementInputSig(trilist.BooleanInput[joinMap.VolumeMuteOff.JoinNumber]);
 	    }
+
+        private void InitVolumeControls()
+        {
+            VolumeLevelFeedback = new IntFeedback(() => VolumeFb);
+            MuteFeedback = new BoolFeedback(() => MuteFb);
+            _rampLock = new CCriticalSection();
+        }
 
         void tcpComm_ConnectionChange(object sender, GenericSocketStatusChageEventArgs e)
         {
@@ -227,6 +305,7 @@ namespace PepperDash.Essentials.Devices.Displays
             {
                 string feedback = e.Text.Replace(":", "").Trim();
                 Debug.Console(1, this, "Feedback: {0}", feedback);
+                _readyForNextCommand = true;
 
                 if (feedback == "ERR")
                 {
@@ -355,6 +434,72 @@ namespace PepperDash.Essentials.Devices.Displays
                         }
                         VideoMuteIsOnFeedback.FireUpdate();
                     }
+                    else if (data[0].EndsWith("VOL"))
+                    {
+                        int newVol = int.Parse(data[1]);
+                        if (MuteFb == false)
+                        {
+                            VolumeFb = GetScaledVolumeFb(newVol);
+                        }
+                    }
+                    else if (data[0].EndsWith("ERR"))
+                    {
+                        string error = data[1];
+                        switch (error)
+                        {
+                            case "00":
+                                _errorFeedback = "No error";
+                                break;
+                            case "01":
+                                _errorFeedback = "Fan error";
+                                break;
+                            case "03":
+                                _errorFeedback = "Lamp failure at power on";
+                                break;
+                            case "04":
+                                _errorFeedback = "High internal temperature error";
+                                break;
+                            case "06":
+                                _errorFeedback = "Lamp error";
+                                break;
+                            case "07":
+                                _errorFeedback = "Open lamp cover door error";
+                                break;
+                            case "08":
+                                _errorFeedback = "Cinema filter error";
+                                break;
+                            case "09":
+                                _errorFeedback = "Electric dual-layered capacitor is disconnected";
+                                break;
+                            case "0A":
+                                _errorFeedback = "Auto iris error";
+                                break;
+                            case "0B":
+                                _errorFeedback = "Subsystem error";
+                                break;
+                            case "0C":
+                                _errorFeedback = "Low air flow error";
+                                break;
+                            case "0D":
+                                _errorFeedback = "Air filter air flow sensor error";
+                                break;
+                            case "0E":
+                                _errorFeedback = "Power supply unit error (Ballast)";
+                                break;
+                            case "0F":
+                                _errorFeedback = "Shutter error";
+                                break;
+                            case "10":
+                                _errorFeedback = "Cooling system error (peltiert element)";
+                                break;
+                            case "11":
+                                _errorFeedback = "Cooling system error (Pump)";
+                                break;
+                            default:
+                                _errorFeedback = "Unknown error";
+                                break;
+                        }
+                    }
                 }
             }
             catch (Exception ex)
@@ -393,6 +538,12 @@ namespace PepperDash.Essentials.Devices.Displays
             {
                 var kvp = new KeyValuePair<eCommandType, string>(type, cmd);
                 Debug.Console(1, this, "Enqueuing command: {0}", cmd);
+                if (type == eCommandType.Volume)
+                {
+                    Debug.Console(1, this, "Sending Volume Text: {0}", cmd);
+                    Communication.SendText(cmd + "\x0D");
+                    return;
+                }
                 if (priority)
                 {                    
                     _priorityQueue.AddOrUpdateCommand(kvp);
@@ -430,9 +581,27 @@ namespace PepperDash.Essentials.Devices.Displays
                         }
                         if (kvp.Value != null)
                         {
+                            _readyForNextCommand = false;
                             Debug.Console(1, this, "Sending Text: {0}", kvp.Value);
                             Communication.SendText(kvp.Value + "\x0D");
-                            Thread.Sleep(500);
+                            if (!Communication.IsConnected)
+                            {
+                                //Fail safe for no feedback
+                                Thread.Sleep(500);
+                            }
+                            else
+                            {
+                                int count = 0;
+                                while (!_readyForNextCommand && count < 100)
+                                {
+                                    Thread.Sleep(20);
+                                    count++;
+                                }
+                                if (count >= 100)
+                                {
+                                    Debug.Console(0, this, "ProcessQueue timed out waiting for next command");
+                                }
+                            }
                         }
                     }
                     catch (Exception ex)
@@ -449,6 +618,7 @@ namespace PepperDash.Essentials.Devices.Displays
         /// </summary>
         public void StatusGet()
         {
+            _lastVolumeRaw = null;
             if (_readyForCommands)
             {
                 PowerGet();
@@ -458,10 +628,12 @@ namespace PepperDash.Essentials.Devices.Displays
                     //Only poll these while projector is warmed up and on, otherwise it responds "ERR"
                     VideoMuteGet();
                     InputGet();
+                    VolumeGet();
                 }
                 if (_pollTracker >= 7)
                 {
                     LampHoursGet();
+                    ErrorGet();
                     _pollTracker = 0;
                 }
                 _pollTracker++;
@@ -705,6 +877,16 @@ namespace PepperDash.Essentials.Devices.Displays
             SendCommand(eCommandType.LampPoll, "LAMP?", false);
         }
 
+        public void ErrorGet()
+        {
+            SendCommand(eCommandType.LampPoll, "ERR?", false);
+        }
+
+        public void VolumeGet()
+        {
+            SendCommand(eCommandType.VolumePoll, "VOL?", false);
+        }
+
         public void InputSelect(ushort input)
         {
             switch (input)
@@ -800,6 +982,7 @@ namespace PepperDash.Essentials.Devices.Displays
         {
             if (_CurrentInputIndex != 1)
             {
+                _CurrentInputIndex = 0;
                 SendCommand(eCommandType.Input, "SOURCE 30", false);
                 InputGet();
                 VideoMuteGet();
@@ -810,6 +993,7 @@ namespace PepperDash.Essentials.Devices.Displays
         {
             if (_CurrentInputIndex != 2)
             {
+                _CurrentInputIndex = 0;
                 SendCommand(eCommandType.Input, "SOURCE A0", false);
                 InputGet();
                 VideoMuteGet();
@@ -820,6 +1004,7 @@ namespace PepperDash.Essentials.Devices.Displays
 		{
             if (_CurrentInputIndex != 3)
             {
+                _CurrentInputIndex = 0;
                 SendCommand(eCommandType.Input, "SOURCE 80", false);
                 InputGet();
                 VideoMuteGet();
@@ -830,6 +1015,7 @@ namespace PepperDash.Essentials.Devices.Displays
         {
             if (_CurrentInputIndex != 4)
             {
+                _CurrentInputIndex = 0;
                 SendCommand(eCommandType.Input, "SOURCE 11", false);
                 InputGet();
                 VideoMuteGet();
@@ -858,7 +1044,9 @@ namespace PepperDash.Essentials.Devices.Displays
             PowerPoll,
             InputPoll,
             VideoMutePoll,
-            LampPoll
+            LampPoll,
+            Volume,
+            VolumePoll
         }
 
         private class EpsonQueue
@@ -883,6 +1071,13 @@ namespace PepperDash.Essentials.Devices.Displays
                     if (i != -1 && (command.Key == eCommandType.Input || command.Key == eCommandType.VideoMute))
                     {
                         Q[i] = command;                        
+                    }
+                    else if(i != -1 && (command.Key == eCommandType.InputPoll || command.Key == eCommandType.LampPoll ||
+                        command.Key == eCommandType.PowerPoll || command.Key == eCommandType.VideoMutePoll || command.Key == eCommandType.VolumePoll))
+                    {
+                        //Move poll to end of queue
+                        Q.RemoveAt(i);
+                        Q.Add(command);
                     }
                     else
                     {
@@ -939,6 +1134,182 @@ namespace PepperDash.Essentials.Devices.Displays
                 return kvp;
             }
         }
+
+        #region IBasicVolumeWithFeedback Members
+
+        /// <summary>
+        /// Scales the 16 bit level to the range of the display and sends the command
+        /// </summary>
+        /// <param name="level"></param>
+        public void SetVolume(ushort level)
+        {
+            //Scale volume from Crestron 16 bit to configurable volume range
+            var scaled = Math.Round((double)(NumericalHelpers.Scale(level, 0, 65535, _lowerLimit, _upperLimit)));
+            SetVolumeRaw((ushort)scaled);
+        }
+
+        /// <summary>
+        /// Scales the raw level to the range of the display and sends the command
+        /// </summary>
+        /// <param name="level"></param>
+        private void SetVolumeRaw(ushort level)
+        {
+            //Convert to 8 bit based on Epson model. Different models have different volume ranges but typically 0-20 (21 steps) - see API doc and set via "volumeSteps" config value.
+            var scaled = Math.Floor((double)(level * 256 / _volumeSteps));
+
+            //Only send if new value or if muted, this gets reset by the poll function to allow recovery from weird state
+            if (_lastVolumeRaw != scaled || MuteFb)
+            {
+                Debug.Console(1, this, "Setting volume to raw level: {0}", level);
+                MuteFb = false;
+                _lastVolumeRaw = (int)scaled;
+                SendCommand(eCommandType.Volume, string.Format("VOL {0}", scaled), false);
+                VolumeGet();
+            }
+        }
+
+        public ushort GetScaledVolumeFb(int level)
+        {
+            //First convert from Epson 8 bit to model adjusted volume factor
+            var scaled = Math.Round((double)level * _volumeSteps / 256);
+
+            if (scaled >= _upperLimit)
+                return 65535;
+            if (scaled <= _lowerLimit)
+                return 0;
+            else
+            {
+                //Scale volume feedback (Epson range is 0-255, but we can limit range further) to Crestron 16 bit
+                return (ushort)NumericalHelpers.Scale(scaled, _lowerLimit, _upperLimit, 0, 65535);
+            }
+        }
+
+        public void DefaultVolume()
+        {
+            if (_IsWarmingUp)
+            {
+                Thread.Sleep(5000);
+            }
+            SetVolumeRaw(_defaultVolume);
+        }
+
+        /// <summary>
+        /// Volume level feedback property
+        /// </summary>
+        public IntFeedback VolumeLevelFeedback { get; private set; }
+
+        /// <summary>
+        /// volume mte feedback property
+        /// </summary>
+        public BoolFeedback MuteFeedback { get; private set; }
+
+        public void MuteOff()
+        {
+            MuteFb = false;
+            if (VolumeFb > 0)
+            {
+                SetVolume((ushort)VolumeFb);
+            }
+            else
+            {
+                DefaultVolume();
+            }
+        }
+
+        public void MuteOn()
+        {
+            MuteFb = true;
+            SendCommand(eCommandType.Volume, "VOL 0", false);
+            VolumeGet();
+        }
+
+        /// <summary>
+        /// Mute toggle
+        /// </summary>
+        public void MuteToggle()
+        {
+            if (_isMuted)
+            {
+                MuteOff();
+            }
+            else
+            {
+                MuteOn();
+            }
+        }
+
+        public enum eRampDirection
+        {
+            Up,
+            Down,
+            Stop
+        }
+
+        /// <summary>
+        /// Volume down (decrement)
+        /// </summary>
+        /// <param name="pressRelease"></param>
+        public void VolumeDown(bool pressRelease)
+        {
+            _rampDirection = pressRelease ? eRampDirection.Down : eRampDirection.Stop;
+
+            if (pressRelease)
+            {
+                CrestronInvoke.BeginInvoke((o) => VolumeDownLoop());
+            }
+        }
+
+        private void VolumeDownLoop()
+        {
+            try
+            {
+                _rampLock.Enter();
+                while (_rampDirection == eRampDirection.Down)
+                {
+                    SendCommand(eCommandType.Volume, "VOL DEC", false);
+                    VolumeGet();
+                    Thread.Sleep(200);
+                }
+            }
+            finally
+            {
+                _rampLock.Leave();
+            }
+        }
+
+        /// <summary>
+        /// Volume up (increment)
+        /// </summary>
+        /// <param name="pressRelease"></param>
+        public void VolumeUp(bool pressRelease)
+        {
+            _rampDirection = pressRelease ? eRampDirection.Up : eRampDirection.Stop;
+
+            if (pressRelease)
+            {
+                CrestronInvoke.BeginInvoke((o) => VolumeUpLoop());
+            }
+        }
+
+        private void VolumeUpLoop()
+        {
+            try
+            {
+                _rampLock.Enter();
+                while (_rampDirection == eRampDirection.Up)
+                {
+                    SendCommand(eCommandType.Volume, "VOL INC", false);
+                    VolumeGet();
+                    Thread.Sleep(200);
+                }
+            }
+            finally
+            {
+                _rampLock.Leave();
+            }
+        }
+
+        #endregion
 	}
 
     public class EpsonProjectorJoinMap : DisplayControllerJoinMap
@@ -1041,6 +1412,10 @@ namespace PepperDash.Essentials.Devices.Displays
                 Label = "Lamp Hours"
             });
 
+        [JoinName("ErrorMessage")]
+        public JoinDataComplete ErrorMessage = new JoinDataComplete(new JoinData { JoinNumber = 2, JoinSpan = 1 },
+            new JoinMetadata { Description = "Error Message Feedback", JoinCapabilities = eJoinCapabilities.ToSIMPL, JoinType = eJoinType.Serial });
+
         public EpsonProjectorJoinMap(uint joinStart)
             : base(joinStart, typeof(EpsonProjectorJoinMap))
         {
@@ -1059,11 +1434,32 @@ namespace PepperDash.Essentials.Devices.Displays
         {
             Debug.Console(1, "Factory Attempting to create new Epson Projector Device");
 
+            var config = dc.Properties.ToObject<EpsonProjectorPropertiesConfig>();
+
             var comm = CommFactory.CreateCommForDevice(dc);
             if (comm != null)
-                return new EpsonProjector(dc.Key, dc.Name, comm);
+                return new EpsonProjector(dc.Key, dc.Name, config, comm);
             else
                 return null;
+        }
+    }
+
+    public class EpsonProjectorPropertiesConfig
+    {
+        [JsonProperty("volumeUpperLimit")]
+        public int? volumeUpperLimit { get; set; }
+
+        [JsonProperty("volumeLowerLimit")]
+        public int? volumeLowerLimit { get; set; }
+
+        [JsonProperty("volumeSteps")]
+        public int? volumeSteps { get; set; }
+
+        [JsonProperty("defaultVolume")]
+        public int? defaultVolume { get; set; }
+
+        public EpsonProjectorPropertiesConfig()
+        {
         }
     }
 }
