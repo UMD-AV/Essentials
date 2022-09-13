@@ -63,6 +63,7 @@ namespace PepperDash.Essentials.Devices.Displays
 
         readonly EpsonQueue _cmdQueue;
         readonly EpsonQueue _priorityQueue;
+        readonly EpsonQueue _volumeQueue;
         CommunicationGather _PortGather;
         RoutingInputPort _CurrentInputPort;
         CMutex _CommandMutex;
@@ -136,6 +137,7 @@ namespace PepperDash.Essentials.Devices.Displays
 
             _cmdQueue = new EpsonQueue();
             _priorityQueue = new EpsonQueue();
+            _volumeQueue = new EpsonQueue();
             _CommandMutex = new CMutex();
             _PowerMutex = new CMutex();
             _readyForNextCommand = true;
@@ -249,6 +251,7 @@ namespace PepperDash.Essentials.Devices.Displays
                 _readyForCommands = false;
                 _cmdQueue.ClearQueue();
                 _priorityQueue.ClearQueue();
+                _volumeQueue.ClearQueue();
                 _CurrentInputIndex = 0;
             }
         }
@@ -540,11 +543,13 @@ namespace PepperDash.Essentials.Devices.Displays
                 Debug.Console(1, this, "Enqueuing command: {0}", cmd);
                 if (type == eCommandType.Volume)
                 {
-                    Debug.Console(1, this, "Sending Volume Text: {0}", cmd);
-                    Communication.SendText(cmd + "\x0D");
-                    return;
+                    if (_volumeQueue.Count > 5)
+                    {
+                        _volumeQueue.ClearQueue();
+                    }
+                    _volumeQueue.AddCommand(kvp);
                 }
-                if (priority)
+                else if (priority)
                 {                    
                     _priorityQueue.AddOrUpdateCommand(kvp);
                 }
@@ -566,12 +571,25 @@ namespace PepperDash.Essentials.Devices.Displays
             if (test)
             {
                 //Pace the commands sending out
-                while (_cmdQueue.Count > 0 || _priorityQueue.Count > 0)
+                while (_volumeQueue.Count > 0 || _cmdQueue.Count > 0 || _priorityQueue.Count > 0)
                 {
                     try
                     {
                         KeyValuePair<eCommandType, string> kvp;
-                        if (_priorityQueue.Count > 0)
+                        if (_volumeQueue.Count > 0)
+                        {
+                            while (_volumeQueue.Count > 0)
+                            {
+                                kvp = _volumeQueue.Dequeue();
+                                Debug.Console(1, this, "Sending Text: {0}", kvp.Value);
+                                Communication.SendText(kvp.Value + "\x0D");
+                                Thread.Sleep(100);
+                                Communication.SendText("VOL?\x0D");
+                                Thread.Sleep(100);
+                            }
+                            kvp = new KeyValuePair<eCommandType, string>(eCommandType.VolumePoll, "VOL?");
+                        }
+                        else if (_priorityQueue.Count > 0)
                         {
                             kvp = _priorityQueue.Dequeue();
                         }
@@ -1062,6 +1080,23 @@ namespace PepperDash.Essentials.Devices.Displays
             {
             }
 
+            public void AddCommand(KeyValuePair<eCommandType, string> command)
+            {
+                mutex.WaitForMutex();
+                try
+                {
+                    Q.Add(command);
+                }
+                catch (Exception ex)
+                {
+                    Debug.Console(1, "Exception in Epson command queue add: {0}", ex);
+                }
+                finally
+                {
+                    mutex.ReleaseMutex();
+                }
+            }
+
             public void AddOrUpdateCommand(KeyValuePair<eCommandType, string> command)
             {
                 mutex.WaitForMutex();
@@ -1163,8 +1198,7 @@ namespace PepperDash.Essentials.Devices.Displays
                 Debug.Console(1, this, "Setting volume to raw level: {0}", level);
                 MuteFb = false;
                 _lastVolumeRaw = (int)scaled;
-                SendCommand(eCommandType.Volume, string.Format("VOL {0}", scaled), false);
-                VolumeGet();
+                SendCommand(eCommandType.Volume, string.Format("VOL {0}", scaled), true);
             }
         }
 
@@ -1186,11 +1220,22 @@ namespace PepperDash.Essentials.Devices.Displays
 
         public void DefaultVolume()
         {
-            if (_IsWarmingUp)
+            CrestronInvoke.BeginInvoke(o =>
             {
-                Thread.Sleep(5000);
-            }
-            SetVolumeRaw(_defaultVolume);
+                Thread.Sleep(1000);
+                if(_PowerIsOn)
+                {
+                    SetVolumeRaw(_defaultVolume);
+                }
+                else if (_IsWarmingUp)
+                {
+                    Thread.Sleep(2000);
+                }
+                else
+                {
+                    return;
+                }
+            });
         }
 
         /// <summary>

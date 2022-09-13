@@ -649,11 +649,7 @@ namespace ViscaCameraPlugin
 
 			if (SocketStatusFeedback != null) SocketStatusFeedback.FireUpdate();
 
-            if (args.Client.IsConnected)
-            {
-                InitializeCamera();
-            }
-            else
+            if (!args.Client.IsConnected)
             {
                 _commandQueue.Clear();
             }
@@ -676,10 +672,11 @@ namespace ViscaCameraPlugin
                     _queueWaiting = true;
                     if (_commandMutex.WaitForMutex())
                     {
+                        Debug.Console(2, this, "Got command mutex");
                         _queueWaiting = false;
                         try
                         {
-                            if (!_commandQueue.IsEmpty)
+                            while (!_commandQueue.IsEmpty)
                             {
                                 int count = 0;
                                 while (!_commandReady && count < 10)
@@ -690,7 +687,10 @@ namespace ViscaCameraPlugin
                                 }
                                 ViscaCameraCommand cmd = _commandQueue.TryToDequeue();
                                 _lastInquiry = cmd.Command;
-                                SendBytes(cmd.Bytes);
+                                CrestronInvoke.BeginInvoke((obj) =>
+                                {
+                                    SendBytes(cmd.Bytes);
+                                });
                             }
                         }
                         catch (Exception ex)
@@ -700,6 +700,7 @@ namespace ViscaCameraPlugin
                         finally
                         {
                             _commandMutex.ReleaseMutex();
+                            Debug.Console(2, this, "Released command mutex");
                         }
                     }
                     else
@@ -719,6 +720,7 @@ namespace ViscaCameraPlugin
         {
             if (!_commandQueue.IsFull)
             {
+                Debug.Console(2, this, "Queueing command: {0}", ComTextHelper.GetEscapedText(bytes));
                 _commandQueue.TryToEnqueue(new ViscaCameraCommand(inquiry, bytes));
                 ProcessQueue();
             }
@@ -748,9 +750,6 @@ namespace ViscaCameraPlugin
 				_comms.SendBytes(bytes);
 			else
 			{
-				if (!_comms.IsConnected)
-					_comms.Connect();
-
 				if (_useHeader)
 				{
 					// VISCA-over-IP counter

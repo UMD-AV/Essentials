@@ -43,7 +43,8 @@ namespace DynFusion
 		public FusionRoom FusionSymbol;
 		private CTimer ErrorLogTimer;
         private CTimer EiscOfflineTimer;
-		private string ErrorLogLastMessageSent; 
+		private string ErrorLogLastMessageSent;
+        private bool _isInitialized;
 
 		public DynFusionDevice(string key, string name, DynFusionConfigObjectTemplate config)
 			: base(key, name)
@@ -218,6 +219,8 @@ namespace DynFusion
 
                 Debug.Console(0, this, "Generating Fuson RVI");
 				FusionRVI.GenerateFileForAllFusionDevices();
+
+                _isInitialized = true;
 			}
 			catch (Exception ex)
 			{
@@ -543,15 +546,18 @@ namespace DynFusion
 
         void CrestronEnvironment_EthernetEventHandler(EthernetEventArgs args)
         {
-            if (args.EthernetEventType == eEthernetEventType.LinkUp)
+            if (_isInitialized)
             {
-                Debug.Console(0, this, "Ethernet Link Up");
-                FusionSymbol.Register();
-            }
-            else if (args.EthernetEventType == eEthernetEventType.LinkDown)
-            {
-                Debug.Console(0, this, "Ethernet Link Down");
-                FusionSymbol.UnRegister();
+                if (args.EthernetEventType == eEthernetEventType.LinkUp)
+                {
+                    Debug.Console(0, this, "Ethernet Link Up");
+                    FusionSymbol.Register();
+                }
+                else if (args.EthernetEventType == eEthernetEventType.LinkDown)
+                {
+                    Debug.Console(0, this, "Ethernet Link Down");
+                    FusionSymbol.UnRegister();
+                }
             }
         }
 
