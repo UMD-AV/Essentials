@@ -953,7 +953,7 @@ namespace PepperDash.Essentials.Devices.Displays
             }
             else if (_RequestedPowerState == 1)
             {
-                _RequestedInputState = 1;
+                RequestInput(1);
             }
 		}
 
@@ -966,7 +966,7 @@ namespace PepperDash.Essentials.Devices.Displays
             }
             else if (_RequestedPowerState == 1)
             {
-                _RequestedInputState = 2;
+                RequestInput(2);
             }
         }
 
@@ -979,7 +979,7 @@ namespace PepperDash.Essentials.Devices.Displays
             }
             else if (_RequestedPowerState == 1)
             {
-                _RequestedInputState = 3;
+                RequestInput(3);
             }
         }
 
@@ -992,8 +992,35 @@ namespace PepperDash.Essentials.Devices.Displays
             }
             else if (_RequestedPowerState == 1)
             {
-                _RequestedInputState = 4;
+                RequestInput(4);
             }
+        }
+
+        private void RequestInput(ushort input)
+        {
+            _RequestedInputState = input;
+            CrestronInvoke.BeginInvoke(o =>
+            {
+                while (_IsWarmingUp && _RequestedInputState == input)
+                {
+                    switch (_RequestedInputState)
+                    {
+                        case 1:
+                            InputHdmi1Go();
+                            break;
+                        case 2:
+                            InputHdmi2Go();
+                            break;
+                        case 3:
+                            InputNetworkGo();
+                            break;
+                        case 4:
+                            InputVgaGo();
+                            break;
+                    }
+                    Thread.Sleep(2000);
+                }
+            });
         }
 
         private void InputHdmi1Go()
@@ -1220,22 +1247,23 @@ namespace PepperDash.Essentials.Devices.Displays
 
         public void DefaultVolume()
         {
-            CrestronInvoke.BeginInvoke(o =>
+            Thread.Sleep(1000);
+            if(_PowerIsOn)
             {
-                Thread.Sleep(1000);
-                if(_PowerIsOn)
-                {
-                    SetVolumeRaw(_defaultVolume);
-                }
-                else if (_IsWarmingUp)
+                SetVolumeRaw(_defaultVolume);
+            }
+            else if (_IsWarmingUp)
+            {
+                CrestronInvoke.BeginInvoke(o =>
                 {
                     Thread.Sleep(2000);
-                }
-                else
-                {
-                    return;
-                }
-            });
+                    SetVolumeRaw(_defaultVolume);
+                });
+            }
+            else
+            {
+                return;
+            }
         }
 
         /// <summary>
