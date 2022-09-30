@@ -4,7 +4,7 @@ using Newtonsoft.Json;
 using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Config;
 
-namespace ExtronMlsDspPlugin
+namespace ExtronMlsDsp
 {
     public class ExtronMlsDspFactory : EssentialsPluginDeviceFactory<ExtronMlsDsp>
     {

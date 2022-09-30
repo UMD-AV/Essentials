@@ -2,7 +2,7 @@ using PepperDash.Core;
 using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Bridges;
 
-namespace ExtronMlsDspPlugin
+namespace ExtronMlsDsp
 {
 	/// <summary>
 	/// Extron MLS DSP Join Map

@@ -122,6 +122,12 @@
     <Compile Include="Codec\eMeetingPrivacy.cs" />
     <Compile Include="Codec\iCodecAudio.cs" />
     <Compile Include="Display\PanasonicDisplay.cs" />
+    <Compile Include="DSP\ExtronDmpDsp\ExtronDmp.cs" />
+    <Compile Include="DSP\ExtronDmpDsp\ExtronDmpConfig.cs" />
+    <Compile Include="DSP\ExtronDmpDsp\ExtronDmpDialer.cs" />
+    <Compile Include="DSP\ExtronDmpDsp\ExtronDmpFactory.cs" />
+    <Compile Include="DSP\ExtronDmpDsp\ExtronDmpJoinMap.cs" />
+    <Compile Include="DSP\ExtronDmpDsp\ExtronDmpLevelControl.cs" />
     <Compile Include="DynFusion\DynFusionHelpRequest.cs" />
     <Compile Include="CameraControllers\AutomateVx.cs" />
     <Compile Include="VideoCodec\IConvertiblePreset.cs" />

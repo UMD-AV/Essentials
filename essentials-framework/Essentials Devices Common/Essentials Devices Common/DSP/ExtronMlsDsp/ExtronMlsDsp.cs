@@ -13,13 +13,13 @@ using PepperDash.Essentials.Core.Config;
 using PepperDash.Essentials.Core.Devices;
 using Crestron.SimplSharpPro;
 
-namespace ExtronMlsDspPlugin
+namespace ExtronMlsDsp
 {
-    public class ExtronMlsDsp : EssentialsBridgeableDevice
+    public class ExtronMlsDsp : EssentialsBridgeableDevice, ICommunicationMonitor, IOnline
 	{
         private readonly IBasicCommunication _comms;
         private CommunicationGather _gather;
-        private GenericCommunicationMonitor _commsMonitor;
+        public readonly GenericCommunicationMonitor _commsMonitor;
         private bool _muteFb;
         private ushort _volumeFb;
         CTimer _volumeUpRepeatTimer;
@@ -51,7 +51,13 @@ namespace ExtronMlsDspPlugin
         /// Volume feedback
         /// </summary>
         public IntFeedback VolumeFeedback { get; private set; }
-		
+
+        public BoolFeedback IsOnline { get { return _commsMonitor.IsOnlineFeedback; } }
+        public StatusMonitorBase CommunicationMonitor
+        {
+            get { return _commsMonitor; }
+        }
+
 		/// <summary>
 		/// Constructor
 		/// </summary>
