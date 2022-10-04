@@ -21,6 +21,9 @@ namespace ExtronDmp
 	/// </remarks>
 	public class ExtronDmp : EssentialsBridgeableDevice, ICommunicationMonitor, IOnline
 	{
+        const string connectedPrompt = "(c) Copyright";
+        const string passwordPrompt = "Password:";
+
 		/// <summary>
 		/// Communication object
 		/// </summary>
@@ -40,7 +43,6 @@ namespace ExtronDmp
 		private uint HeartbeatTracker = 0;
 		public bool ShowHexResponse { get; set; }
         public string DeviceId { get; set; }
-        private bool postActivateComplete = false;
         private bool needToInitialize = true;
 
 	    public readonly string Password;
@@ -91,7 +93,6 @@ namespace ExtronDmp
 		{
 			_comm.Connect();
 			_commMonitor.Start();
-			postActivateComplete = true;
 		}
 		public void CreateDspObjects()
 		{
@@ -171,6 +172,7 @@ namespace ExtronDmp
 		/// </summary>
 		void InitializeDspObjects()
 		{
+            SendLine(string.Format("{0}3CV\x0D", '\x1B'));  //Set verbose mode 3
             foreach (var channel in LevelControlPoints)
             {
                 if (channel.Value.HasLevel)
@@ -199,26 +201,29 @@ namespace ExtronDmp
 		void ResponseReceived(object dev, GenericCommMethodReceiveTextArgs args)
 		{
             HeartbeatTracker = 0;
+            if (args.Text.Length <= 1)
+            {
+                return;
+            }
 			try
 			{
-                Debug.Console(2, this, "Rx: {0}", args.Text);
-			    const string connectedPrompt = "Extron Electronics";
-			    const string passwordPrompt = "Password:";
+                Debug.Console(1, this, "Rx: {0}", args.Text);
 
-			    if (args.Text.Contains(passwordPrompt))
+			    if (args.Text.StartsWith(passwordPrompt))
 			    {
                     SendLine(Password);
 			    }
-                else if (args.Text.Contains(connectedPrompt))
+                else if (args.Text.StartsWith(connectedPrompt))
                 {
-                    needToInitialize = true;
-                    SendLine("\x0D");                    
+                    needToInitialize = true;              
                 }
-                else if (needToInitialize)
+                else if (args.Text.StartsWith("Ver"))
                 {
-                    needToInitialize = false;
-                    SendLine(string.Format("{0}3CV\x0D", '\x1B'));  //Set verbose mode 3
-                    InitializeDspObjects();
+                    if (needToInitialize)
+                    {
+                        needToInitialize = false;
+                        InitializeDspObjects();
+                    }
                 }
 			    else if (args.Text.StartsWith("Grpm")) // If Group
                 {

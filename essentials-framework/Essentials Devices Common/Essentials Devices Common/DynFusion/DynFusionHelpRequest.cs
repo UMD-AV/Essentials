@@ -14,7 +14,7 @@ namespace DynFusion
         public event EventHandler<MessageEventArgs> HelpMessageFromFusionEvent;
         public event EventHandler<EventArgs> ClearHelpEvent;
         private List<string> helpRequestIds = new List<string>();
-        private CMutex mutex = new CMutex();
+        private CMutex requestMutex = new CMutex();
         private StringSigDataFixedName helpSig;
         public string Organizer { get; set; }
         public DynFusionHelpRequest(StringSigDataFixedName HelpSig)
@@ -33,7 +33,7 @@ namespace DynFusion
 
         public void CreateRequest(string message, string id)
         {
-            mutex.WaitForMutex();
+            requestMutex.WaitForMutex();
             try
             {
                 string uniqueId = id + "-" + Guid.NewGuid().ToString();
@@ -51,7 +51,7 @@ namespace DynFusion
             }
             finally
             {
-                mutex.ReleaseMutex();
+                requestMutex.ReleaseMutex();
             }
         }
 
@@ -59,7 +59,7 @@ namespace DynFusion
         {
             if (!string.IsNullOrEmpty(id))
             {
-                mutex.WaitForMutex();
+                requestMutex.WaitForMutex();
                 try
                 {
                     foreach (var req in helpRequestIds)
@@ -78,14 +78,14 @@ namespace DynFusion
                 }
                 finally
                 {
-                    mutex.ReleaseMutex();
+                    requestMutex.ReleaseMutex();
                 }
             }
         }
 
         public void CancelAll()
         {
-            mutex.WaitForMutex();
+            requestMutex.WaitForMutex();
             try
             {
                 if (helpRequestIds != null)
@@ -103,13 +103,13 @@ namespace DynFusion
             }
             finally
             {
-                mutex.ReleaseMutex();
+                requestMutex.ReleaseMutex();
             }
         }
 
         public void GetOpenItems()
         {
-            mutex.WaitForMutex();
+            requestMutex.WaitForMutex();
             try
             {
                 helpSig.InputSig.StringValue = "<HelpRequest><Type>open_items</Type></HelpRequest>";
@@ -120,7 +120,7 @@ namespace DynFusion
             }
             finally
             {
-                mutex.ReleaseMutex();
+                requestMutex.ReleaseMutex();
             }
         }
 
@@ -130,7 +130,7 @@ namespace DynFusion
             {
                 return;
             }
-            mutex.WaitForMutex();
+            requestMutex.WaitForMutex();
             try
             {
                 XmlDocument XmlDoc = new XmlDocument();
@@ -166,10 +166,10 @@ namespace DynFusion
                     if (HelpMessageFromFusionEvent != null)
                         HelpMessageFromFusionEvent(this, new MessageEventArgs(id, message, active));
                 }
-                if (XmlDoc.SelectNodes("HelpRequest/OpenItems") != null)
+                else if (XmlDoc.SelectNodes("HelpRequest/OpenItems").Count > 0)
                 {
                     var openIds = XmlDoc.SelectNodes("HelpRequest/OpenItems/ID");
-                    if (openIds != null)
+                    if (openIds.Count > 0)
                     {
                         foreach (XmlNode x in openIds)
                         {
@@ -196,7 +196,7 @@ namespace DynFusion
             }
             finally
             {
-                mutex.ReleaseMutex();
+                requestMutex.ReleaseMutex();
             }
         }
     }

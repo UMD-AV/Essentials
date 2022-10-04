@@ -203,7 +203,7 @@ namespace ExtronDmp
             else if (command == "M") // Mute response
             {
                 int starPos = response.IndexOf('*');
-                string value = response.Substring(starPos + 1);
+                string value = response.Substring(starPos + 1,1);
 
                 if (value == "1")
                 {

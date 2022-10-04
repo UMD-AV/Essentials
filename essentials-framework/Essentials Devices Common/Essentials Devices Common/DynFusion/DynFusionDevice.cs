@@ -842,6 +842,7 @@ namespace DynFusion
             };
             trilist.SetSigTrueAction(joinMap.HelpRequestCancel.JoinNumber, () => HelpRequest.CancelRequest("User"));            
             trilist.SetStringSigAction(joinMap.HelpMsg.JoinNumber, (a) => HelpRequest.CreateRequest(a, "User"));
+            trilist.SetSigTrueAction(joinMap.HelpRequestUpdate.JoinNumber, () => HelpRequest.GetOpenItems());
             //Help Request End
 
 			trilist.SetSigTrueAction(joinMap.RoomConfig.JoinNumber, () => GetRoomConfig());

@@ -451,55 +451,55 @@ namespace PepperDash.Essentials.Devices.Displays
                         switch (error)
                         {
                             case "00":
-                                _errorFeedback = "No error";
+                                ErrorFb = "No error";
                                 break;
                             case "01":
-                                _errorFeedback = "Fan error";
+                                ErrorFb = "Fan error";
                                 break;
                             case "03":
-                                _errorFeedback = "Lamp failure at power on";
+                                ErrorFb = "Lamp failure at power on";
                                 break;
                             case "04":
-                                _errorFeedback = "High internal temperature error";
+                                ErrorFb = "High internal temperature error";
                                 break;
                             case "06":
-                                _errorFeedback = "Lamp error";
+                                ErrorFb = "Lamp error";
                                 break;
                             case "07":
-                                _errorFeedback = "Open lamp cover door error";
+                                ErrorFb = "Open lamp cover door error";
                                 break;
                             case "08":
-                                _errorFeedback = "Cinema filter error";
+                                ErrorFb = "Cinema filter error";
                                 break;
                             case "09":
-                                _errorFeedback = "Electric dual-layered capacitor is disconnected";
+                                ErrorFb = "Electric dual-layered capacitor is disconnected";
                                 break;
                             case "0A":
-                                _errorFeedback = "Auto iris error";
+                                ErrorFb = "Auto iris error";
                                 break;
                             case "0B":
-                                _errorFeedback = "Subsystem error";
+                                ErrorFb = "Subsystem error";
                                 break;
                             case "0C":
-                                _errorFeedback = "Low air flow error";
+                                ErrorFb = "Low air flow error";
                                 break;
                             case "0D":
-                                _errorFeedback = "Air filter air flow sensor error";
+                                ErrorFb = "Air filter air flow sensor error";
                                 break;
                             case "0E":
-                                _errorFeedback = "Power supply unit error (Ballast)";
+                                ErrorFb = "Power supply unit error (Ballast)";
                                 break;
                             case "0F":
-                                _errorFeedback = "Shutter error";
+                                ErrorFb = "Shutter error";
                                 break;
                             case "10":
-                                _errorFeedback = "Cooling system error (peltiert element)";
+                                ErrorFb = "Cooling system error (peltiert element)";
                                 break;
                             case "11":
-                                _errorFeedback = "Cooling system error (Pump)";
+                                ErrorFb = "Cooling system error (Pump)";
                                 break;
                             default:
-                                _errorFeedback = "Unknown error";
+                                ErrorFb = "Unknown error";
                                 break;
                         }
                     }
