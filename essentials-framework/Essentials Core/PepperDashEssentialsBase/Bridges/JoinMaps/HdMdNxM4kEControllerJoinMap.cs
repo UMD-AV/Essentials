@@ -12,36 +12,36 @@ namespace PepperDash.Essentials.Core.Bridges
         public JoinDataComplete EnableAutoRoute = new JoinDataComplete(new JoinData { JoinNumber = 1, JoinSpan = 1 },
             new JoinMetadata { Description = "Enable Automatic Routing on 4x1 Switchers", JoinCapabilities = eJoinCapabilities.ToFromSIMPL, JoinType = eJoinType.Digital });
 
-        [JoinName("InputName")]
-        public JoinDataComplete InputName = new JoinDataComplete(new JoinData { JoinNumber = 2, JoinSpan = 8 },
-            new JoinMetadata { Description = "Device Input Name", JoinCapabilities = eJoinCapabilities.ToSIMPL, JoinType = eJoinType.Serial });
+        [JoinName("InputNames")]
+        public JoinDataComplete InputNames = new JoinDataComplete(new JoinData { JoinNumber = 101, JoinSpan = 32 },
+            new JoinMetadata { Description = "Input Names", JoinCapabilities = eJoinCapabilities.ToSIMPL, JoinType = eJoinType.Serial });
 
-        [JoinName("InputSync")]
-        public JoinDataComplete InputSync = new JoinDataComplete(new JoinData { JoinNumber = 2, JoinSpan = 8 },
-            new JoinMetadata { Description = "Device Input Sync", JoinCapabilities = eJoinCapabilities.ToSIMPL, JoinType = eJoinType.Digital });
+        [JoinName("OutputNames")]
+        public JoinDataComplete OutputNames = new JoinDataComplete(new JoinData { JoinNumber = 301, JoinSpan = 32 },
+            new JoinMetadata { Description = "Output Names", JoinCapabilities = eJoinCapabilities.ToSIMPL, JoinType = eJoinType.Serial });
 
-        [JoinName("OutputName")]
-        public JoinDataComplete OutputName = new JoinDataComplete(new JoinData { JoinNumber = 11, JoinSpan = 2 },
-            new JoinMetadata { Description = "Device Output Name", JoinCapabilities = eJoinCapabilities.ToSIMPL, JoinType = eJoinType.Serial });
+        [JoinName("VideoSyncStatus")]
+        public JoinDataComplete VideoSyncStatus = new JoinDataComplete(new JoinData { JoinNumber = 101, JoinSpan = 32 },
+            new JoinMetadata { Description = "DM Input Video Sync", JoinCapabilities = eJoinCapabilities.ToSIMPL, JoinType = eJoinType.Digital });
 
         [JoinName("OutputRoute")]
-        public JoinDataComplete OutputRoute = new JoinDataComplete(new JoinData { JoinNumber = 11, JoinSpan = 2 },
-            new JoinMetadata { Description = "Device Output Route Set/Get", JoinCapabilities = eJoinCapabilities.ToFromSIMPL, JoinType = eJoinType.Analog });
+        public JoinDataComplete OutputRoute = new JoinDataComplete(new JoinData { JoinNumber = 101, JoinSpan = 32 },
+            new JoinMetadata { Description = "Output Route Set / Get", JoinCapabilities = eJoinCapabilities.ToFromSIMPL, JoinType = eJoinType.Analog });
 
-        [JoinName("OutputRoutedName")]
-        public JoinDataComplete OutputRoutedName = new JoinDataComplete(new JoinData { JoinNumber = 16, JoinSpan = 2 },
-            new JoinMetadata { Description = "Device Output Route Name", JoinCapabilities = eJoinCapabilities.ToSIMPL, JoinType = eJoinType.Serial });
+        [JoinName("OutputCurrentInputNames")]
+        public JoinDataComplete OutputCurrentInputNames = new JoinDataComplete(new JoinData { JoinNumber = 1201, JoinSpan = 32 },
+            new JoinMetadata { Description = "Output Currently Routed Input Names", JoinCapabilities = eJoinCapabilities.ToSIMPL, JoinType = eJoinType.Serial });
 
-        [JoinName("EnableInputHdcp")]
-        public JoinDataComplete EnableInputHdcp = new JoinDataComplete(new JoinData { JoinNumber = 11, JoinSpan = 8 },
-            new JoinMetadata { Description = "Device Enable Input Hdcp", JoinCapabilities = eJoinCapabilities.ToFromSIMPL, JoinType = eJoinType.Digital });
+        [JoinName("HdcpSupportState")]
+        public JoinDataComplete HdcpSupportState = new JoinDataComplete(new JoinData { JoinNumber = 1001, JoinSpan = 32 },
+            new JoinMetadata { Description = "DM Chassis Input HDCP Support State", JoinCapabilities = eJoinCapabilities.ToSIMPL, JoinType = eJoinType.Analog });
 
-        [JoinName("DisableInputHdcp")]
-        public JoinDataComplete DisableInputHdcp = new JoinDataComplete(new JoinData { JoinNumber = 21, JoinSpan = 8 },
-            new JoinMetadata { Description = "Device Disnable Input Hdcp", JoinCapabilities = eJoinCapabilities.ToFromSIMPL, JoinType = eJoinType.Digital });
+        [JoinName("HdcpSupportCapability")]
+        public JoinDataComplete HdcpSupportCapability = new JoinDataComplete(new JoinData { JoinNumber = 1201, JoinSpan = 32 },
+            new JoinMetadata { Description = "DM Chassis Input HDCP Support Capability", JoinCapabilities = eJoinCapabilities.FromSIMPL, JoinType = eJoinType.Analog });
 
         [JoinName("IsOnline")]
-        public JoinDataComplete IsOnline = new JoinDataComplete(new JoinData { JoinNumber = 30, JoinSpan = 1 },
+        public JoinDataComplete IsOnline = new JoinDataComplete(new JoinData { JoinNumber = 11, JoinSpan = 1 },
             new JoinMetadata { Description = "Device Onlne", JoinCapabilities = eJoinCapabilities.ToSIMPL, JoinType = eJoinType.Digital });
 
         /// <summary>

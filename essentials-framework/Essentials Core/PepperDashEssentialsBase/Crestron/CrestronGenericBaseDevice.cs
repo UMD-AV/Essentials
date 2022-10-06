@@ -71,8 +71,6 @@ namespace PepperDash.Essentials.Core
             Debug.Console(0, this, "Activating");
             if (!PreventRegistration)
             {
-                //Debug.Console(1, this, "  Does not require registration. Skipping");
-
                 if (Hardware.Registerable && !Hardware.Registered)
                 {
                     var response = Hardware.RegisterWithLogging(Key);

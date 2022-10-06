@@ -97,6 +97,8 @@ namespace ExtronDmp
                 }
             }
 
+            _volumeUpLock = new CMutex();
+            _volumeDownLock = new CMutex();
             _volumeUpRepeatTimer = new CTimer(VolumeUpRepeat, Timeout.Infinite);
             _volumeDownRepeatTimer = new CTimer(VolumeDownRepeat, Timeout.Infinite);
             if (config.Min != null) { minLevel = (int)config.Min; }
@@ -237,7 +239,6 @@ namespace ExtronDmp
         /// </summary>
         public void GetCurrentGain()
         {
-
 			string cmdToSemd = string.Format("{0}{1}{2}\x0D", '\x1B', _levelPrefix, _commandSuffix);
 			_parent.SendLine(cmdToSemd);
         }
@@ -347,7 +348,14 @@ namespace ExtronDmp
                         MuteOff();
                     }
                     _volumeDownCount++;
-                    SendFullCommand(_levelPrefix, "10-", _commandSuffix);
+                    if (_useSisVolume)
+                    {
+                        SendFullCommand(_levelPrefix, ScaleSisFull(_volumeLevel) - 20, _commandSuffix);
+                    }
+                    else
+                    {
+                        SendFullCommand(_levelPrefix, "20-", _commandSuffix);
+                    }                    
                     _volumeDownRepeatTimer.Reset(100);
                 }
                 else
@@ -387,7 +395,14 @@ namespace ExtronDmp
                         MuteOff();
                     }
                     _volumeUpCount++;
-                    SendFullCommand(_levelPrefix, "10+", _commandSuffix);
+                    if (_useSisVolume)
+                    {
+                        SendFullCommand(_levelPrefix, ScaleSisFull(_volumeLevel) + 20, _commandSuffix);
+                    }
+                    else
+                    {
+                        SendFullCommand(_levelPrefix, "20+", _commandSuffix);
+                    }   
                     _volumeUpRepeatTimer.Reset(100);
                 }
                 else

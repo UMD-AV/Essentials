@@ -44,6 +44,8 @@ namespace ExtronDmp
 		public bool ShowHexResponse { get; set; }
         public string DeviceId { get; set; }
         private bool needToInitialize = true;
+        private string version = "";
+        private string model = "";
 
 	    public readonly string Password;
 		
@@ -173,11 +175,13 @@ namespace ExtronDmp
 		void InitializeDspObjects()
 		{
             SendLine(string.Format("{0}3CV\x0D", '\x1B'));  //Set verbose mode 3
+            CrestronEnvironment.Sleep(250);
             foreach (var channel in LevelControlPoints)
             {
                 if (channel.Value.HasLevel)
                 {
                     channel.Value.GetCurrentMinMax();
+                    CrestronEnvironment.Sleep(250);
                     channel.Value.GetCurrentGain();
                     CrestronEnvironment.Sleep(250);
                 }
@@ -215,9 +219,16 @@ namespace ExtronDmp
 			    }
                 else if (args.Text.StartsWith(connectedPrompt))
                 {
-                    needToInitialize = true;              
+                    needToInitialize = true;
+                    string[] startPrompt = args.Text.Split(',');
+                    if (startPrompt.Length == 5)
+                    {
+                        version = startPrompt[3].Trim().Substring(1);
+                        model = startPrompt[2].Trim();
+                        Debug.Console(1, this, "Found start prompt. Version: {0} Model: {1}", version, model);
+                    }
                 }
-                else if (args.Text.StartsWith("Ver"))
+                else if (args.Text.StartsWith("Ver") || (args.Text.StartsWith(version) && version.Length > 2))
                 {
                     if (needToInitialize)
                     {

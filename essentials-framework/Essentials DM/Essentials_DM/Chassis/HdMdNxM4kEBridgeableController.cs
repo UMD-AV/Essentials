@@ -36,7 +36,7 @@ namespace PepperDash.Essentials.DM.Chassis
 		public FeedbackCollection<StringFeedback> InputNameFeedbacks { get; private set; }
 		public FeedbackCollection<StringFeedback> OutputNameFeedbacks { get; private set; }
 		public FeedbackCollection<StringFeedback> OutputRouteNameFeedbacks { get; private set; }
-		public FeedbackCollection<BoolFeedback> InputHdcpEnableFeedback { get; private set; }
+		public FeedbackCollection<IntFeedback> InputHdcpFeedbacks { get; private set; }
 		public StringFeedback DeviceNameFeedback { get; private set; }
         public BoolFeedback AutoRouteFeedback { get; private set; }
 
@@ -55,22 +55,23 @@ namespace PepperDash.Essentials.DM.Chassis
 				return;
 			}
 
-
-			if (props.Inputs != null)
+            InputNames = new Dictionary<uint, string>();
+            OutputNames = new Dictionary<uint, string>();
+			if (props.InputNames != null)
 			{
-				foreach (var kvp in props.Inputs)
+				foreach (var kvp in props.InputNames)
 				{
 					Debug.Console(1, this, "props.Inputs: {0}-{1}", kvp.Key, kvp.Value);
 				}
-				InputNames = props.Inputs;
+				InputNames = props.InputNames;
 			}
-			if (props.Outputs != null)
+			if (props.OutputNames != null)
 			{
-				foreach (var kvp in props.Outputs)
+				foreach (var kvp in props.OutputNames)
 				{
 					Debug.Console(1, this, "props.Outputs: {0}-{1}", kvp.Key, kvp.Value);
 				}
-				OutputNames = props.Outputs;
+				OutputNames = props.OutputNames;
 			}
 
             DeviceNameFeedback = new StringFeedback(()=>Name);		    
@@ -80,12 +81,12 @@ namespace PepperDash.Essentials.DM.Chassis
 			InputNameFeedbacks = new FeedbackCollection<StringFeedback>();
 			OutputNameFeedbacks = new FeedbackCollection<StringFeedback>();
 			OutputRouteNameFeedbacks = new FeedbackCollection<StringFeedback>();
-			InputHdcpEnableFeedback = new FeedbackCollection<BoolFeedback>();
+			InputHdcpFeedbacks = new FeedbackCollection<IntFeedback>();
 		                
 			InputPorts = new RoutingPortCollection<RoutingInputPort>();
 			OutputPorts = new RoutingPortCollection<RoutingOutputPort>();
 
-			if (_Chassis.NumberOfInputs == 1)
+			if (_Chassis.NumberOfOutputs == 1)
 			{
 				_Chassis4x1 = _Chassis as HdMd4x14kE;
                 AutoRouteFeedback = new BoolFeedback(() => _Chassis4x1.AutoModeOnFeedback.BoolValue);			    
@@ -94,42 +95,50 @@ namespace PepperDash.Essentials.DM.Chassis
 			for (uint i = 1; i <= _Chassis.NumberOfInputs; i++)
 			{
 				var index = i;
-				var inputName = InputNames[index];
-			    //_Chassis.Inputs[index].Name.StringValue = inputName;
-			    _Chassis.HdmiInputs[index].Name.StringValue = inputName;
+                string inputKey = index.ToString();
+                string inputName = string.Format("Input{0}", index);
+                if (InputNames[i] != null)
+                {
+                    inputName = InputNames[i];
+                    _Chassis.Inputs[index].Name.StringValue = inputName;                    
+                }
 
 				InputPorts.Add(new RoutingInputPort(inputName, eRoutingSignalType.AudioVideo,
 					eRoutingPortConnectionType.Hdmi, _Chassis.HdmiInputs[index], this)
 				{
 					FeedbackMatchObject = _Chassis.HdmiInputs[index]
 				});
-				VideoInputSyncFeedbacks.Add(new BoolFeedback(inputName, () => _Chassis.Inputs[index].VideoDetectedFeedback.BoolValue));
-                //InputNameFeedbacks.Add(new StringFeedback(inputName, () => _Chassis.Inputs[index].NameFeedback.StringValue));
-                InputNameFeedbacks.Add(new StringFeedback(inputName, () => InputNames[index]));
-				InputHdcpEnableFeedback.Add(new BoolFeedback(inputName, () => _Chassis.HdmiInputs[index].HdmiInputPort.HdcpSupportOnFeedback.BoolValue));
+                VideoInputSyncFeedbacks.Add(new BoolFeedback(inputKey, () => _Chassis.HdmiInputs[index].VideoDetectedFeedback == null ? false : _Chassis.HdmiInputs[index].VideoDetectedFeedback.BoolValue));
+                InputNameFeedbacks.Add(new StringFeedback(inputKey, () => _Chassis.HdmiInputs[index].NameFeedback == null ? "" : _Chassis.HdmiInputs[index].NameFeedback.StringValue));
+                InputHdcpFeedbacks.Add(new IntFeedback(inputKey, () => _Chassis.HdmiInputs[index].HdmiInputPort.HdcpSupportOnFeedback == null ? 0 : _Chassis.HdmiInputs[index].HdmiInputPort.HdcpSupportOnFeedback.BoolValue ? 1 : 0));
 			}
 
 			for (uint i = 1; i <= _Chassis.NumberOfOutputs; i++)
 			{
 				var index = i;
-				var outputName = OutputNames[index];
-				//_Chassis.Outputs[index].Name.StringValue = outputName;
-                //_Chassis.HdmiOutputs[index].Name.StringValue = outputName;
+                string outputKey = index.ToString();
+                string outputName = string.Format("Output{0}", index);
+                if (OutputNames[i] != null)
+                {
+                    outputName = OutputNames[i];
+                    _Chassis.Outputs[index].Name.StringValue = outputName;              
+                }
 
 				OutputPorts.Add(new RoutingOutputPort(outputName, eRoutingSignalType.AudioVideo,
 					eRoutingPortConnectionType.Hdmi, _Chassis.HdmiOutputs[index], this)
 				{
 					FeedbackMatchObject = _Chassis.HdmiOutputs[index]
 				});
-				VideoOutputRouteFeedbacks.Add(new IntFeedback(outputName, () => _Chassis.Outputs[index].VideoOutFeedback == null ? 0 : (int)_Chassis.Outputs[index].VideoOutFeedback.Number));
-				OutputNameFeedbacks.Add(new StringFeedback(outputName, () => OutputNames[index]));
-				OutputRouteNameFeedbacks.Add(new StringFeedback(outputName, () => _Chassis.Outputs[index].VideoOutFeedback.NameFeedback.StringValue));
+				VideoOutputRouteFeedbacks.Add(new IntFeedback(outputKey, () => _Chassis.HdmiOutputs[index].VideoOutFeedback == null ? 0 : (int)_Chassis.HdmiOutputs[index].VideoOutFeedback.Number));
+                OutputNameFeedbacks.Add(new StringFeedback(outputKey, () => _Chassis.HdmiOutputs[index].NameFeedback == null ? "" : _Chassis.HdmiOutputs[index].NameFeedback.StringValue));
+                OutputRouteNameFeedbacks.Add(new StringFeedback(outputKey, () => _Chassis.HdmiOutputs[index].VideoOutFeedback == null ? "" : _Chassis.HdmiOutputs[index].VideoOutFeedback.NameFeedback.StringValue));
 			}
 
 			_Chassis.DMInputChange += Chassis_DMInputChange;
 			_Chassis.DMOutputChange += Chassis_DMOutputChange;
+            _Chassis.OnlineStatusChange += Chassis_OnlineStatusChange;
 
-			AddPostActivationAction(AddFeedbackCollections);
+            DeviceNameFeedback.FireUpdate();
 		}
 
 		#endregion
@@ -146,23 +155,21 @@ namespace PepperDash.Essentials.DM.Chassis
 			if (newEvent != null) newEvent(this, e);
 		}
 
-		public void EnableHdcp(uint port)
-		{
-			if (port > _Chassis.NumberOfInputs) return;
-			if (port <= 0) return;
-
-			_Chassis.HdmiInputs[port].HdmiInputPort.HdcpSupportOn();
-			InputHdcpEnableFeedback[InputNames[port]].FireUpdate();
-		}
-
-		public void DisableHdcp(uint port)
-		{
-			if (port > _Chassis.NumberOfInputs) return;
-			if (port <= 0) return;
-
-			_Chassis.HdmiInputs[port].HdmiInputPort.HdcpSupportOff();
-			InputHdcpEnableFeedback[InputNames[port]].FireUpdate();
-		}
+        public void SetHdcp(uint port, uint hdcpState)
+        {
+            if (port > _Chassis.NumberOfInputs) return;
+            if (port <= 0) return;
+            if (hdcpState > 0)
+            {
+                _Chassis.HdmiInputs[port].HdmiInputPort.HdcpSupportOn();
+                InputHdcpFeedbacks[port.ToString()].FireUpdate();
+            }
+            else
+            {
+                _Chassis.HdmiInputs[port].HdmiInputPort.HdcpSupportOff();
+                InputHdcpFeedbacks[port.ToString()].FireUpdate();
+            }
+        }
 
 		public void EnableAutoRoute()
 		{
@@ -181,97 +188,6 @@ namespace PepperDash.Essentials.DM.Chassis
 
 			_Chassis4x1.AutoModeOff();
 		}
-
-		#region PostActivate
-
-		public void AddFeedbackCollections()
-		{
-            AddFeedbackToList(DeviceNameFeedback);
-			AddCollectionsToList(VideoInputSyncFeedbacks, InputHdcpEnableFeedback);
-			AddCollectionsToList(VideoOutputRouteFeedbacks);
-			AddCollectionsToList(InputNameFeedbacks, OutputNameFeedbacks, OutputRouteNameFeedbacks);
-		}
-
-		#endregion
-
-		#region FeedbackCollection Methods
-
-		//Add arrays of collections
-		public void AddCollectionsToList(params FeedbackCollection<BoolFeedback>[] newFbs)
-		{
-			foreach (FeedbackCollection<BoolFeedback> fbCollection in newFbs)
-			{
-				foreach (var item in newFbs)
-				{
-					AddCollectionToList(item);
-				}
-			}
-		}
-		public void AddCollectionsToList(params FeedbackCollection<IntFeedback>[] newFbs)
-		{
-			foreach (FeedbackCollection<IntFeedback> fbCollection in newFbs)
-			{
-				foreach (var item in newFbs)
-				{
-					AddCollectionToList(item);
-				}
-			}
-		}
-
-		public void AddCollectionsToList(params FeedbackCollection<StringFeedback>[] newFbs)
-		{
-			foreach (FeedbackCollection<StringFeedback> fbCollection in newFbs)
-			{
-				foreach (var item in newFbs)
-				{
-					AddCollectionToList(item);
-				}
-			}
-		}
-
-		//Add Collections
-		public void AddCollectionToList(FeedbackCollection<BoolFeedback> newFbs)
-		{
-			foreach (var f in newFbs)
-			{
-				if (f == null) continue;
-
-				AddFeedbackToList(f);
-			}
-		}
-
-		public void AddCollectionToList(FeedbackCollection<IntFeedback> newFbs)
-		{
-			foreach (var f in newFbs)
-			{
-				if (f == null) continue;
-
-				AddFeedbackToList(f);
-			}
-		}
-
-		public void AddCollectionToList(FeedbackCollection<StringFeedback> newFbs)
-		{
-			foreach (var f in newFbs)
-			{
-				if (f == null) continue;
-
-				AddFeedbackToList(f);
-			}
-		}
-
-		//Add Individual Feedbacks
-		public void AddFeedbackToList(PepperDash.Essentials.Core.Feedback newFb)
-		{
-			if (newFb == null) return;
-
-			if (!Feedbacks.Contains(newFb))
-			{
-				Feedbacks.Add(newFb);
-			}
-		}
-
-		#endregion
 
 		#region IRouting Members
 
@@ -345,39 +261,33 @@ namespace PepperDash.Essentials.DM.Chassis
 			{
 				var joinIndex = i - 1;
 			    var input = i;
+                string inputKey = input.ToString();
+
 				//Digital
-				VideoInputSyncFeedbacks[InputNames[input]].LinkInputSig(trilist.BooleanInput[joinMap.InputSync.JoinNumber + joinIndex]);
-				InputHdcpEnableFeedback[InputNames[input]].LinkInputSig(trilist.BooleanInput[joinMap.EnableInputHdcp.JoinNumber + joinIndex]);
-				InputHdcpEnableFeedback[InputNames[input]].LinkComplementInputSig(trilist.BooleanInput[joinMap.DisableInputHdcp.JoinNumber + joinIndex]);
-				trilist.SetSigTrueAction(joinMap.EnableInputHdcp.JoinNumber + joinIndex, () => EnableHdcp(input));
-				trilist.SetSigTrueAction(joinMap.DisableInputHdcp.JoinNumber + joinIndex, () => DisableHdcp(input));
+                VideoInputSyncFeedbacks[inputKey].LinkInputSig(trilist.BooleanInput[joinMap.VideoSyncStatus.JoinNumber + joinIndex]);
+
+                //Analog
+                trilist.SetUShortSigAction(joinMap.HdcpSupportCapability.JoinNumber + joinIndex, (hdcpLevel) => SetHdcp(input, hdcpLevel));
+                InputHdcpFeedbacks[inputKey].LinkInputSig(trilist.UShortInput[joinMap.HdcpSupportState.JoinNumber + joinIndex]);
 
 				//Serial                
-				InputNameFeedbacks[InputNames[input]].LinkInputSig(trilist.StringInput[joinMap.InputName.JoinNumber + joinIndex]);                
+                InputNameFeedbacks[inputKey].LinkInputSig(trilist.StringInput[joinMap.InputNames.JoinNumber + joinIndex]);                
 			}
 
 			for (uint i = 1; i <= _Chassis.NumberOfOutputs; i++)
 			{
 				var joinIndex = i - 1;
 			    var output = i;
+                string outputKey = output.ToString();
+
 				//Analog
-				VideoOutputRouteFeedbacks[OutputNames[output]].LinkInputSig(trilist.UShortInput[joinMap.OutputRoute.JoinNumber + joinIndex]);
+                VideoOutputRouteFeedbacks[outputKey].LinkInputSig(trilist.UShortInput[joinMap.OutputRoute.JoinNumber + joinIndex]);
 				trilist.SetUShortSigAction(joinMap.OutputRoute.JoinNumber + joinIndex, (a) => ExecuteNumericSwitch(a, (ushort) output, eRoutingSignalType.AudioVideo));
 
 				//Serial
-				OutputNameFeedbacks[OutputNames[output]].LinkInputSig(trilist.StringInput[joinMap.OutputName.JoinNumber + joinIndex]);
-				OutputRouteNameFeedbacks[OutputNames[output]].LinkInputSig(trilist.StringInput[joinMap.OutputRoutedName.JoinNumber + joinIndex]);
+                OutputNameFeedbacks[outputKey].LinkInputSig(trilist.StringInput[joinMap.OutputNames.JoinNumber + joinIndex]);
+                OutputRouteNameFeedbacks[outputKey].LinkInputSig(trilist.StringInput[joinMap.OutputCurrentInputNames.JoinNumber + joinIndex]);
 			}
-
-			_Chassis.OnlineStatusChange += Chassis_OnlineStatusChange;
-
-			trilist.OnlineStatusChange += (d, args) =>
-			{
-			    if (!args.DeviceOnLine)  return;
-
-                // feedback updates was moved to the Chassis_OnlineStatusChange 
-                // due to the amount of time it takes for the device to come online                
-			};
 		}
 
 
@@ -387,11 +297,50 @@ namespace PepperDash.Essentials.DM.Chassis
 
 		void Chassis_OnlineStatusChange(Crestron.SimplSharpPro.GenericBase currentDevice, Crestron.SimplSharpPro.OnlineOfflineEventArgs args)
 		{
+            Debug.Console(1, this, "Online status change: {0}", args.DeviceOnLine);
             IsOnline.FireUpdate();
 
 		    if (!args.DeviceOnLine) return;
+
+            foreach (DMInput input in _Chassis.Inputs)
+            {
+                if(InputNames[input.Number] != null)
+                {
+                    Debug.Console(1, this, "Updating input {0} with name {1}", input.Number, InputNames[input.Number]);
+                    input.Name.StringValue = InputNames[input.Number];             
+                }
+            }
+
+            foreach (DMOutput output in _Chassis.Outputs)
+            {
+                if (OutputNames[output.Number] != null)
+                {
+                    Debug.Console(1, this, "Updating output {0} with name {1}", output.Number, OutputNames[output.Number]);
+                    output.Name.StringValue = OutputNames[output.Number];
+                }
+            }
 	        
-            foreach (var feedback in Feedbacks)
+            foreach (var feedback in VideoInputSyncFeedbacks)
+	        {
+	            feedback.FireUpdate();
+	        }
+            foreach (var feedback in VideoOutputRouteFeedbacks)
+	        {
+	            feedback.FireUpdate();
+	        }
+            foreach (var feedback in InputNameFeedbacks)
+	        {
+	            feedback.FireUpdate();
+	        }
+            foreach (var feedback in OutputNameFeedbacks)
+	        {
+	            feedback.FireUpdate();
+	        }
+            foreach (var feedback in OutputRouteNameFeedbacks)
+	        {
+	            feedback.FireUpdate();
+	        }
+            foreach (var feedback in InputHdcpFeedbacks)
 	        {
 	            feedback.FireUpdate();
 	        }
@@ -402,28 +351,44 @@ namespace PepperDash.Essentials.DM.Chassis
 
 		void Chassis_DMOutputChange(Switch device, DMOutputEventArgs args)
 		{
-			if (args.EventId != DMOutputEventIds.VideoOutEventId) return;
+            switch (args.EventId)
+            {
+                case DMOutputEventIds.VideoOutEventId:
+                    {
+                        Debug.Console(1, this, "DM Output {0} VideoOutEventId number {1}", args.Number, args.Index);
+                        var output = args.Number;
+                        var inputNumber = _Chassis.HdmiOutputs[output].VideoOutFeedback == null
+                            ? 0
+                            : _Chassis.HdmiOutputs[output].VideoOutFeedback.Number;
 
-		    var output = args.Number;
+                        var feedback = VideoOutputRouteFeedbacks[output.ToString()];
 
-		    var inputNumber = _Chassis.HdmiOutputs[output].VideoOutFeedback == null
-		        ? 0
-		        : _Chassis.HdmiOutputs[output].VideoOutFeedback.Number;
+                        if (feedback == null)
+                        {
+                            return;
+                        }
+                        var inPort =
+                            InputPorts.FirstOrDefault(p => p.FeedbackMatchObject == _Chassis.HdmiOutputs[output].VideoOutFeedback);
+                        var outPort = OutputPorts.FirstOrDefault(p => p.FeedbackMatchObject == _Chassis.HdmiOutputs[output]);
 
-		    var outputName = OutputNames[output];
-
-		    var feedback = VideoOutputRouteFeedbacks[outputName];
-
-		    if (feedback == null)
-		    {
-		        return;
-		    }
-		    var inPort =
-		        InputPorts.FirstOrDefault(p => p.FeedbackMatchObject == _Chassis.HdmiOutputs[output].VideoOutFeedback);
-		    var outPort = OutputPorts.FirstOrDefault(p => p.FeedbackMatchObject == _Chassis.HdmiOutputs[output]);
-
-		    feedback.FireUpdate();
-		    OnSwitchChange(new RoutingNumericEventArgs(output, inputNumber, outPort, inPort, eRoutingSignalType.AudioVideo));
+                        feedback.FireUpdate();
+                        OnSwitchChange(new RoutingNumericEventArgs(output, inputNumber, outPort, inPort, eRoutingSignalType.AudioVideo));
+                        break;
+                    }
+                case DMOutputEventIds.OutputNameEventId:
+                case DMInputEventIds.OutputNameFeedbackEventId:
+                    {
+                        Debug.Console(1, this, "Output{0} Name {1}", args.Number,
+                            _Chassis.HdmiOutputs[args.Number].NameFeedback.StringValue);
+                        OutputNameFeedbacks[args.Number.ToString()].FireUpdate();
+                        break;
+                    }
+                default:
+                    {
+                        Debug.Console(2, this, "Unhandled DM Output Event ID {0}", args.EventId);
+                        break;
+                    }
+            }
 		}
 
 		void Chassis_DMInputChange(Switch device, DMInputEventArgs args)
@@ -431,30 +396,30 @@ namespace PepperDash.Essentials.DM.Chassis
 		    switch (args.EventId)
 		    {
                 case DMInputEventIds.VideoDetectedEventId:
+                case DMInputEventIds.SourceSyncEventId:
 		        {
                     Debug.Console(1, this, "Event ID {0}: Updating VideoInputSyncFeedbacks", args.EventId);
-                    foreach (var item in VideoInputSyncFeedbacks)
-                    {
-                        item.FireUpdate();
-                    }
+                    VideoInputSyncFeedbacks[args.Number.ToString()].FireUpdate();
 		            break;
 		        }
                 case DMInputEventIds.InputNameFeedbackEventId:
                 case DMInputEventIds.InputNameEventId:
-                case DMInputEventIds.NameFeedbackEventId:
 		        {
-		            Debug.Console(1, this, "Event ID {0}:  Updating name feedbacks.", args.EventId);
 		            Debug.Console(1, this, "Input {0} Name {1}", args.Number,
 		                _Chassis.HdmiInputs[args.Number].NameFeedback.StringValue);
-                    foreach (var item in InputNameFeedbacks)
-                    {
-                        item.FireUpdate();
-                    }
+                    InputNameFeedbacks[args.Number.ToString()].FireUpdate();
 		            break;
 		        }
+                case DMInputEventIds.HdcpSupportOnEventId:
+                case DMInputEventIds.HdcpSupportOffEventId:
+                {
+                    Debug.Console(1, this, "Event ID {0}: Updating InputHdcpFeedbacks", args.EventId);
+                    InputHdcpFeedbacks[args.Number.ToString()].FireUpdate();
+                    break;
+                }
                 default:
 		        {
-                    Debug.Console(1, this, "Unhandled DM Input Event ID {0}", args.EventId);
+                    Debug.Console(2, this, "Unhandled DM Input Event ID {0}", args.EventId);
 		            break;
 		        }
 		    }			
@@ -468,7 +433,7 @@ namespace PepperDash.Essentials.DM.Chassis
 		{
 			public HdMdNxM4kEControllerFactory()
 			{
-				TypeNames = new List<string>() { "hdmd4x14ke-bridgeable", "hdmd4x24ke", "hdmd6x24ke" };
+				TypeNames = new List<string>() { "hdmd4x14ke", "hdmd4x24ke", "hdmd6x24ke" };
 			}
 
 			public override EssentialsDevice BuildDevice(DeviceConfig dc)
@@ -478,13 +443,12 @@ namespace PepperDash.Essentials.DM.Chassis
 				var props = JsonConvert.DeserializeObject<HdMdNxM4kEBridgeablePropertiesConfig>(dc.Properties.ToString());
 
 				var type = dc.Type.ToLower();
-				var control = props.Control;
-				var ipid = control.IpIdInt;
-				var address = control.TcpSshProperties.Address;
+				var ipid = props.Control.IpIdInt;
+				var address = props.Control.TcpSshProperties.Address;
 
 				switch (type)
 				{
-					case ("hdmd4x14ke-bridgeable"):
+					case ("hdmd4x14ke"):
 						return new HdMdNxM4kEBridgeableController(dc.Key, dc.Name, new HdMd4x14kE(ipid, address, Global.ControlSystem), props);
 					case ("hdmd4x24ke"):
 						return new HdMdNxM4kEBridgeableController(dc.Key, dc.Name, new HdMd4x24kE(ipid, address, Global.ControlSystem), props);
