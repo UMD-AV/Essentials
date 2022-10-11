@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net;
 using Crestron.SimplSharp;
 using Newtonsoft.Json;
 using PepperDash.Core;
@@ -46,6 +47,23 @@ namespace Tesira_DSP_EPI
         private int Permissions { get; set; }
         private int ControlType { get; set; }
 
+        public EventHandler<VolumeRangeEventArgs> VolumeRangeEvent;
+
+        public void OnVolumeMaxRangeEvent()
+        {
+            var handler = VolumeRangeEvent;
+            if (handler == null) return;
+            handler(this,
+                new VolumeRangeEventArgs(eVolumeRangeSetType.Maximum));
+        }
+        public void OnVolumeMinRangeEvent()
+        {
+            var handler = VolumeRangeEvent;
+            if (handler == null) return;
+            handler(this,
+                new VolumeRangeEventArgs(eVolumeRangeSetType.Minimum));
+        }
+
         private string IncrementAmount { get; set; }
         private bool UseAbsoluteValue { get; set; }
         private EPdtLevelTypes _type;
@@ -66,6 +84,8 @@ namespace Tesira_DSP_EPI
         CTimer _volumeDownRepeatTimer;
         CTimer _volumeUpRepeatDelayTimer;
         CTimer _volumeDownRepeatDelayTimer;
+        private CTimer _volumeMinPollTimer;
+        private CTimer _volumeMaxPollTimer;
 
         //private bool LevelSubscribed { get; set; }
 
@@ -82,7 +102,8 @@ namespace Tesira_DSP_EPI
         /// </summary>
         public string MuteCustomName { get; protected set; }
 
-
+        private double _minLevel{get { return MinLevel < 500 ? -100 : MinLevel; }}
+        private double _maxLevel{get { return MaxLevel < 500 ? 20 : MaxLevel; }}
 
         /// <summary>
         /// Minimum fader level
@@ -160,6 +181,32 @@ namespace Tesira_DSP_EPI
             _volumeDownRepeatTimer = new CTimer(VolumeDownRepeat, Timeout.Infinite);
             _volumeUpRepeatDelayTimer = new CTimer(VolumeUpRepeatDelay, Timeout.Infinite);
             _volumeDownRepeatDelayTimer = new CTimer(VolumeDownRepeatDelay, Timeout.Infinite);
+            if (!String.IsNullOrEmpty(config.FaderMinimum))
+            {
+                try
+                {
+                    MinLevel = Double.Parse(config.FaderMinimum);
+                }
+                catch (FormatException e)
+                {
+                    Debug.Console(2, this, "Configuration property \"faderMimimum\" has an invalid value");
+                    MinLevel = Double.MinValue;
+                } 
+            }
+
+            if (!String.IsNullOrEmpty(config.FaderMaximum))
+            {
+                try
+                {
+                    MaxLevel = Double.Parse(config.FaderMaximum);
+                }
+                catch (FormatException e)
+                {
+                    Debug.Console(2, this, "Configuration property \"faderMimimum\" has an invalid value");
+                    MaxLevel = Double.MinValue;
+                }
+            }
+            
 
             SubscriptionTracker = new Dictionary<string, SubscriptionTrackingObject>
             {
@@ -248,14 +295,15 @@ namespace Tesira_DSP_EPI
                 }
 
                 //Subscribe to Level
-                if (HasLevel)
+                if (!HasLevel)
                 {
-                    // MUST use InstanceTag1 for levels, it is the first instance tag in the JSON config
-                    LevelCustomName = string.Format("{0}~level{1}", InstanceTag1, Index1);
-                    SendSubscriptionCommand(LevelCustomName, "level", 250, 1);
-                    AddCustomName(LevelCustomName);
-
+                    OnVolumeMaxRangeEvent();
+                    OnVolumeMinRangeEvent();
                 }
+                // MUST use InstanceTag1 for levels, it is the first instance tag in the JSON config
+                LevelCustomName = string.Format("{0}~level{1}", InstanceTag1, Index1);
+                SendSubscriptionCommand(LevelCustomName, "level", 250, 1);
+                AddCustomName(LevelCustomName);
             }
             else
             {
@@ -305,11 +353,9 @@ namespace Tesira_DSP_EPI
             }
             else if (HasLevel && customName == LevelCustomName)
             {
-
-
                 var localValue = Double.Parse(value);
 
-                VolumeLevel = UseAbsoluteValue ? (ushort)localValue :  (ushort)localValue.Scale(MinLevel, MaxLevel, 0, 65535, this);
+                VolumeLevel = UseAbsoluteValue ? (ushort)localValue :  (ushort)localValue.Scale(_minLevel, _maxLevel, 0, 65535, this);
 
                 SubscriptionTracker["level"].Subscribed = true;
             }
@@ -327,12 +373,24 @@ namespace Tesira_DSP_EPI
             {
                 Debug.Console(2, this, "Parsing Message - '{0}' : Message has an attributeCode of {1}", message, attributeCode);
                 // Parse an "+OK" message
-                const string pattern = "[^ ]* (.*)";
+				//const string pattern = "[^ ]* (.*)";
+				// TODO [ ] Issue #68 - pattern below evaluates for the the response when verbose is on OR off
+				/*
+				SESSION set verbose true
+				ATC01 get maxLevel 1
+				+OK "value":12.000000
+
+				SESSION set verbose false
+				ATC01 get maxLevel 1
+				+OK 12.000000 
+				 */
+
+				const string pattern = @"^.* (?<type>.*):(?<value>.*)|^.* (?<value>.*)";
 
                 var match = Regex.Match(message, pattern);
 
                 if (!match.Success) return;
-                var value = match.Groups[1].Value;
+                var value = match.Groups["value"].Value;
 
                 Debug.Console(1, this, "Response: '{0}' Value: '{1}'", attributeCode, value);
 
@@ -340,26 +398,53 @@ namespace Tesira_DSP_EPI
                 switch (attributeCode)
                 {
                     case "minLevel":
-                    {
-                        MinLevel = Double.Parse(value);
+	                {
+                        // TODO [ ] Issue #68 - Evaluate what happens if the parse fails
+                        try
+                        {
+                            MinLevel = Double.Parse(value);
+                        }
+                        catch (FormatException)
+                        {
+                            if(MinLevel < -500)
+                                MinLevel = double.MinValue;
+                        }
+                        finally
+                        {
+                            Debug.Console(0, this, "MinLevel is '{0}'",
+                                MinLevel < 500 ? "invalid - using full range" : MaxLevel.ToString());
+                            OnVolumeMinRangeEvent();
 
-                        Debug.Console(1, this, "MinLevel is '{0}'", MinLevel);
-
+                        }
                         break;
                     }
                     case "maxLevel":
                     {
-                        MaxLevel = Double.Parse(value);
+						// TODO [ ] Issue #68 - Evaluate what happens if the parse fails
+                        try
+                        {
+                            if(MaxLevel < -500)
+                                MaxLevel = Double.Parse(value);
+                        }
+                        catch (FormatException)
+                        {
+                            MaxLevel = double.MinValue;
+                        }
+                        finally
+                        {
+                            Debug.Console(0, this, "MaxLevel is '{0}'",
+                                MaxLevel < 500 ? "invalid - using full range" : MaxLevel.ToString());
+                            OnVolumeMaxRangeEvent();
 
-                        Debug.Console(1, this, "MaxLevel is '{0}'", MaxLevel);
-
+                        }
                         break;
+
                     }
                     case "level":
                     {
                         var localValue = Double.Parse(value);
 
-                        VolumeLevel = UseAbsoluteValue ? (ushort) localValue : (ushort)localValue.Scale(MinLevel, MaxLevel, 0, 65535, this);
+                        VolumeLevel = UseAbsoluteValue ? (ushort) localValue : (ushort)localValue.Scale(_minLevel, _maxLevel, 0, 65535, this);
 
                         Debug.Console(1, this, "VolumeLevel is '{0}'", VolumeLevel);
 
@@ -412,20 +497,20 @@ namespace Tesira_DSP_EPI
             {
                 case (ushort.MinValue):
                 {
-                    SendFullCommand("set", "level", string.Format("{0:0.000000}", MinLevel), 1);
+                    SendFullCommand("set", "level", string.Format("{0:0.000000}", _minLevel), 1);
                     break;
                 }
 
                 case (ushort.MaxValue):
                 {
-                    SendFullCommand("set", "level", string.Format("{0:0.000000}", MaxLevel), 1);
+                    SendFullCommand("set", "level", string.Format("{0:0.000000}", _maxLevel), 1);
                     break;
                 }
                 default:
                 {
                     var newLevel = Convert.ToDouble(level);
 
-                    var volumeLevel = UseAbsoluteValue ? level : newLevel.Scale(0, 65535, MinLevel, MaxLevel, this);
+                    var volumeLevel = UseAbsoluteValue ? level : newLevel.Scale(0, 65535, _minLevel, _maxLevel, this);
 
                     SendFullCommand("set", "level", string.Format("{0:0.000000}", volumeLevel), 1);
                     break;
@@ -466,8 +551,22 @@ namespace Tesira_DSP_EPI
         public void GetMinLevel()
         {
             if (!HasLevel) return;
+            if (MinLevel > -500) return;
             SendFullCommand("get", "minLevel", null, 1);
         }
+
+        private void GetMinLevel(object data)
+        {
+            if (!HasLevel) return;
+            if (MinLevel > -500)
+            {
+                _volumeMinPollTimer.Stop();
+                GetVolume();
+                return;
+            }
+            SendFullCommand("get", "minLevel", null, 1);
+        }
+
 
         /// <summary>
         /// poll maximum level of fader component
@@ -475,8 +574,22 @@ namespace Tesira_DSP_EPI
         public void GetMaxLevel()
         {
             if (!HasLevel) return;
+            if (MaxLevel > -500) return;
             SendFullCommand("get", "maxLevel", null, 1);
         }
+
+        private void GetMaxLevel(object data)
+        {
+            if (!HasLevel) return;
+            if (MaxLevel > -500)
+            {
+                _volumeMaxPollTimer.Stop();
+                GetVolume();
+                return;
+            }
+            SendFullCommand("get", "maxLevel", null, 1);
+        }
+
 
         /// <summary>
         /// Polls the current mute state of Component
@@ -567,6 +680,18 @@ namespace Tesira_DSP_EPI
         {
             Speaker = 0,
             Microphone = 1
+        }
+
+        public void CheckRange()
+        {
+            if (MinLevel < -500)
+            {
+                _volumeMinPollTimer = new CTimer(GetMinLevel, null, 500, 5000);
+            }
+            if (MaxLevel < -500)
+            {
+                _volumeMaxPollTimer = new CTimer(GetMaxLevel, null, 1255, 7550);
+            }
         }
 
         public override void LinkToApi(BasicTriList trilist, uint joinStart, string joinMapKey, EiscApiAdvanced bridge)

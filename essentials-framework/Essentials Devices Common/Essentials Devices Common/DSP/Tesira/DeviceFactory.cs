@@ -5,14 +5,14 @@ using System.Collections.Generic;
 
 namespace Tesira_DSP_EPI
 {
-    public class TesiraFactory : EssentialsPluginDeviceFactory<TesiraDsp>
+    public class TesiraFactory : EssentialsDeviceFactory<TesiraDsp>
     {
         /// <summary>
         /// Factory for building new TesiraDsp Device
         /// </summary>
         public TesiraFactory()
         {
-            TypeNames = new List<string> { "tesira", "tesiraforte", "tesiraserver", "tesira-dsp", "tesiradsp" };
+            TypeNames = new List<string> { "tesira", "tesiradsp" };
         }
 
         /// <summary>

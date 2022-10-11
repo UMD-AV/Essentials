@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Crestron.SimplSharp;
+using Crestron.SimplSharp.Ssh;
 using Crestron.SimplSharpPro.CrestronThread;
 using PepperDash.Core;
 using PepperDash.Essentials.Core;
@@ -9,6 +10,7 @@ using System.Text.RegularExpressions;
 using Newtonsoft.Json;
 using PepperDash.Essentials.Core.Config;
 using Crestron.SimplSharpPro.DeviceSupport;
+using PepperDash.Essentials.Devices.Common.VideoCodec.Cisco;
 using Tesira_DSP_EPI.Bridge.JoinMaps;
 using PepperDash.Essentials.Core.Bridges;
 using Feedback = PepperDash.Essentials.Core.Feedback;
@@ -59,6 +61,7 @@ namespace Tesira_DSP_EPI
         private Thread _subscribeThread;
 
         private readonly bool _isSerialComm;
+        private bool _expanderDataInitial = false;
 
         private TesiraDspDeviceInfo DevInfo { get; set; }
         private Dictionary<string, TesiraDspFaderControl> Faders { get; set; }
@@ -68,8 +71,17 @@ namespace Tesira_DSP_EPI
         private Dictionary<string, TesiraDspMeter> Meters { get; set; }
         private Dictionary<string, TesiraDspCrosspointState> CrosspointStates { get; set; }
         private Dictionary<string, TesiraDspRoomCombiner> RoomCombiners { get; set; }
+        private List<ISubscribedComponent> _controlPoints = new List<ISubscribedComponent>(); 
         public List<IDspPreset> Presets { get; private set; } 
         private List<ISubscribedComponent> ControlPointList { get; set; }
+        private List<string> Aliases { get; set; }
+
+        private int _minVolCount;
+        private int _maxVolCount;
+
+        private int _faderCount = 0;
+
+        private TesiraExpanderTracker ExpanderTracker { get; set; }
 
         //private TesiraDspDeviceInfo DeviceInfo { get; set; }
 
@@ -173,6 +185,7 @@ namespace Tesira_DSP_EPI
             _subscribeThread = new Thread(o => HandleAttributeSubscriptions(), null,
                 Thread.eThreadStartOptions.CreateSuspended)
             {
+                Name = string.Format("{0}-queue", Key),
                 Priority = CrestronEnvironment.ProgramCompatibility.Equals(eCrestronSeries.Series4)
                     ? Thread.eThreadPriority.LowestPriority
                     : Thread.eThreadPriority.LowestPriority
@@ -234,8 +247,11 @@ namespace Tesira_DSP_EPI
 
             CreateRoomCombiners(props);
 
-            //Keep me at the end of this method!
             CreateDevInfo();
+
+            //Keep me at the end of this method!
+            CreateExpanderTracker(props);
+
         }
 
         private void CreateDevInfo()
@@ -243,8 +259,51 @@ namespace Tesira_DSP_EPI
             DevInfo = new TesiraDspDeviceInfo(this);
             if (DevInfo != null)
                 DeviceManager.AddDevice(DevInfo);
+            DevInfo.AliasesChanged += (sender, args) =>
+            {
+                var aliases = args.Aliases;
+                Aliases = aliases ?? new List<string>();
+                AssignAliases();
+            };
         }
 
+        private void AssignAliases()
+        {
+            if (Aliases.Count == 0)
+            {
+                foreach (var control in _controlPoints)
+                {
+                    control.ValidControl1 = true;
+                    control.ValidControl2 = true;
+                }
+
+            }
+            else
+            {
+                foreach (var control in _controlPoints)
+                {
+                    control.ValidControl1 = false;
+                    control.ValidControl2 = false;
+                }
+
+                foreach (
+                    var control in
+                        Aliases.Select(s => _controlPoints.FirstOrDefault(o => o.InstanceTag1 == s))
+                            .Where(control => control != null))
+                {
+                    control.ValidControl1 = true;
+                }
+                foreach (
+                    var control in
+                        Aliases.Select(s => _controlPoints.FirstOrDefault(o => o.InstanceTag2 == s))
+                            .Where(control => control != null))
+                {
+                    control.ValidControl2 = true;
+                }
+            }
+            GetMinimums();
+
+        }
 
         private void CreatePresets(TesiraDspPropertiesConfig props)
         {
@@ -277,9 +336,33 @@ namespace Tesira_DSP_EPI
                 {
                     //Add ControlPoint to the list for the watchdog
                     ControlPointList.Add(Faders[key]);
+                    _controlPoints.Add(Faders[key]);
+                    _faderCount++;
+                    Faders[key].VolumeRangeEvent += (sender, args) =>
+                    {
+                        if (args.RangeSet == eVolumeRangeSetType.Maximum)
+                        {
+                            _maxVolCount = _maxVolCount + 1;
+                            if (_maxVolCount == _faderCount)
+                            {
+                                
+                            }
+                        }
+                        if (args.RangeSet == eVolumeRangeSetType.Minimum)
+                        {
+                            _minVolCount = _minVolCount + 1;
+                            if (_minVolCount == _faderCount)
+                            {
+                                GetMaximums();
+                            }
+                        }
+                    };
+
                 }
                 DeviceManager.AddDevice(Faders[key]);
+                
             }
+            
         }
 
         private void CreateRoomCombiners(TesiraDspPropertiesConfig props)
@@ -295,6 +378,28 @@ namespace Tesira_DSP_EPI
                 if (value.Enabled)
                 {
                     ControlPointList.Add(RoomCombiners[key]);
+                    _controlPoints.Add(RoomCombiners[key]);
+                    _faderCount++;
+                    RoomCombiners[key].VolumeRangeEvent += (sender, args) =>
+                    {
+                        if (args.RangeSet == eVolumeRangeSetType.Maximum)
+                        {
+                            _maxVolCount = _maxVolCount + 1;
+                            if (_maxVolCount == _faderCount)
+                            {
+                                //DoThings
+                            }
+                        }
+                        if (args.RangeSet == eVolumeRangeSetType.Minimum)
+                        {
+                            _minVolCount = _minVolCount + 1;
+                            if (_minVolCount == _faderCount)
+                            {
+                                StartExpanderTracking();
+                            }
+                        }
+                    };
+
                 }
                 DeviceManager.AddDevice(RoomCombiners[key]);
 
@@ -314,6 +419,8 @@ namespace Tesira_DSP_EPI
                 if (value.Enabled)
                 {
                     ControlPointList.Add(CrosspointStates[key]);
+                    _controlPoints.Add(CrosspointStates[key]);
+
                 }
             }
         }
@@ -331,6 +438,8 @@ namespace Tesira_DSP_EPI
                 if (value.Enabled)
                 {
                     ControlPointList.Add(Meters[key]);
+                    _controlPoints.Add(Meters[key]);
+
                 }
             }
         }
@@ -348,7 +457,12 @@ namespace Tesira_DSP_EPI
                 Debug.Console(2, this, "Added DspState {0} InstanceTag: {1}", key, value.StateInstanceTag);
 
                 if (block.Value.Enabled)
+                {
                     ControlPointList.Add(States[key]);
+                    _controlPoints.Add(States[key]);
+                }
+
+
             }
         }
 
@@ -369,6 +483,8 @@ namespace Tesira_DSP_EPI
                 if (block.Value.Enabled)
                 {
                     ControlPointList.Add(Dialers[key]);
+                    _controlPoints.Add(Dialers[key]);
+
                 }
             }
         }
@@ -392,8 +508,31 @@ namespace Tesira_DSP_EPI
                     //Add ControlPoint to the list for the watchdog
 
                     ControlPointList.Add(Switchers[key]);
+                    _controlPoints.Add(Switchers[key]);
+
                 }
+                DeviceManager.AddDevice(Switchers[key]);
+
             }
+        }
+
+        private void CreateExpanderTracker(TesiraDspPropertiesConfig props)
+        {
+            if (props.ExpanderBlocks == null) return;
+            Debug.Console(2, this, "ExpanderBlocks is not null - there are {0} of them", props.ExpanderBlocks.Count());
+
+            ExpanderTracker = new TesiraExpanderTracker(this, props.ExpanderBlocks);
+
+            DeviceManager.AddDevice(ExpanderTracker);
+
+            ExpanderTracker.ExpanderDataReceived += (sender, args) =>
+            {
+                if(!_expanderDataInitial)
+                    StartSubscriptionQueue();
+                _expanderDataInitial = true;
+                
+            };
+
         }
 
         #region Communications
@@ -466,6 +605,7 @@ namespace Tesira_DSP_EPI
         {
 			try
 			{
+			    if (ControlPointList.Count == 0) return;
 			    if (WatchdogSuspend)
 			    {
 			        WatchDogSniffer = false;
@@ -616,23 +756,38 @@ namespace Tesira_DSP_EPI
 				}
 				else if (args.Text.IndexOf("-ERR", StringComparison.Ordinal) >= 0)
 				{
-					// Error response
+				    // Error response
 
-                    if (args.Text.IndexOf("ALREADY_SUBSCRIBED", StringComparison.Ordinal) >= 0)
-                    {
-                        if (WatchDogSniffer)
-                            Debug.Console(1, this, "The Watchdog didn't find anything.  Good Boy!");
+				    if (args.Text.IndexOf("ALREADY_SUBSCRIBED", StringComparison.Ordinal) >= 0)
+				    {
+				        if (WatchDogSniffer)
+				            Debug.Console(1, this, "The Watchdog didn't find anything.  Good Boy!");
 
-                        WatchDogSniffer = false;
-                        //CommandQueue.AdvanceQueue(args.Text);
-                    }
+				        WatchDogSniffer = false;
+				        //CommandQueue.AdvanceQueue(args.Text);
+				    }
 
-                    else
-                    {
-                        Debug.Console(1, this, Debug.ErrorLogLevel.Error, "Error From DSP: '{0}'", args.Text);
-                        WatchDogSniffer = false;
-                        CommandQueue.AdvanceQueue(args.Text);
-                    }
+				    else
+				    {
+				        Debug.Console(1, this, Debug.ErrorLogLevel.Error, "Error From DSP: '{0}'", args.Text);
+				        WatchDogSniffer = false;
+				        CommandQueue.AdvanceQueue(args.Text);
+				    }
+				}
+                    /*
+				else
+				{
+
+                    Debug.Console(2, this, "!!!!!!!!EXPANDER DATA!!!!!!!!!!!");
+                    const string pattern = @"\[([^\[\]]+)\]?";
+
+				    var rgx = new Regex(pattern);
+
+				    if (!rgx.IsMatch(DeviceRx)) return;
+
+				    if (ExpanderTracker == null) return;
+
+				    ExpanderTracker.ParseResults(rgx, DeviceRx);
 				}
                     /*
                 else if (args.Text.IndexOf("SESSION", StringComparison.OrdinalIgnoreCase) > -1)
@@ -673,7 +828,8 @@ namespace Tesira_DSP_EPI
 		public void RunPreset(string name)
 		{
             Debug.Console(2, this, "Running Preset By Name - {0}", name);
-            SendLine(string.Format("DEVICE recallPresetByName \"{0}\"", name));
+            //SendLine(string.Format("DEVICE recallPresetByName \"{0}\"", name));
+            CommandQueue.AddCommandToQueue(string.Format("DEVICE recallPresetByName \"{0}\"", name));
             //CommandQueue.EnqueueCommand(string.Format("DEVICE recallPresetByName \"{0}\"", name));
 		}
 
@@ -684,7 +840,8 @@ namespace Tesira_DSP_EPI
         public void RunPreset(int id)
         {
             Debug.Console(2, this, "Running Preset By ID - {0}", id);
-            SendLine(string.Format("DEVICE recallPreset {0}", id));
+            //SendLine(string.Format("DEVICE recallPreset {0}", id));
+            CommandQueue.AddCommandToQueue(string.Format("DEVICE recallPreset {0}", id));
             //CommandQueue.EnqueueCommand(string.Format("DEVICE recallPreset {0}", id));
         }
 
@@ -768,17 +925,33 @@ namespace Tesira_DSP_EPI
 		        DevInfo.GetFirmware();
 		        DevInfo.GetIpConfig();
 		        DevInfo.GetSerial();
+                DevInfo.GetAliases();
+
 		    }
-		    foreach (var fader in ControlPointList.OfType<IVolumeComponent>())
+
+		}
+
+        private void GetMinimums()
+        {
+            _minVolCount = 0;
+            if(_faderCount == 0) StartExpanderTracking();
+            foreach (var fader in ControlPointList.OfType<IVolumeComponent>())
             {
                 fader.GetMinLevel();
             }
+        }
 
+        private void GetMaximums()
+        {
+            _maxVolCount = 0;
             foreach (var fader in ControlPointList.OfType<IVolumeComponent>())
             {
                 fader.GetMaxLevel();
             }
+        }
 
+        private void StartSubscriptionQueue()
+        {
             if (_queueCheckTimer == null)
             {
                 _queueCheckTimer = new CTimer(o => QueueCheck(), null, 1000, 1000);
@@ -788,7 +961,28 @@ namespace Tesira_DSP_EPI
                 _queueCheckTimer.Reset(1000, 1000);
             }
 
-		}
+        }
+
+        private void StartExpanderTracking()
+        {
+            if (ExpanderTracker != null)
+            {
+                _expanderDataInitial = false;
+                ExpanderTracker.Initialize();
+                return;
+            }
+            StartSubscriptionQueue();
+        }
+
+        private void CheckRanges()
+        {
+            foreach (var fader in ControlPointList.OfType<IVolumeComponent>())
+            {
+                fader.CheckRange();
+            }
+
+        }
+
 
         private void QueueCheck()
         {
@@ -830,7 +1024,8 @@ namespace Tesira_DSP_EPI
             //_subscriptionLock.Enter();
             if (Communication.IsConnected)
             {
-                SendLine("SESSION set verbose false");
+                //SendLine("SESSION set verbose false");
+                CommandQueue.AddCommandToQueue("SESSION set verbose false");
                 try
                 {
                     if (_isSerialComm)
@@ -1174,4 +1369,21 @@ namespace Tesira_DSP_EPI
         }
 
     }
+
+    public class VolumeRangeEventArgs : EventArgs
+    {
+        public readonly eVolumeRangeSetType RangeSet;
+
+        public VolumeRangeEventArgs(eVolumeRangeSetType rangeSet)
+        {
+            RangeSet = rangeSet;
+        }
+    }
+
+    public enum eVolumeRangeSetType
+    {
+        Minimum,
+        Maximum
+    }
+
 }

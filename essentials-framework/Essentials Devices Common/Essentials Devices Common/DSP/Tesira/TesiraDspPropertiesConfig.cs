@@ -39,8 +39,20 @@ namespace Tesira_DSP_EPI {
         [JsonProperty("roomCombinerControlBlocks")]
         public Dictionary<string, TesiraRoomCombinerBlockConfig> RoomCombinerControlBlocks { get; set; }
 
+        [JsonProperty("tesiraExpanderBlocks")]
+        public Dictionary<string, TesiraExpanderBlockConfig> ExpanderBlocks { get; set; }
+        
         [JsonProperty("resubscribeString")]
         public string ResubscribeString { get; set; }
+    }
+
+    public class TesiraExpanderBlockConfig
+    {
+        [JsonProperty("hostname")]
+        public string Hostname { get; set; }
+
+        [JsonProperty("index")]
+        public int Index { get; set; }
     }
 
     public class TesiraFaderControlBlockConfig
@@ -86,6 +98,12 @@ namespace Tesira_DSP_EPI {
 
         [JsonProperty("bridgeIndex")]
         public uint? BridgeIndex { get; set; }
+
+        [JsonProperty("faderMinimum")]
+        public string FaderMinimum { get; set; }
+
+        [JsonProperty("faderMaximum")]
+        public string FaderMaximum { get; set; }
     }
 
 
@@ -297,6 +315,13 @@ namespace Tesira_DSP_EPI {
 
         [JsonProperty("bridgeIndex")]
         public uint? BridgeIndex { get; set; }
+
+        [JsonProperty("faderMinimum")]
+        public string FaderMinimum { get; set; }
+
+        [JsonProperty("faderMaximum")]
+        public string FaderMaximum { get; set; }
+
     }
 
     public class RoutingPort
