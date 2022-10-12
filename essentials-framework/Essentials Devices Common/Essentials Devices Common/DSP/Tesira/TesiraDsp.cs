@@ -902,9 +902,8 @@ namespace Tesira_DSP_EPI
 		#endregion
 
         public override void LinkToApi(BasicTriList trilist, uint joinStart, string joinMapKey, EiscApiAdvanced bridge)
-        {
-            
-            var deviceJoinMap = new TesiraDspDeviceJoinMapAdvancedStandalone(joinStart);
+        {            
+            var deviceJoinMap = new TesiraDspDeviceJoinMapAdvanced(joinStart);
             var dialerJoinMap = new TesiraDialerJoinMapAdvanced(joinStart);
             var faderJoinMap = new TesiraFaderJoinMapAdvanced(joinStart);
             var stateJoinMap = new TesiraStateJoinMapAdvanced(joinStart);
@@ -929,17 +928,12 @@ namespace Tesira_DSP_EPI
 
             Debug.Console(1, this, "Linking to Trilist '{0}'", trilist.ID.ToString("X"));
 
-            //var comm = DspDevice as IBasicCommunication;
-
-
             CommunicationMonitor.IsOnlineFeedback.LinkInputSig(trilist.BooleanInput[deviceJoinMap.IsOnline.JoinNumber]);
             CommandPassthruFeedback.LinkInputSig(trilist.StringInput[deviceJoinMap.CommandPassThru.JoinNumber]);
+            trilist.StringInput[deviceJoinMap.Name.JoinNumber].StringValue = Name;
             trilist.SetStringSigAction(presetJoinMap.PresetName.JoinNumber, RunPreset);
-
             trilist.SetStringSigAction(deviceJoinMap.CommandPassThru.JoinNumber, SendLineRaw);
-
             trilist.SetSigTrueAction(deviceJoinMap.Resubscribe.JoinNumber, Resubscribe);
-
 
             //Level and Mute Control
             Debug.Console(2, this, "There are {0} Level Control Points", Faders.Count());
