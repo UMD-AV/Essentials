@@ -54,23 +54,6 @@ namespace PepperDash.Essentials
                 // No volume for some reason. We have failed as developers
                 return null;
             }
-
-            // DSP format: deviceKey--levelName, biampTesira-1--master
-            match = Regex.Match(DeviceKey, @"([-_\w]+)--(.+)");
-            if (match.Success)
-            {
-                var devKey = match.Groups[1].Value;
-                var dsp = DeviceManager.GetDeviceForKey(devKey) as BiampTesiraForteDsp;
-                if (dsp != null)
-                {
-                    var levelTag = match.Groups[2].Value;
-                    if (dsp.LevelControlPoints.ContainsKey(levelTag)) // should always...
-                        return dsp.LevelControlPoints[levelTag];
-                }
-                // No volume for some reason. We have failed as developers
-                return null;
-            }
-
             return null;
         }
     }
