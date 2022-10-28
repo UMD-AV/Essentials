@@ -1463,6 +1463,20 @@ namespace PepperDash.Essentials.Core.Bridges.JoinMaps
 				JoinType = eJoinType.Serial
 			});
 
+        [JoinName("Name")]
+        public JoinDataComplete Name = new JoinDataComplete(
+            new JoinData
+            {
+                JoinNumber = 3,
+                JoinSpan = 1
+            },
+            new JoinMetadata
+            {
+                Description = "Device Name",
+                JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                JoinType = eJoinType.Serial
+            });
+
 		[JoinName("CallDirection")]
 		public JoinDataComplete CallDirection = new JoinDataComplete(
 			new JoinData
@@ -2944,6 +2958,20 @@ namespace PepperDash_Essentials_Core.Bridges.JoinMaps
 				JoinCapabilities = eJoinCapabilities.ToSIMPL,
 				JoinType = eJoinType.Serial
 			});
+
+        [JoinName("Name")]
+        public JoinDataComplete Name = new JoinDataComplete(
+            new JoinData
+            {
+                JoinNumber = 3,
+                JoinSpan = 1
+            },
+            new JoinMetadata
+            {
+                Description = "Device Name",
+                JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                JoinType = eJoinType.Serial
+            });
 
 		[JoinName("CallDirection")]
 		public JoinDataComplete CallDirection = new JoinDataComplete(

@@ -259,7 +259,7 @@ namespace PepperDash.Essentials.Core
 			Debug.Console(0, this, "Linking to Bridge Type {0}", GetType().Name);
 
             IsOnline.LinkInputSig(trilist.BooleanInput[joinMap.IsOnline.JoinNumber]);            
-		    trilist.StringInput[joinMap.Name.JoinNumber].StringValue = _partitionSensor.Name;
+		    trilist.StringInput[joinMap.Name.JoinNumber].StringValue = Name;
 			
 		    trilist.SetBoolSigAction(joinMap.Enable.JoinNumber, SetEnableState);
             EnableFeedback.LinkInputSig(trilist.BooleanInput[joinMap.Enable.JoinNumber]);

@@ -2318,6 +2318,8 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.ZoomRoom
 				bridge.AddJoinMap(Key, joinMap);
 			}
 
+            trilist.SetString(joinMap.Name.JoinNumber, "Zoom Room");
+
 			LinkVideoCodecToApi(this, trilist, joinMap);
 
 			LinkZoomRoomToApi(trilist, joinMap);

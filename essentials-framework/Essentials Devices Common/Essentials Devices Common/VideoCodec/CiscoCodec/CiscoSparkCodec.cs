@@ -1759,6 +1759,8 @@ ConnectorID: {2}"
                 bridge.AddJoinMap(Key, joinMap);
             }
 
+            trilist.SetString(joinMap.Name.JoinNumber, "Cisco Codec");
+
             LinkVideoCodecToApi(this, trilist, joinStart, joinMapKey, bridge);
 
             LinkCiscoCodecToApi(trilist, joinMap);
