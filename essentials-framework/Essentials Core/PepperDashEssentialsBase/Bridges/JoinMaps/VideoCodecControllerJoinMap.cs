@@ -6,20 +6,6 @@ namespace PepperDash.Essentials.Core.Bridges.JoinMaps
 	{
 		#region Digital
 
-        [JoinName("RefreshXSigs")]
-        public JoinDataComplete RefreshXSigs = new JoinDataComplete(
-            new JoinData
-            {
-                JoinNumber = 1,
-                JoinSpan = 1
-            },
-            new JoinMetadata
-            {
-                Description = "Force xSigs to update",
-                JoinCapabilities = eJoinCapabilities.FromSIMPL,
-                JoinType = eJoinType.Digital
-            });
-
 		[JoinName("IsOnline")]
 		public JoinDataComplete IsOnline = new JoinDataComplete(
 			new JoinData

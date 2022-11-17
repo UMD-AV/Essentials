@@ -293,7 +293,7 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.ZoomRoom
 		public JoinDataComplete SelfviewPipSizeToggle = new JoinDataComplete(
 			new JoinData
 			{
-				JoinNumber = 231,
+				JoinNumber = 240,
 				JoinSpan = 1
 			},
 			new JoinMetadata

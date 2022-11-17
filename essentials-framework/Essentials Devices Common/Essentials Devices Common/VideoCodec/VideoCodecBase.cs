@@ -333,8 +333,6 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec
 		{
 			Debug.Console(1, this, "Linking to Trilist {0}", trilist.ID.ToString("X"));
 
-			trilist.SetSigTrueAction(joinMap.RefreshXSigs.JoinNumber, () => RefreshXSigs(codec, trilist, joinMap));
-
 			LinkVideoCodecDtmfToApi(trilist, joinMap);
 
 			LinkVideoCodecCallControlsToApi(trilist, joinMap);
@@ -1345,7 +1343,6 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec
 					// TODO [ ] #983
 					Debug.Console(0, this, "LinkVideoCodecCallControlsToApi: device is {0}, IsInCall {1}", args.DeviceOnLine ? "online" : "offline", IsInCall);
 					trilist.SetBool(joinMap.HookState.JoinNumber, IsInCall);
-					trilist.SetString(joinMap.CurrentCallData.JoinNumber, "\xFC");
 					trilist.SetString(joinMap.CurrentCallData.JoinNumber, UpdateCallStatusXSig());
 			};
 		}
@@ -1399,7 +1396,7 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec
                 tokenArray[stringIndex + 1] = new XSigSerialToken(stringIndex + 2, String.Empty);
                 tokenArray[stringIndex + 2] = new XSigSerialToken(stringIndex + 3, String.Empty);
                 tokenArray[stringIndex + 3] = new XSigSerialToken(stringIndex + 4, String.Empty);
-                tokenArray[stringIndex + 4] = new XSigSerialToken(stringIndex + 5, String.Empty);
+                tokenArray[stringIndex + 4] = new XSigSerialToken(stringIndex + 5, "Idle");
                 tokenArray[stringIndex + 5] = new XSigSerialToken(stringIndex + 6, String.Empty);
 
 				arrayIndex += offset;
