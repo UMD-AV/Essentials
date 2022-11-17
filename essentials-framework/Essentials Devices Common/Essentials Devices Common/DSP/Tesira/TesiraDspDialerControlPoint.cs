@@ -18,25 +18,6 @@ namespace Tesira_DSP_EPI
         public string Label { get; set; }
         public readonly uint? BridgeIndex;
 
-        private bool _validControl1;
-        private bool _validControl2;
-
-
-        public bool ValidControl1
-        {
-            get { return String.IsNullOrEmpty(InstanceTag1) || _validControl1; }
-
-            set { _validControl1 = value; }
-        }
-
-        public bool ValidControl2
-        {
-            get { return String.IsNullOrEmpty(InstanceTag2) || _validControl2; }
-
-            set { _validControl2 = value; }
-        }
-
-
         public List<string> CustomNames { get; set; } 
 
         private const string KeyFormatter = "{0}--{1}";
@@ -70,8 +51,6 @@ namespace Tesira_DSP_EPI
         /// <param name="instanceTag">Instance Tag of Control</param>
         public virtual void SendFullCommand(string command, string attributeCode, string value, int instanceTag)
         {
-            if (!_validControl1 || !_validControl2) return;
-
             if (string.IsNullOrEmpty(attributeCode))
             {
                 Debug.Console(2, this, Debug.ErrorLogLevel.Error, "SendFullCommand({0}, {1}, {2}, {3}) Error: AttributeCode is null or empty", command, attributeCode, value, instanceTag);
@@ -143,9 +122,7 @@ namespace Tesira_DSP_EPI
             {
                 // This command will generate a simple "+OK" response and doesn't need to be queued
                 if (!string.IsNullOrEmpty(cmd))
-                    //Parent.SendLine(cmd);
-                    Parent.CommandQueue.AddCommandToQueue(cmd);
-
+                    Parent.SendLine(cmd);
             }
         }
 
@@ -168,8 +145,6 @@ namespace Tesira_DSP_EPI
 
         public virtual void SendSubscriptionCommand(string customName, string attributeCode, int responseRate, int instanceTag)
         {
-            if (!_validControl1 || !_validControl2) return;
-
             // Subscription string format: InstanceTag subscribe attributeCode Index1 customName responseRate
             // Ex: "RoomLevel subscribe level 1 MyRoomLevel 500"
             if (string.IsNullOrEmpty(customName) || string.IsNullOrEmpty(attributeCode))
@@ -209,14 +184,11 @@ namespace Tesira_DSP_EPI
 
             //Parent.WatchDogList.Add(customName,cmd);
             //Parent.SendLine(cmd);
-            //Parent.SendLine(cmd);
-            Parent.CommandQueue.AddCommandToQueue(cmd);
+            Parent.SendLine(cmd);
         }
 
         public virtual void SendUnSubscriptionCommand(string customName, string attributeCode, int instanceTag)
         {
-            if (!_validControl1 || !_validControl2) return;
-
             // Subscription string format: InstanceTag subscribe attributeCode Index1 customName responseRate
             // Ex: "RoomLevel subscribe level 1 MyRoomLevel 500"
             if (string.IsNullOrEmpty(customName) || string.IsNullOrEmpty(attributeCode))
@@ -252,9 +224,7 @@ namespace Tesira_DSP_EPI
 
             //Parent.WatchDogList.Add(customName,cmd);
             //Parent.SendLine(cmd);
-            //Parent.SendLine(cmd);
-            Parent.CommandQueue.AddCommandToQueue(cmd);
-
+            Parent.SendLine(cmd);
         }
         
         public virtual void DoPoll()
@@ -293,6 +263,4 @@ namespace Tesira_DSP_EPI
 
         #endregion
     }
-
-
 }

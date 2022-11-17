@@ -13,7 +13,7 @@ namespace Tesira_DSP_EPI {
         void ParseGetMessage(string attribute, string data);
     }
 
-    public interface ISubscribedComponent : IParseMessage, IKeyed, IHasInstanceTags
+    public interface ISubscribedComponent : IParseMessage, IKeyed
     {
         void SendSubscriptionCommand(string customName, string attributeCode, int responseRate, int instanceTag);
 
@@ -31,20 +31,11 @@ namespace Tesira_DSP_EPI {
 
         bool Enabled { get; }
 
-
-
-        List<string> CustomNames { get; } 
-
-    }
-
-    public interface IHasInstanceTags
-    {
         string InstanceTag1 { get; }
 
         string InstanceTag2 { get; }
 
-        bool ValidControl1 { get; set; }
-        bool ValidControl2 { get; set; }
+        List<string> CustomNames { get; } 
 
     }
 
@@ -55,6 +46,5 @@ namespace Tesira_DSP_EPI {
         void GetVolume();
         double MinLevel { get; }
         double MaxLevel { get; }
-        void CheckRange();
     }
 }
