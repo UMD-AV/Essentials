@@ -359,7 +359,7 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.Cisco
             }
             else
             {
-                var command = string.Format("xCommand Peripherals HeartBeat ID: {0}{1}", CrestronEthernetHelper.ETHERNET_PARAMETER_TO_GET.GET_MAC_ADDRESS, Delimiter);
+                var command = string.Format("xCommand Peripherals HeartBeat ID: {0}{1}", CrestronEthernetHelper.GetEthernetParameter(CrestronEthernetHelper.ETHERNET_PARAMETER_TO_GET.GET_MAC_ADDRESS, 0), Delimiter);
                 CommunicationMonitor = new GenericCommunicationMonitor(this, Communication, 30000, 120000, 300000, command);
             }
 
@@ -650,6 +650,7 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.Cisco
         /// <param name="e"></param>
         void SyncState_InitialSyncCompleted(object sender, EventArgs e)
         {
+            RegisterPeripheral();
             // Check for camera config info first
             if (_config.CameraInfo.Count > 0)
             {
@@ -704,6 +705,10 @@ ConnectorID: {2}"
             SetIsReady();
         }
 
+        private void RegisterPeripheral()
+        {
+            EnqueueCommand(String.Format("xCommand Peripherals Connect ID:{0} Name:Crestron Type:ControlSystem", CrestronEthernetHelper.GetEthernetParameter(CrestronEthernetHelper.ETHERNET_PARAMETER_TO_GET.GET_MAC_ADDRESS, 0)));
+        }
         public void SetCommDebug(string s)
         {
             if (s == "1")
@@ -843,6 +848,12 @@ ConnectorID: {2}"
                             break;
                         }
                 }
+                if (args.Text.Trim().ToLower().StartsWith("*r peripheralsheartbeatresult"))
+                {
+                    Debug.Console(0, this, "Got hearbeat but not using json, retrying sync");
+                    SendText("xPreferences outputmode json");
+                    _syncState.LoginMessageReceived();
+                }
             }
         }
 
@@ -920,6 +931,7 @@ ConnectorID: {2}"
                         PresentationSourceFeedback.FireUpdate();
                         PresentationSendingLocalOnlyFeedback.FireUpdate();
                         PresentationSendingLocalRemoteFeedback.FireUpdate();
+                        SharingContentIsOnFeedback.FireUpdate();
                     }
 
                     // Check to see if this is a call status message received after the initial status message
@@ -1143,7 +1155,16 @@ ConnectorID: {2}"
                 {
                     // CommandResponse Message
 
-                    if (response.IndexOf("\"CallHistoryRecentsResult\":{") > -1 || response.IndexOf("\"CallHistoryRecentsResult\": {") > -1)
+                    if (response.IndexOf("\"PeripheralsHeartBeatResult\":{") > -1 || response.IndexOf("\"PeripheralsHeartBeatResult\": {") > -1)
+                    {
+                        if (!_syncState.JsonResponseModeSet)
+                            _syncState.JsonResponseModeMessageReceived();
+                        if (!_syncState.InitialStatusMessageWasReceived)
+                            SendText("xStatus");
+                        if (!_syncState.InitialSyncComplete)
+                            Debug.Console(0, this, "Initial Sync Not Complete!");
+                    }
+                    else if (response.IndexOf("\"CallHistoryRecentsResult\":{") > -1 || response.IndexOf("\"CallHistoryRecentsResult\": {") > -1)
                     {
                         var codecCallHistory = new CiscoCallHistory.RootObject();
 
@@ -1629,8 +1650,6 @@ ConnectorID: {2}"
             SelectPresentationSource(3);
         }
 
-
-
         /// <summary>
         /// Starts presentation sharing
         /// </summary>
@@ -1652,12 +1671,8 @@ ConnectorID: {2}"
         /// </summary>
         public override void StopSharing()
         {
-            _desiredPresentationSource = 0;
-
             EnqueueCommand("xCommand Presentation Stop");
         }
-
-
 
         public override void PrivacyModeOn()
         {
@@ -2580,19 +2595,23 @@ ConnectorID: {2}"
 
         void CheckSyncStatus()
         {
-            if (LoginMessageWasReceived && JsonResponseModeSet  && InitialConfigurationMessageWasReceived && InitialStatusMessageWasReceived && FeedbackWasRegistered)
+            if (LoginMessageWasReceived && JsonResponseModeSet && InitialConfigurationMessageWasReceived && InitialStatusMessageWasReceived && FeedbackWasRegistered)
             {
                 InitialSyncComplete = true;
                 Debug.Console(1, this, "Initial Codec Sync Complete!");
                 Debug.Console(1, this, "{0} Command queued. Processing now...", _commandQueue.Count);
 
                 // Invoke a thread for the queue
-                CrestronInvoke.BeginInvoke((o) => { 
+                CrestronInvoke.BeginInvoke((o) =>
+                {
                     ProcessQueuedCommands();
                 });
             }
             else
+            {
+                Debug.Console(0, this, "Initial Codec Sync Not Complete!");
                 InitialSyncComplete = false;
+            }
         }
     }
 
