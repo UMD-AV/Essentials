@@ -970,8 +970,12 @@ namespace Tesira_DSP_EPI
                 trilist.SetBoolSigAction(faderJoinMap.VolumeUp.JoinNumber + x, genericChannel.VolumeUp);
                 trilist.SetBoolSigAction(faderJoinMap.VolumeDown.JoinNumber + x, genericChannel.VolumeDown);
 
-                trilist.SetUShortSigAction(faderJoinMap.Volume.JoinNumber + x, u => { if (u > 0) { genericChannel.SetVolume(u); } });
-                //channel.Value.DoPoll();
+                trilist.SetUShortSigAction(faderJoinMap.Volume.JoinNumber + x, u => {
+                    if (trilist.BooleanOutput[deviceJoinMap.EnableLevelSend.JoinNumber].BoolValue == true)
+                    {
+                        genericChannel.SetVolume(u);
+                    }
+                });
             }
 
             //states
