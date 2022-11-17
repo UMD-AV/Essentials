@@ -235,7 +235,10 @@ namespace PepperDash.Essentials.Core
 			if (_partitionSensor == null)
 				return;
 
-			_partitionSensor.Sensitivity.UShortValue = value;
+            if (_partitionSensor.Sensitivity.UShortValue != value && value > 0)
+            {
+                _partitionSensor.Sensitivity.UShortValue = value;
+            }
 		}
 
 		public override void LinkToApi(BasicTriList trilist, uint joinStart, string joinMapKey, EiscApiAdvanced bridge)
