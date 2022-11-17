@@ -83,8 +83,8 @@ namespace Tesira_DSP_EPI
         /// </summary>
         public string MuteCustomName { get; protected set; }
 
-        private double _minLevel{get { return MinLevel < 500 ? -100 : MinLevel; }}
-        private double _maxLevel{get { return MaxLevel < 500 ? 20 : MaxLevel; }}
+        private double _minLevel{get { return (MinLevel < -100 || MinLevel > 20) ? -100 : MinLevel; }}
+        private double _maxLevel{get { return (MaxLevel <-100 || MaxLevel > 20) ? 20 : MaxLevel; }}
 
         /// <summary>
         /// Minimum fader level
@@ -382,17 +382,15 @@ namespace Tesira_DSP_EPI
                         // TODO [ ] Issue #68 - Evaluate what happens if the parse fails
                         try
                         {
-                            if (MinLevel < 500)
-                                MinLevel = Double.Parse(value);
+                            MinLevel = Double.Parse(value);
                         }
                         catch (FormatException)
                         {
-                            MinLevel = double.MinValue;
+                            MinLevel = -100;
                         }
                         finally
                         {
-                            Debug.Console(0, this, "MinLevel is '{0}'",
-                                MinLevel < 500 ? "invalid - using full range" : MaxLevel.ToString());
+                            Debug.Console(0, this, "MinLevel is '{0}'", MinLevel.ToString());
                         }
                         break;
                     }
@@ -401,17 +399,15 @@ namespace Tesira_DSP_EPI
 						// TODO [ ] Issue #68 - Evaluate what happens if the parse fails
                         try
                         {
-                            if (MaxLevel < 500)
-                                MaxLevel = Double.Parse(value);
+                            MaxLevel = Double.Parse(value);
                         }
                         catch (FormatException)
                         {
-                            MaxLevel = double.MinValue;
+                            MaxLevel = 20;
                         }
                         finally
                         {
-                            Debug.Console(0, this, "MaxLevel is '{0}'",
-                                MaxLevel < 500 ? "invalid - using full range" : MaxLevel.ToString());
+                            Debug.Console(0, this, "MaxLevel is '{0}'", MaxLevel.ToString());
                         }
                         break;
 
