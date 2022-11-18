@@ -729,7 +729,7 @@ ConnectorID: {2}"
             if (e.Client.IsConnected)
             {
                 if(!_syncState.LoginMessageWasReceived)
-				    _loginMessageReceivedTimer = new CTimer(o => DisconnectClientAndReconnect(), 5000);
+				    _loginMessageReceivedTimer = new CTimer(o => DisconnectClientAndReconnect(), 60000);
             }
             else
             {
