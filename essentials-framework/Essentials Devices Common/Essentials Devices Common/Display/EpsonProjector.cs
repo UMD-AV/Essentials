@@ -698,6 +698,12 @@ namespace PepperDash.Essentials.Devices.Displays
         private void WarmupDone()
         {
             WarmupTimer.Stop();
+            _PowerMutex.WaitForMutex();
+            if (_RequestedPowerState == 1)
+            {
+                _RequestedPowerState = 0;
+            }
+            _PowerMutex.ReleaseMutex();
             _IsCoolingDown = false;
             _IsWarmingUp = false;
             IsWarmingUpFeedback.FireUpdate();
@@ -756,6 +762,12 @@ namespace PepperDash.Essentials.Devices.Displays
         private void CooldownDone()
         {
             CooldownTimer.Stop();
+            _PowerMutex.WaitForMutex();
+            if (_RequestedPowerState == 2)
+            {
+                _RequestedPowerState = 0;
+            }
+            _PowerMutex.ReleaseMutex();
             _IsWarmingUp = false;
             _IsCoolingDown = false;
             IsWarmingUpFeedback.FireUpdate();
