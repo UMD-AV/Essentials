@@ -699,10 +699,6 @@ namespace PepperDash.Essentials.Devices.Displays
         {
             WarmupTimer.Stop();
             _PowerMutex.WaitForMutex();
-            if (_RequestedPowerState == 1)
-            {
-                _RequestedPowerState = 0;
-            }
             _PowerMutex.ReleaseMutex();
             _IsCoolingDown = false;
             _IsWarmingUp = false;
@@ -763,10 +759,6 @@ namespace PepperDash.Essentials.Devices.Displays
         {
             CooldownTimer.Stop();
             _PowerMutex.WaitForMutex();
-            if (_RequestedPowerState == 2)
-            {
-                _RequestedPowerState = 0;
-            }
             _PowerMutex.ReleaseMutex();
             _IsWarmingUp = false;
             _IsCoolingDown = false;
