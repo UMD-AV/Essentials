@@ -370,7 +370,7 @@ namespace PepperDash.Essentials.Devices.Displays
                             }
                             else
                             {
-                                WarmupTimer.Reset();
+                                WarmupTimer.Reset(WarmupTime);
                             }
                         }
                         else if (data[1] == "03")
@@ -381,7 +381,7 @@ namespace PepperDash.Essentials.Devices.Displays
                             }
                             else
                             {
-                                CooldownTimer.Reset();
+                                CooldownTimer.Reset(CooldownTime);
                             }
                         }
                         else if (data[1] == "00" || data[1] == "04" || data[1] == "09")
@@ -677,7 +677,10 @@ namespace PepperDash.Essentials.Devices.Displays
                                 }
                                 if (count >= 100)
                                 {
-                                    Debug.Console(0, this, "ProcessQueue timed out waiting for next command");
+                                    if (!_IsWarmingUp && !_IsCoolingDown)
+                                    {
+                                        Debug.Console(0, this, "ProcessQueue timed out waiting for next command");
+                                    }
                                 }
                             }
                         }
