@@ -44,8 +44,11 @@ namespace PepperDash.Essentials.Devices.Displays
 		bool _IsWarmingUp;
 		bool _IsCoolingDown;
         bool _VideoMuteIsOn;
+        bool _abnormalStandby;
         int _LampHours;
         int _CurrentInputIndex;
+        ushort _onRetryCount;
+        ushort _offRetryCount;
         ushort _RequestedPowerState; // 0:none 1:on 2:off
         ushort _RequestedInputState; // 0:none 1-4:inputs 1-4 
         ushort _RequestedVideoMuteState; // 0:none/off 1:on
@@ -150,6 +153,8 @@ namespace PepperDash.Essentials.Devices.Displays
             Input4Feedback = new BoolFeedback(() => { return _CurrentInputIndex == 4; });
             ErrorFeedback = new StringFeedback(() => _errorFeedback);
 
+            _onRetryCount = 0;
+            _offRetryCount = 0;
             _pollTracker = 0;
             _LampHours = 0;
             _CurrentInputIndex = 0;
@@ -328,10 +333,11 @@ namespace PepperDash.Essentials.Devices.Displays
                     {
                         if (data[1] == "01")
                         {
+                            _onRetryCount = 0;
                             //Update power on feedback
                             if (_PowerIsOn == false)
                             {
-                                _PowerIsOn = true;
+                                _PowerIsOn = true;                                
                                 PowerIsOnFeedback.FireUpdate();
                             }
                             
@@ -342,6 +348,13 @@ namespace PepperDash.Essentials.Devices.Displays
                                 _RequestedPowerState = 0;
                             }
                             _PowerMutex.ReleaseMutex();
+
+                            //Clear any abnormal standby
+                            if (_abnormalStandby)
+                            {
+                                _abnormalStandby = false;
+                                ErrorFb = "";
+                            }
 
                             //Finish warming up process
                             if (_IsWarmingUp)
@@ -355,6 +368,10 @@ namespace PepperDash.Essentials.Devices.Displays
                             {
                                 CrestronInvoke.BeginInvoke((o) => WarmupStart());
                             }
+                            else
+                            {
+                                WarmupTimer.Reset();
+                            }
                         }
                         else if (data[1] == "03")
                         {
@@ -362,9 +379,14 @@ namespace PepperDash.Essentials.Devices.Displays
                             {
                                 CrestronInvoke.BeginInvoke((o) => CooldownStart());
                             }
+                            else
+                            {
+                                CooldownTimer.Reset();
+                            }
                         }
                         else if (data[1] == "00" || data[1] == "04" || data[1] == "09")
                         {
+                            _offRetryCount = 0;
                             //Update power on feedback
                             if (_PowerIsOn == true)
                             {
@@ -380,10 +402,46 @@ namespace PepperDash.Essentials.Devices.Displays
                             }
                             _PowerMutex.ReleaseMutex();
 
+                            //Clear any abnormal standby
+                            if (_abnormalStandby)
+                            {
+                                _abnormalStandby = false;
+                                ErrorFb = "";
+                            }
+
                             //Finish cooling down process
                             if (_IsCoolingDown)
                             {
                                 CrestronInvoke.BeginInvoke((o) =>CooldownDone());
+                            }
+                        }
+                        else if (data[1] == "05")
+                        {
+                            //Abnormal standby - only when projector has issues
+                            if (!_abnormalStandby)
+                            {
+                                _abnormalStandby = true;
+                                ErrorFb = "Projector in abnormal standby";
+                                Debug.LogError(Debug.ErrorLogLevel.Warning, "Projector in abnormal standby");
+                            }
+
+                            _offRetryCount = 0;
+                            //Update power on feedback
+                            if (_PowerIsOn == true)
+                            {
+                                _PowerIsOn = false;
+                                PowerIsOnFeedback.FireUpdate();
+                            }
+
+                            //Clear power check
+                            _PowerMutex.WaitForMutex();
+                            _RequestedPowerState = 0;
+                            _PowerMutex.ReleaseMutex();
+
+                            //Finish cooling down process
+                            if (_IsCoolingDown)
+                            {
+                                CrestronInvoke.BeginInvoke((o) => CooldownDone());
                             }
                         }
                     }
@@ -447,11 +505,13 @@ namespace PepperDash.Essentials.Devices.Displays
                     }
                     else if (data[0].EndsWith("ERR"))
                     {
+                        if (_abnormalStandby)
+                            return;
                         string error = data[1];
                         switch (error)
                         {
                             case "00":
-                                ErrorFb = "No error";
+                                ErrorFb = "";
                                 break;
                             case "01":
                                 ErrorFb = "Fan error";
@@ -672,6 +732,14 @@ namespace PepperDash.Essentials.Devices.Displays
         private void WarmupCallback(object o)
         {
             Debug.Console(0, this, "Warmup timed out");
+            _onRetryCount++;
+            _PowerMutex.WaitForMutex();
+            if (!CommunicationMonitor.IsOnline || (_RequestedPowerState == 1 && _onRetryCount > 2))
+            {
+                _RequestedPowerState = 0;
+                Debug.LogError(Debug.ErrorLogLevel.Warning, "Projector warmup timed out");
+            }
+            _PowerMutex.ReleaseMutex();
             WarmupDone();
         }
 
@@ -719,19 +787,19 @@ namespace PepperDash.Essentials.Devices.Displays
             }
 
             ProcessPower();
-
-            //fail safe for no feedback
-            if (!CommunicationMonitor.IsOnline)
-            {
-                _PowerMutex.WaitForMutex();
-                _RequestedPowerState = 0;
-                _PowerMutex.ReleaseMutex();
-            }
         }
 
         private void CooldownCallback(object o)
         {
             Debug.Console(0, this, "Cooldown timed out");
+            _offRetryCount++;
+            _PowerMutex.WaitForMutex();
+            if (!CommunicationMonitor.IsOnline || (_RequestedPowerState == 2 && _offRetryCount > 2))
+            {
+                Debug.LogError(Debug.ErrorLogLevel.Warning, "Projector cooldown timed out");
+                _RequestedPowerState = 0;
+            }
+            _PowerMutex.ReleaseMutex();
             CooldownDone();
         }
 
@@ -768,14 +836,6 @@ namespace PepperDash.Essentials.Devices.Displays
             VideoMuteIsOnFeedback.FireUpdate();
 
             ProcessPower();
-
-            //fail safe for no feedback
-            if (!CommunicationMonitor.IsOnline)
-            {
-                _PowerMutex.WaitForMutex();
-                _RequestedPowerState = 0;
-                _PowerMutex.ReleaseMutex();
-            }
         }
 
         /// <summary>
@@ -901,7 +961,7 @@ namespace PepperDash.Essentials.Devices.Displays
 
         public void ErrorGet()
         {
-            SendCommand(eCommandType.LampPoll, "ERR?", false);
+            SendCommand(eCommandType.ErrorPoll, "ERR?", false);
         }
 
         public void VolumeGet()
@@ -1094,6 +1154,7 @@ namespace PepperDash.Essentials.Devices.Displays
             InputPoll,
             VideoMutePoll,
             LampPoll,
+            ErrorPoll,
             Volume,
             VolumePoll
         }
@@ -1138,7 +1199,7 @@ namespace PepperDash.Essentials.Devices.Displays
                     {
                         Q[i] = command;                        
                     }
-                    else if(i != -1 && (command.Key == eCommandType.InputPoll || command.Key == eCommandType.LampPoll ||
+                    else if (i != -1 && (command.Key == eCommandType.InputPoll || command.Key == eCommandType.LampPoll || command.Key == eCommandType.ErrorPoll ||
                         command.Key == eCommandType.PowerPoll || command.Key == eCommandType.VideoMutePoll || command.Key == eCommandType.VolumePoll))
                     {
                         //Move poll to end of queue
