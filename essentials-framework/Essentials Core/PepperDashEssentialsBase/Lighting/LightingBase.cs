@@ -31,7 +31,6 @@ namespace PepperDash.Essentials.Core.Lighting
             LightingScenes = new List<LightingScene>();
 
             CurrentLightingScene = new LightingScene();
-			//CurrentLightingSceneFeedback = new IntFeedback(() => { return int.Parse(this.CurrentLightingScene.ID); });
         }
 
         public abstract void SelectScene(LightingScene scene);
@@ -99,16 +98,16 @@ namespace PepperDash.Essentials.Core.Lighting
         Debug.Console(0, "Linking to Lighting Type {0}", lightingDevice.GetType().Name.ToString());
 
         // GenericLighitng Actions & FeedBack
-        trilist.SetUShortSigAction(joinMap.SelectScene.JoinNumber, u => lightingDevice.SelectScene(lightingDevice.LightingScenes[u]));
+        trilist.SetUShortSigAction(joinMap.SelectButton.JoinNumber, u => lightingDevice.SelectScene(lightingDevice.LightingScenes[u]));
 
         var sceneIndex = 0;
         foreach (var scene in lightingDevice.LightingScenes)
         {
           var index = sceneIndex;
 
-          trilist.SetSigTrueAction((uint)(joinMap.SelectSceneDirect.JoinNumber + index), () => lightingDevice.SelectScene(lightingDevice.LightingScenes[index]));
-          scene.IsActiveFeedback.LinkInputSig(trilist.BooleanInput[(uint)(joinMap.SelectSceneDirect.JoinNumber + index)]);
-          trilist.StringInput[(uint)(joinMap.SelectSceneDirect.JoinNumber + index)].StringValue = scene.Name;
+          trilist.SetSigTrueAction((uint)(joinMap.SelectButtonDirect.JoinNumber + index), () => lightingDevice.SelectScene(lightingDevice.LightingScenes[index]));
+          scene.IsActiveFeedback.LinkInputSig(trilist.BooleanInput[(uint)(joinMap.SelectButtonDirect.JoinNumber + index)]);
+          trilist.StringInput[(uint)(joinMap.SelectButtonDirect.JoinNumber + index)].StringValue = scene.Name;
           trilist.BooleanInput[(uint)(joinMap.ButtonVisibility.JoinNumber + index)].BoolValue = true;
 
           sceneIndex++;
@@ -123,7 +122,7 @@ namespace PepperDash.Essentials.Core.Lighting
           {
             var index = sceneIndex;
 
-            trilist.StringInput[(uint) (joinMap.SelectSceneDirect.JoinNumber + index)].StringValue = scene.Name;
+            trilist.StringInput[(uint) (joinMap.SelectButtonDirect.JoinNumber + index)].StringValue = scene.Name;
             trilist.BooleanInput[(uint) (joinMap.ButtonVisibility.JoinNumber + index)].BoolValue = true;
             scene.IsActiveFeedback.FireUpdate();
 
