@@ -34,7 +34,7 @@ namespace PepperDash.Essentials.Core.Bridges
             new JoinMetadata { Description = "Lighting Controller Error Fb", JoinCapabilities = eJoinCapabilities.ToSIMPL, JoinType = eJoinType.Serial });
 
         [JoinName("ButtonTextFb")]
-        public JoinDataComplete ButtonTextFb = new JoinDataComplete(new JoinData { JoinNumber = 11, JoinSpan = 1 },
+        public JoinDataComplete ButtonTextFb = new JoinDataComplete(new JoinData { JoinNumber = 11, JoinSpan = 10 },
             new JoinMetadata { Description = "Lighting Controller Button Text Fb", JoinCapabilities = eJoinCapabilities.ToSIMPL, JoinType = eJoinType.Serial });
 
 

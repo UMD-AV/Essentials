@@ -168,6 +168,7 @@
     <Compile Include="DynFusion\DynFusionHelpRequest.cs" />
     <Compile Include="CameraControllers\AutomateVx.cs" />
     <Compile Include="Environment\Crestron Lighting\CrestronLighting.cs" />
+    <Compile Include="Environment\Lutron\LutronGrafikEye.cs" />
     <Compile Include="VideoCodec\ConvertiblePreset.cs" />
     <Compile Include="Codec\IHasCallHold.cs" />
     <Compile Include="Codec\IHasDoNotDisturb.cs" />
