@@ -41,11 +41,6 @@ namespace Tesira_DSP_EPI
             CustomNames = new List<string>();
 		}
 
-		public virtual void Initialize()
-		{
-
-		}
-
         public virtual void Subscribe()
         {
             //If component does not override subscription, it sets the subscription value to false.

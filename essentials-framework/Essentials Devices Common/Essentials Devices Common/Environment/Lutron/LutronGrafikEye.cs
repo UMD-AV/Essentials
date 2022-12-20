@@ -13,7 +13,7 @@ using LightingBase = PepperDash.Essentials.Core.Lighting.LightingBase;
 
 namespace PepperDash.Essentials.Devices.Common.Environment.Lutron
 {
-    public class LutronGrafikEye : LightingBase, ILightingMasterRaiseLower, ICommunicationMonitor
+    public class LutronGrafikEye : LightingBase, ICommunicationMonitor
     {
         public IBasicCommunication Communication { get; private set; }
         public CommunicationGather PortGather { get; private set; }
@@ -82,8 +82,21 @@ namespace PepperDash.Essentials.Devices.Common.Environment.Lutron
         /// Recalls the specified scene
         /// </summary>
         /// <param name="scene"></param>
+        /// 
+        public override void SelectScene(LightingScene scene)
+        {
+            if (LightingScenes.Exists(o => o.ID == scene.ID))
+            {
+                SelectScene((ushort)LightingScenes.FindIndex(o => o.ID == scene.ID));
+            }
+        }
+
+        /// <summary>
+        /// Recalls the specified scene
+        /// </summary>
+        /// <param name="scene"></param>
 		/// 
-        public override void SelectScene(ushort scene)
+        public void SelectScene(ushort scene)
         {
             if (LightingScenes != null && LightingScenes[scene] != null && LightingScenes[scene].ID != null)
             {

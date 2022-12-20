@@ -52,10 +52,6 @@ namespace PepperDash.Essentials.Devices.Common.Environment.Lutron
                 // IP Control
                 socket.ConnectionChange += new EventHandler<GenericSocketStatusChageEventArgs>(socket_ConnectionChange);
             }
-            else
-            {
-                // RS-232 Control
-            }
 
             Communication.TextReceived += new EventHandler<GenericCommMethodReceiveTextArgs>(Communication_TextReceived);
 
@@ -68,7 +64,7 @@ namespace PepperDash.Essentials.Devices.Common.Environment.Lutron
             }
             else
             {
-                CommunicationMonitor = new GenericCommunicationMonitor(this, Communication, 120000, 120000, 300000, "?ETHERNET,0\x0d\x0a");
+                CommunicationMonitor = new GenericCommunicationMonitor(this, Communication, 50000, 120000, 300000, "?ETHERNET,0\x0d\x0a");
             }
         }
 
@@ -259,17 +255,13 @@ namespace PepperDash.Essentials.Devices.Common.Environment.Lutron
 
         public string IntegrationId { get; set; }
         public List<LightingScene> Scenes { get; set; }
-
-        // Moved to use existing properties in Control object
-        // public string Username { get; set; } 
-        // public string Password { get; set; }
     }
 
     public class LutronQuantumAreaFactory : EssentialsDeviceFactory<LutronQuantumArea>
     {
         public LutronQuantumAreaFactory()
         {
-            TypeNames = new List<string>() { "lutronqs" };
+            TypeNames = new List<string>() { "lutronqsarea" };
         }
 
         public override EssentialsDevice BuildDevice(DeviceConfig dc)

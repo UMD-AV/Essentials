@@ -168,6 +168,7 @@
     <Compile Include="DynFusion\DynFusionHelpRequest.cs" />
     <Compile Include="CameraControllers\AutomateVx.cs" />
     <Compile Include="Environment\Crestron Lighting\CrestronLighting.cs" />
+    <Compile Include="Environment\Lutron\LutronQuantumDevice.cs" />
     <Compile Include="Environment\Lutron\LutronGrafikEye.cs" />
     <Compile Include="VideoCodec\ConvertiblePreset.cs" />
     <Compile Include="Codec\IHasCallHold.cs" />
@@ -242,7 +243,7 @@
     <Compile Include="DSP\DspBase.cs" />
     <Compile Include="DSP\PolycomSoundStructure\SoundStructureBasics.cs" />
     <Compile Include="Environment\Crestron Lighting\Din8sw8.cs" />
-    <Compile Include="Environment\Lutron\LutronQuantum.cs" />
+    <Compile Include="Environment\Lutron\LutronQuantumArea.cs" />
     <Compile Include="Environment\Somfy\RelayControlledShade.cs" />
     <Compile Include="Factory\DeviceFactory.cs" />
     <Compile Include="Generic\GenericSource.cs" />

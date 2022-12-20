@@ -36,8 +36,6 @@ namespace Tesira_DSP_EPI
             CustomNames = new List<string>();
         }
 
-        virtual public void Initialize() {}
-
         virtual public void Subscribe() {}
 
         virtual public void Unsubscribe() {}
