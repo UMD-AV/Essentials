@@ -97,6 +97,9 @@ namespace PepperDash.Essentials.Core.Lighting
 
         Debug.Console(0, "Linking to Lighting Type {0}", lightingDevice.GetType().Name.ToString());
 
+        //Send this device name to SIMPL
+        trilist.StringInput[joinMap.Name.JoinNumber].StringValue = this.Name;
+
         // GenericLighitng Actions & FeedBack
         trilist.SetUShortSigAction(joinMap.SelectButton.JoinNumber, u => lightingDevice.SelectScene(lightingDevice.LightingScenes[u]));
 

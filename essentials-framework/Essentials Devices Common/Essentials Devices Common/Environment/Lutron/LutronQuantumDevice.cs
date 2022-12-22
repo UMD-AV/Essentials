@@ -23,7 +23,7 @@ namespace PepperDash.Essentials.Devices.Common.Environment.Lutron
         string Username;
         string Password;
 
-        const string Delimiter = "\x0d\x0a";
+        const string Delimiter = "\x0d";
         const string Set = "#";
         const string Get = "?";
 
