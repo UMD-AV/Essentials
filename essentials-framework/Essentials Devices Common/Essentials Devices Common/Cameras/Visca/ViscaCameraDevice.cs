@@ -1086,7 +1086,7 @@ namespace ViscaCameraPlugin
 			if (preset <= 0)
 				return;
 
-			var cmd = new byte[] { _address, 0x01, 0x04, 0x3F, 0x02, Convert.ToByte(preset), 0xFF };
+			var cmd = new byte[] { _address, 0x01, 0x04, 0x3F, 0x02, Convert.ToByte(preset-1), 0xFF };
             QueueCommand(cmd);
             PollPreset();
 		}
@@ -1100,7 +1100,7 @@ namespace ViscaCameraPlugin
 			if (preset <= 0)
 				return;
 
-			var cmd = new byte[] { _address, 0x01, 0x04, 0x3F, 0x01, Convert.ToByte(preset), 0xFF };
+			var cmd = new byte[] { _address, 0x01, 0x04, 0x3F, 0x01, Convert.ToByte(preset-1), 0xFF };
             QueueCommand(eViscaCameraInquiry.PresetSave, cmd);
 		}
 
