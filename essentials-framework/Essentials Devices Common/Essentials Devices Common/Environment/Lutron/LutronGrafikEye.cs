@@ -24,8 +24,11 @@ namespace PepperDash.Essentials.Devices.Common.Environment.Lutron
             : base(key, name)
         {
             Communication = comm;
-            ControlUnit = props.ControlUnit.Length > 0 ? props.ControlUnit : "1";
-            LightingScenes = props.Scenes;
+            ControlUnit = (props.ControlUnit != null && props.ControlUnit.Length > 0) ? props.ControlUnit : "1";
+            if (props.Scenes != null)
+            {
+                LightingScenes = props.Scenes;
+            }
 
             PortGather = new CommunicationGather(Communication, "\x0D\x0A");
             PortGather.LineReceived += new EventHandler<GenericCommMethodReceiveTextArgs>(PortGather_LineReceived);
@@ -42,20 +45,8 @@ namespace PepperDash.Essentials.Devices.Common.Environment.Lutron
 
         public override void LinkToApi(BasicTriList trilist, uint joinStart, string joinMapKey, EiscApiAdvanced bridge)
         {
-            var joinMap = LinkLightingToApi(this, trilist, joinStart, joinMapKey, bridge);
-
-            //Send this device name to SIMPL
-            trilist.StringInput[joinMap.Name.JoinNumber].StringValue = this.Name;
-
-            ushort count = 0;
-            foreach (var scene in LightingScenes)
-            {
-                trilist.StringInput[joinMap.ButtonTextFb.JoinNumber + count].StringValue = scene.Name;
-                count++;
-
-                if (count > 10)
-                    break;
-            }
+            var joinMap = new GenericLightingJoinMap(joinStart);
+            LinkLightingToApi(trilist, joinStart, joinMapKey, bridge);
 
             CommunicationMonitor.IsOnlineFeedback.LinkInputSig(trilist.BooleanInput[joinMap.IsOnline.JoinNumber]);
         }
@@ -85,7 +76,7 @@ namespace PepperDash.Essentials.Devices.Common.Environment.Lutron
         /// 
         public override void SelectScene(LightingScene scene)
         {
-            if (LightingScenes.Exists(o => o.ID == scene.ID))
+            if (LightingScenes != null && LightingScenes.Exists(o => o.ID == scene.ID))
             {
                 SelectScene((ushort)LightingScenes.FindIndex(o => o.ID == scene.ID));
             }
@@ -100,7 +91,7 @@ namespace PepperDash.Essentials.Devices.Common.Environment.Lutron
         {
             if (LightingScenes != null && LightingScenes[scene] != null && LightingScenes[scene].ID != null)
             {
-                if (scene >= 1 && scene <= 10)
+                if (scene >= 0 && scene <= 10)
                 {
                     Debug.Console(1, this, "Selecting Scene: '{0}'", LightingScenes[scene].ID);
                     SendLine(string.Format(":A{0}{1}", LightingScenes[scene].ID, ControlUnit));
@@ -114,7 +105,7 @@ namespace PepperDash.Essentials.Devices.Common.Environment.Lutron
         /// <param name="s"></param>
         public void SendLine(string s)
         {
-            Communication.SendText(s + 0x0D);
+            Communication.SendText(s + '\r');
         }
     }
 

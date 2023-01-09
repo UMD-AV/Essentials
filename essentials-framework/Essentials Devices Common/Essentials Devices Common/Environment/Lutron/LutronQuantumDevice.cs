@@ -74,7 +74,8 @@ namespace PepperDash.Essentials.Devices.Common.Environment.Lutron
 
         public override void LinkToApi(BasicTriList trilist, uint joinStart, string joinMapKey, EiscApiAdvanced bridge)
         {
-            var joinMap = LinkLightingToApi(this, trilist, joinStart, joinMapKey, bridge);
+            var joinMap = new GenericLightingJoinMap(joinStart);
+            LinkLightingToApi(trilist, joinStart, joinMapKey, bridge);
 
             CommunicationMonitor.IsOnlineFeedback.LinkInputSig(trilist.BooleanInput[joinMap.IsOnline.JoinNumber]);
             trilist.SetStringSigAction(joinMap.IntegrationIdSet.JoinNumber , s => IntegrationId = s);
