@@ -391,7 +391,9 @@ namespace PepperDash.Essentials.Devices.Displays
                             if (_PowerIsOn == true)
                             {
                                 _PowerIsOn = false;
+                                _VideoMuteIsOn = false;
                                 PowerIsOnFeedback.FireUpdate();
+                                VideoMuteIsOnFeedback.FireUpdate();
                             }
 
                             //Clear power check
