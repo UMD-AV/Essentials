@@ -18,10 +18,13 @@ namespace PepperDash.Essentials.Core.Lighting
         public event EventHandler<LightingSceneChangeEventArgs> LightingSceneChange;
 
         public List<LightingScene> LightingScenes { get; protected set; }
-
         public LightingScene CurrentLightingScene { get; protected set; }
-		
-		public IntFeedback CurrentLightingSceneFeedback { get; protected set; }
+
+        protected bool occupiedFb;
+        protected bool vacantFb;
+
+        public BoolFeedback OccupiedFeedback { get; protected set; }
+        public BoolFeedback VacantFeedback { get; protected set; }
 
         #endregion
 
@@ -29,8 +32,10 @@ namespace PepperDash.Essentials.Core.Lighting
             : base(key, name)
         {
             LightingScenes = new List<LightingScene>();
-
             CurrentLightingScene = new LightingScene();
+
+            OccupiedFeedback = new BoolFeedback(() => occupiedFb);
+            VacantFeedback = new BoolFeedback(() => vacantFb);
         }
 
         public abstract void SelectScene(LightingScene scene);
@@ -79,6 +84,10 @@ namespace PepperDash.Essentials.Core.Lighting
 
             // GenericLighitng Actions & FeedBack
             trilist.SetUShortSigAction(joinMap.SelectButton.JoinNumber, u => this.SelectScene(this.LightingScenes[u]));
+
+            //Set occupied/vacant feedback
+            OccupiedFeedback.LinkInputSig(trilist.BooleanInput[joinMap.OccupiedFb.JoinNumber]);
+            VacantFeedback.LinkInputSig(trilist.BooleanInput[joinMap.VacantFb.JoinNumber]);
 
             var sceneIndex = 0;
             foreach (var scene in this.LightingScenes)

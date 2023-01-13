@@ -10,6 +10,8 @@ using PepperDash.Essentials.Core.Config;
 using PepperDash.Essentials.Core.Bridges;
 using PepperDash.Essentials.Core.Lighting;
 using LightingBase = PepperDash.Essentials.Core.Lighting.LightingBase;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace PepperDash.Essentials.Devices.Common.Environment.Lutron
 {
@@ -20,8 +22,20 @@ namespace PepperDash.Essentials.Devices.Common.Environment.Lutron
         public StatusMonitorBase CommunicationMonitor { get; private set; }
 
         CTimer SubscribeAfterLogin;
+        LutronQuantumPropertiesConfig _props;
 
-        public string IntegrationId;
+        private string _integrationId;
+        public string IntegrationId
+        {
+            get { return _integrationId; }
+            set
+            {
+                if (_integrationId == value) return;
+                _integrationId = value;
+                UpdateConfigIntegrationId(value);
+            }
+        }
+
         string Username;
         string Password;
 
@@ -34,15 +48,14 @@ namespace PepperDash.Essentials.Devices.Common.Environment.Lutron
         {
             Communication = comm;
 
+            _props = props;
             IntegrationId = props.IntegrationId;
 
 			if (props.Control.Method != eControlMethod.Com)
 			{
-
 				Username = props.Control.TcpSshProperties.Username;
 				Password = props.Control.TcpSshProperties.Password;
 			}
-
 
             LightingScenes = props.Scenes;
 
@@ -64,7 +77,7 @@ namespace PepperDash.Essentials.Devices.Common.Environment.Lutron
             }
             else
             {
-                CommunicationMonitor = new GenericCommunicationMonitor(this, Communication, 50000, 120000, 300000, "?ETHERNET,0\x0d\x0a");
+                CommunicationMonitor = new GenericCommunicationMonitor(this, Communication, 50000, 120000, 300000, Poll);
             }
         }
 
@@ -84,6 +97,15 @@ namespace PepperDash.Essentials.Devices.Common.Environment.Lutron
 
             CommunicationMonitor.IsOnlineFeedback.LinkInputSig(trilist.BooleanInput[joinMap.IsOnline.JoinNumber]);
             trilist.SetStringSigAction(joinMap.IntegrationIdSet.JoinNumber , s => IntegrationId = s);
+        }
+
+        private void UpdateConfigIntegrationId(string id)
+        {
+            if(_props.IntegrationId != id)
+            {
+                _props.IntegrationId = id;
+                //ConfigWriter.UpdateDeviceProperties(this.Key, JToken.FromObject(_props));
+            }
         }
 
         void socket_ConnectionChange(object sender, GenericSocketStatusChageEventArgs e)
@@ -117,7 +139,7 @@ namespace PepperDash.Essentials.Devices.Common.Environment.Lutron
                 SubscribeAfterLogin = new CTimer(x => SubscribeToFeedback(), null, 5000);
 
             }
-            else if (args.Text.Contains("Access Granted"))
+            else if (args.Text.ToLower().Contains("access granted") || args.Text.ToLower().Contains("connection established"))
             {
                 if (SubscribeAfterLogin != null)
                 {
@@ -164,6 +186,32 @@ namespace PepperDash.Essentials.Devices.Common.Environment.Lutron
 
                                     break;
                                 }
+                            case (int)eAction.OccupancyState:
+                                {
+                                    var occupancy = response[3];
+                                    switch (occupancy)
+                                    {
+                                        case "1":
+                                            occupiedFb = false;
+                                            vacantFb = false;
+                                            break;
+                                        case "2":
+                                            occupiedFb = false;
+                                            vacantFb = false;
+                                            break;
+                                        case "3":
+                                            occupiedFb = true;
+                                            vacantFb = false;
+                                            break;
+                                        case "4":
+                                            occupiedFb = false;
+                                            vacantFb = true;
+                                            break;
+                                    }
+                                    OccupiedFeedback.FireUpdate();
+                                    VacantFeedback.FireUpdate();
+                                    break;
+                                }
                             default:
                                 break;
                         }
@@ -181,10 +229,14 @@ namespace PepperDash.Essentials.Devices.Common.Environment.Lutron
         /// </summary>
         public void SubscribeToFeedback()
         {
-            Debug.Console(1, "Sending Monitoring Subscriptions");
-            SendLine("#MONITORING,6,1");
-            SendLine("#MONITORING,8,1");
-            SendLine("#MONITORING,5,2");
+            Debug.Console(1, this, "Sending Monitoring Subscriptions");
+            SendLine("#MONITORING,6,1");    //Enable occupancy monitoring
+            SendLine("#MONITORING,8,1");    //Enable scene monitoring
+            SendLine("#MONITORING,5,2");    //Disable zone monitoring
+
+            //Initialize current state
+            SendLine(string.Format("{0}AREA,{1},{2}", Get, IntegrationId, (int)eAction.Scene));
+            SendLine(string.Format("{0}AREA,{1},{2}", Get, IntegrationId, (int)eAction.OccupancyState));
         }
 
         /// <summary>
@@ -192,11 +244,19 @@ namespace PepperDash.Essentials.Devices.Common.Environment.Lutron
         /// </summary>
         /// <param name="scene"></param>
 		/// 
-
         public override void SelectScene(LightingScene scene)
         {
             Debug.Console(1, this, "Selecting Scene: '{0}'", scene.Name);
             SendLine(string.Format("{0}AREA,{1},{2},{3}", Set, IntegrationId, (int)eAction.Scene, scene.ID));
+        }
+
+        /// <summary>
+        /// Polls the lutron for health purposes
+        /// </summary>
+        /// 
+        public void Poll()
+        {
+            SendLine("?ETHERNET,0\x0d\x0a");
         }
 
         /// <summary>

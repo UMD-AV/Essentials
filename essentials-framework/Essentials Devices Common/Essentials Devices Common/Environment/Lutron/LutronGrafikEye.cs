@@ -10,6 +10,8 @@ using PepperDash.Essentials.Core.Config;
 using PepperDash.Essentials.Core.Bridges;
 using PepperDash.Essentials.Core.Lighting;
 using LightingBase = PepperDash.Essentials.Core.Lighting.LightingBase;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace PepperDash.Essentials.Devices.Common.Environment.Lutron
 {
@@ -18,12 +20,27 @@ namespace PepperDash.Essentials.Devices.Common.Environment.Lutron
         public IBasicCommunication Communication { get; private set; }
         public CommunicationGather PortGather { get; private set; }
         public StatusMonitorBase CommunicationMonitor { get; private set; }
-        private string ControlUnit;
+
+        LutronGrafikEyePropertiesConfig _props;
+
+        private string _controlUnit;
+        public string ControlUnit
+        {
+            get { return _controlUnit; }
+            set
+            {
+                if (_controlUnit == value) return;
+                _controlUnit = value;
+                UpdateConfigControlUnit(value);
+            }
+        }
 
         public LutronGrafikEye(string key, string name, IBasicCommunication comm, LutronGrafikEyePropertiesConfig props)
             : base(key, name)
         {
             Communication = comm;
+            _props = props;
+
             ControlUnit = (props.ControlUnit != null && props.ControlUnit.Length > 0) ? props.ControlUnit : "1";
             if (props.Scenes != null)
             {
@@ -49,6 +66,15 @@ namespace PepperDash.Essentials.Devices.Common.Environment.Lutron
             LinkLightingToApi(trilist, joinStart, joinMapKey, bridge);
 
             CommunicationMonitor.IsOnlineFeedback.LinkInputSig(trilist.BooleanInput[joinMap.IsOnline.JoinNumber]);
+        }
+
+        private void UpdateConfigControlUnit(string id)
+        {
+            if (_props.ControlUnit != id)
+            {
+                _props.ControlUnit = id;
+                //ConfigWriter.UpdateDeviceProperties(this.Key, JToken.FromObject(_props));
+            }
         }
 
         /// <summary>

@@ -479,9 +479,12 @@ namespace VaddioBridgePlugin
             {
                 Debug.Console(1, this, "Vaddio Bridge feedback: login incorrect");
                 _loggedIn = false;
-                _usernameSent = true;
-                string username = _config.Username == null ? "admin" : _config.Username;
-                CrestronInvoke.BeginInvoke((o) => SendText(username));
+                if (_usernameSent == false)
+                {
+                    _usernameSent = true;
+                    string username = _config.Username == null ? "admin" : _config.Username;
+                    SendText(username);
+                }
             }
             else if (temp.Contains(usernameSearch))
             {
@@ -491,14 +494,17 @@ namespace VaddioBridgePlugin
                 {
                     _usernameSent = true;
                     string username = _config.Username == null ? "admin" : _config.Username;
-                    CrestronInvoke.BeginInvoke((o) => SendText(username));                   
+                    SendText(username);                   
                 }
             }
             else if (temp.Contains(passwordSearch))
             {
                 Debug.Console(1, this, "Vaddio Bridge feedback: password");
-                string password = _config.Password == null ? "" : _config.Password;
-                CrestronInvoke.BeginInvoke((o) => SendText(password));
+                if (_usernameSent == true)
+                {
+                    string password = _config.Password == null ? "" : _config.Password;
+                    SendText(password);
+                }
                 _usernameSent = false;
             }
             else if (temp.StartsWith(pipSearch))
@@ -590,8 +596,18 @@ namespace VaddioBridgePlugin
 		{
             if (_loggedIn == false)
             {
-                string username = _config.Username == null ? "admin" : _config.Username;
-                SendText(username);
+                if (_usernameSent == false)
+                {
+                    _usernameSent = true;
+                    string username = _config.Username == null ? "admin" : _config.Username;
+                    SendText(username);
+                }
+                else
+                {
+                    string password = _config.Password == null ? "" : _config.Password;
+                    SendText(password);
+                    _usernameSent = false;
+                }
             }
             else
             {

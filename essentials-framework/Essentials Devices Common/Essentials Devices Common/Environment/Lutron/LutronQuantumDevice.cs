@@ -10,6 +10,8 @@ using PepperDash.Essentials.Core.Config;
 using PepperDash.Essentials.Core.Bridges;
 using PepperDash.Essentials.Core.Lighting;
 using LightingBase = PepperDash.Essentials.Core.Lighting.LightingBase;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace PepperDash.Essentials.Devices.Common.Environment.Lutron
 {
@@ -19,7 +21,20 @@ namespace PepperDash.Essentials.Devices.Common.Environment.Lutron
         public CommunicationGather PortGather { get; private set; }
         public StatusMonitorBase CommunicationMonitor { get; private set; }
 
-        public string IntegrationId;
+        LutronQuantumPropertiesConfig _props;
+
+        private string _integrationId;
+        public string IntegrationId
+        {
+            get { return _integrationId; }
+            set
+            {
+                if (_integrationId == value) return;
+                _integrationId = value;
+                UpdateConfigIntegrationId(value);
+            }
+        }
+
         string Username;
         string Password;
 
@@ -31,6 +46,7 @@ namespace PepperDash.Essentials.Devices.Common.Environment.Lutron
             : base(key, name)
         {
             Communication = comm;
+            _props = props;
             IntegrationId = props.IntegrationId;
 
 			if (props.Control.Method != eControlMethod.Com)
@@ -79,6 +95,15 @@ namespace PepperDash.Essentials.Devices.Common.Environment.Lutron
 
             CommunicationMonitor.IsOnlineFeedback.LinkInputSig(trilist.BooleanInput[joinMap.IsOnline.JoinNumber]);
             trilist.SetStringSigAction(joinMap.IntegrationIdSet.JoinNumber , s => IntegrationId = s);
+        }
+
+        private void UpdateConfigIntegrationId(string id)
+        {
+            if (_props.IntegrationId != id)
+            {
+                _props.IntegrationId = id;
+                //ConfigWriter.UpdateDeviceProperties(this.Key, JToken.FromObject(_props));
+            }
         }
 
         void socket_ConnectionChange(object sender, GenericSocketStatusChageEventArgs e)

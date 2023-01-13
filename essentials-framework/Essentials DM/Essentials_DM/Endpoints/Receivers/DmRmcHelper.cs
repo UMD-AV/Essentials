@@ -11,6 +11,7 @@ using PepperDash.Essentials.Core.Bridges;
 using PepperDash.Essentials.Core.DeviceInfo;
 using PepperDash.Essentials.DM.Config;
 using PepperDash.Essentials.Core.Config;
+using Crestron.SimplSharpPro.DM.Endpoints;
 
 namespace PepperDash.Essentials.DM
 {
@@ -26,6 +27,11 @@ namespace PepperDash.Essentials.DM
         public StringFeedback EdidPreferredTimingFeedback { get; protected set; }
         public StringFeedback EdidSerialNumberFeedback { get; protected set; }
 
+        /// <summary>
+        /// The value of the video blanking for the HDMI output on the receiver
+        /// </summary>
+        public BoolFeedback HdmiOutputBlankedFeedback { get; private set; }
+
         protected DmRmcControllerBase(string key, string name, EndpointReceiverBase device)
 			: base(key, name, device)
         {
@@ -39,6 +45,37 @@ namespace PepperDash.Essentials.DM
             DeviceInfo = new DeviceInfo();
 
             IsOnline.OutputChange += (currentDevice, args) => { if (args.BoolValue) UpdateDeviceInfo(); };
+
+            var scaler = (_rmc as DmRmcScalerC);
+            if (scaler != null)
+            {
+                HdmiOutputBlankedFeedback = new BoolFeedback(() => scaler.HdmiOutput.BlankEnabledFeedback.BoolValue);
+                scaler.HdmiOutput.OutputStreamChange +=new EndpointOutputStreamChangeEventHandler(HdmiOutput_OutputStreamChange);
+            }
+        }
+
+        void HdmiOutput_OutputStreamChange(EndpointOutputStream outputStream, EndpointOutputStreamEventArgs args)
+        {
+            if (args.EventId == EndpointOutputStreamEventIds.BlankEnabledFeedbackEventId)
+            {
+                HdmiOutputBlankedFeedback.FireUpdate();
+            }
+        }
+
+        public void BlankOutput()
+        {
+            if (_rmc is DmRmcScalerC)
+            {
+                ((DmRmcScalerC)_rmc).HdmiOutput.BlankEnabled();
+            }   
+        }
+
+        public void UnblankOutput()
+        {
+            if (_rmc is DmRmcScalerC)
+            {
+                ((DmRmcScalerC)_rmc).HdmiOutput.BlankDisabled();
+            }
         }
 
         protected void LinkDmRmcToApi(DmRmcControllerBase rmc, BasicTriList trilist, uint joinStart, string joinMapKey, EiscApiAdvanced bridge)
@@ -80,6 +117,14 @@ namespace PepperDash.Essentials.DM
             if (routing == null)
             {
                 return;
+            }
+
+            if (_rmc is DmRmcScalerC)
+            {
+                trilist.BooleanOutput[joinMap.BlankOutput.JoinNumber].SetBoolSigAction((b) => ((DmRmcScalerC)_rmc).HdmiOutput.BlankEnabled());
+                trilist.BooleanOutput[joinMap.UnblankOutput.JoinNumber].SetBoolSigAction((b) => ((DmRmcScalerC)_rmc).HdmiOutput.BlankDisabled());
+                HdmiOutputBlankedFeedback.LinkInputSig(trilist.BooleanInput[joinMap.BlankOutput.JoinNumber]);
+                HdmiOutputBlankedFeedback.LinkComplementInputSig(trilist.BooleanInput[joinMap.UnblankOutput.JoinNumber]);
             }
 
             if (routing.AudioVideoSourceNumericFeedback != null)
@@ -499,9 +544,7 @@ namespace PepperDash.Essentials.DM
 	            Debug.Console(0, "[{0}] WARNING: Cannot create DM-RMC device: {1}", key, e.Message);
                 return null;
 	        }
-	    }
-
-        
+	    }        
 	}
 
     public class DmRmcControllerFactory : EssentialsDeviceFactory<DmRmcControllerBase>
