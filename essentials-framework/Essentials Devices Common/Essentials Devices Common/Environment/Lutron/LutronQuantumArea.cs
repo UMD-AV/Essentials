@@ -30,9 +30,12 @@ namespace PepperDash.Essentials.Devices.Common.Environment.Lutron
             get { return _integrationId; }
             set
             {
-                if (_integrationId == value) return;
-                _integrationId = value;
-                UpdateConfigIntegrationId(value);
+                if (value.Length > 0)
+                {
+                    if (_integrationId == value) return;
+                    _integrationId = value;
+                    UpdateConfigIntegrationId(value);
+                }
             }
         }
 

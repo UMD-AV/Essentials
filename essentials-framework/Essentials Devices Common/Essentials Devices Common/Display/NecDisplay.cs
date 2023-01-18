@@ -12,8 +12,8 @@ using PepperDash.Essentials.Core.Bridges;
 using PepperDash.Essentials.Core.Config;
 using PepperDash.Essentials.Core.Routing;
 using Feedback = PepperDash.Essentials.Core.Feedback;
-
 using Newtonsoft.Json.Linq;
+using Newtonsoft.Json;
 
 namespace PepperDash.Essentials.Devices.Displays
 {
@@ -59,6 +59,7 @@ namespace PepperDash.Essentials.Devices.Displays
         ushort _RequestedPowerState; // 0:none 1:on 2:off
         ushort _RequestedInputState; // 0:none 1-4:inputs 1-4 
 
+        private DM.DmRmcControllerBase _scaler;
         readonly NecQueue _cmdQueue;
         readonly NecQueue _priorityQueue;
         CommunicationGather _PortGather;
@@ -75,7 +76,7 @@ namespace PepperDash.Essentials.Devices.Displays
 		/// <summary>
 		/// Constructor for IBasicCommunication
 		/// </summary>
-		public NecDisplay(string key, string name, IBasicCommunication comm)
+		public NecDisplay(string key, string name, IBasicCommunication comm, NecDisplayPropertiesConfig config)
 			: base(key, name)
 		{
 			Communication = comm;
@@ -129,6 +130,15 @@ namespace PepperDash.Essentials.Devices.Displays
 
             AddRoutingInputPort(new RoutingInputPort("DP 2", eRoutingSignalType.Audio | eRoutingSignalType.Video,
                 eRoutingPortConnectionType.DisplayPort, new Action(InputDp2), this), "10");
+
+            if (config.VideoMuteKey != null)
+            {
+                var dev = DeviceManager.GetDeviceForKey(config.VideoMuteKey);
+                if (dev is DM.DmRmcControllerBase)
+                {
+                    _scaler = dev as DM.DmRmcControllerBase;
+                }
+            }
 		}
 
         void AddRoutingInputPort(RoutingInputPort port, string fbMatch)
@@ -157,6 +167,14 @@ namespace PepperDash.Essentials.Devices.Displays
 
             trilist.BooleanInput[joinMap.LampHoursSupported.JoinNumber].BoolValue = false;
             trilist.BooleanInput[joinMap.VideoMuteSupported.JoinNumber].BoolValue = false;
+
+            //Video Mute
+            if (_scaler != null)
+            {
+                _scaler.HdmiOutputBlankedFeedback.LinkInputSig(trilist.BooleanInput[joinMap.VideoMuteOn.JoinNumber]);
+                trilist.SetSigTrueAction(joinMap.VideoMuteOn.JoinNumber, _scaler.BlankOutput);
+                trilist.SetSigTrueAction(joinMap.VideoMuteOff.JoinNumber, _scaler.UnblankOutput);
+            }
 
             IsWarmingUpFeedback.LinkInputSig(trilist.BooleanInput[joinMap.Warming.JoinNumber]);
             IsCoolingDownFeedback.LinkInputSig(trilist.BooleanInput[joinMap.Cooling.JoinNumber]);
@@ -918,6 +936,34 @@ namespace PepperDash.Essentials.Devices.Displays
                 Label = "Cooling"
             });
 
+        [JoinName("Video Mute On")]
+        public JoinDataComplete VideoMuteOn = new JoinDataComplete(
+            new JoinData()
+            {
+                JoinNumber = 57,
+                JoinSpan = 1
+            },
+            new JoinMetadata()
+            {
+                JoinCapabilities = eJoinCapabilities.ToFromSIMPL,
+                JoinType = eJoinType.Digital,
+                Label = "Video Mute On"
+            });
+
+        [JoinName("Video Mute Off")]
+        public JoinDataComplete VideoMuteOff = new JoinDataComplete(
+            new JoinData()
+            {
+                JoinNumber = 58,
+                JoinSpan = 1
+            },
+            new JoinMetadata()
+            {
+                JoinCapabilities = eJoinCapabilities.FromSIMPL,
+                JoinType = eJoinType.Digital,
+                Label = "Video Mute Off"
+            });
+
         [JoinName("Video Mute Supported")]
         public JoinDataComplete VideoMuteSupported = new JoinDataComplete(
             new JoinData()
@@ -953,6 +999,12 @@ namespace PepperDash.Essentials.Devices.Displays
         }
     }
 
+    public class NecDisplayPropertiesConfig
+    {
+        [JsonProperty("videoMuteKey")]
+        public string VideoMuteKey { get; set; }
+    }
+
     public class NecDisplayFactory : EssentialsDeviceFactory<NecDisplay>
     {
         public NecDisplayFactory()
@@ -964,9 +1016,10 @@ namespace PepperDash.Essentials.Devices.Displays
         {
             Debug.Console(1, "Factory Attempting to create new Nec Display Device");
 
+            var config = dc.Properties.ToObject<NecDisplayPropertiesConfig>();
             var comm = CommFactory.CreateCommForDevice(dc);
             if (comm != null)
-                return new NecDisplay(dc.Key, dc.Name, comm);
+                return new NecDisplay(dc.Key, dc.Name, comm, config);
             else
                 return null;
         }
