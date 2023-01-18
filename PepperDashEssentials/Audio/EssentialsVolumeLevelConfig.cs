@@ -54,6 +54,37 @@ namespace PepperDash.Essentials
                 // No volume for some reason. We have failed as developers
                 return null;
             }
+
+            // DSP/DMPS format: deviceKey--levelName, biampTesira-1--master
+            match = Regex.Match(DeviceKey, @"([-_\w]+)--(.+)");
+            if (match.Success)
+            {
+                var devKey = match.Groups[1].Value;
+
+                var dmps = DeviceManager.GetDeviceForKey(devKey) as DmpsAudioOutputController;
+                if (dmps != null)
+                {
+                    var levelTag = match.Groups[2].Value;
+                    switch (levelTag)
+                    {
+                        case "master":
+                            return dmps.MasterVolumeLevel;
+                        case "source":
+                            return dmps.SourceVolumeLevel;
+                        case "micsmaster":
+                            return dmps.MicsMasterVolumeLevel;
+                        case "codec1":
+                            return dmps.Codec1VolumeLevel;
+                        case "codec2":
+                            return dmps.Codec2VolumeLevel;
+                        default:
+                            return dmps.MasterVolumeLevel;
+                    }
+                }
+                // No volume for some reason. We have failed as developers
+                return null;
+            }
+
             return null;
         }
     }
