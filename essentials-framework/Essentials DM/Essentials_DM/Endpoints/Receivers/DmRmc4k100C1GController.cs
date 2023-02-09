@@ -9,7 +9,6 @@ using Newtonsoft.Json;
 
 namespace PepperDash.Essentials.DM
 {
-
     [Description("Wrapper Class for DM-RMC-4K-100-C-1G")]
     public class DmRmc4k100C1GController : DmHdBaseTControllerBase, IRoutingInputsOutputs,
         IIROutputPorts, IComPorts, ICec
@@ -32,7 +31,9 @@ namespace PepperDash.Essentials.DM
                 eRoutingPortConnectionType.Hdmi, null, this) {Port = _rmc};
 
             InputPorts = new RoutingPortCollection<RoutingInputPort> {DmIn};
-            OutputPorts = new RoutingPortCollection<RoutingOutputPort> {HdmiOut};
+            OutputPorts = new RoutingPortCollection<RoutingOutputPort> { HdmiOut };
+            PreventRegistration = true;
+            rmc.Register();
         }
 
         public override void LinkToApi(BasicTriList trilist, uint joinStart, string joinMapKey, EiscApiAdvanced bridge)
