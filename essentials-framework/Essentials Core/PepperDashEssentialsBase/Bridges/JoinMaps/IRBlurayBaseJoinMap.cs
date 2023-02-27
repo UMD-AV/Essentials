@@ -135,7 +135,6 @@ namespace PepperDash.Essentials.Core.Bridges
         public JoinDataComplete Blue = new JoinDataComplete(new JoinData { JoinNumber = 31, JoinSpan = 1 },
             new JoinMetadata { Description = "Blue", JoinCapabilities = eJoinCapabilities.FromSIMPL, JoinType = eJoinType.Digital });
 
-
         [JoinName("Play")]
         public JoinDataComplete Play = new JoinDataComplete(new JoinData { JoinNumber = 33, JoinSpan = 1 },
             new JoinMetadata { Description = "Play", JoinCapabilities = eJoinCapabilities.FromSIMPL, JoinType = eJoinType.Digital });

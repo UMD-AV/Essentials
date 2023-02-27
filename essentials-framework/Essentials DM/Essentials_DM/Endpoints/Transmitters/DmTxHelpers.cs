@@ -219,7 +219,9 @@ namespace PepperDash.Essentials.DM
                         tx = GetDmTxForChassisWithIpId(key, name, typeName, ipid, dmInput);
                         if (typeName == "hdbasettx" || typeName == "dmtx4k100c1g")
                         {
-                            useChassisForOfflineFeedback = true;
+                            useChassisForOfflineFeedback = false;
+                            Debug.Console(0, "DM endpoint input {0} does not support online feedback on a DMPS3", num);
+                            tx.IsOnline.SetValueFunc(() => true);
                         }                        
                     }
                     if (useChassisForOfflineFeedback)

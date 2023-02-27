@@ -10,7 +10,7 @@ using PepperDash.Essentials.Core.Config;
 using PepperDash.Essentials.Core.CrestronIO;
 using PepperDash.Essentials.Core.Shades;
 
-namespace PepperDash.Essentials.Devices.Common.Environment.Somfy
+namespace PepperDash.Essentials.Devices.Common.Environment
 {
     /// <summary>
     /// Controls a single shade using three relays
@@ -122,9 +122,9 @@ namespace PepperDash.Essentials.Devices.Common.Environment.Somfy
         public override EssentialsDevice BuildDevice(DeviceConfig dc)
         {
             Debug.Console(1, "Factory Attempting to create new Generic Comm Device");
-            var props = Newtonsoft.Json.JsonConvert.DeserializeObject<Environment.Somfy.RelayControlledShadeConfigProperties>(dc.Properties.ToString());
+            var props = Newtonsoft.Json.JsonConvert.DeserializeObject<Environment.RelayControlledShadeConfigProperties>(dc.Properties.ToString());
 
-            return new Environment.Somfy.RelayControlledShade(dc.Key, dc.Name, props);
+            return new Environment.RelayControlledShade(dc.Key, dc.Name, props);
         }
     }
 

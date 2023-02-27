@@ -133,6 +133,7 @@
     <Compile Include="Codec\eCodecCallStatus.cs" />
     <Compile Include="Codec\eMeetingPrivacy.cs" />
     <Compile Include="Codec\iCodecAudio.cs" />
+    <Compile Include="DiscPlayer\Oppo.cs" />
     <Compile Include="Display\LgDisplay\LgDisplayControllerFactory.cs" />
     <Compile Include="Display\LgDisplay\LgDisplayDevice.cs" />
     <Compile Include="Display\LgDisplay\LgDisplayPropertiesConfig.cs" />
@@ -176,8 +177,10 @@
     <Compile Include="DynFusion\DynFusionHelpRequest.cs" />
     <Compile Include="CameraControllers\AutomateVx.cs" />
     <Compile Include="Environment\Crestron Lighting\CrestronLighting.cs" />
+    <Compile Include="Environment\Generic\RelayControlledLighting.cs" />
     <Compile Include="Environment\Lutron\LutronQuantumDevice.cs" />
     <Compile Include="Environment\Lutron\LutronGrafikEye.cs" />
+    <Compile Include="SetTopBox\ContemporaryResearch.cs" />
     <Compile Include="VideoCodec\ConvertiblePreset.cs" />
     <Compile Include="Codec\IHasCallHold.cs" />
     <Compile Include="Codec\IHasDoNotDisturb.cs" />
@@ -252,7 +255,7 @@
     <Compile Include="DSP\PolycomSoundStructure\SoundStructureBasics.cs" />
     <Compile Include="Environment\Crestron Lighting\Din8sw8.cs" />
     <Compile Include="Environment\Lutron\LutronQuantumArea.cs" />
-    <Compile Include="Environment\Somfy\RelayControlledShade.cs" />
+    <Compile Include="Environment\Generic\RelayControlledShade.cs" />
     <Compile Include="Factory\DeviceFactory.cs" />
     <Compile Include="Generic\GenericSource.cs" />
     <Compile Include="SetTopBox\SetTopBoxPropertiesConfig.cs" />

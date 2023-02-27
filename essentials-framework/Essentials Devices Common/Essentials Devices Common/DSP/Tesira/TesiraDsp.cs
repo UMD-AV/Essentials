@@ -986,7 +986,7 @@ namespace Tesira_DSP_EPI
                 var data = state.BridgeIndex;
                 if (data == null) continue;
 
-                var x = (uint)data - 1;
+                var x = (uint)data;
                 Debug.Console(2, this, "Tesira State {0} connect to {1}", state.Key, x);
 
                 if (!state.Enabled) continue;
