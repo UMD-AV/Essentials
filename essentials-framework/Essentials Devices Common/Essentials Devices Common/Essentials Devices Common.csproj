@@ -133,6 +133,7 @@
     <Compile Include="Codec\eCodecCallStatus.cs" />
     <Compile Include="Codec\eMeetingPrivacy.cs" />
     <Compile Include="Codec\iCodecAudio.cs" />
+    <Compile Include="DiscPlayer\Denon.cs" />
     <Compile Include="DiscPlayer\Oppo.cs" />
     <Compile Include="Display\LgDisplay\LgDisplayControllerFactory.cs" />
     <Compile Include="Display\LgDisplay\LgDisplayDevice.cs" />
@@ -180,6 +181,7 @@
     <Compile Include="Environment\Generic\RelayControlledLighting.cs" />
     <Compile Include="Environment\Lutron\LutronQuantumDevice.cs" />
     <Compile Include="Environment\Lutron\LutronGrafikEye.cs" />
+    <Compile Include="Microphones\ShureMxa.cs" />
     <Compile Include="SetTopBox\ContemporaryResearch.cs" />
     <Compile Include="VideoCodec\ConvertiblePreset.cs" />
     <Compile Include="Codec\IHasCallHold.cs" />
