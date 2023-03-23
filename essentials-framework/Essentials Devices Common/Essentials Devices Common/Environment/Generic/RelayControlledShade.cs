@@ -3,71 +3,91 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Crestron.SimplSharp;
+using Crestron.SimplSharpPro.DeviceSupport;
 
 using PepperDash.Core;
 using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Config;
 using PepperDash.Essentials.Core.CrestronIO;
 using PepperDash.Essentials.Core.Shades;
+using PepperDash.Essentials.Core.Bridges;
 
 namespace PepperDash.Essentials.Devices.Common.Environment
 {
     /// <summary>
     /// Controls a single shade using three relays
     /// </summary>
-    public class RelayControlledShade : ShadeBase, IShadesOpenCloseStop
+    public class RelayControlledShade : EssentialsBridgeableDevice, IShadesOpenCloseStop
     {
         RelayControlledShadeConfigProperties Config;
 
-        ISwitchedOutput OpenRelay;
-        ISwitchedOutput StopOrPresetRelay;
-        ISwitchedOutput CloseRelay;
-
-        int RelayPulseTime;
-
-        public string StopOrPresetButtonLabel { get; set; }
+        GenericRelayDevice OpenShadesRelay;
+        GenericRelayDevice StopShadesRelay;
+        GenericRelayDevice CloseShadesRelay;
 
         public RelayControlledShade(string key, string name, RelayControlledShadeConfigProperties config)
             : base(key, name)
         {
             Config = config;
-
-            RelayPulseTime = Config.RelayPulseTime;
-
-            StopOrPresetButtonLabel = Config.StopOrPresetLabel;
-
         }
 
         public override bool CustomActivate()
         {
             //Create ISwitchedOutput objects based on props
-            OpenRelay = GetSwitchedOutputFromDevice(Config.Relays.Open);
-            StopOrPresetRelay = GetSwitchedOutputFromDevice(Config.Relays.StopOrPreset);
-            CloseRelay = GetSwitchedOutputFromDevice(Config.Relays.Close);
-
+            OpenShadesRelay = DeviceManager.GetDeviceForKey(Config.OpenRelay) as GenericRelayDevice;
+            if (Config.StopRelay != null)
+            {
+                StopShadesRelay = DeviceManager.GetDeviceForKey(Config.StopRelay) as GenericRelayDevice;
+            }
+            CloseShadesRelay = DeviceManager.GetDeviceForKey(Config.CloseRelay) as GenericRelayDevice;
 
             return base.CustomActivate();
         }
 
-        public override void Open()
+        public override void LinkToApi(BasicTriList trilist, uint joinStart, string joinMapKey, EiscApiAdvanced bridge)
+        {
+            var joinMap = new GenericShadesJoinMap(joinStart);
+ 
+            trilist.StringInput[joinMap.ShadesOpenName.JoinNumber].StringValue = OpenShadesRelay.Name;
+            trilist.StringInput[joinMap.ShadesCloseName.JoinNumber].StringValue = CloseShadesRelay.Name;
+            if (Config.StopLabel != null)
+            {
+                trilist.StringInput[joinMap.ShadesStopName.JoinNumber].StringValue = Config.StopLabel;
+            }
+            else
+            {
+                trilist.StringInput[joinMap.ShadesStopName.JoinNumber].StringValue = StopShadesRelay.Name;
+            }
+
+            trilist.SetSigTrueAction(joinMap.ShadesOpen.JoinNumber, Open);
+            trilist.SetSigTrueAction(joinMap.ShadesClose.JoinNumber, Close);
+            trilist.SetSigTrueAction(joinMap.ShadesStop.JoinNumber, Stop);
+        }
+
+        public void Open()
         {
             Debug.Console(1, this, "Opening Shade: '{0}'", this.Name);
-
-            PulseOutput(OpenRelay, RelayPulseTime);
+            PulseOutput(OpenShadesRelay, OpenShadesRelay.RelayHoldTimeSeconds * 1000);
         }
 
-        public override void Stop()
+        public void Stop()
         {
             Debug.Console(1, this, "Stopping Shade: '{0}'", this.Name);
-
-            PulseOutput(StopOrPresetRelay, RelayPulseTime);
+            if (Config.UseOpenCloseForStop)
+            {
+                PulseOutput(OpenShadesRelay, OpenShadesRelay.RelayHoldTimeSeconds * 1000);
+                PulseOutput(CloseShadesRelay, CloseShadesRelay.RelayHoldTimeSeconds * 1000);
+            }
+            else if (StopShadesRelay != null)
+            {
+                PulseOutput(StopShadesRelay, StopShadesRelay.RelayHoldTimeSeconds * 1000);
+            }
         }
 
-        public override void Close()
+        public void Close()
         {
             Debug.Console(1, this, "Closing Shade: '{0}'", this.Name);
-
-            PulseOutput(CloseRelay, RelayPulseTime);
+            PulseOutput(CloseShadesRelay, CloseShadesRelay.RelayHoldTimeSeconds * 1000);
         }
 
         void PulseOutput(ISwitchedOutput output, int pulseTime)
@@ -75,41 +95,15 @@ namespace PepperDash.Essentials.Devices.Common.Environment
             output.On();
             CTimer pulseTimer = new CTimer(new CTimerCallbackFunction((o) => output.Off()), pulseTime);
         }
-
-        /// <summary>
-        /// Attempts to get the port on teh specified device from config
-        /// </summary>
-        /// <param name="relayConfig"></param>
-        /// <returns></returns>
-        ISwitchedOutput GetSwitchedOutputFromDevice(IOPortConfig relayConfig)
-        {
-            var portDevice = DeviceManager.GetDeviceForKey(relayConfig.PortDeviceKey);
-
-            if (portDevice != null)
-            {
-                return (portDevice as ISwitchedOutputCollection).SwitchedOutputs[relayConfig.PortNumber];
-            }
-            else
-            {
-                Debug.Console(1, this, "Error: Unable to get relay on port '{0}' from device with key '{1}'", relayConfig.PortNumber, relayConfig.PortDeviceKey);
-                return null;
-            }
-        }
-
     }
 
     public class RelayControlledShadeConfigProperties
     {
-        public int RelayPulseTime { get; set; }
-        public ShadeRelaysConfig Relays { get; set; }
-        public string StopOrPresetLabel { get; set; }
-
-        public class ShadeRelaysConfig
-        {
-            public IOPortConfig Open { get; set; }
-            public IOPortConfig StopOrPreset { get; set; }
-            public IOPortConfig Close { get; set; }
-        }
+        public string OpenRelay { get; set; }
+        public string StopRelay { get; set; }
+        public string CloseRelay { get; set; }
+        public bool UseOpenCloseForStop { get; set; }
+        public string StopLabel { get; set; }
     }
 
     public class RelayControlledShadeFactory : EssentialsDeviceFactory<RelayControlledShade>
@@ -128,4 +122,49 @@ namespace PepperDash.Essentials.Devices.Common.Environment
         }
     }
 
+    public class GenericShadesJoinMap : JoinMapBaseAdvanced
+    {
+        [JoinName("Shades Open")]
+        public JoinDataComplete ShadesOpen = new JoinDataComplete(new JoinData { JoinNumber = 1, JoinSpan = 1 },
+            new JoinMetadata { Description = "Shades Open", JoinCapabilities = eJoinCapabilities.FromSIMPL, JoinType = eJoinType.Digital });
+
+        [JoinName("Shades Close")]
+        public JoinDataComplete ShadesClose = new JoinDataComplete(new JoinData { JoinNumber = 2, JoinSpan = 1 },
+            new JoinMetadata { Description = "Shades Close", JoinCapabilities = eJoinCapabilities.FromSIMPL, JoinType = eJoinType.Digital });
+
+        [JoinName("Shades Stop")]
+        public JoinDataComplete ShadesStop = new JoinDataComplete(new JoinData { JoinNumber = 3, JoinSpan = 1 },
+            new JoinMetadata { Description = "Shades Stop", JoinCapabilities = eJoinCapabilities.FromSIMPL, JoinType = eJoinType.Digital });
+
+        [JoinName("Shades Open Name")]
+        public JoinDataComplete ShadesOpenName = new JoinDataComplete(new JoinData { JoinNumber = 1, JoinSpan = 1 },
+            new JoinMetadata { Description = "Shades Open Name", JoinCapabilities = eJoinCapabilities.FromSIMPL, JoinType = eJoinType.Serial });
+
+        [JoinName("Shades Close Name")]
+        public JoinDataComplete ShadesCloseName = new JoinDataComplete(new JoinData { JoinNumber = 2, JoinSpan = 1 },
+            new JoinMetadata { Description = "Shades Close Name", JoinCapabilities = eJoinCapabilities.FromSIMPL, JoinType = eJoinType.Serial });
+
+        [JoinName("Shades Stop Name")]
+        public JoinDataComplete ShadesStopName = new JoinDataComplete(new JoinData { JoinNumber = 3, JoinSpan = 1 },
+            new JoinMetadata { Description = "Shades Stop Name", JoinCapabilities = eJoinCapabilities.FromSIMPL, JoinType = eJoinType.Serial });
+
+        /// <summary>
+        /// Constructor to use when instantiating this Join Map without inheriting from it
+        /// </summary>
+        /// <param name="joinStart">Join this join map will start at</param>
+        public GenericShadesJoinMap(uint joinStart)
+            : this(joinStart, typeof(GenericShadesJoinMap))
+        {
+        }
+
+        /// <summary>
+        /// Constructor to use when extending this Join map
+        /// </summary>
+        /// <param name="joinStart">Join this join map will start at</param>
+        /// <param name="type">Type of the child join map</param>
+        protected GenericShadesJoinMap(uint joinStart, Type type)
+            : base(joinStart, type)
+        {
+        }
+    }
 }

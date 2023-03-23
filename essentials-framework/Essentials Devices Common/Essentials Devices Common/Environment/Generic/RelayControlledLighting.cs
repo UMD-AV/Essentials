@@ -170,5 +170,4 @@ namespace PepperDash.Essentials.Devices.Common.Environment
             return new RelayControlledLighting(dc.Key, dc.Name, props);
         }
     }
-
 }

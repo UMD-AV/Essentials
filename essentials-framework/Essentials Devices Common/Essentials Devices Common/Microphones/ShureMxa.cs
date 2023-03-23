@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using Newtonsoft.Json;
 using Crestron.SimplSharp;
+using Crestron.SimplSharpPro.CrestronThread;
 using Crestron.SimplSharpPro;
 using Crestron.SimplSharpPro.DeviceSupport;
 using PepperDash.Core;
@@ -21,6 +22,12 @@ namespace PepperDash.Essentials.Devices.Common.ShureMxa
         private readonly IBasicCommunication _comms;
         private readonly GenericCommunicationMonitor _commsMonitor;
         private const string CommsDelimiter = ">";
+
+        private IBasicVolumeWithFeedback DspObject;
+        private CMutex DspObjectMutex;
+        private bool dspObjectLock;
+        private CMutex DeviceObjectMutex;
+        private bool deviceObjectLock;
 
         private readonly GenericQueue _commsQueue;
 
@@ -570,7 +577,7 @@ namespace PepperDash.Essentials.Devices.Common.ShureMxa
             _comms = comms;
             var commsGather = new CommunicationGather(_comms, CommsDelimiter) { IncludeDelimiter = true };
             commsGather.LineReceived += Handle_LineRecieved;
-            _commsMonitor = new GenericCommunicationMonitor(this, _comms, _config.PollTimeMs, _config.WarningTimeoutMs, _config.ErrorTimeoutMs, Poll);
+            _commsMonitor = new GenericCommunicationMonitor(this, _comms, 30000, 180000, 300000, Poll);
             _commsQueue = new GenericQueue(key + "-queue");
 
             var socket = _comms as ISocketStatus;
@@ -581,9 +588,11 @@ namespace PepperDash.Essentials.Devices.Common.ShureMxa
                 SocketStatusFeedback = new IntFeedback(() => (int)socket.ClientStatus);
             }
 
-            Debug.Console(0, this, "Constructing new {0} instance complete", name);
-            Debug.Console(0, new string('*', 80));
-            Debug.Console(0, new string('*', 80));
+            if (_config.DspObjectKey != null)
+            {
+                DspObjectMutex = new CMutex();
+                DeviceObjectMutex = new CMutex();
+            }
         }
 
 
@@ -594,6 +603,18 @@ namespace PepperDash.Essentials.Devices.Common.ShureMxa
         /// <returns></returns>
         public override bool CustomActivate()
         {
+            if (_config.DspObjectKey != null)
+            {
+                var dspObject = DeviceManager.GetDeviceForKey(_config.DspObjectKey) as IBasicVolumeWithFeedback;
+                if (dspObject != null)
+                {
+                    Debug.Console(1, this, "Linking {0} to dsp object", this.Name, _config.DspObjectKey);
+                    DspObject = dspObject;
+                    dspObject.MuteFeedback.OutputChange += DspMuteFeedbackChange;
+                    this.DeviceAudioMuteStateFeedback.OutputChange += DeviceMuteStateChange;
+                }
+            }
+
             // Essentials will handle the connect method to the device                       
             _comms.Connect();
             // Essentialss will handle starting the comms monitor
@@ -602,6 +623,77 @@ namespace PepperDash.Essentials.Devices.Common.ShureMxa
             return base.CustomActivate();
         }
 
+        private void DspMuteFeedbackChange(object obj, FeedbackEventArgs args)
+        {
+            if (!dspObjectLock)
+            {
+                CrestronInvoke.BeginInvoke((o) =>
+                {
+                    dspObjectLock = true;
+                    bool test = DspObjectMutex.WaitForMutex();
+                    if (test)
+                    {
+                        try
+                        {
+                            dspObjectLock = false;
+                            if (DeviceAudioMuteState != DspObject.MuteFeedback.BoolValue)
+                            {
+                                Debug.Console(0, this, "Got dsp feedback. Setting mic state to {0}", DspObject.MuteFeedback.BoolValue);
+                                if (DspObject.MuteFeedback.BoolValue)
+                                {
+                                    this.SetDeviceAudioMuteOn();
+                                }
+                                else
+                                {
+                                    this.SetDeviceAudioMuteOff();
+                                }
+                            }
+                        }
+                        finally
+                        {
+                            Thread.Sleep(1000);
+                            DspObjectMutex.ReleaseMutex();
+                        }
+                    }
+                });
+            }
+        }
+
+        private void DeviceMuteStateChange(object obj, FeedbackEventArgs args)
+        {
+            if (!deviceObjectLock)
+            {
+                CrestronInvoke.BeginInvoke((o) =>
+                {
+                    deviceObjectLock = true;
+                    bool test = DeviceObjectMutex.WaitForMutex();
+                    if (test)
+                    {
+                        deviceObjectLock = false;
+                        try
+                        {
+                            if (DspObject.MuteFeedback.BoolValue != DeviceAudioMuteState)
+                            {
+                                Debug.Console(0, this, "Got mic state feedback, Setting dsp state to {0}", DeviceAudioMuteState);
+                                if (DeviceAudioMuteState)
+                                {
+                                    DspObject.MuteOn();
+                                }
+                                else
+                                {
+                                    DspObject.MuteOff();
+                                }
+                            }
+                        }
+                        finally
+                        {
+                            Thread.Sleep(1000);
+                            DeviceObjectMutex.ReleaseMutex();
+                        }
+                    }
+                });
+            }
+        }
 
         // socket connection change event handler
         private void socket_ConnectionChange(object sender, GenericSocketStatusChageEventArgs args)
@@ -837,17 +929,23 @@ namespace PepperDash.Essentials.Devices.Common.ShureMxa
         /// </remarks>
         public void Poll()
         {
-            // poll for the device model numbere
-            SendText("GET MODEL");
-            CrestronEnvironment.Sleep(200);
-            // poll for the device firmware
-            SendText("GET FW_VER");
-            CrestronEnvironment.Sleep(200);
-            // poll for the device serial number
-            SendText("GET SERIAL_NUM");
-            if (DeviceModel.Contains("MXA310"))
-                CrestronEnvironment.Sleep(200);
-            SendText("GET EXT_SWITCH_OUT_STATE");
+            SendText("GET DEVICE_AUDIO_MUTE");
+
+            if(_config.DspObjectKey != null)
+            {
+                if (DspObject.MuteFeedback.BoolValue != DeviceAudioMuteState)
+                {
+                    Debug.Console(0, this, "Dsp feedback doesn't match. Setting mic state to {0}", DspObject.MuteFeedback.BoolValue);
+                    if (DspObject.MuteFeedback.BoolValue)
+                    {
+                        this.SetDeviceAudioMuteOn();
+                    }
+                    else
+                    {
+                        this.SetDeviceAudioMuteOff();
+                    }
+                }
+            }
         }
 
         #endregion Polls
@@ -1053,7 +1151,7 @@ namespace PepperDash.Essentials.Devices.Common.ShureMxa
     /// }
     /// </code>
     /// </example>
-    [ConfigSnippet("{\"devices\":[{\"key\":\"shuremxa1-plugin\",\"name\":\"Shure MXA Plugin\",\"type\":\"shuremxa\",\"group\":\"pluginDevices\",\"properties\":{\"control\":{\"method\":\"tcpip\",\"tcpSshProperties\":{\"address\":\"\",\"port\":2202,\"username\":\"\",\"password\":\"\",\"autoReconnect\":true,\"autoReconnectIntervalMs\":5000}},\"pollTimeMs\":30000,\"warningTimeoutMs\":180000,\"errorTimeoutMs\":300000,\"deviceId\":1,\"presets\":{\"1\":{\"name\":\"CurrentPreset 1\"},\"2\":{\"name\":\"CurrentPreset 2\"}}}}]}")]
+    [ConfigSnippet("{\"devices\":[{\"key\":\"shuremxa1-plugin\",\"name\":\"Shure MXA Plugin\",\"type\":\"shuremxa\",\"group\":\"pluginDevices\",\"properties\":{\"control\":{\"method\":\"tcpip\",\"tcpSshProperties\":{\"address\":\"\",\"port\":2202,\"username\":\"\",\"password\":\"\",\"autoReconnect\":true,\"autoReconnectIntervalMs\":5000}},\"pollTimeMs\":30000,\"warningTimeoutMs\":180000,\"errorTimeoutMs\":300000,\"deviceId\":1,\"linkWithDspObjectKey\":\"dsp01--fader11\",\"presets\":{\"1\":{\"name\":\"CurrentPreset 1\"},\"2\":{\"name\":\"CurrentPreset 2\"}}}}]}")]
     public class ShureMxaConfig
     {
         /// <summary>
@@ -1063,22 +1161,10 @@ namespace PepperDash.Essentials.Devices.Common.ShureMxa
         public EssentialsControlPropertiesConfig Control { get; set; }
 
         /// <summary>
-        /// Serializes the poll time value
+        /// DSP object to link mute state to
         /// </summary>
-        [JsonProperty("pollTimeMs")]
-        public long PollTimeMs { get; set; }
-
-        /// <summary>
-        /// Serializes the warning timeout value
-        /// </summary>
-        [JsonProperty("warningTimeoutMs")]
-        public long WarningTimeoutMs { get; set; }
-
-        /// <summary>
-        /// Serializes the error timeout value
-        /// </summary>
-        [JsonProperty("errorTimeoutMs")]
-        public long ErrorTimeoutMs { get; set; }
+        [JsonProperty("dspObjectKey")]
+        public string DspObjectKey { get; set; }
 
         /// <summary>
         /// Device ID
@@ -1151,7 +1237,7 @@ namespace PepperDash.Essentials.Devices.Common.ShureMxa
         public JoinDataComplete Reboot = new JoinDataComplete(
             new JoinData
             {
-                JoinNumber = 2,
+                JoinNumber = 12,
                 JoinSpan = 1
             },
             new JoinMetadata
@@ -1168,7 +1254,7 @@ namespace PepperDash.Essentials.Devices.Common.ShureMxa
         public JoinDataComplete UpdateStatus = new JoinDataComplete(
             new JoinData
             {
-                JoinNumber = 3,
+                JoinNumber = 11,
                 JoinSpan = 1
             },
             new JoinMetadata
@@ -1188,7 +1274,7 @@ namespace PepperDash.Essentials.Devices.Common.ShureMxa
         public JoinDataComplete DeviceLedStateOn = new JoinDataComplete(
             new JoinData
             {
-                JoinNumber = 4,
+                JoinNumber = 5,
                 JoinSpan = 1
             },
             new JoinMetadata
@@ -1208,7 +1294,7 @@ namespace PepperDash.Essentials.Devices.Common.ShureMxa
         public JoinDataComplete DeviceLedStateOff = new JoinDataComplete(
             new JoinData
             {
-                JoinNumber = 5,
+                JoinNumber = 6,
                 JoinSpan = 1
             },
             new JoinMetadata
@@ -1228,7 +1314,7 @@ namespace PepperDash.Essentials.Devices.Common.ShureMxa
         public JoinDataComplete DeviceAudioMuteToggle = new JoinDataComplete(
             new JoinData
             {
-                JoinNumber = 6,
+                JoinNumber = 4,
                 JoinSpan = 1
             },
             new JoinMetadata
@@ -1248,7 +1334,7 @@ namespace PepperDash.Essentials.Devices.Common.ShureMxa
         public JoinDataComplete DeviceAudioMuteOn = new JoinDataComplete(
             new JoinData
             {
-                JoinNumber = 7,
+                JoinNumber = 2,
                 JoinSpan = 1
             },
             new JoinMetadata
@@ -1268,7 +1354,7 @@ namespace PepperDash.Essentials.Devices.Common.ShureMxa
         public JoinDataComplete DeviceAudioMuteOff = new JoinDataComplete(
             new JoinData
             {
-                JoinNumber = 8,
+                JoinNumber = 3,
                 JoinSpan = 1
             },
             new JoinMetadata
@@ -1328,7 +1414,7 @@ namespace PepperDash.Essentials.Devices.Common.ShureMxa
         public JoinDataComplete ExternalSwitchOn = new JoinDataComplete(
             new JoinData
             {
-                JoinNumber = 11,
+                JoinNumber = 7,
                 JoinSpan = 1
             },
             new JoinMetadata
@@ -1348,7 +1434,7 @@ namespace PepperDash.Essentials.Devices.Common.ShureMxa
         public JoinDataComplete ExternalSwitchOff = new JoinDataComplete(
             new JoinData
             {
-                JoinNumber = 12,
+                JoinNumber = 8,
                 JoinSpan = 1
             },
             new JoinMetadata

@@ -127,6 +127,8 @@ namespace PepperDash.Essentials.Core.Lighting
         public string Name { get; set; }
         [JsonProperty("id", NullValueHandling = NullValueHandling.Ignore)]
         public string ID { get; set; }
+        [JsonProperty("level", NullValueHandling = NullValueHandling.Ignore)]
+        public uint Level { get; set; }
         [JsonProperty("portDeviceKey", NullValueHandling = NullValueHandling.Ignore)]
         public string PortDeviceKey { get; set; }
         [JsonProperty("portNumber", NullValueHandling = NullValueHandling.Ignore)]

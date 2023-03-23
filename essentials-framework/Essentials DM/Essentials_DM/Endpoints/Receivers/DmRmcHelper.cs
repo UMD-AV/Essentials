@@ -451,7 +451,9 @@ namespace PepperDash.Essentials.DM
                         rx = GetDmRmcControllerForCpu2Chassis(key, name, typeName, ipid, chassis, num, parentDev);
                         if (typeName == "hdbasetrx" || typeName == "dmrmc4k100c1g")
                         {
-                            useChassisForOfflineFeedback = true;
+                            useChassisForOfflineFeedback = false;
+                            Debug.Console(0, "DM endpoint output {0} does not support online feedback on a legacy DM chassis", num);
+                            rx.IsOnline.SetValueFunc(() => true);
                         }
                     }
                     if (useChassisForOfflineFeedback)
