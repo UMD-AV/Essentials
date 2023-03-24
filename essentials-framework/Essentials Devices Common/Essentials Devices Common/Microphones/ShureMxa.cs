@@ -935,14 +935,16 @@ namespace PepperDash.Essentials.Devices.Common.ShureMxa
             {
                 if (DspObject.MuteFeedback.BoolValue != DeviceAudioMuteState)
                 {
-                    Debug.Console(0, this, "Dsp feedback doesn't match. Setting mic state to {0}", DspObject.MuteFeedback.BoolValue);
-                    if (DspObject.MuteFeedback.BoolValue)
+                    Debug.Console(0, this, "Dsp feedback doesn't match. Setting dsp state to {0}", DeviceAudioMuteState);
+                    if (DeviceAudioMuteState)
                     {
-                        this.SetDeviceAudioMuteOn();
+                        DspObject.MuteOff();
+                        DspObject.MuteOn();
                     }
                     else
                     {
-                        this.SetDeviceAudioMuteOff();
+                        DspObject.MuteOn();
+                        DspObject.MuteOff();
                     }
                 }
             }

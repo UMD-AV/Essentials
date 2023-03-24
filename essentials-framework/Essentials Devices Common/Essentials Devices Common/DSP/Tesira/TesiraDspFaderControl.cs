@@ -60,8 +60,6 @@ namespace Tesira_DSP_EPI
         public IntFeedback PermissionsFeedback { get; private set; }
 
         private Dictionary<string, SubscriptionTrackingObject> SubscriptionTracker { get; set; }
-
-
         
         CTimer _volumeUpRepeatTimer;
         CTimer _volumeDownRepeatTimer;
@@ -231,8 +229,6 @@ namespace Tesira_DSP_EPI
             Feedbacks.Add(PermissionsFeedback);
 
             Parent.Feedbacks.AddRange(Feedbacks);
-
-
         }
 
         private void VolumeUpRepeat(object callbackObject)
@@ -290,6 +286,7 @@ namespace Tesira_DSP_EPI
                 if (HasMute) SendSubscriptionCommand(MuteCustomName, "mute", 500, 2);
                 if (HasLevel) SendSubscriptionCommand(LevelCustomName, "level", 250, 1);
             }
+            DoPoll();
         }
 
         /// <summary>

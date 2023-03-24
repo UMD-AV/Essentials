@@ -205,8 +205,6 @@ namespace Tesira_DSP_EPI
 
             _pollTimer = new CTimer(o => DoPoll(), Timeout.Infinite);
 
-
-
             MuteFeedback = new BoolFeedback(Key + "-MuteFeedback", () => OutIsMuted);
             VisibleFeedback = new BoolFeedback(Key + "-VisibleFeedback", () => Enabled);
 
