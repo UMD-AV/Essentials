@@ -218,7 +218,7 @@ namespace DynFusion
 
 		public void GetRoomSchedule()
 		{
-			if (ScheduleBusy.value == false)
+            if (ScheduleBusy.value == false && fusionOnline)
 			{
 				ScheduleBusy.value = true;
 				getScheduleTimeOut = new CTimer(getRoomScheduleTimeOut, 6000);
@@ -484,7 +484,7 @@ namespace DynFusion
 				{
 					XmlDocument scheduleXML = new XmlDocument();
 
-					scheduleXML = scheduleXML.CustomEscapeDocument(args.Sig.StringValue.ToString());
+                    scheduleXML.LoadXml(args.Sig.StringValue);
 
 					if (scheduleXML != null)
 					{
@@ -492,7 +492,7 @@ namespace DynFusion
 						Debug.Console(2, this, string.Format("Escaped XML {0}", scheduleXML.ToString()));
 
 						var response = scheduleXML["ScheduleResponse"];
-						var responseEvent = scheduleXML.FirstChild.SelectSingleNode("Event");
+						var responseEvent = response.SelectSingleNode("Event");
 
 						if (response != null)
 						{
@@ -520,14 +520,15 @@ namespace DynFusion
 								FourthMeeting = null;
 								FifthMeeting = null;
 								SixthMeeting = null;
+                                Debug.Console(0, this, String.Format("ScheduleResponse start"));
 
 								ScheduleResponse scheduleResponse = new ScheduleResponse();
 								scheduleResponse.RoomName = scheduleXML.FirstChild.SelectSingleNode("RoomName").InnerText;
 								scheduleResponse.RequestID = scheduleXML.FirstChild.SelectSingleNode("RequestID").InnerText;
 								scheduleResponse.RoomID = scheduleXML.FirstChild.SelectSingleNode("RoomID").InnerText;
-
+                                Debug.Console(0, this, String.Format("EventStack Count start"));
 								var eventStack = scheduleXML.FirstChild.SelectNodes("Event");
-								Debug.Console(2, this, String.Format("EventStack Count: {0}", eventStack.Count));
+								Debug.Console(0, this, String.Format("EventStack Count: {0}", eventStack.Count));
 
 								if (eventStack.Count > 0)
 								{
@@ -541,8 +542,8 @@ namespace DynFusion
 										if (eventStack.Count > 1) { NextMeeting = new Event(); NextMeeting = CrestronXMLSerialization.DeSerializeObject<Event>(new XmlReader(eventStack.Item(1).OuterXml)); }
 										if (eventStack.Count > 2) { ThirdMeeting = new Event(); ThirdMeeting = CrestronXMLSerialization.DeSerializeObject<Event>(new XmlReader(eventStack.Item(2).OuterXml)); }
 										if (eventStack.Count > 3) { FourthMeeting = new Event(); FourthMeeting = CrestronXMLSerialization.DeSerializeObject<Event>(new XmlReader(eventStack.Item(3).OuterXml)); }
-										if (eventStack.Count > 4) { FifthMeeting = new Event(); FifthMeeting = CrestronXMLSerialization.DeSerializeObject<Event>(new XmlReader(eventStack.Item(3).OuterXml)); }
-										if (eventStack.Count > 5) { SixthMeeting = new Event(); SixthMeeting = CrestronXMLSerialization.DeSerializeObject<Event>(new XmlReader(eventStack.Item(3).OuterXml)); }
+										if (eventStack.Count > 4) { FifthMeeting = new Event(); FifthMeeting = CrestronXMLSerialization.DeSerializeObject<Event>(new XmlReader(eventStack.Item(4).OuterXml)); }
+										if (eventStack.Count > 5) { SixthMeeting = new Event(); SixthMeeting = CrestronXMLSerialization.DeSerializeObject<Event>(new XmlReader(eventStack.Item(5).OuterXml)); }
 
 										AvailableRooms.sendFreeBusyStatusNotAvailable();
 									}
@@ -551,8 +552,8 @@ namespace DynFusion
 										NextMeeting = new Event(); NextMeeting = tempEvent;
 										if (eventStack.Count > 1) { ThirdMeeting = new Event(); ThirdMeeting = CrestronXMLSerialization.DeSerializeObject<Event>(new XmlReader(eventStack.Item(1).OuterXml)); }
 										if (eventStack.Count > 2) { FourthMeeting = new Event(); FourthMeeting = CrestronXMLSerialization.DeSerializeObject<Event>(new XmlReader(eventStack.Item(2).OuterXml)); }
-										if (eventStack.Count > 3) { FifthMeeting = new Event(); FifthMeeting = CrestronXMLSerialization.DeSerializeObject<Event>(new XmlReader(eventStack.Item(2).OuterXml)); }
-										if (eventStack.Count > 4) { SixthMeeting = new Event(); SixthMeeting = CrestronXMLSerialization.DeSerializeObject<Event>(new XmlReader(eventStack.Item(2).OuterXml)); }
+										if (eventStack.Count > 3) { FifthMeeting = new Event(); FifthMeeting = CrestronXMLSerialization.DeSerializeObject<Event>(new XmlReader(eventStack.Item(3).OuterXml)); }
+										if (eventStack.Count > 4) { SixthMeeting = new Event(); SixthMeeting = CrestronXMLSerialization.DeSerializeObject<Event>(new XmlReader(eventStack.Item(4).OuterXml)); }
 										AvailableRooms.sendFreeBusyStatusAvailableUntil(NextMeeting.dtStart);
 									}
 								}
@@ -580,9 +581,7 @@ namespace DynFusion
 								{
 									Debug.Console(2, this, String.Format("Schedule Changed Firing Event!"));
 									handler(this, new DynFusionScheduleChangeEventArgs("BAM!"));
-								}
-
-								
+								}						
 
 								
 								ScheduleBusy.value = false;

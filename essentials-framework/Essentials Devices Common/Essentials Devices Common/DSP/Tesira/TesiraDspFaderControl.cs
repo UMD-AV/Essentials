@@ -422,7 +422,7 @@ namespace Tesira_DSP_EPI
                     }
                     default:
                     {
-                        Debug.Console(0, "Response does not match expected attribute codes: '{0}'", message);
+                        Debug.Console(2, "Response does not match expected attribute codes: '{0}'", message);
 
                         break;
                     }

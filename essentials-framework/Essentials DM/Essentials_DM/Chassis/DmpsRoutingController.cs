@@ -800,7 +800,6 @@ namespace PepperDash.Essentials.DM
             if (outputCard is Card.Dmps3HdmiOutput)
             {
                 var hdmiOutputCard = outputCard as Card.Dmps3HdmiOutput;
-
                 var cecPort = hdmiOutputCard.HdmiOutputPort;
 
                 AddHdmiOutputPort(number, cecPort);
@@ -848,7 +847,7 @@ namespace PepperDash.Essentials.DM
                 AddAudioOnlyOutputPort(number, "Program");
 
                 var programOutput = new DmpsAudioOutputController(string.Format("processor-programAudioOutput"), "Program Audio Output", outputCard as Card.Dmps3ProgramOutput);
-
+                var test = outputCard as Card.Dmps3ProgramOutput;
                 DeviceManager.AddDevice(programOutput);
             }
             else if (outputCard is Card.Dmps3AuxOutput)

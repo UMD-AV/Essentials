@@ -12,6 +12,7 @@ using PepperDash.Essentials.Core.Lighting;
 using LightingBase = PepperDash.Essentials.Core.Lighting.LightingBase;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Crestron.SimplSharpPro.CrestronThread;
 
 namespace PepperDash.Essentials.Devices.Common.Environment.NLight
 {
@@ -19,14 +20,19 @@ namespace PepperDash.Essentials.Devices.Common.Environment.NLight
     {
         public IBasicCommunication Communication { get; private set; }
         public StatusMonitorBase CommunicationMonitor { get; private set; }
-
+        readonly nLightQueue _cmdQueue;
+        CMutex _CommandMutex;
         NLightPropertiesConfig _props;
+        bool _readyForNextCommand;
 
         public NLight(string key, string name, IBasicCommunication comm, NLightPropertiesConfig props)
             : base(key, name)
         {
             Communication = comm;
             _props = props;
+            _cmdQueue = new nLightQueue();
+            _CommandMutex = new CMutex();
+            _readyForNextCommand = true;
 
             if (props.Scenes != null)
             {
@@ -60,6 +66,25 @@ namespace PepperDash.Essentials.Devices.Common.Environment.NLight
         void Communication_BytesReceived(object sender, GenericCommMethodReceiveBytesArgs args)
         {
             Debug.Console(2, this, "Received new bytes:{0}", ComTextHelper.GetEscapedText(args.Bytes));
+            try
+            {
+                if (args.Bytes.Length > 2)
+                {
+                    if (args.Bytes[0] == 0xA5)
+                    {
+                        _readyForNextCommand = true;
+                        if (args.Bytes[2] == 0x0D)
+                        {
+                            Debug.Console(1, this, "Found poll response");
+
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.Console(1, this, "Exception processing response {0}", ex.Message);
+            }
         }
 
         public void SetOff(uint channel)
@@ -121,27 +146,18 @@ namespace PepperDash.Essentials.Devices.Common.Environment.NLight
                 {
                     if (LightingScenes[scene].ID != null)
                     {
-                        if (LightingScenes[scene].ID == "0")
-                        {
-                            Debug.Console(1, this, "Selecting Off Scene: {0}", LightingScenes[scene].ID);
-                            SetOff(1);
-                            CrestronEnvironment.Sleep(500);
-                            SetOff(2);
-                        }
-                        else
-                        {
-                            Debug.Console(1, this, "Selecting Scene: {0}", LightingScenes[scene].ID);
-                            byte[] data = new byte[1];
-                            data[0] = (byte)Convert.ToUInt16(LightingScenes[scene].ID);
-                            SendData(0x85, data);
-                        }
+                        Debug.Console(1, this, "Selecting Scene: {0}", LightingScenes[scene].ID);
+                        byte[] data = new byte[1];
+                        data[0] = (byte)Convert.ToUInt16(LightingScenes[scene].ID);
+                        SendData(0x85, data);
                     }
-                    else
+                    else if(LightingScenes[scene].Levels != null && LightingScenes[scene].Levels.Length > 0)
                     {
-                        Debug.Console(1, this, "Selecting Scene Level: {0}", LightingScenes[scene].Level);
-                        SetLevel(1, LightingScenes[scene].Level);
-                        CrestronEnvironment.Sleep(500);
-                        SetLevel(2, LightingScenes[scene].Level);
+                        Debug.Console(1, this, "Selecting Scene Levels");
+                        foreach (var level in LightingScenes[scene].Levels)
+                        {
+                            SetLevel(level.Index, level.Level);
+                        }
                     }
                 }
             }
@@ -204,12 +220,128 @@ namespace PepperDash.Essentials.Devices.Common.Environment.NLight
                 bytesToSend[length - 2] = (byte)~checksum1;
                 bytesToSend[length - 1] = (byte)~checksum2;
 
-                Communication.SendBytes(bytesToSend);
+                _cmdQueue.AddCommand(bytesToSend);
+                ProcessQueue();
             }
             else
             {
                 Debug.Console(0, this, "Data length is too long");
             }
+        }
+
+        private void ProcessQueue()
+        {
+            bool test = _CommandMutex.WaitForMutex(100);
+            if (test)
+            {
+                //Pace the commands sending out
+                while (_cmdQueue.Count > 0)
+                {
+                    try
+                    {
+                        byte[] data = _cmdQueue.Dequeue();
+                        if (data != null)
+                        {
+                            _readyForNextCommand = false;
+                            Debug.Console(2, this, "Sending bytes: {0}", ComTextHelper.GetEscapedText(data));
+                            Communication.SendBytes(data);
+
+                            int count = 0;
+                            while (!_readyForNextCommand && count < 100)
+                            {
+                                Thread.Sleep(20);
+                                count++;
+                            }
+                            if (count >= 100)
+                            {
+                                Debug.Console(1, this, "ProcessQueue timed out waiting for next command");
+                            }
+                            else
+                            {
+                                //Delay due to nLight not liking too fast paced commands
+                                Thread.Sleep(500);
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.Console(0, this, "Caught an exception in ProcessQueue {0}\r{1}\r{2}", ex.Message, ex.InnerException, ex.StackTrace);
+                    }
+                }
+                _CommandMutex.ReleaseMutex();
+            }
+        }
+    }
+
+    public class nLightQueue
+    {
+        public List<byte[]> Q = new List<byte[]>();
+        public ushort Count { get { return (ushort)Q.Count; } }
+        private CMutex mutex = new CMutex();
+
+        /// <summary>
+        /// Creates a queue for processing nLight commands
+        /// </summary>
+        public nLightQueue()
+        {
+        }
+
+        public void AddCommand(byte[] command)
+        {
+            mutex.WaitForMutex();
+            try
+            {
+                Q.Add(command);
+            }
+            catch (Exception ex)
+            {
+                Debug.Console(1, "Exception in nLight command queue add: {0}", ex);
+            }
+            finally
+            {
+                mutex.ReleaseMutex();
+            }
+        }
+
+        public void ClearQueue()
+        {
+            mutex.WaitForMutex();
+            try
+            {
+                Q.Clear();
+            }
+            catch (Exception ex)
+            {
+                Debug.Console(1, "Exception in nLight command queue clear: {0}", ex);
+            }
+            finally
+            {
+                mutex.ReleaseMutex();
+            }
+        }
+
+        public byte[] Dequeue()
+        {
+            byte[] cmd;
+            mutex.WaitForMutex();
+            try
+            {
+                if (Q.Count > 0)
+                {
+                    cmd = Q[0];
+                    Q.RemoveAt(0);
+                    return cmd;
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.Console(1, "Exception in nLight command queue dequeue: {0}", ex);
+            }
+            finally
+            {
+                mutex.ReleaseMutex();
+            }
+            return null;
         }
     }
 

@@ -638,7 +638,7 @@ namespace PepperDash.Essentials.Devices.Common.ShureMxa
                             dspObjectLock = false;
                             if (DeviceAudioMuteState != DspObject.MuteFeedback.BoolValue)
                             {
-                                Debug.Console(0, this, "Got dsp feedback. Setting mic state to {0}", DspObject.MuteFeedback.BoolValue);
+                                Debug.Console(1, this, "Got dsp feedback. Setting mic state to {0}", DspObject.MuteFeedback.BoolValue);
                                 if (DspObject.MuteFeedback.BoolValue)
                                 {
                                     this.SetDeviceAudioMuteOn();
@@ -674,7 +674,7 @@ namespace PepperDash.Essentials.Devices.Common.ShureMxa
                         {
                             if (DspObject.MuteFeedback.BoolValue != DeviceAudioMuteState)
                             {
-                                Debug.Console(0, this, "Got mic state feedback, Setting dsp state to {0}", DeviceAudioMuteState);
+                                Debug.Console(1, this, "Got mic state feedback, Setting dsp state to {0}", DeviceAudioMuteState);
                                 if (DeviceAudioMuteState)
                                 {
                                     DspObject.MuteOn();

@@ -127,8 +127,8 @@ namespace PepperDash.Essentials.Core.Lighting
         public string Name { get; set; }
         [JsonProperty("id", NullValueHandling = NullValueHandling.Ignore)]
         public string ID { get; set; }
-        [JsonProperty("level", NullValueHandling = NullValueHandling.Ignore)]
-        public uint Level { get; set; }
+        [JsonProperty("levels", NullValueHandling = NullValueHandling.Ignore)]
+        public SceneLevel[] Levels { get; set; }
         [JsonProperty("portDeviceKey", NullValueHandling = NullValueHandling.Ignore)]
         public string PortDeviceKey { get; set; }
         [JsonProperty("portNumber", NullValueHandling = NullValueHandling.Ignore)]
@@ -155,5 +155,13 @@ namespace PepperDash.Essentials.Core.Lighting
         {
             IsActiveFeedback = new BoolFeedback(new Func<bool>(() => IsActive));
         }
+    }
+
+    public class SceneLevel
+    {
+        [JsonProperty("index", NullValueHandling = NullValueHandling.Ignore)]
+        public ushort Index { get; set; }
+        [JsonProperty("level", NullValueHandling = NullValueHandling.Ignore)]
+        public ushort Level { get; set; }
     }
 }
