@@ -28,6 +28,8 @@ namespace PepperDash.Essentials.Devices.Common.ShureMxa
         private bool dspObjectLock;
         private CMutex DeviceObjectMutex;
         private bool deviceObjectLock;
+        private bool deviceMuteChangeInProgress;
+        CTimer deviceMuteChangeTimer;
 
         private readonly GenericQueue _commsQueue;
 
@@ -125,6 +127,7 @@ namespace PepperDash.Essentials.Devices.Common.ShureMxa
         /// </summary>
         public void ToggleDeviceAudioMute()
         {
+            DeviceMuteChangeTimerStart();
             SendText("SET DEVICE_AUDIO_MUTE TOGGLE");
         }
 
@@ -133,6 +136,7 @@ namespace PepperDash.Essentials.Devices.Common.ShureMxa
         /// </summary>
         public void SetDeviceAudioMute(bool state)
         {
+            DeviceMuteChangeTimerStart();
             SendText(string.Format("SET DEVICE_AUDIO_MUTE {0}", state ? "ON" : "OFF"));
         }
 
@@ -580,6 +584,8 @@ namespace PepperDash.Essentials.Devices.Common.ShureMxa
             _commsMonitor = new GenericCommunicationMonitor(this, _comms, 30000, 180000, 300000, Poll);
             _commsQueue = new GenericQueue(key + "-queue");
 
+            deviceMuteChangeTimer = new CTimer(DeviceMuteChangeTimerCallback, Timeout.Infinite);
+
             var socket = _comms as ISocketStatus;
             if (socket != null)
             {
@@ -625,6 +631,7 @@ namespace PepperDash.Essentials.Devices.Common.ShureMxa
 
         private void DspMuteFeedbackChange(object obj, FeedbackEventArgs args)
         {
+            DeviceMuteChangeTimerStart();
             if (!dspObjectLock)
             {
                 CrestronInvoke.BeginInvoke((o) =>
@@ -659,10 +666,22 @@ namespace PepperDash.Essentials.Devices.Common.ShureMxa
             }
         }
 
+        private void DeviceMuteChangeTimerStart()
+        {
+            deviceMuteChangeInProgress = true;
+            deviceMuteChangeTimer.Reset(5000);
+        }
+
+        private void DeviceMuteChangeTimerCallback(object o)
+        {
+            deviceMuteChangeInProgress = false;
+        }
+
         private void DeviceMuteStateChange(object obj, FeedbackEventArgs args)
         {
             if (!deviceObjectLock)
             {
+                DeviceMuteChangeTimerStart();
                 CrestronInvoke.BeginInvoke((o) =>
                 {
                     deviceObjectLock = true;
@@ -761,6 +780,22 @@ namespace PepperDash.Essentials.Devices.Common.ShureMxa
                 case "DEVICE_AUDIO_MUTE":
                     {
                         DeviceAudioMuteState = state.Contains("ON");
+
+                        if (_config.DspObjectKey != null)
+                        {
+                            if ((DspObject.MuteFeedback.BoolValue != DeviceAudioMuteState) && !deviceMuteChangeInProgress)
+                            {
+                                Debug.Console(0, this, "Dsp feedback doesn't match. Setting mic state to {0}", DspObject.MuteFeedback);
+                                if (DspObject.MuteFeedback.BoolValue)
+                                {
+                                    SetDeviceAudioMuteOn();
+                                }
+                                else
+                                {
+                                    SetDeviceAudioMuteOff();
+                                }
+                            }
+                        }
                         break;
                     }
                 // Device Mute LED state (on = muted, off = unmuted)
@@ -930,24 +965,6 @@ namespace PepperDash.Essentials.Devices.Common.ShureMxa
         public void Poll()
         {
             SendText("GET DEVICE_AUDIO_MUTE");
-
-            if(_config.DspObjectKey != null)
-            {
-                if (DspObject.MuteFeedback.BoolValue != DeviceAudioMuteState)
-                {
-                    Debug.Console(0, this, "Dsp feedback doesn't match. Setting dsp state to {0}", DeviceAudioMuteState);
-                    if (DeviceAudioMuteState)
-                    {
-                        DspObject.MuteOff();
-                        DspObject.MuteOn();
-                    }
-                    else
-                    {
-                        DspObject.MuteOn();
-                        DspObject.MuteOff();
-                    }
-                }
-            }
         }
 
         #endregion Polls

@@ -212,7 +212,6 @@
     <Compile Include="DSP\QscDsp\QscDspFactory.cs" />
     <Compile Include="DSP\QscDsp\QscDspLevelControl.cs" />
     <Compile Include="DSP\QscDsp\QscDspPropertiesConfig.cs" />
-    <Compile Include="DynFusion\AvailableRooms.cs" />
     <Compile Include="DynFusion\DynFusionAssetOccupancySensor.cs" />
     <Compile Include="DynFusion\DynFusionAssetOccupancySensorJoinMap.cs" />
     <Compile Include="DynFusion\DynFusionAttribute.cs" />
