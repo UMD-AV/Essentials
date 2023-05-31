@@ -30,7 +30,6 @@ namespace PepperDash.Essentials.Devices.Common.Environment.CrestronLighting
             LightingOnline = new BoolFeedback(() => LightingEisc.IsOnline);
             LightingEisc.SigChange += new SigEventHandler(LightingEisc_SigChange);
             LightingEisc.OnlineStatusChange += new Crestron.SimplSharpPro.OnlineStatusChangeEventHandler(LightingEisc_OnlineStatusChange);
-            LightingEisc.Register();
         }
 
         public override void LinkToApi(BasicTriList trilist, uint joinStart, string joinMapKey, EiscApiAdvanced bridge)
@@ -53,6 +52,12 @@ namespace PepperDash.Essentials.Devices.Common.Environment.CrestronLighting
 
             InternalOnline.FireUpdate();
             LightingOnline.FireUpdate();
+        }
+
+        public override bool CustomActivate()
+        {
+            LightingEisc.Register();
+            return true;
         }
 
         private void LightingEisc_SigChange(BasicTriList currentDevice, SigEventArgs args)

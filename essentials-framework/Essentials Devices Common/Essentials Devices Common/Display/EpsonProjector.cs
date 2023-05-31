@@ -1318,22 +1318,22 @@ namespace PepperDash.Essentials.Devices.Displays
         public void DefaultVolume()
         {
             Thread.Sleep(1000);
-            if(_PowerIsOn)
-            {
-                SetVolumeRaw(_defaultVolume);
-            }
-            else if (_IsWarmingUp)
+            if (_IsWarmingUp)
             {
                 CrestronInvoke.BeginInvoke(o =>
                 {
-                    Thread.Sleep(2000);
+                    while (_IsWarmingUp)
+                    {
+                        Thread.Sleep(1000);
+                    }
                     SetVolumeRaw(_defaultVolume);
                 });
             }
-            else
+            else if(_PowerIsOn)
             {
-                return;
+                SetVolumeRaw(_defaultVolume);
             }
+
         }
 
         /// <summary>

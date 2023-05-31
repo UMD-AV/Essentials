@@ -1268,11 +1268,33 @@ namespace PepperDash.Essentials.DM
                 EnableUsbBreakawayFeedback.FireUpdate();
 
                 if (InputNames != null)
-                    foreach (var kvp in InputNames)
-                        Chassis.Inputs[kvp.Key].Name.StringValue = kvp.Value;
+                {
+                    for (uint i = 1; i <= Chassis.NumberOfInputs; i++)
+                    {
+                        if (InputNames[i] != null && InputNames[i].Length > 0)
+                        {
+                            Chassis.Inputs[i].Name.StringValue = InputNames[i];
+                        }
+                        else
+                        {
+                            Chassis.Inputs[i].Name.StringValue = "\0";
+                        }
+                    }
+                }
                 if (OutputNames != null)
-                    foreach (var kvp in OutputNames)
-                        Chassis.Outputs[kvp.Key].Name.StringValue = kvp.Value;
+                {
+                    for (uint i = 1; i <= Chassis.NumberOfOutputs; i++)
+                    {
+                        if (OutputNames[i] != null && OutputNames[i].Length > 0)
+                        {
+                            Chassis.Outputs[i].Name.StringValue = OutputNames[i];
+                        }
+                        else
+                        {
+                            Chassis.Outputs[i].Name.StringValue = "\0";
+                        }
+                    }  
+                }
             }
         }
 
