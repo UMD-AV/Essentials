@@ -377,7 +377,20 @@ namespace ExtronDmp
                 trilist.SetBoolSigAction(joinMap.ChannelVolumeUp.JoinNumber + channelIndex, b => genericChannel.VolumeUp(b));
                 trilist.SetBoolSigAction(joinMap.ChannelVolumeDown.JoinNumber + channelIndex, b => genericChannel.VolumeDown(b));
                 // from SiMPL > to Plugin
-                trilist.SetUShortSigAction(joinMap.ChannelVolume.JoinNumber + channelIndex, u => genericChannel.SetVolume(u));
+                trilist.SetSigFalseAction(joinMap.EnableLevelSend.JoinNumber + channelIndex, () =>
+                {
+                    CrestronEnvironment.Sleep(500);
+                    genericChannel.SetVolume(trilist.UShortOutput[joinMap.ChannelVolume.JoinNumber + channelIndex].UShortValue);
+                });
+
+                trilist.SetUShortSigAction(joinMap.ChannelVolume.JoinNumber + channelIndex, u =>
+                {
+                    if (trilist.BooleanOutput[joinMap.EnableLevelSend.JoinNumber + channelIndex].BoolValue == true)
+                    {
+                        genericChannel.SetVolume(u);
+                    }
+                });
+
                 channelIndex++;
             }
 

@@ -14,7 +14,7 @@ using Tesira_DSP_EPI.Extensions;
 using IRoutingWithFeedback = Tesira_DSP_EPI.Interfaces.IRoutingWithFeedback;
 
 namespace Tesira_DSP_EPI {
-    public class TesiraDspSwitcher : TesiraDspControlPoint, IRoutingWithFeedback
+    public class TesiraDspRouter : TesiraDspControlPoint, IRoutingWithFeedback
     {
         private int _sourceIndex;
 
@@ -49,12 +49,6 @@ namespace Tesira_DSP_EPI {
 
         public readonly long PollIntervalMs;
 
-
-        /// <summary>
-        /// Subscription Identifier for Switcher
-        /// </summary>
-        public string SelectorCustomName { get; private set; }
-
         private string Type { get; set; } 
         private int Destination { get; set; }
         private int SourceIndex {
@@ -80,13 +74,13 @@ namespace Tesira_DSP_EPI {
         /// <param name="key">Unique Key</param>
         /// <param name="config">Sqitcher Config Object</param>
         /// <param name="parent">Parent Object</param>
-        public TesiraDspSwitcher(string key, TesiraSwitcherControlBlockConfig config, TesiraDsp parent)
-            : base(config.SwitcherInstanceTag, String.Empty, config.Index1, 0, parent, string.Format(KeyFormatter, parent.Key, key), config.Label, config.BridgeIndex)
+        public TesiraDspRouter(string key, TesiraRouterControlBlockConfig config, TesiraDsp parent)
+            : base(config.RouterInstanceTag, String.Empty, config.Index1, 0, parent, string.Format(KeyFormatter, parent.Key, key), config.Label, config.BridgeIndex)
         {
             SwitcherInputs = new Dictionary<uint, string>();
 
             ShowRoutedString = config.ShowRoutedStringFeedback;
-            foreach (var input in config.SwitcherInputs)
+            foreach (var input in config.RouterInputs)
             {
                 SwitcherInputs.Add(input.Key, input.Value.Label);
             }
@@ -117,7 +111,8 @@ namespace Tesira_DSP_EPI {
 
         }
 
-        private void Initialize(TesiraSwitcherControlBlockConfig config) {
+        private void Initialize(TesiraRouterControlBlockConfig config)
+        {
 			Type = "";
             //DeviceManager.AddDevice(this);
 
@@ -127,18 +122,13 @@ namespace Tesira_DSP_EPI {
 
             Label = config.Label;
 
-			if (config.Type != null)
-			{
-			    Type = config.Type;
-			}
-
             Enabled = config.Enabled;
 
-            if (config.SwitcherInputs != null)
+            if (config.RouterInputs != null)
             {
                 foreach (
                     var input in
-                        from input in config.SwitcherInputs
+                        from input in config.RouterInputs
                         let inputPort = input.Value
                         let inputPortKey = input.Key
                         select input)
@@ -147,17 +137,10 @@ namespace Tesira_DSP_EPI {
                         eRoutingPortConnectionType.BackplaneOnly, input.Key, this));
                 }
             }
-            if (config.SwitcherOutputs == null) return;
-            foreach (
-                var output in
-                    from output in config.SwitcherOutputs
-                    let outputPort = output.Value
-                    let outputPortKey = output.Key
-                    select output)
-            {
-                OutputPorts.Add(new RoutingOutputPort(output.Value.Label, eRoutingSignalType.Audio,
-                    eRoutingPortConnectionType.BackplaneOnly, output.Key, this));
-            }
+            if (config.RouterOutput == null) return;
+            var output = config.RouterOutput;
+            OutputPorts.Add(new RoutingOutputPort(output.Label, eRoutingSignalType.Audio,
+                eRoutingPortConnectionType.BackplaneOnly, 1, this));
         }
 
         /// <summary>
@@ -165,18 +148,7 @@ namespace Tesira_DSP_EPI {
         /// </summary>
         public override void Subscribe()
         {
-            if (Type == "router")
-            {
-                IsSubscribed = true;
-                if (_pollTimer != null)
-                {
-                    _pollTimer.Reset(PollIntervalMs);
-                }
-                return;
-            }
-            SelectorCustomName = (string.Format("{0}__Selector{1}", InstanceTag1, Index1)).Replace(" ", string.Empty);
-            AddCustomName(SelectorCustomName);
-            SendSubscriptionCommand(SelectorCustomName, "sourceSelection", 250, 1);
+            DoPoll();
         }
 
         /// <summary>
@@ -184,11 +156,7 @@ namespace Tesira_DSP_EPI {
         /// </summary>
         public override void Unsubscribe()
         {
-            IsSubscribed = false;
-
-			SelectorCustomName = (string.Format("{0}__Selector{1}", InstanceTag1, Index1)).Replace(" ", string.Empty);
-
-            SendUnSubscriptionCommand(SelectorCustomName, "sourceSelection", 1);
+            _pollTimer.Stop();
         }
 
         /// <summary>
@@ -196,14 +164,8 @@ namespace Tesira_DSP_EPI {
         /// </summary>
         /// <param name="customName">Subscription Identifier</param>
         /// <param name="value">Response to parse</param>
-        public override void ParseSubscriptionMessage(string customName, string value) {
-
-            // Check for valid subscription response
-
-            if (customName != SelectorCustomName) return;
-            SourceIndex = int.Parse(value);
-
-            IsSubscribed = true;
+        public override void ParseSubscriptionMessage(string customName, string value)
+        {
         }
 
         /// <summary>
@@ -231,15 +193,8 @@ namespace Tesira_DSP_EPI {
                 }
 
                 if (message.IndexOf("+OK", StringComparison.Ordinal) <= -1) return;
-                switch (attributeCode)
-                {
-                    case "sourceSelection":
-                        SourceIndex = int.Parse(value);
-                        break;
-                    case "input":
-                        SourceIndex = int.Parse(value);
-                        break;
-                }
+
+                SourceIndex = int.Parse(value);
             }
             catch (Exception e) {
                 Debug.Console(2, this, "Unable to parse message: '{0}'\n{1}", message, e);

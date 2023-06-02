@@ -31,7 +31,7 @@ namespace ExtronMlsDsp
 
         [JoinName("EnableLevelSend")]
         public JoinDataComplete EnableLevelSend =
-            new JoinDataComplete(new JoinData { JoinNumber = 11, JoinSpan = 1 },
+            new JoinDataComplete(new JoinData { JoinNumber = 200, JoinSpan = 200 },
             new JoinMetadata
             {
                 Description = "Enable Level Sending from SIMPL",

@@ -45,16 +45,6 @@ namespace Tesira_DSP_EPI.Bridge.JoinMaps
                     JoinType = eJoinType.Serial
                 });
 
-        [JoinName("EnableLevelSend")]
-        public JoinDataComplete EnableLevelSend =
-            new JoinDataComplete(new JoinData { JoinNumber = 11, JoinSpan = 1 },
-            new JoinMetadata
-            {
-                Description = "Enable Level Sending from SIMPL",
-                JoinCapabilities = eJoinCapabilities.FromSIMPL,
-                JoinType = eJoinType.Digital
-            });
-
         public TesiraDspDeviceJoinMapAdvanced(uint joinStart)
             : base(joinStart, typeof (TesiraDspDeviceJoinMapAdvanced))
         {

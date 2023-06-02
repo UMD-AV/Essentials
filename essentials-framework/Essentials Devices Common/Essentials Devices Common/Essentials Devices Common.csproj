@@ -176,8 +176,11 @@
     <Compile Include="DSP\Tesira\TesiraDspPreset.cs" />
     <Compile Include="DSP\Tesira\TesiraDspPropertiesConfig.cs" />
     <Compile Include="DSP\Tesira\TesiraDspRoomCombiner.cs" />
+    <Compile Include="DSP\Tesira\TesiraDspRouter.cs" />
+    <Compile Include="DSP\Tesira\TesiraDspSourceSelector.cs" />
     <Compile Include="DSP\Tesira\TesiraDspStateControl.cs" />
     <Compile Include="DSP\Tesira\TesiraDspSwitcher.cs" />
+    <Compile Include="DSP\Tesira\TesiraExpanderMonitor.cs" />
     <Compile Include="DSP\Tesira\TesiraExpanderTracker.cs" />
     <Compile Include="DSP\Tesira\TesiraQueue.cs" />
     <Compile Include="DynFusion\DynFusionHelpRequest.cs" />

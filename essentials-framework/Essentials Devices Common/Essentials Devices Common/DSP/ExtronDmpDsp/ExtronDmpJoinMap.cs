@@ -42,6 +42,16 @@ namespace ExtronDmp
                 JoinType = eJoinType.Digital
             });
 
+        [JoinName("EnableLevelSend")]
+        public JoinDataComplete EnableLevelSend =
+            new JoinDataComplete(new JoinData { JoinNumber = 200, JoinSpan = 200 },
+            new JoinMetadata
+            {
+                Description = "Enable Level Sending from SIMPL",
+                JoinCapabilities = eJoinCapabilities.FromSIMPL,
+                JoinType = eJoinType.Digital
+            });
+
         [JoinName("ChannelVisible")]
         public JoinDataComplete ChannelVisible = new JoinDataComplete(
             new JoinData()
@@ -52,7 +62,7 @@ namespace ExtronDmp
             new JoinMetadata()
             {
                 Description = "Channel Visible",
-                JoinCapabilities = eJoinCapabilities.FromSIMPL,
+                JoinCapabilities = eJoinCapabilities.ToSIMPL,
                 JoinType = eJoinType.Digital
             });
 

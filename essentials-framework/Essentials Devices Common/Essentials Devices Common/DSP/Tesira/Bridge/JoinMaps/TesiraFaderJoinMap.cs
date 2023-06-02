@@ -8,6 +8,16 @@ namespace Tesira_DSP_EPI.Bridge.JoinMaps
     /// </summary>
     public class TesiraFaderJoinMapAdvanced : JoinMapBaseAdvanced
     {
+        [JoinName("EnableLevelSend")]
+        public JoinDataComplete EnableLevelSend =
+            new JoinDataComplete(new JoinData { JoinNumber = 200, JoinSpan = 1 },
+            new JoinMetadata
+            {
+                Description = "Enable Level Sending from SIMPL",
+                JoinCapabilities = eJoinCapabilities.FromSIMPL,
+                JoinType = eJoinType.Digital
+            });
+
         [JoinName("MuteToggle")] public JoinDataComplete MuteToggle =
             new JoinDataComplete(new JoinData {JoinNumber = 400, JoinSpan = 1},
                 new JoinMetadata
@@ -119,6 +129,16 @@ namespace Tesira_DSP_EPI.Bridge.JoinMaps
     /// </summary>
     public class TesiraFaderJoinMapAdvanceeStandalone : JoinMapBaseAdvanced
     {
+        [JoinName("EnableLevelSend")]
+        public JoinDataComplete EnableLevelSend =
+            new JoinDataComplete(new JoinData { JoinNumber = 6, JoinSpan = 1 },
+                new JoinMetadata
+                {
+                    Description = "Enable Level Sending",
+                    JoinCapabilities = eJoinCapabilities.FromSIMPL,
+                    JoinType = eJoinType.Digital
+                });
+
         [JoinName("VolumeUp")] public JoinDataComplete VolumeUp =
             new JoinDataComplete(new JoinData {JoinNumber = 1, JoinSpan = 1},
                 new JoinMetadata

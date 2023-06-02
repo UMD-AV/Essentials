@@ -136,10 +136,16 @@ namespace ExtronMlsDsp
             trilist.SetBoolSigAction(joinMap.ChannelVolumeUp.JoinNumber + 1, b => VolumeUp(b));
             trilist.SetBoolSigAction(joinMap.ChannelVolumeDown.JoinNumber + 1, b => VolumeDown(b));
 
+            trilist.SetSigFalseAction(joinMap.EnableLevelSend.JoinNumber + 1, () =>
+            {
+                CrestronEnvironment.Sleep(500);
+                SetVolume(trilist.UShortOutput[joinMap.ChannelVolume.JoinNumber + 1].UShortValue);
+            });
+
             trilist.SetUShortSigAction(joinMap.ChannelVolume.JoinNumber + 1, u =>
             {
-                if(trilist.BooleanOutput[joinMap.EnableLevelSend.JoinNumber].BoolValue == true)
-                { 
+                if (trilist.BooleanOutput[joinMap.EnableLevelSend.JoinNumber + 1].BoolValue == true)
+                {
                     SetVolume(u);
                 }
             });

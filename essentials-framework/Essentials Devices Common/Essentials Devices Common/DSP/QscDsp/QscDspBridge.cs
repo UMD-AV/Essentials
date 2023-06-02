@@ -1,4 +1,5 @@
 using System.Linq;
+using Crestron.SimplSharp;
 using Crestron.SimplSharp.Reflection;
 using Crestron.SimplSharpPro.DeviceSupport;
 using Newtonsoft.Json;
@@ -50,9 +51,15 @@ namespace QscQsysDspPlugin
                     trilist.SetBoolSigAction(joinMap.ChannelVolumeUp.JoinNumber + x, b => genericChannel.VolumeUp(b));
                     trilist.SetBoolSigAction(joinMap.ChannelVolumeDown.JoinNumber + x, b => genericChannel.VolumeDown(b));
 					// from SiMPL > to Plugin
+                    trilist.SetSigFalseAction(joinMap.EnableLevelSend.JoinNumber, () =>
+                    {
+                        CrestronEnvironment.Sleep(500);
+                        genericChannel.SetVolume(trilist.UShortOutput[joinMap.ChannelVolume.JoinNumber].UShortValue);
+                    });
+
                     trilist.SetUShortSigAction(joinMap.ChannelVolume.JoinNumber + x, u =>
                     {
-                        if(trilist.BooleanOutput[joinMap.EnableLevelSend.JoinNumber].BoolValue == true)
+                        if(trilist.BooleanOutput[joinMap.EnableLevelSend.JoinNumber + x].BoolValue == true)
                         { 
                             genericChannel.SetVolume(u);
                         }
@@ -162,7 +169,7 @@ namespace QscQsysDspPlugin
 
         [JoinName("EnableLevelSend")]
         public JoinDataComplete EnableLevelSend =
-            new JoinDataComplete(new JoinData { JoinNumber = 11, JoinSpan = 1 },
+            new JoinDataComplete(new JoinData { JoinNumber = 200, JoinSpan = 200 },
             new JoinMetadata
             {
                 Description = "Enable Level Sending from SIMPL",
