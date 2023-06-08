@@ -25,6 +25,7 @@ namespace PepperDash.Plugin.Display.SamsungMdc
         public static List<string> InputKeys = new List<string>();
         private readonly SamsungMDCDisplayPropertiesConfig _config;
         private readonly uint _coolingTimeMs;
+        private CMutex _feedbackMutex;
 
         private readonly int _lowerLimit;
         private readonly long _pollIntervalMs;
@@ -89,6 +90,7 @@ namespace PepperDash.Plugin.Display.SamsungMdc
             _RequestedPowerState = 0;
             _RequestedInputState = 0;
             _PowerMutex = new CMutex();
+            _feedbackMutex = new CMutex();
 
             DeviceInfo = new DeviceInfo();
             Init();
@@ -972,7 +974,7 @@ namespace PepperDash.Plugin.Display.SamsungMdc
         {
             try
             {
-                //Debug.Console(2, this, "Received from e:{0}", ComTextHelper.GetEscapedText(e.Bytes));
+                _feedbackMutex.WaitForMutex();
 
                 // Append the incoming bytes with whatever is in the buffer
                 var newBytes = new byte[_incomingBuffer.Length + e.Bytes.Length];
@@ -1001,8 +1003,8 @@ namespace PepperDash.Plugin.Display.SamsungMdc
                     {
                         var message = new byte[dataLength];
                         newBytes.CopyTo(message, 0);
-                        ParseMessage(message);
-                        byte[] clear = {};
+                        CrestronInvoke.BeginInvoke((o) => ParseMessage(message));
+                        byte[] clear = { };
                         _incomingBuffer = clear;
                         return;
                     }
@@ -1018,14 +1020,17 @@ namespace PepperDash.Plugin.Display.SamsungMdc
                 }
                 else
                 {
-                    byte[] clear = {};
+                    byte[] clear = { };
                     _incomingBuffer = clear;
                 }
             }
             catch (Exception ex)
             {
                 Debug.LogError(Debug.ErrorLogLevel.Warning, String.Format("Exception parsing feedback: {0}", ex.Message));
-                Debug.LogError(Debug.ErrorLogLevel.Warning, String.Format("Stack trace: {0}", ex.StackTrace));
+            }
+            finally
+            {
+                _feedbackMutex.ReleaseMutex();
             }
         }
 

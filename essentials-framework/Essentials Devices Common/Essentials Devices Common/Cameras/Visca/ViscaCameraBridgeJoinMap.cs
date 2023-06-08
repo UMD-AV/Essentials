@@ -291,48 +291,6 @@ namespace ViscaCameraPlugin
 
 		#region Analog
 
-		[JoinName("TiltSpeed")]
-		public JoinDataComplete TiltSpeed = new JoinDataComplete(
-			new JoinData()
-			{
-				JoinNumber = 1,
-				JoinSpan = 1
-			},
-			new JoinMetadata()
-			{
-				Description = "Tilt Speed",
-				JoinCapabilities = eJoinCapabilities.ToFromSIMPL,
-				JoinType = eJoinType.Analog
-			});
-
-		[JoinName("PanSpeed")]
-		public JoinDataComplete PanSpeed = new JoinDataComplete(
-			new JoinData()
-			{
-				JoinNumber = 2,
-				JoinSpan = 1
-			},
-			new JoinMetadata()
-			{
-				Description = "Pan Speed",
-				JoinCapabilities = eJoinCapabilities.ToFromSIMPL,
-				JoinType = eJoinType.Analog
-			});
-
-		[JoinName("ZoomSpeed")]
-		public JoinDataComplete ZoomSpeed = new JoinDataComplete(
-			new JoinData()
-			{
-				JoinNumber = 3,
-				JoinSpan = 1
-			},
-			new JoinMetadata()
-			{
-				Description = "Zoom Speed",
-				JoinCapabilities = eJoinCapabilities.ToFromSIMPL,
-				JoinType = eJoinType.Analog
-			});
-
 		[JoinName("PresetRecallByNumber")]
 		public JoinDataComplete PresetRecallByNumber = new JoinDataComplete(
 			new JoinData()

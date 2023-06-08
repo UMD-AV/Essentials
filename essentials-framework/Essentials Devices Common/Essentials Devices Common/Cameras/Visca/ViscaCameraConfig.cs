@@ -18,18 +18,6 @@ namespace ViscaCameraPlugin
 		[JsonProperty("address")]
 		public uint Address { get; set; }
 
-		[JsonProperty("panSpeed")]
-		public uint PanSpeed { get; set; }
-
-		[JsonProperty("tiltSpeed")]
-		public uint TiltSpeed { get; set; }
-
-		[JsonProperty("zoomSpeed")]
-		public uint ZoomSpeed { get; set; }
-
-		[JsonProperty("focusSpeed")]
-		public uint FocusSpeed { get; set; }
-
 		[JsonProperty("privacyOnPreset")]
 		public uint PrivacyOnPreset { get; set; }
 
@@ -47,6 +35,9 @@ namespace ViscaCameraPlugin
 
         [JsonProperty("autoTracking")]
         public bool AutoTracking { get; set; }
+
+        [JsonProperty("usePresetsForAutoTracking")]
+        public bool UsePresetsForAutoTracking { get; set; }
 
 		[JsonProperty("presets")]
 		public List<ViscaCameraPresetConfig> Presets { get; set; }
