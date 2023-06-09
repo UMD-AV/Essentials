@@ -174,6 +174,70 @@ namespace ViscaCameraPlugin
         /// </summary>
         public Dictionary<uint, BoolFeedback> PresetActiveFeedbacks { get; private set; }
 
+		private const uint PanSpeedDefault = 9; // 00...18 (hex)
+		private const uint PanSpeedMax = 18;
+		private uint _panSpeed = PanSpeedDefault;
+		/// <summary>
+		/// Pan speed
+		/// </summary>
+		public uint PanSpeed
+		{
+			get { return (uint)_panSpeed; }
+			set
+			{
+				if (_panSpeed == value) return;
+				_panSpeed = (value < 1 || value > PanSpeedMax) ? PanSpeedDefault : value;
+			}
+		}
+
+		private const uint TiltSpeedDefault = 9; // 00...18 (hex)
+		private const uint TiltSpeedMax = 18;
+		private uint _tiltSpeed = TiltSpeedDefault;
+		/// <summary>
+		/// Tilt speed
+		/// </summary>
+		public uint TiltSpeed
+		{
+			get { return (uint)_tiltSpeed; }
+			set
+			{
+				if (_tiltSpeed == value) return;
+				_tiltSpeed = (value < 1 || value > TiltSpeedMax) ? TiltSpeedDefault : value;
+			}
+		}
+
+		private const uint ZoomSpeedDefault = 4; // 00...07 (hex)
+		private const uint ZoomSpeedMax = 7;
+		private uint _zoomSpeed = ZoomSpeedDefault;
+		/// <summary>
+		/// Zoom speed
+		/// </summary>
+		public uint ZoomSpeed
+		{
+			get { return (uint)_zoomSpeed; }
+			set
+			{
+				if (_zoomSpeed == value) return;
+				_zoomSpeed = (value < 1 || value > ZoomSpeedMax) ? ZoomSpeedDefault : value;
+			}
+		}
+
+		private const uint FocusSpeedDefault = 4; // 00...07 (hex)
+		private const uint FocusSpeedMax = 7;
+		private uint _focusSpeed = FocusSpeedDefault;
+		/// <summary>
+		/// Focus speed
+		/// </summary>
+		public uint FocusSpeed
+		{
+			get { return (uint)_focusSpeed; }
+			set
+			{
+				if (_focusSpeed == value) return;
+				_focusSpeed = (value < 1 || value > FocusSpeedMax) ? FocusSpeedDefault : value;
+			}
+		}
+
         public class ViscaCameraCommand
         {
             public eViscaCameraInquiry Command;
@@ -292,6 +356,18 @@ namespace ViscaCameraPlugin
                 _address = Convert.ToByte(0x80 + _config.Address);
                 _feedbackAddress = Convert.ToByte((uint)(_config.Address + 8) * 16);
             }
+
+			if (_config.PanSpeed > 0 && _config.PanSpeed <= PanSpeedMax)
+				PanSpeed = _config.PanSpeed;
+
+			if (_config.TiltSpeed > 0 && _config.TiltSpeed <= TiltSpeedMax)
+				TiltSpeed = _config.TiltSpeed;
+
+			if (_config.ZoomSpeed > 0 && _config.ZoomSpeed <= ZoomSpeedMax)
+				ZoomSpeed = _config.ZoomSpeed;
+
+			if (_config.FocusSpeed > 0 && _config.FocusSpeed <= FocusSpeedMax)
+				FocusSpeed = _config.FocusSpeed;
 
 			if (_config.PrivacyOnPreset > 0 && _config.PrivacyOnPreset <= PresetMax)
 				_privacyOnPreset = _config.PrivacyOnPreset;
@@ -823,6 +899,8 @@ namespace ViscaCameraPlugin
                         }
                         break;
                     case eViscaCameraInquiry.AutoTrackInquiry:
+                    case eViscaCameraInquiry.AutoTrackOnCmd:
+                    case eViscaCameraInquiry.AutoTrackOffCmd:
                         if (message[message.Length - 3] == 0x50)
                         {
                             if (message[message.Length - 2] == 0x02)
@@ -878,6 +956,7 @@ namespace ViscaCameraPlugin
                     default:
                         _lastInquiry = eViscaCameraInquiry.NoFeedback;
                         Debug.Console(0, this, "Received unknown feedback: {0}", ComTextHelper.GetEscapedText(message));
+                        readyForNextCommand(null);
                         break;
                 }
                 return;
@@ -885,6 +964,7 @@ namespace ViscaCameraPlugin
             else
             {
                 Debug.Console(0, this, "Received unknown feedback: {0}", ComTextHelper.GetEscapedText(message));
+                readyForNextCommand(null);
             }
 		}
 
@@ -1004,6 +1084,22 @@ namespace ViscaCameraPlugin
             }
         }
 
+        public bool OverrideAutoTacking()
+        {
+            if (_autoTrackingCapable && AutoTrackingOn)
+            {
+                SetAutoTrackingOff();
+                uint count = 0;
+                while (AutoTrackingOn)
+                {
+                    count++;
+                    if (count > 50) return false;
+                    CrestronEnvironment.Sleep(100);
+                }
+            }
+            return true;
+        }
+
         /// <summary>
         /// Move camera with automatic speed setting
         /// </summary>
@@ -1011,19 +1107,34 @@ namespace ViscaCameraPlugin
         /// <param name="direction">EMoveDirection direction</param>
         public void Move(bool state, EDirection direction)
         {
+            if (!OverrideAutoTacking())
+                return;
             if (state && _moveInProgress == EDirection.Stop)
             {
                 int count = 0;
-                uint slow = 4;
-                uint medium = 8;
-                uint fast = 12;
+                uint slow = 0;
+                uint medium = 0;
+                uint fast = 0;
+
                 _moveInProgress = direction;
 
-                if (direction == EDirection.ZoomIn || direction == EDirection.ZoomOut)
+                if (direction == EDirection.PanLeft || direction == EDirection.PanRight)
                 {
-                    slow = 2;
-                    medium = 4;
-                    fast = 6;
+                    slow = PanSpeed > 4 ? PanSpeed - 4 : 1;
+                    medium = PanSpeed;
+                    fast = PanSpeed < 14 ? PanSpeed + 4 : 18;
+                }
+                else if (direction == EDirection.TiltUp || direction == EDirection.TiltDown)
+                {
+                    slow = TiltSpeed > 4 ? TiltSpeed - 4 : 1;
+                    medium = TiltSpeed;
+                    fast = TiltSpeed < 14 ? TiltSpeed + 4 : 18;
+                }
+                else if (direction == EDirection.ZoomIn || direction == EDirection.ZoomOut)
+                {
+                    slow = ZoomSpeed > 2 ? ZoomSpeed - 2 : 1;
+                    medium = ZoomSpeed;
+                    fast = ZoomSpeed < 5 ? ZoomSpeed + 2 : 7;
                 }
 
                 Move(direction, slow);
@@ -1035,7 +1146,7 @@ namespace ViscaCameraPlugin
                         {
                             Move(direction, medium);
                         }
-                        else if (count == 200)
+                        else if (count == 300)
                         {
                             Move(direction, fast);
                         }
@@ -1144,6 +1255,8 @@ namespace ViscaCameraPlugin
         /// </summary>
         public void RecallHomePosition()
         {
+            if (!OverrideAutoTacking())
+                return;
             _lastCalledPreset = 0;
             QueueCommand(eViscaCameraInquiry.PresetRecallCmd, new byte[] { _address, 0x01, 0x06, 0x04, 0xFF });
         }
@@ -1156,6 +1269,9 @@ namespace ViscaCameraPlugin
 		{
 			if (preset <= 0)
 				return;
+
+            if (!OverrideAutoTacking())
+                return;
 
             _lastCalledPreset = preset;
 			var cmd = new byte[] { _address, 0x01, 0x04, 0x3F, 0x02, Convert.ToByte(preset-1), 0xFF };
