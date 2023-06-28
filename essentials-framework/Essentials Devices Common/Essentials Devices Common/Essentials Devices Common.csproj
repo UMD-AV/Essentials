@@ -125,9 +125,12 @@
     <Compile Include="AvBridges\VaddioBridge\VaddioBridgeJoinMap.cs" />
     <Compile Include="AvBridges\VaddioBridge\VaddioBridgeFactory.cs" />
     <Compile Include="CameraControllers\BlackmagicAtem.cs" />
+    <Compile Include="Cameras\Aver\AverCameraFactory.cs" />
     <Compile Include="Cameras\CameraBase.cs" />
-    <Compile Include="Cameras\CameraVisca.cs" />
     <Compile Include="Cameras\CameraOnvif.cs" />
+    <Compile Include="Cameras\Aver\AverCameraDevice.cs" />
+    <Compile Include="Cameras\Crestron\CrestronCameraDevice.cs" />
+    <Compile Include="Cameras\Crestron\CrestronCameraFactory.cs" />
     <Compile Include="Cameras\IHasCameraPresets.cs" />
     <Compile Include="Cameras\Visca\ViscaCameraBridgeJoinMap.cs" />
     <Compile Include="Cameras\Visca\ViscaCameraConfig.cs" />

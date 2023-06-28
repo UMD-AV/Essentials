@@ -389,7 +389,7 @@ namespace VaddioBridgePlugin
 		/// <param name="bytes"></param>
 		public void SendText(string text)
 		{
-			if (text == null) return;
+			if (text == null || !this._loggedIn) return;
 
             text += "\x0D";
             Debug.Console(1, this, "Sending text: {0}", text);
@@ -479,12 +479,14 @@ namespace VaddioBridgePlugin
             {
                 Debug.Console(1, this, "Vaddio Bridge feedback: login incorrect");
                 _loggedIn = false;
-                if (_usernameSent == false)
-                {
-                    _usernameSent = true;
-                    string username = _config.Username == null ? "admin" : _config.Username;
-                    SendText(username);
-                }
+                CrestronInvoke.BeginInvoke((o) =>
+                    {
+                        CrestronEnvironment.Sleep(3000);
+                        if (_usernameSent == false)
+                        {
+                            SendLogin();
+                        }
+                    });
             }
             else if (temp.Contains(usernameSearch))
             {
@@ -492,9 +494,7 @@ namespace VaddioBridgePlugin
                 _loggedIn = false;
                 if (_usernameSent == false)
                 {
-                    _usernameSent = true;
-                    string username = _config.Username == null ? "admin" : _config.Username;
-                    SendText(username);                   
+                    SendLogin();              
                 }
             }
             else if (temp.Contains(passwordSearch))
@@ -589,25 +589,33 @@ namespace VaddioBridgePlugin
             PollSource();
 		}
 
+
+        private void SendLogin()
+        {
+            if (!_usernameSent)
+            {
+                _usernameSent = true;
+                string username = _config.Username == null ? "admin" : _config.Username;
+                if (_commsIsSerial)
+                    _comms.SendText(username + 0x0D);
+                else
+                {
+                    if (!_comms.IsConnected)
+                        _comms.Connect();
+
+                    _comms.SendText(username + 0x0D);
+                }
+            }
+        }
+
 		/// <summary>
 		/// Poll 
 		/// </summary>
 		public void Poll()
 		{
-            if (_loggedIn == false)
+            if (!_loggedIn)
             {
-                if (_usernameSent == false)
-                {
-                    _usernameSent = true;
-                    string username = _config.Username == null ? "admin" : _config.Username;
-                    SendText(username);
-                }
-                else
-                {
-                    string password = _config.Password == null ? "" : _config.Password;
-                    SendText(password);
-                    _usernameSent = false;
-                }
+                SendLogin();
             }
             else
             {
