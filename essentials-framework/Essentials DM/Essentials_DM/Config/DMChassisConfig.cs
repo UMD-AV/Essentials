@@ -16,7 +16,7 @@ namespace PepperDash.Essentials.DM.Config
 		[JsonProperty("control")]
 		public ControlPropertiesConfig Control { get; set; }
 
-        [JsonProperty("volumeControls")]
+        [JsonProperty("volumeControls", NullValueHandling = NullValueHandling.Ignore)]
         public Dictionary<uint, DmCardAudioPropertiesConfig> VolumeControls { get; set; }
 
         [JsonProperty("inputSlots")]
@@ -34,12 +34,11 @@ namespace PepperDash.Essentials.DM.Config
         [JsonProperty("noRouteText")]
         public string NoRouteText { get; set; }
 
-        [JsonProperty("inputSlotSupportsHdcp2")]
+        [JsonProperty("inputSlotSupportsHdcp2", NullValueHandling = NullValueHandling.Ignore)]
         public Dictionary<uint, bool> InputSlotSupportsHdcp2 { get; set; }
 
         public DMChassisPropertiesConfig()
         {
-            InputSlotSupportsHdcp2 = new Dictionary<uint, bool>();
         }
     }
 

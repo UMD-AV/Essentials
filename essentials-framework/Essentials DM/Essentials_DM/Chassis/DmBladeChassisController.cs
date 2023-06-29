@@ -83,10 +83,18 @@ namespace PepperDash.Essentials.DM
                 type = type.ToLower();
                 uint ipid = properties.Control.IpIdInt;
 
+                if (properties.VolumeControls == null)
+                {
+                    properties.VolumeControls = new Dictionary<uint, DmCardAudioPropertiesConfig>();
+                }
+                if (properties.InputSlotSupportsHdcp2 == null)
+                {
+                    properties.InputSlotSupportsHdcp2 = new Dictionary<uint, bool>();
+                }
+
                 BladeSwitch chassis = null;
                 if (type == "dmmd64x64") { chassis = new DmMd64x64(ipid, Global.ControlSystem); }
                 else if (type == "dmmd128x128") { chassis = new DmMd128x128(ipid, Global.ControlSystem); }
-
 
                 if (chassis == null)
                 {
