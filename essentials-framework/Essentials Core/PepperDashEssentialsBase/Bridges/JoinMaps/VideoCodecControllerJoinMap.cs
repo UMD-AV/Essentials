@@ -398,7 +398,6 @@ namespace PepperDash.Essentials.Core.Bridges.JoinMaps
 				JoinType = eJoinType.Digital
 			});
 
-
 		[JoinName("DirectoryEntryIsContact")]
 		public JoinDataComplete DirectoryEntryIsContact = new JoinDataComplete(
 			new JoinData
@@ -1249,7 +1248,6 @@ namespace PepperDash.Essentials.Core.Bridges.JoinMaps
 				JoinType = eJoinType.Analog
 			});
 
-
         [JoinName("SelectedContactMethodCount")]
         public JoinDataComplete SelectedContactMethodCount = new JoinDataComplete(
             new JoinData
@@ -1291,9 +1289,7 @@ namespace PepperDash.Essentials.Core.Bridges.JoinMaps
                 JoinCapabilities = eJoinCapabilities.ToSIMPL,
                 JoinType = eJoinType.Analog
             });
-
-
-
+			
 		[JoinName("CameraPresetSelect")]
 		public JoinDataComplete CameraPresetSelect = new JoinDataComplete(
 			new JoinData

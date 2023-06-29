@@ -402,7 +402,7 @@ namespace PepperDash.Essentials.DM
                             }
                             if (inputCard.Card is Dmc4kHdDspBase)
                             {
-                                if (PropertiesConfig.InputSlotSupportsHdcp2[tempX])
+                                if (PropertiesConfig.InputSlotSupportsHdcp2[tempX] != null ? PropertiesConfig.InputSlotSupportsHdcp2[tempX] : true)
                                 {
                                     InputCardHdcpCapabilityTypes[tempX] = eHdcpCapabilityType.Hdcp2_2Support;
                                     return (int)(inputCard.Card as Dmc4kHdDspBase).HdmiInput.HdcpReceiveCapability;
@@ -416,7 +416,7 @@ namespace PepperDash.Essentials.DM
 
                             if (inputCard.Card is Dmc4kCBase)
                             {
-                                if (PropertiesConfig.InputSlotSupportsHdcp2[tempX])
+                                if (PropertiesConfig.InputSlotSupportsHdcp2[tempX] != null ? PropertiesConfig.InputSlotSupportsHdcp2[tempX] : true)
                                 {
                                     InputCardHdcpCapabilityTypes[tempX] = eHdcpCapabilityType.HdcpAutoSupport;
                                     return (int)(inputCard.Card as Dmc4kCBase).DmInput.HdcpReceiveCapability;
@@ -428,7 +428,7 @@ namespace PepperDash.Essentials.DM
                             }
                             if (inputCard.Card is Dmc4kCDspBase)
                             {
-                                if (PropertiesConfig.InputSlotSupportsHdcp2[tempX])
+                                if (PropertiesConfig.InputSlotSupportsHdcp2[tempX] != null ? PropertiesConfig.InputSlotSupportsHdcp2[tempX] : true)
                                 {
                                     InputCardHdcpCapabilityTypes[tempX] = eHdcpCapabilityType.HdcpAutoSupport;
                                     return (int)(inputCard.Card as Dmc4kCDspBase).DmInput.HdcpReceiveCapability;
@@ -1271,7 +1271,7 @@ namespace PepperDash.Essentials.DM
                 {
                     for (uint i = 1; i <= Chassis.NumberOfInputs; i++)
                     {
-                        if (InputNames[i] != null && InputNames[i].Length > 0)
+                        if (InputNames.ContainsKey(i) && InputNames[i] != null && InputNames[i].Length > 0)
                         {
                             Chassis.Inputs[i].Name.StringValue = InputNames[i];
                         }
@@ -1285,7 +1285,7 @@ namespace PepperDash.Essentials.DM
                 {
                     for (uint i = 1; i <= Chassis.NumberOfOutputs; i++)
                     {
-                        if (OutputNames[i] != null && OutputNames[i].Length > 0)
+                        if (OutputNames.ContainsKey(i) && OutputNames[i] != null && OutputNames[i].Length > 0)
                         {
                             Chassis.Outputs[i].Name.StringValue = OutputNames[i];
                         }
@@ -1559,9 +1559,9 @@ namespace PepperDash.Essentials.DM
             Debug.Console(1, "Port is HdmiInputWithCec");
 
             var hdmiInPortWCec = port as HdmiInputWithCEC;
-            
-            
-            SetHdcpStateAction(PropertiesConfig.InputSlotSupportsHdcp2[ioSlot], hdmiInPortWCec, joinMap.HdcpSupportState.JoinNumber + ioSlotJoin, trilist);
+
+            bool supportsHdcp2 = PropertiesConfig.InputSlotSupportsHdcp2[ioSlot] != null ? PropertiesConfig.InputSlotSupportsHdcp2[ioSlot] : true;
+            SetHdcpStateAction(supportsHdcp2, hdmiInPortWCec, joinMap.HdcpSupportState.JoinNumber + ioSlotJoin, trilist);
             
 
             InputCardHdcpStateFeedbacks[ioSlot].LinkInputSig(
@@ -1742,7 +1742,7 @@ namespace PepperDash.Essentials.DM
 
             var dmInPortWCec = port as DMInputPortWithCec;
 
-            bool supportsHdcp2;
+            bool supportsHdcp2 = true;
 
             //added in case the InputSlotSupportsHdcp2 section isn't included in the config, or this slot is left out.
             //if the key isn't in the dictionary, supportsHdcp2 will be false
@@ -1750,7 +1750,7 @@ namespace PepperDash.Essentials.DM
             if(!PropertiesConfig.InputSlotSupportsHdcp2.TryGetValue(ioSlot, out supportsHdcp2))
             {
                 Debug.Console(0, this, Debug.ErrorLogLevel.Warning,
-                    "Input Slot Supports HDCP2 setting not found for slot {0}. Setting to false. Program may not function as intended.",
+                    "Input Slot Supports HDCP2 setting not found for slot {0}. Setting to true. Program may not function as intended.",
                     ioSlot);
             }
 
@@ -1805,12 +1805,12 @@ namespace PepperDash.Essentials.DM
                 return;
             }
 
-            bool supportsHdcp2;
+            bool supportsHdcp2 = true;
 
             if (!PropertiesConfig.InputSlotSupportsHdcp2.TryGetValue(ioSlot, out supportsHdcp2))
             {
                 Debug.Console(0, this, Debug.ErrorLogLevel.Warning,
-                    "Input Slot Supports HDCP2 setting not found for slot {0}. Setting to false. Program may not function as intended.",
+                    "Input Slot Supports HDCP2 setting not found for slot {0}. Setting to true. Program may not function as intended.",
                     ioSlot);
             }
 

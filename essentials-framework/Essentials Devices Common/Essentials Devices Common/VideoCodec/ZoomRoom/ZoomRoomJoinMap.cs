@@ -8,6 +8,34 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.ZoomRoom
 	{
 		#region Digital
 
+        [JoinName("IsCoHost")]
+        public JoinDataComplete IsCoHost = new JoinDataComplete(
+            new JoinData
+            {
+                JoinNumber = 4,
+                JoinSpan = 1
+            },
+            new JoinMetadata
+            {
+                Description = "FB Indicates system is a co-host",
+                JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                JoinType = eJoinType.Digital
+            });
+
+        [JoinName("InWaitingRoom")]
+        public JoinDataComplete InWaitingRoom = new JoinDataComplete(
+            new JoinData
+            {
+                JoinNumber = 5,
+                JoinSpan = 1
+            },
+            new JoinMetadata
+            {
+                Description = "FB Indicates to show the zoom room is in the waiting room",
+                JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                JoinType = eJoinType.Digital
+            });
+
         [JoinName("CancelJoinAttempt")]
         public JoinDataComplete CancelJoinAttempt = new JoinDataComplete(
             new JoinData
@@ -18,6 +46,20 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.ZoomRoom
             new JoinMetadata
             {
                 Description = "Pulse to hide the password prompt",
+                JoinCapabilities = eJoinCapabilities.FromSIMPL,
+                JoinType = eJoinType.Digital
+            });
+
+        [JoinName("ClearPasswordPrompt")]
+        public JoinDataComplete ClearPasswordPrompt = new JoinDataComplete(
+            new JoinData
+            {
+                JoinNumber = 6,
+                JoinSpan = 1
+            },
+            new JoinMetadata
+            {
+                Description = "Clear the password prompt and cancel call attempt",
                 JoinCapabilities = eJoinCapabilities.FromSIMPL,
                 JoinType = eJoinType.Digital
             });
@@ -89,6 +131,20 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.ZoomRoom
             {
                 Description = "FB Indicates system is the host",
                 JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                JoinType = eJoinType.Digital
+            });
+
+        [JoinName("LeaveMeeting")]
+        public JoinDataComplete LeaveMeeting = new JoinDataComplete(
+            new JoinData
+            {
+                JoinNumber = 23,
+                JoinSpan = 1
+            },
+            new JoinMetadata
+            {
+                Description = "Leave a zoom meeting without ending it for all",
+                JoinCapabilities = eJoinCapabilities.FromSIMPL,
                 JoinType = eJoinType.Digital
             });
 
@@ -531,6 +587,20 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.ZoomRoom
                 JoinType = eJoinType.Serial
             });
 
+        [JoinName("CallConnectErrorMessage")]
+        public JoinDataComplete CallConnectErrorMessage = new JoinDataComplete(
+            new JoinData
+            {
+                JoinNumber = 7,
+                JoinSpan = 1
+            },
+            new JoinMetadata
+            {
+                Description = "DCall Connect Error Message",
+                JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                JoinType = eJoinType.Serial
+            });
+
         // TODO [ ] Issue #868
         [JoinName("MeetingInfoId")]
         public JoinDataComplete MeetingInfoId = new JoinDataComplete(
@@ -547,7 +617,7 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.ZoomRoom
             });
 
         // TODO [ ] Issue #868
-        [JoinName("MeetingInfoHostt")]
+        [JoinName("MeetingInfoHost")]
         public JoinDataComplete MeetingInfoHost = new JoinDataComplete(
             new JoinData
             {
@@ -573,6 +643,20 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.ZoomRoom
             {
                 Description = "Meeting info Password text feedback",
                 JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                JoinType = eJoinType.Serial
+            });
+
+        [JoinName("CustomTx")]
+        public JoinDataComplete CustomTx = new JoinDataComplete(
+            new JoinData
+            {
+                JoinNumber = 31,
+                JoinSpan = 1
+            },
+            new JoinMetadata
+            {
+                Description = "Send custom tx to zoom",
+                JoinCapabilities = eJoinCapabilities.FromSIMPL,
                 JoinType = eJoinType.Serial
             });
 

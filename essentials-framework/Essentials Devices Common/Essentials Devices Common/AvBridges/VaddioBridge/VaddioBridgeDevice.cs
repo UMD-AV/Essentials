@@ -20,6 +20,7 @@ namespace VaddioBridgePlugin
         private bool _loggedIn;
         private bool _usernameSent;
         private CMutex _bufferMutex;
+        private CTimer _loginTimeout;
 
 		private readonly VaddioBridgeConfig _config;
 
@@ -207,6 +208,7 @@ namespace VaddioBridgePlugin
             _usernameSent = false;
 
             _bufferMutex = new CMutex();
+            _loginTimeout = new CTimer(LoginTimeoutExpired, Timeout.Infinite);
 
 			OnlineFeedback = new BoolFeedback(() => _comms.IsConnected);
 			MonitorStatusFeedback = new IntFeedback(() => (int)_commsMonitor.Status);
@@ -589,12 +591,17 @@ namespace VaddioBridgePlugin
             PollSource();
 		}
 
+        private void LoginTimeoutExpired(object o)
+        {
+            _usernameSent = false;
+        }
 
         private void SendLogin()
         {
             if (!_usernameSent)
             {
                 _usernameSent = true;
+                _loginTimeout.Reset(5000);
                 string username = _config.Username == null ? "admin" : _config.Username;
                 if (_commsIsSerial)
                     _comms.SendText(username + 0x0D);

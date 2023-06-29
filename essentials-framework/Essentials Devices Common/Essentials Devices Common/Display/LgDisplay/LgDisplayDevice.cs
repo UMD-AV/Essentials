@@ -32,7 +32,6 @@ namespace Epi.Display.Lg
         private bool _isWarmingUp;
         private bool _lastCommandSentWasVolume;
         private int _lastVolumeSent;
-        private CTimer _pollRing;
         private bool _powerIsOn;
         private ActionIncrementer _volumeIncrementer;
         private bool _volumeIsRamping;

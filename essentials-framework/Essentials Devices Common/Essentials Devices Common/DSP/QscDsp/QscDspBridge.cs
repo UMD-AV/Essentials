@@ -19,7 +19,7 @@ namespace QscQsysDspPlugin
 			var joinMap = new QscDspDeviceJoinMap(joinStart);
 
 			Debug.Console(1, DspDevice, "Linking to Trilist '{0}'", trilist.ID.ToString("X"));
-			ushort x = 1;
+			ushort i = 1;
 			var comm = DspDevice as ICommunicationMonitor;
 
 			// from Plugin > to SiMPL
@@ -28,7 +28,7 @@ namespace QscQsysDspPlugin
 
 			foreach (var channel in DspDevice.LevelControlPoints)
 			{
-				//var QscChannel = channel.Value as QSC.DSP.EPI.QscDspLevelControl;
+                var x = i;
 				Debug.Console(2, "QscChannel {0} connect", x);
 
 				var genericChannel = channel.Value as IBasicVolumeWithFeedback;
@@ -51,10 +51,10 @@ namespace QscQsysDspPlugin
                     trilist.SetBoolSigAction(joinMap.ChannelVolumeUp.JoinNumber + x, b => genericChannel.VolumeUp(b));
                     trilist.SetBoolSigAction(joinMap.ChannelVolumeDown.JoinNumber + x, b => genericChannel.VolumeDown(b));
 					// from SiMPL > to Plugin
-                    trilist.SetSigFalseAction(joinMap.EnableLevelSend.JoinNumber, () =>
+                    trilist.SetSigFalseAction(joinMap.EnableLevelSend.JoinNumber + x, () =>
                     {
                         CrestronEnvironment.Sleep(500);
-                        genericChannel.SetVolume(trilist.UShortOutput[joinMap.ChannelVolume.JoinNumber].UShortValue);
+                        genericChannel.SetVolume(trilist.UShortOutput[joinMap.ChannelVolume.JoinNumber + x].UShortValue);
                     });
 
                     trilist.SetUShortSigAction(joinMap.ChannelVolume.JoinNumber + x, u =>
@@ -65,20 +65,20 @@ namespace QscQsysDspPlugin
                         }
                     });
 				}
-				x++;
+				i++;
 			}
 
 			// Presets 
-			x = 0;
+			i = 0;
 			// from SiMPL > to Plugin
 			trilist.SetStringSigAction(joinMap.Presets.JoinNumber, s => DspDevice.RunPreset(s));
 			foreach (var preset in DspDevice.PresetList)
 			{
-				var temp = x;
+				var x = i;
 				// from SiMPL > to Plugin
-				trilist.StringInput[joinMap.Presets.JoinNumber + temp + 1].StringValue = preset.Label;
-				trilist.SetSigTrueAction(joinMap.Presets.JoinNumber + temp + 1, () => DspDevice.RunPresetNumber(temp));
-				x++;
+				trilist.StringInput[joinMap.Presets.JoinNumber + x + 1].StringValue = preset.Label;
+				trilist.SetSigTrueAction(joinMap.Presets.JoinNumber + x + 1, () => DspDevice.RunPresetNumber(x));
+				i++;
 			}
 
 			// VoIP Dialer

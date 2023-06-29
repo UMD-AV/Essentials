@@ -679,6 +679,8 @@ namespace ViscaCameraPlugin
                                 }
                                 ViscaCameraCommand cmd = _commandQueue.TryToDequeue();
                                 _lastInquiry = cmd.Command;
+                                _commandReady = false;
+                                _commandTimer.Reset(5000);   //Wait maximum 5000 ms for response before sending next command
                                 CrestronInvoke.BeginInvoke((obj) =>
                                 {
                                     SendBytes(cmd.Bytes);
@@ -733,9 +735,6 @@ namespace ViscaCameraPlugin
             {
                 return;
             }
-
-            _commandReady = false;  //Block new commands until ready for more
-            _commandTimer.Reset(5000);   //Wait maximum 5000 ms for response before sending next command
             Debug.Console(1, this, "Tx: {0}", ComTextHelper.GetEscapedText(bytes));
 
 			if (_commsIsSerial)
@@ -955,8 +954,7 @@ namespace ViscaCameraPlugin
             }
             else
             {
-                Debug.Console(0, this, "Received unknown feedback: {0}", ComTextHelper.GetEscapedText(message));
-                readyForNextCommand(null);
+                ParseAdditionalFeedback(message);
             }
 		}
 
@@ -1013,6 +1011,7 @@ namespace ViscaCameraPlugin
                     ActivePreset = 0;
                     return;
                 }
+
                 if (_autoTrackingCapable)
                 {
                     PollAutoTrack();

@@ -36,6 +36,8 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.Interfaces
         public string ShareStatus { get; private set; }
         [JsonProperty("isHost", NullValueHandling = NullValueHandling.Ignore)]
         public Boolean IsHost { get; private set; }
+        [JsonProperty("isCohost", NullValueHandling = NullValueHandling.Ignore)]
+        public Boolean IsCohost { get; private set; }
         [JsonProperty("isSharingMeeting", NullValueHandling = NullValueHandling.Ignore)]
         public Boolean IsSharingMeeting { get; private set; }
         [JsonProperty("waitingForHost", NullValueHandling = NullValueHandling.Ignore)]
@@ -48,7 +50,7 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.Interfaces
         public Boolean CanRecord { get; private set; }
 
 
-        public MeetingInfo(string id, string name, string host, string password, string shareStatus, bool isHost, bool isSharingMeeting, bool waitingForHost, bool isLocked, bool isRecording, bool canRecord)
+        public MeetingInfo(string id, string name, string host, string password, string shareStatus, bool isHost, bool isCohost, bool isSharingMeeting, bool waitingForHost, bool isLocked, bool isRecording, bool canRecord)
         {
             Id = id;
             Name = name;
@@ -56,6 +58,7 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.Interfaces
             Password = password;
             ShareStatus = shareStatus;
             IsHost = isHost;
+            IsCohost = isCohost;
             IsSharingMeeting = isSharingMeeting;
             WaitingForHost = waitingForHost;
             IsLocked = isLocked;
