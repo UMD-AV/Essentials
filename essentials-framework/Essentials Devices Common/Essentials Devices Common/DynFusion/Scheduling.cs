@@ -18,31 +18,58 @@ using PepperDash.Essentials.Core;
 
 namespace DynFusion
 {
-	public class DynFusionScheduleChangeEventArgs : EventArgs
-	{
-		string data;
-		public DynFusionScheduleChangeEventArgs(string someString)
-		{
-			data = someString;
-		}
-
-	}
 	public class DynFusionSchedule : EssentialsBridgeableDevice	
 	{
 		public bool fusionOnline = false;
-		public event EventHandler<DynFusionScheduleChangeEventArgs> ScheduleChanged;
+		public event EventHandler<EventArgs> ScheduleChanged;
+        public event EventHandler<EventArgs> CurrentMeetingChanged;
+        public event EventHandler<EventArgs> NextMeetingChanged;
+        public event EventHandler<EventArgs> MeetingInProgressChanged;
 
 		DynFusionDevice _DynFusion;
 		CTimer getScheduleTimeOut;
+        CTimer getScheduleDaily;
+        CTimer updateCurrentMeeting;
 		SchedulingConfig _Config;
         ScheduleResponse _scheduleResponse;
 
 		List<ScheduleResponse> RoomAvailabilityScheduleResponse = new List<ScheduleResponse>();
 
 		private BoolWithFeedback RegisteredForPush = new BoolWithFeedback();
-		private BoolWithFeedback ScheduleBusy = new BoolWithFeedback();		
-		public Event CurrentMeeting;
-		public Event NextMeeting;
+		private BoolWithFeedback ScheduleBusy = new BoolWithFeedback();
+
+        private Event _currentMeeting;
+		public Event CurrentMeeting
+        {
+         get { return _currentMeeting; }
+         private set
+         {
+             _currentMeeting = value;
+             if (CurrentMeetingChanged != null)
+             {
+                 CurrentMeetingChanged(this, new EventArgs());
+             }
+             if (MeetingInProgressChanged != null)
+             {
+                 Debug.Console(1, this, String.Format("Meeting In Progress Firing Event!"));
+                 MeetingInProgressChanged(this, new EventArgs());
+             }
+         }
+        }
+
+        private Event _nextMeeting;
+		public Event NextMeeting
+        {
+            get { return _nextMeeting; }
+            private set
+            {
+                _nextMeeting = value;
+                if (NextMeetingChanged != null)
+                {
+                    NextMeetingChanged(this, new EventArgs());
+                }
+            }
+        }
 
 		public DynFusionSchedule(string key, string name, SchedulingConfig config)
 			: base(key, name)
@@ -80,12 +107,22 @@ namespace DynFusion
 			_DynFusion.FusionSymbol.OnlineStatusChange += new OnlineStatusChangeEventHandler(FusionSymbolStatusChange);
 			_DynFusion.FusionSymbol.ExtenderRoomViewSchedulingDataReservedSigs.DeviceExtenderSigChange += new DeviceExtenderJoinChangeEventHandler(FusionScheduleExtenderSigChange);
 			_DynFusion.FusionSymbol.ExtenderFusionRoomDataReservedSigs.DeviceExtenderSigChange += new DeviceExtenderJoinChangeEventHandler(FusionRoomDataExtenderSigChange);
+            _DynFusion.RoomInformationUpdated += new EventHandler<EventArgs>(_DynFusion_RoomInformationUpdated);
+
+            getScheduleTimeOut = new CTimer(getScheduleTimeOutCallback, Crestron.SimplSharp.Timeout.Infinite);
+            getScheduleDaily = new CTimer(GetRoomSchedule, Crestron.SimplSharp.Timeout.Infinite);
+            updateCurrentMeeting = new CTimer(UpdateCurrentMeetingCallback, Crestron.SimplSharp.Timeout.Infinite);
 			return true;
 		}
 
+        void _DynFusion_RoomInformationUpdated(object sender, EventArgs e)
+        {
+            GetRoomSchedule(null);
+        }
+
 		void FusionSymbolStatusChange(object o, OnlineOfflineEventArgs e)
 		{
-			Debug.Console(0, this, "FusionSymbolStatusChange {0}", e.DeviceOnLine);
+			Debug.Console(1, this, "FusionSymbolStatusChange {0}", e.DeviceOnLine);
 			fusionOnline = e.DeviceOnLine;
 			if (fusionOnline)
 			{
@@ -101,6 +138,7 @@ namespace DynFusion
 				{
 					string requestID = "InitialPushRequest";
 					string fusionActionRequest = "";
+                    Debug.Console(1, this, "Sending Push Schedule Reqeust");
 
 					fusionActionRequest = String.Format("<RequestAction>\n<RequestID>{0}</RequestID>\n" +
 												"<ActionID>RegisterPushModel</ActionID>\n" +
@@ -135,9 +173,73 @@ namespace DynFusion
 			}
 		}
 
+        void UpdateCurrentMeetingCallback(object unused)
+        {
+            Debug.Console(1, this, "Checking for current meeting");
+            Event _currentMeetingTemp = null;
+            Event _nextMeetingTemp = null;
+            uint count = 0;
+            while (ScheduleBusy.value && count < 10)
+            {
+                CrestronEnvironment.Sleep(1000);
+                count++;
+            }
+
+            if (_scheduleResponse.Events != null && _scheduleResponse.Events.Count > 0)
+            {
+                //Recheck every minute for current meeting
+                updateCurrentMeeting.Reset(60000);
+
+                foreach (Event e in _scheduleResponse.Events)
+                {
+                    if (DateTime.Now >= e.dtStart && DateTime.Now <= e.dtEnd)
+                    {
+                        _currentMeetingTemp = e;
+                    }
+                    else if (DateTime.Now < e.dtStart)
+                    {
+                        if (_nextMeetingTemp == null || _nextMeetingTemp.dtStart > e.dtStart)
+                        {
+                            _nextMeetingTemp = e;
+                        }
+                    }
+                }
+
+                if (_currentMeetingTemp == null)
+                {
+                    if (CurrentMeeting != null)
+                        CurrentMeeting = null;
+                }
+                else if (CurrentMeeting == null || (_currentMeetingTemp.MeetingID != CurrentMeeting.MeetingID))
+                {
+                    CurrentMeeting = _currentMeetingTemp;
+                }
+
+                if (_nextMeetingTemp == null)
+                {
+                    if (NextMeeting != null)
+                        NextMeeting = null;
+                }
+                else if (NextMeeting == null || (_nextMeetingTemp.MeetingID != NextMeeting.MeetingID))
+                {
+                    NextMeeting = _nextMeetingTemp;
+                }
+            }
+            else
+            {
+                CurrentMeeting = null;
+                NextMeeting = null;
+            }
+        }
+
 		void GetRoomSchedule(object unused)
 		{
 			GetRoomSchedule();
+            DateTime midnight = DateTime.Today.AddDays(1);
+
+            long msUntilMidnight = (long)(midnight - DateTime.Now).TotalMilliseconds;
+            Debug.Console(1, this, String.Format("Getting room schedule again in {0} ms", msUntilMidnight));
+            getScheduleDaily.Reset(msUntilMidnight, Crestron.SimplSharp.Timeout.Infinite);
 		}
 
 		public void GetRoomSchedule()
@@ -145,19 +247,27 @@ namespace DynFusion
             if (ScheduleBusy.value == false && fusionOnline)
 			{
 				ScheduleBusy.value = true;
-				getScheduleTimeOut = new CTimer(getRoomScheduleTimeOut, 6000);
+                getScheduleTimeOut.Reset(6000);
 				Debug.Console(2, this, String.Format("Get RoomSchedule"));
-				string roomID = _DynFusion.RoomInformation.ID;
-				string requestType = "ScheduleRequest";
+
                 try
                 {
-                    string fusionScheduleRequest = "";
-                    string RFCTime = String.Format("{0:s}", DateTime.Today);
+                    if (_DynFusion.RoomInformation != null)
+                    {
+                        string roomID = _DynFusion.RoomInformation.ID;
+                        string requestType = "ScheduleRequest";
+                        string fusionScheduleRequest = "";
+                        string RFCTime = String.Format("{0:s}", DateTime.Today);
 
-                    fusionScheduleRequest = String.Format("<RequestSchedule><RequestID>{0}</RequestID><RoomID>{1}</RoomID><Start>{2}</Start><HourSpan>24</HourSpan></RequestSchedule>", requestType, roomID, RFCTime.ToString());
+                        fusionScheduleRequest = String.Format("<RequestSchedule><RequestID>{0}</RequestID><RoomID>{1}</RoomID><Start>{2}</Start><HourSpan>24</HourSpan></RequestSchedule>", requestType, roomID, RFCTime.ToString());
 
-                    Debug.Console(0, this, String.Format("Get full room schedule request: {0}", fusionScheduleRequest));
-                    _DynFusion.FusionSymbol.ExtenderRoomViewSchedulingDataReservedSigs.ScheduleQuery.StringValue = fusionScheduleRequest;
+                        Debug.Console(1, this, String.Format("Get full room schedule request: {0}", fusionScheduleRequest));
+                        _DynFusion.FusionSymbol.ExtenderRoomViewSchedulingDataReservedSigs.ScheduleQuery.StringValue = fusionScheduleRequest;
+                    }
+                    else
+                    {
+                        Debug.ConsoleWithLog(0, this, "Error: Room information is null");
+                    }
                 }
                 catch (Exception e)
                 {
@@ -167,7 +277,7 @@ namespace DynFusion
 			}
 		}
 
-		public void getRoomScheduleTimeOut(object unused)
+		public void getScheduleTimeOutCallback(object unused)
 		{
 			ScheduleBusy.value = false;
 			Debug.ConsoleWithLog(0, this, "Error getRoomScheduleTimeOut");
@@ -175,7 +285,7 @@ namespace DynFusion
 
 		void FusionRoomAttributeExtenderSigChange(DeviceExtender currentDeviceExtender, SigEventArgs args)
 		{
-			Debug.Console(0, this, String.Format("RoomAttributeQuery Response: {0}", args.Sig.StringValue));
+			Debug.Console(1, this, String.Format("RoomAttributeQuery Response: {0}", args.Sig.StringValue));
 		}
 		void FusionRoomDataExtenderSigChange(DeviceExtender currentDeviceExtender, SigEventArgs args)
 		{
@@ -183,7 +293,7 @@ namespace DynFusion
 			{
 				string result = Regex.Replace(args.Sig.StringValue, "&(?!(amp|apos|quot|lt|gt);)", "&amp;");
 
-				Debug.Console(0, this, String.Format("Args: {0}", result));
+				Debug.Console(1, this, String.Format("Args: {0}", result));
 				if (args.Sig == _DynFusion.FusionSymbol.ExtenderFusionRoomDataReservedSigs.ActionQueryResponse && args.Sig.StringValue != null)
 				{
 					XmlDocument actionResponseXML = new XmlDocument();
@@ -209,15 +319,15 @@ namespace DynFusion
 
 										if (attributes["ID"].Value == "Registered")
 										{
-											var isRegsitered = Int32.Parse(attributes["Value"].Value.ToString());
+											var isRegistered = Int32.Parse(attributes["Value"].Value.ToString());
 
-											if (isRegsitered == 1)
+											if (isRegistered == 1)
 											{
 												RegisteredForPush.value = true;
 												Debug.ConsoleWithLog(0, this, string.Format("SchedulePush: {0}", RegisteredForPush.value), 1);
 											}
 
-											else if (isRegsitered == 0)
+											else if (isRegistered == 0)
 											{
 												RegisteredForPush.value = false;
 												Debug.ConsoleWithLog(0, this, string.Format("SchedulePush: {0}", RegisteredForPush.value), 1);
@@ -289,7 +399,7 @@ namespace DynFusion
 		{
 			try
 			{
-				Debug.Console(0, this, string.Format("FusionScheduleExtenderSigChange args {0}", args.Sig.StringValue));
+				Debug.Console(1, this, string.Format("FusionScheduleExtenderSigChange args {0}", args.Sig.StringValue));
 				if (args.Sig == _DynFusion.FusionSymbol.ExtenderRoomViewSchedulingDataReservedSigs.ScheduleResponse)
 				{
 					XmlDocument scheduleXML = new XmlDocument();
@@ -299,7 +409,7 @@ namespace DynFusion
 					if (scheduleXML != null)
 					{
 
-						Debug.Console(0, this, string.Format("Escaped XML {0}", scheduleXML.ToString()));
+						Debug.Console(1, this, string.Format("Escaped XML {0}", scheduleXML.ToString()));
 
 						var response = scheduleXML["ScheduleResponse"];
 						var responseEvent = response.SelectSingleNode("Event");
@@ -318,24 +428,22 @@ namespace DynFusion
 							#region ScheduleRequest
 							else if (response["RequestID"].InnerText == "ScheduleRequest")
 							{
-								CurrentMeeting = null;
-								NextMeeting = null;
-                                Debug.Console(0, this, String.Format("ScheduleResponse start"));
+                                Debug.Console(1, this, String.Format("ScheduleResponse start"));
 
 								_scheduleResponse = new ScheduleResponse();
 								_scheduleResponse.RoomName = scheduleXML.FirstChild.SelectSingleNode("RoomName").InnerText;
 								_scheduleResponse.RequestID = scheduleXML.FirstChild.SelectSingleNode("RequestID").InnerText;
 								_scheduleResponse.RoomID = scheduleXML.FirstChild.SelectSingleNode("RoomID").InnerText;
-                                Debug.Console(0, this, String.Format("EventStack Count start"));
+                                Debug.Console(1, this, String.Format("EventStack Count start"));
 								var eventStack = scheduleXML.FirstChild.SelectNodes("Event");
-								Debug.Console(0, this, String.Format("EventStack Count: {0}", eventStack.Count));
+								Debug.Console(1, this, String.Format("EventStack Count: {0}", eventStack.Count));
 								if (eventStack.Count > 0)
 								{
                                     for(ushort i = 0; i < eventStack.Count; i++)
                                     {
                                         try
                                         {
-                                            Debug.Console(0, this, String.Format("Deserializing: {0}", eventStack.Item(i).OuterXml));
+                                            Debug.Console(1, this, String.Format("Deserializing: {0}", eventStack.Item(i).OuterXml));
                                             Event newEvent = CrestronXMLSerialization.DeSerializeObject<Event>(new XmlReader(eventStack.Item(i).OuterXml));
 
                                             if (newEvent.dtStart.Date > DateTime.Today || newEvent.dtEnd.Date < DateTime.Today)
@@ -343,38 +451,33 @@ namespace DynFusion
                                                 continue;
                                             }
                                             _scheduleResponse.Events.Add(newEvent);
-
-                                            if (DateTime.Now < newEvent.dtEnd)
-                                            {
-                                                CurrentMeeting = newEvent;
-                                            }
-                                            if (DateTime.Now < newEvent.dtStart)
-                                            {
-                                                NextMeeting = newEvent;
-                                            }
                                         }
                                         catch (Exception ex)
                                         {
                                             Debug.Console(0, this, String.Format("Exception deserializing xml for event {0}: {1}", i, ex.Message));
                                         }
                                     }
-                                    Debug.Console(0, this, "Deserializing xml complete");
+                                    Debug.Console(1, this, "Deserializing xml complete");
 								}
 
-								getScheduleTimeOut.Stop();
-                                if (ScheduleChanged != null)
-								{
-									Debug.Console(0, this, String.Format("Schedule Changed Firing Event!"));
-                                    ScheduleChanged(this, new DynFusionScheduleChangeEventArgs("BAM!"));
-								}
-								
+                                getScheduleTimeOut.Stop();
 								ScheduleBusy.value = false;
+                                CrestronInvoke.BeginInvoke((o) =>
+                                {
+                                    UpdateCurrentMeetingCallback(null);
+                                });
+                                
+                                if (ScheduleChanged != null)
+                                {
+                                    Debug.Console(0, this, String.Format("Schedule Changed Firing Event!"));
+                                    ScheduleChanged(this, new EventArgs());
+                                }
 							}
 							#endregion
 							else if (response["RequestID"].InnerText == "PushNotification")
 							{
 								this.GetRoomSchedule(null);
-								Debug.Console(0, this, String.Format("Got a Push Notification!"));
+								Debug.Console(1, this, String.Format("Got a Push Notification!"));
 
 							}
 							#region RoomListScheduleRequest
@@ -446,67 +549,135 @@ namespace DynFusion
 				trilist.SetSigTrueAction(joinMap.GetSchedule.JoinNumber, () => GetRoomSchedule());
 				RegisteredForPush.Feedback.LinkInputSig(trilist.BooleanInput[joinMap.PushNotificationRegistered.JoinNumber]);
 
+                MeetingInProgressChanged += ((s, e) =>
+                {
+                    if(CurrentMeeting!= null)
+                        trilist.BooleanInput[joinMap.CurrentMeetingInProgress.JoinNumber].BoolValue = CurrentMeeting.isInProgress;
+                    else
+                        trilist.BooleanInput[joinMap.CurrentMeetingInProgress.JoinNumber].BoolValue = false;
+
+                    ushort meetingCount = 0;
+                    if (_scheduleResponse != null)
+                    {
+                        foreach (var meeting in _scheduleResponse.Events)
+                        {
+                            trilist.BooleanInput[joinMap.MeetingInProgress.JoinNumber + meetingCount].BoolValue = meeting.isInProgress;
+                            meetingCount++;
+                        }
+                    }
+                    for (ushort i = meetingCount; i < 20; i++)
+                    {
+                        trilist.BooleanInput[joinMap.MeetingInProgress.JoinNumber + meetingCount].BoolValue = false;
+                    }
+                });
+
+                CurrentMeetingChanged += ((s, e) =>
+                {
+                    try
+                    {
+                        Debug.Console(1, this, "CurrentMeetingChanged");
+                        if (CurrentMeeting != null)
+                        {
+                            if (CurrentMeeting.Organizer.Length > 0)
+                            {
+                                trilist.StringInput[joinMap.CurrentMeetingOrganizer.JoinNumber].StringValue = CurrentMeeting.Organizer;
+                            }
+                            else
+                            {
+                                trilist.StringInput[joinMap.CurrentMeetingOrganizer.JoinNumber].StringValue = CurrentMeeting.OrganizerSMTP;
+                            }
+                            trilist.StringInput[joinMap.CurrentMeetingSubject.JoinNumber].StringValue = CurrentMeeting.Subject;
+                            trilist.StringInput[joinMap.CurrentMeetingMeetingID.JoinNumber].StringValue = CurrentMeeting.MeetingID;
+                            trilist.StringInput[joinMap.CurrentMeetingStartTime.JoinNumber].StringValue = CurrentMeeting.StartTime;
+                            trilist.StringInput[joinMap.CurrentMeetingStartDate.JoinNumber].StringValue = CurrentMeeting.StartDate;
+                            trilist.StringInput[joinMap.CurrentMeetingEndTime.JoinNumber].StringValue = CurrentMeeting.EndTime;
+                            trilist.StringInput[joinMap.CurrentMeetingEndDate.JoinNumber].StringValue = CurrentMeeting.EndDate;
+                            trilist.StringInput[joinMap.CurrentMeetingDuration.JoinNumber].StringValue = CurrentMeeting.DurationInMinutes;
+                            trilist.BooleanInput[joinMap.CurrentMeetingInProgress.JoinNumber].BoolValue = CurrentMeeting.isInProgress;
+                            trilist.StringInput[joinMap.CurrentMeetingOrganizerSMTP.JoinNumber].StringValue = CurrentMeeting.OrganizerSMTP;
+                        }
+                        else
+                        {
+                            trilist.StringInput[joinMap.CurrentMeetingOrganizer.JoinNumber].StringValue = "";
+                            trilist.StringInput[joinMap.CurrentMeetingSubject.JoinNumber].StringValue = "";
+                            trilist.StringInput[joinMap.CurrentMeetingMeetingID.JoinNumber].StringValue = "";
+                            trilist.StringInput[joinMap.CurrentMeetingStartTime.JoinNumber].StringValue = "";
+                            trilist.StringInput[joinMap.CurrentMeetingStartDate.JoinNumber].StringValue = "";
+                            trilist.StringInput[joinMap.CurrentMeetingEndTime.JoinNumber].StringValue = "";
+                            trilist.StringInput[joinMap.CurrentMeetingEndDate.JoinNumber].StringValue = "";
+                            trilist.StringInput[joinMap.CurrentMeetingDuration.JoinNumber].StringValue = "";
+                            trilist.StringInput[joinMap.CurrentMeetingOrganizerSMTP.JoinNumber].StringValue = "";
+                            trilist.BooleanInput[joinMap.CurrentMeetingInProgress.JoinNumber].BoolValue = false;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.Console(0, this, Debug.ErrorLogLevel.Error, ex.Message);
+                    }
+
+                });
+                NextMeetingChanged += ((s, e) =>
+                {
+                    try
+                    {
+                        Debug.Console(1, this, "NextMeetingChanged");
+                        if (NextMeeting != null)
+                        {
+                            if (NextMeeting.Organizer.Length > 0)
+                            {
+                                trilist.StringInput[joinMap.NextMeetingOrganizer.JoinNumber].StringValue = NextMeeting.Organizer;
+                            }
+                            else
+                            {
+                                trilist.StringInput[joinMap.NextMeetingOrganizer.JoinNumber].StringValue = NextMeeting.OrganizerSMTP;
+                            }
+                            trilist.StringInput[joinMap.NextMeetingOrganizer.JoinNumber].StringValue = NextMeeting.Organizer;
+                            trilist.StringInput[joinMap.NextMeetingSubject.JoinNumber].StringValue = NextMeeting.Subject;
+                            trilist.StringInput[joinMap.NextMeetingMeetingID.JoinNumber].StringValue = NextMeeting.MeetingID;
+                            trilist.StringInput[joinMap.NextMeetingStartTime.JoinNumber].StringValue = NextMeeting.StartTime;
+                            trilist.StringInput[joinMap.NextMeetingStartDate.JoinNumber].StringValue = NextMeeting.StartDate;
+                            trilist.StringInput[joinMap.NextMeetingEndTime.JoinNumber].StringValue = NextMeeting.EndTime;
+                            trilist.StringInput[joinMap.NextMeetingEndDate.JoinNumber].StringValue = NextMeeting.EndDate;
+                            trilist.StringInput[joinMap.NextMeetingDuration.JoinNumber].StringValue = NextMeeting.DurationInMinutes;
+                        }
+                        else
+                        {
+                            trilist.StringInput[joinMap.NextMeetingOrganizer.JoinNumber].StringValue = "";
+                            trilist.StringInput[joinMap.NextMeetingSubject.JoinNumber].StringValue = "";
+                            trilist.StringInput[joinMap.NextMeetingMeetingID.JoinNumber].StringValue = "";
+                            trilist.StringInput[joinMap.NextMeetingStartTime.JoinNumber].StringValue = "";
+                            trilist.StringInput[joinMap.NextMeetingStartDate.JoinNumber].StringValue = "";
+                            trilist.StringInput[joinMap.NextMeetingEndTime.JoinNumber].StringValue = "";
+                            trilist.StringInput[joinMap.NextMeetingEndDate.JoinNumber].StringValue = "";
+                            trilist.StringInput[joinMap.NextMeetingDuration.JoinNumber].StringValue = "";
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.Console(0, this, Debug.ErrorLogLevel.Error, ex.Message);
+                    }
+
+                });
+
 				ScheduleChanged += ((s, e) =>
 				{
 					try
 					{
-						Debug.Console(0, this, "ScheduleChanged");
-						if (CurrentMeeting != null)
-						{
-							trilist.StringInput[joinMap.CurrentMeetingOrganizer.JoinNumber].StringValue = CurrentMeeting.Organizer;
-							trilist.StringInput[joinMap.CurrentMeetingSubject.JoinNumber].StringValue = CurrentMeeting.Subject;
-							trilist.StringInput[joinMap.CurrentMeetingMeetingID.JoinNumber].StringValue = CurrentMeeting.MeetingID;
-							trilist.StringInput[joinMap.CurrentMeetingStartTime.JoinNumber].StringValue = CurrentMeeting.StartTime;
-							trilist.StringInput[joinMap.CurrentMeetingStartDate.JoinNumber].StringValue = CurrentMeeting.StartDate;
-							trilist.StringInput[joinMap.CurrentMeetingEndTime.JoinNumber].StringValue = CurrentMeeting.EndTime;
-							trilist.StringInput[joinMap.CurrentMeetingEndDate.JoinNumber].StringValue = CurrentMeeting.EndDate;
-							trilist.StringInput[joinMap.CurrentMeetingDuration.JoinNumber].StringValue = CurrentMeeting.DurationInMinutes;
-							trilist.BooleanInput[joinMap.MeetingInProgress.JoinNumber].BoolValue = CurrentMeeting.isInProgress;
-                            trilist.StringInput[joinMap.CurrentMeetingOrganizerSMTP.JoinNumber].StringValue = CurrentMeeting.OrganizerSMTP;
-						}
-						else
-						{
-							trilist.StringInput[joinMap.CurrentMeetingOrganizer.JoinNumber].StringValue = "";
-							trilist.StringInput[joinMap.CurrentMeetingSubject.JoinNumber].StringValue = "";
-							trilist.StringInput[joinMap.CurrentMeetingMeetingID.JoinNumber].StringValue = "";
-							trilist.StringInput[joinMap.CurrentMeetingStartTime.JoinNumber].StringValue = "";
-							trilist.StringInput[joinMap.CurrentMeetingStartDate.JoinNumber].StringValue = "";
-							trilist.StringInput[joinMap.CurrentMeetingEndTime.JoinNumber].StringValue = "";
-							trilist.StringInput[joinMap.CurrentMeetingEndDate.JoinNumber].StringValue = "";
-							trilist.StringInput[joinMap.CurrentMeetingDuration.JoinNumber].StringValue = "";
-                            trilist.StringInput[joinMap.CurrentMeetingOrganizerSMTP.JoinNumber].StringValue = "";
-                            trilist.BooleanInput[joinMap.MeetingInProgress.JoinNumber].BoolValue = false;
-						}
-
-						if (NextMeeting != null)
-						{
-							trilist.StringInput[joinMap.NextMeetingOrganizer.JoinNumber].StringValue = NextMeeting.Organizer;
-							trilist.StringInput[joinMap.NextMeetingSubject.JoinNumber].StringValue = NextMeeting.Subject;
-							trilist.StringInput[joinMap.NextMeetingMeetingID.JoinNumber].StringValue = NextMeeting.MeetingID;
-							trilist.StringInput[joinMap.NextMeetingStartTime.JoinNumber].StringValue = NextMeeting.StartTime;
-							trilist.StringInput[joinMap.NextMeetingStartDate.JoinNumber].StringValue = NextMeeting.StartDate;
-							trilist.StringInput[joinMap.NextMeetingEndTime.JoinNumber].StringValue = NextMeeting.EndTime;
-							trilist.StringInput[joinMap.NextMeetingEndDate.JoinNumber].StringValue = NextMeeting.EndDate;
-							trilist.StringInput[joinMap.NextMeetingDuration.JoinNumber].StringValue = NextMeeting.DurationInMinutes;
-						}
-						else
-						{
-							trilist.StringInput[joinMap.NextMeetingOrganizer.JoinNumber].StringValue = "";
-							trilist.StringInput[joinMap.NextMeetingSubject.JoinNumber].StringValue = "";
-							trilist.StringInput[joinMap.NextMeetingMeetingID.JoinNumber].StringValue = "";
-							trilist.StringInput[joinMap.NextMeetingStartTime.JoinNumber].StringValue = "";
-							trilist.StringInput[joinMap.NextMeetingStartDate.JoinNumber].StringValue = "";
-							trilist.StringInput[joinMap.NextMeetingEndTime.JoinNumber].StringValue = "";
-							trilist.StringInput[joinMap.NextMeetingEndDate.JoinNumber].StringValue = "";
-							trilist.StringInput[joinMap.NextMeetingDuration.JoinNumber].StringValue = "";
-						}
+						Debug.Console(1, this, "ScheduleChanged");
                         ushort meetingCount = 0;
                         if (_scheduleResponse != null)
                         {
                             foreach (var meeting in _scheduleResponse.Events)
                             {
                                 trilist.StringInput[joinMap.MeetingSubject.JoinNumber + meetingCount].StringValue = meeting.Subject;
-                                trilist.StringInput[joinMap.MeetingOrganizer.JoinNumber + meetingCount].StringValue = meeting.Organizer;
+                                if (meeting.Organizer.Length > 0)
+                                {
+                                    trilist.StringInput[joinMap.MeetingOrganizer.JoinNumber + meetingCount].StringValue = meeting.Organizer;
+                                }
+                                else
+                                {
+                                    trilist.StringInput[joinMap.MeetingOrganizer.JoinNumber + meetingCount].StringValue = meeting.OrganizerSMTP;
+                                }
                                 trilist.StringInput[joinMap.MeetingTime.JoinNumber + meetingCount].StringValue = meeting.StartTime + " - " + meeting.EndTime;
                                 trilist.BooleanInput[joinMap.MeetingInProgress.JoinNumber + meetingCount].BoolValue = meeting.isInProgress;
                                 meetingCount++;
@@ -739,7 +910,6 @@ namespace DynFusion
 				else { remainingTimeString = string.Format("{0} {1} {2} {3}", hours, hourTag, minutes, minTag); }
 
 				return remainingTimeString;
-
 			}
 		}
 
@@ -755,7 +925,7 @@ namespace DynFusion
 		{
 			var now = DateTime.Now;
  
-			if (now > dtStart && now < dtEnd)
+			if (now >= dtStart && now <= dtEnd)
 			{
 				return true;
 			}

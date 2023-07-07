@@ -1,7 +1,7 @@
 ﻿using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Bridges;
 
-namespace PepperDash.Plugin.Display.SamsungMdc
+namespace PepperDash.Essentials.Devices.Displays
 {
 	public class SamsungDisplayControllerJoinMap : DisplayControllerJoinMap
 	{
@@ -97,6 +97,47 @@ namespace PepperDash.Plugin.Display.SamsungMdc
 				JoinType = eJoinType.Digital
 			});
 
+        [JoinName("Video Mute On")]
+        public JoinDataComplete VideoMuteOn = new JoinDataComplete(
+            new JoinData()
+            {
+                JoinNumber = 57,
+                JoinSpan = 1
+            },
+            new JoinMetadata()
+            {
+                JoinCapabilities = eJoinCapabilities.ToFromSIMPL,
+                JoinType = eJoinType.Digital,
+                Label = "Video Mute On"
+            });
+
+        [JoinName("Video Mute Off")]
+        public JoinDataComplete VideoMuteOff = new JoinDataComplete(
+            new JoinData()
+            {
+                JoinNumber = 58,
+                JoinSpan = 1
+            },
+            new JoinMetadata()
+            {
+                JoinCapabilities = eJoinCapabilities.FromSIMPL,
+                JoinType = eJoinType.Digital,
+                Label = "Video Mute Off"
+            });
+
+        [JoinName("Video Mute Supported")]
+        public JoinDataComplete VideoMuteSupported = new JoinDataComplete(
+            new JoinData()
+            {
+                JoinNumber = 55,
+                JoinSpan = 1
+            },
+            new JoinMetadata()
+            {
+                JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                JoinType = eJoinType.Digital,
+                Label = "Video Mute Supported"
+            });
 
 		/// <summary>
 		/// Display controller join map

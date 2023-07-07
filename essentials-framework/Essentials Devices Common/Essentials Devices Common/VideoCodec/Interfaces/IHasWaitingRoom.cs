@@ -14,6 +14,9 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.Interfaces
     public interface IHasWaitingRoom
     {
         event EventHandler<WaitingRoomEventArgs> WaitingRoomChanged;
+
+        void AdmitParticipantFromWaitingRoom(int userId);
+        void AdmitParticipantFromWaitingRoomIndex(ushort index);
     }
 
     public class WaitingRoomEventArgs : EventArgs

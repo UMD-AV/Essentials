@@ -1527,18 +1527,11 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.ZoomRoom
 
 		public class HandStatus
 		{
-			// example return of the "hand_status" object
-			// !!!! Note the properties contain ': ' within the property name !!!
-			//"hand_status": {
-			//  "is_raise_hand: ": false,
-			//  "is_valid: ": "on",
-			//  "time_stamp: ": "11825083"
-			//},
-			[JsonProperty("is_raise_hand: ")]
+			[JsonProperty("is_raise_hand")]
 			public bool IsRaiseHand { get; set; }
-			[JsonProperty("is_valid: ")]
+			[JsonProperty("is_valid")]
 			public string IsValid { get; set; }
-			[JsonProperty("time_stamp: ")]
+			[JsonProperty("time_stamp")]
 			public string TimeStamp { get; set; }
 			/// <summary>
 			/// Retuns a boolean value if the participant hand state is raised and is valid (both need to be true)
@@ -1582,6 +1575,8 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.ZoomRoom
 			public bool IsClientSupportCoHost { get; set; }
 			[JsonProperty("is_host")]
 			public bool IsHost { get; set; }
+            [JsonProperty("is_in_waiting_room")]
+            public bool IsInWaitingRoom { get; set; }
 			[JsonProperty("is_myself")]
 			public bool IsMyself { get; set; }
 			[JsonProperty("is_recording")]
@@ -1630,7 +1625,8 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.ZoomRoom
                     AudioMuteFb = p.AudioStatusState == "AUDIO_MUTED",
                     VideoMuteFb = !p.VideoStatusIsSending,
                     HandIsRaisedFb = p.HandStatus.HandIsRaisedAndValid,
-                    AudioConnected = p.AudioStatusType == "AUDIO_VOIP" || p.AudioStatusType == "AUDIO_TELE"
+                    AudioConnected = p.AudioStatusType == "AUDIO_VOIP" || p.AudioStatusType == "AUDIO_TELE",
+                    IsInWaitingRoom = p.IsInWaitingRoom
                 };
             }
 
@@ -1660,7 +1656,8 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.ZoomRoom
 					AudioMuteFb = p.AudioStatusState == "AUDIO_MUTED",
 					VideoMuteFb = !p.VideoStatusIsSending,
 					HandIsRaisedFb = p.HandStatus.HandIsRaisedAndValid,
-                    AudioConnected = p.AudioStatusType == "AUDIO_VOIP" || p.AudioStatusType == "AUDIO_TELE"
+                    AudioConnected = p.AudioStatusType == "AUDIO_VOIP" || p.AudioStatusType == "AUDIO_TELE",
+                    IsInWaitingRoom = p.IsInWaitingRoom
 				}).ToList();
 			}
 

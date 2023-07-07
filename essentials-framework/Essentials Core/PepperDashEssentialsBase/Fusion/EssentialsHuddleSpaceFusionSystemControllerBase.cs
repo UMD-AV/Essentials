@@ -726,7 +726,7 @@ namespace PepperDash.Essentials.Core.Fusion
         protected void ExtenderFusionRoomDataReservedSigs_DeviceExtenderSigChange(DeviceExtender currentDeviceExtender,
             SigEventArgs args)
         {
-            Debug.Console(2, this, "Event: {0}\n Sig: {1}\nFusionResponse:\n{2}", args.Event, args.Sig.Name,
+            Debug.Console(0, this, "Event: {0}\n Sig: {1}\nFusionResponse:\n{2}", args.Event, args.Sig.Name,
                 args.Sig.StringValue);
 
 

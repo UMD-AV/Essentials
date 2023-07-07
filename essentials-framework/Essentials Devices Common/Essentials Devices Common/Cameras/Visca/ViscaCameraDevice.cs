@@ -825,7 +825,16 @@ namespace ViscaCameraPlugin
             }
             else if (message.Length > 3 && message[message.Length - 2] == 0x41 && message[message.Length - 3] == 0x61 && message[message.Length - 4] == _feedbackAddress)
             {
+                if(_lastInquiry == eViscaCameraInquiry.AutoTrackOnPresetCmd)
+                {
+                    AutoTrackingOn = true;
+                }
+                else if(_lastInquiry == eViscaCameraInquiry.AutoTrackOffPresetCmd)
+                {
+                    AutoTrackingOn = false;
+                }
                 Debug.Console(1, this, "Received command not executable");
+                _lastInquiry = eViscaCameraInquiry.NoFeedback;
                 readyForNextCommand(null);
                 return;
             }

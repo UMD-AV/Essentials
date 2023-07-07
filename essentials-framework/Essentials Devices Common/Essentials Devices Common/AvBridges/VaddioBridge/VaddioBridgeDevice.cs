@@ -29,7 +29,6 @@ namespace VaddioBridgePlugin
 		private readonly long _errorTimeoutMs = 180000; // 180s
 
         private readonly string usernameSearch = "login:";
-        private readonly string passwordSearch = "password:";
         private readonly string pipSearch = "pip:";
         private readonly string layoutSearch = "layout:";
         private readonly string sourceSearch = "source:";
@@ -393,7 +392,7 @@ namespace VaddioBridgePlugin
 		{
 			if (text == null || !this._loggedIn) return;
 
-            text += "\x0D";
+            text += "\r";
             Debug.Console(1, this, "Sending text: {0}", text);
 
 			if (_commsIsSerial)
@@ -409,60 +408,63 @@ namespace VaddioBridgePlugin
 
 		private void Handle_BytesRecieved(object sender, GenericCommMethodReceiveBytesArgs args)
         {
-            bool gotMutex = _bufferMutex.WaitForMutex();
-            if (gotMutex)
+            CrestronInvoke.BeginInvoke(o =>
             {
-                try
+                bool gotMutex = _bufferMutex.WaitForMutex();
+                if (gotMutex)
                 {
-                    if (args == null || args.Bytes == null)
+                    try
                     {
-                        Debug.Console(1, this, "Handle_BytesRecieved args is null or args.Bytes is null");
-                        return;
-                    }
-
-                    var byteBuffer = new byte[_commsByteBuffer.Length + args.Bytes.Length];
-                    _commsByteBuffer.CopyTo(byteBuffer, 0);
-                    args.Bytes.CopyTo(byteBuffer, _commsByteBuffer.Length);
-
-                    Debug.Console(2, this, "Handle_BytesRecieved byteBuffer: {0}", ComTextHelper.GetDebugText(Encoding.UTF8.GetString(byteBuffer, 0, byteBuffer.Length)));
-
-                    int position = 0;
-
-                    for (int i = 0; i < byteBuffer.Length; i++)
-                    {
-                        if (byteBuffer[i] == 0x0A)
+                        if (args == null || args.Bytes == null)
                         {
-                            //Found new line                      
-                            if (i > 0)
+                            Debug.Console(1, this, "Handle_BytesRecieved args is null or args.Bytes is null");
+                            return;
+                        }
+
+                        var byteBuffer = new byte[_commsByteBuffer.Length + args.Bytes.Length];
+                        _commsByteBuffer.CopyTo(byteBuffer, 0);
+                        args.Bytes.CopyTo(byteBuffer, _commsByteBuffer.Length);
+
+                        Debug.Console(2, this, "Handle_BytesRecieved byteBuffer: {0}", ComTextHelper.GetDebugText(Encoding.UTF8.GetString(byteBuffer, 0, byteBuffer.Length)));
+
+                        int position = 0;
+
+                        for (int i = 0; i < byteBuffer.Length; i++)
+                        {
+                            if (byteBuffer[i] == 0x0A)
                             {
-                                byte[] gatheredBytes = byteBuffer.Skip(position).Take(i-position).ToArray();
-                                string gatheredText = Encoding.UTF8.GetString(gatheredBytes, 0, gatheredBytes.Length);
-                                Debug.Console(1, this, "Gathered text: {0}", gatheredText);
-                                processFeedback(gatheredText);
+                                //Found new line                      
+                                if (i > 0)
+                                {
+                                    byte[] gatheredBytes = byteBuffer.Skip(position).Take(i - position).ToArray();
+                                    string gatheredText = Encoding.UTF8.GetString(gatheredBytes, 0, gatheredBytes.Length);
+                                    Debug.Console(1, this, "Gathered text: {0}", gatheredText);
+                                    processFeedback(gatheredText);
+                                }
+
+                                position = i + 1;
                             }
 
-                            position = i + 1;
+                            else if (byteBuffer[i] == 0x3E)  // 0x3E = ">"
+                            {
+                                // Found ">"
+                                position = i + 1;
+                            }
                         }
 
-                        else if (byteBuffer[i] == 0x3E)  // 0x3E = ">"
-                        {
-                            // Found ">"
-                            position = i + 1;
-                        }
+                        // save partial message here
+                        _commsByteBuffer = byteBuffer.Skip(position).ToArray();
                     }
-
-                    // save partial message here
-                    _commsByteBuffer = byteBuffer.Skip(position).ToArray();
+                    catch (Exception ex)
+                    {
+                        Debug.Console(0, this, "Handle_BytesRecieved exception: {0}", ex);
+                    }
+                    finally
+                    {
+                        _bufferMutex.ReleaseMutex();
+                    }
                 }
-                catch(Exception ex)
-                {
-                    Debug.Console(0, this, "Handle_BytesRecieved exception: {0}", ex);
-                }
-                finally
-                {
-                    _bufferMutex.ReleaseMutex();
-                }
-            }
+            });
         }
 
         private void processFeedback(string feedback)
@@ -496,18 +498,8 @@ namespace VaddioBridgePlugin
                 _loggedIn = false;
                 if (_usernameSent == false)
                 {
-                    SendLogin();              
+                    SendLogin();
                 }
-            }
-            else if (temp.Contains(passwordSearch))
-            {
-                Debug.Console(1, this, "Vaddio Bridge feedback: password");
-                if (_usernameSent == true)
-                {
-                    string password = _config.Password == null ? "" : _config.Password;
-                    SendText(password);
-                }
-                _usernameSent = false;
             }
             else if (temp.StartsWith(pipSearch))
             {
@@ -585,6 +577,7 @@ namespace VaddioBridgePlugin
 		{
             Poll();
             PollVersion();
+            PollNetwork();
             PollPower();
             PollPip();
             PollPipLayout();
@@ -601,17 +594,17 @@ namespace VaddioBridgePlugin
             if (!_usernameSent)
             {
                 _usernameSent = true;
-                _loginTimeout.Reset(5000);
                 string username = _config.Username == null ? "admin" : _config.Username;
-                if (_commsIsSerial)
-                    _comms.SendText(username + 0x0D);
-                else
+                if (!_commsIsSerial && !_comms.IsConnected)
                 {
-                    if (!_comms.IsConnected)
                         _comms.Connect();
-
-                    _comms.SendText(username + 0x0D);
                 }
+                 
+                _comms.SendText(username + "\r");
+                _loginTimeout.Reset(5000);
+                CrestronEnvironment.Sleep(1000);
+                string password = _config.Password == null ? "" : _config.Password;
+                _comms.SendText(password + "\r");
             }
         }
 
@@ -626,7 +619,7 @@ namespace VaddioBridgePlugin
             }
             else
             {
-                SendText("network settings get");
+                SendText("system standby get");
             }
 		}
 
@@ -636,6 +629,14 @@ namespace VaddioBridgePlugin
         public void PollVersion()
         {
             SendText("version");
+        }
+
+        /// <summary>
+        /// Poll Network Settings
+        /// </summary>
+        public void PollNetwork()
+        {
+            SendText("network settings get");
         }
 
         /// <summary>

@@ -2,7 +2,7 @@
 using Newtonsoft.Json;
 using System;
 
-namespace PepperDash.Plugin.Display.SamsungMdc
+namespace PepperDash.Essentials.Devices.Displays
 {
 	public class SamsungMDCDisplayPropertiesConfig
 	{
@@ -32,6 +32,9 @@ namespace PepperDash.Plugin.Display.SamsungMdc
 
         [JsonProperty("friendlyNames")]
         public List<FriendlyName> FriendlyNames { get; set; }
+
+        [JsonProperty("videoMuteKey")]
+        public string VideoMuteKey { get; set; }
 
 	    public SamsungMDCDisplayPropertiesConfig()
 	    {

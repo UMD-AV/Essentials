@@ -30,6 +30,7 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.Interfaces
         /// </summary>
         /// <param name="userId"></param>
         void AdmitParticipantFromWaitingRoom(int userId);
+        void AdmitParticipantFromWaitingRoomIndex(ushort index);
 	}
 
 	/// <summary>
@@ -40,6 +41,7 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.Interfaces
 		void MuteVideoForParticipant(int userId);
 		void UnmuteVideoForParticipant(int userId);
 		void ToggleVideoForParticipant(int userId);
+        void ToggleVideoForParticipantIndex(ushort index);
 	}
 
 	/// <summary>
@@ -51,10 +53,10 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.Interfaces
         /// Mute audio of all participants
         /// </summary>
         void MuteAudioForAllParticipants();
-
 		void MuteAudioForParticipant(int userId);
 		void UnmuteAudioForParticipant(int userId);
 		void ToggleAudioForParticipant(int userId);
+        void ToggleAudioForParticipantIndex(ushort index);
 	}
 
 	/// <summary>
@@ -68,6 +70,7 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.Interfaces
 		void PinParticipant(int userId, int screenIndex);
 		void UnPinParticipant(int userId);
 		void ToggleParticipantPinState(int userId, int screenIndex);
+        void ToggleParticipantPinStateIndex(ushort index, int screenIndex);
 	}
 
 	public class CodecParticipants
@@ -168,6 +171,7 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.Interfaces
 		public bool HandIsRaisedFb { get; set; }
 		public bool IsPinnedFb { get; set; }
 		public int ScreenIndexIsPinnedToFb { get; set; }
+        public bool IsInWaitingRoom { get; set; }
 
 		public Participant()
 		{

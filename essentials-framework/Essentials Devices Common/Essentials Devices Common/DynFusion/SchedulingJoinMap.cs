@@ -12,9 +12,6 @@ namespace DynFusion
 		public JoinDataComplete GetRoomInfo = new JoinDataComplete(new JoinData { JoinNumber = 4, JoinSpan = 1 }, new JoinMetadata { Label = "GetRoomInfo", JoinCapabilities = eJoinCapabilities.FromSIMPL, JoinType = eJoinType.Digital });
         [JoinName("PushNotificationRegistered")]
 		public JoinDataComplete PushNotificationRegistered = new JoinDataComplete(new JoinData { JoinNumber = 2, JoinSpan = 1 }, new JoinMetadata { Label = "PushNotificationRegistered", JoinCapabilities = eJoinCapabilities.ToSIMPL, JoinType = eJoinType.Digital });
-		[JoinName("MeetingInProgress")]
-		public JoinDataComplete MeetingInProgress = new JoinDataComplete(new JoinData { JoinNumber = 1, JoinSpan = 1 }, new JoinMetadata { Label = "MeetingInProgress", JoinCapabilities = eJoinCapabilities.ToSIMPL, JoinType = eJoinType.Digital });
-
 		[JoinName("RoomID")]
 		public JoinDataComplete RoomID = new JoinDataComplete(new JoinData { JoinNumber = 2, JoinSpan = 1 }, new JoinMetadata { Label = "RoomID", JoinCapabilities = eJoinCapabilities.ToSIMPL, JoinType = eJoinType.Serial });
 		[JoinName("RoomLocation")]
@@ -23,7 +20,9 @@ namespace DynFusion
 		public JoinDataComplete CurrentMeetingOrganizer = new JoinDataComplete(new JoinData { JoinNumber = 21, JoinSpan = 1 }, new JoinMetadata { Label = "CurrentMeetingOrganizer", JoinCapabilities = eJoinCapabilities.ToSIMPL, JoinType = eJoinType.Serial });
 		[JoinName("CurrentMeetingSubject")]
 		public JoinDataComplete CurrentMeetingSubject = new JoinDataComplete(new JoinData { JoinNumber = 22, JoinSpan = 1 }, new JoinMetadata { Label = "CurrentMeetingSubject", JoinCapabilities = eJoinCapabilities.ToSIMPL, JoinType = eJoinType.Serial });
-		[JoinName("CurrentMeetingMeetingID")]
+        [JoinName("CurrentMeetingInProgress")]
+        public JoinDataComplete CurrentMeetingInProgress = new JoinDataComplete(new JoinData { JoinNumber = 1, JoinSpan = 1 }, new JoinMetadata { Label = "CurentMeetingInProgress", JoinCapabilities = eJoinCapabilities.ToSIMPL, JoinType = eJoinType.Digital });
+        [JoinName("CurrentMeetingMeetingID")]
 		public JoinDataComplete CurrentMeetingMeetingID = new JoinDataComplete(new JoinData { JoinNumber = 23, JoinSpan = 1 }, new JoinMetadata { Label = "CurrentMeetingMeetingID", JoinCapabilities = eJoinCapabilities.ToSIMPL, JoinType = eJoinType.Serial });
 		[JoinName("CurrentMeetingStartTime")]
 		public JoinDataComplete CurrentMeetingStartTime = new JoinDataComplete(new JoinData { JoinNumber = 24, JoinSpan = 1 }, new JoinMetadata { Label = "CurrentMeetingStartTime", JoinCapabilities = eJoinCapabilities.ToSIMPL, JoinType = eJoinType.Serial });
@@ -63,7 +62,8 @@ namespace DynFusion
         public JoinDataComplete MeetingOrganizer = new JoinDataComplete(new JoinData { JoinNumber = 61, JoinSpan = 20 }, new JoinMetadata { Label = "MeetingSubject", JoinCapabilities = eJoinCapabilities.ToSIMPL, JoinType = eJoinType.Serial });
         [JoinName("MeetingTime")]
         public JoinDataComplete MeetingTime = new JoinDataComplete(new JoinData { JoinNumber = 81, JoinSpan = 20 }, new JoinMetadata { Label = "MeetingSubject", JoinCapabilities = eJoinCapabilities.ToSIMPL, JoinType = eJoinType.Serial });
-
+        [JoinName("MeetingInProgress")]
+        public JoinDataComplete MeetingInProgress = new JoinDataComplete(new JoinData { JoinNumber = 41, JoinSpan = 20 }, new JoinMetadata { Label = "MeetingInProgress", JoinCapabilities = eJoinCapabilities.ToSIMPL, JoinType = eJoinType.Digital });
 		
 		public SchedulingJoinMap(uint joinStart)
 			: this(joinStart, typeof(SchedulingJoinMap))

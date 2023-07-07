@@ -1329,11 +1329,6 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.ZoomRoom
 															"[DeserializeResponse] zCommands.listparticipantresult - participant.event: {0} ...adding participant with UserId: {1} UserName: {2}",
 															participant.Event, participant.UserId, participant.UserName);
 
-                                                        if(GetIsHostMyself())
-                                                        {
-                                                            //If room is host, auto-admit from waiting room since API does not notify of people in waiting room
-                                                            AdmitParticipant(participant);
-                                                        }
 														Status.Call.Participants.Add(participant);
                                                         Participants.CurrentParticipants = zCommand.ListParticipant.GetGenericParticipantListFromParticipantsResult(Status.Call.Participants);
                                                         Participants.OnParticipantAdded();
@@ -1881,11 +1876,6 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.ZoomRoom
 			SendText("zCommand Call ListParticipants");
 		}
 
-        public void AdmitParticipant(zCommand.ListParticipant p)
-        {
-            SendText(string.Format("zCommand Call Admit Participant: {0}", p.UserId));
-        }
-
 		/// <summary>
 		/// Prints the current call particiapnts list
 		/// </summary>
@@ -1930,6 +1920,7 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.ZoomRoom
 					Status.Call = new zStatus.Call {Status = callStatus};
                     // Resubscribe to all property change events after Status.Call is reconstructed
                     SetUpCallFeedbackActions();
+                    MeetingIsRecordingFeedback.FireUpdate();
 
 					OnCallStatusChange(new CodecActiveCallItem() {Status = eCodecCallStatus.Disconnected});
 				}
@@ -2029,6 +2020,8 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.ZoomRoom
 					        {
 					            Status.NeedWaitForHost.Wait = false;
 					        }
+                            Status.Call.CallRecordInfo.meetingIsBeingRecorded = false;
+                            MeetingIsRecordingFeedback.FireUpdate();
 							existingCall.Status = eCodecCallStatus.Disconnected;
 							break;
 					}
@@ -2118,6 +2111,9 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.ZoomRoom
 					false,
 					Status.Call.CallRecordInfo.AllowRecord
                     );
+
+                Status.Call.CallRecordInfo.meetingIsBeingRecorded = false;
+                MeetingIsRecordingFeedback.FireUpdate();
             }
 
 			else if (item.Status == eCodecCallStatus.Connecting)
@@ -2902,7 +2898,19 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.ZoomRoom
 
         public void AdmitParticipantFromWaitingRoom(int userId)
         {
-            SendText(string.Format("zCommand Call Admit Participant Id: {0}", userId));
+            SendText(string.Format("zCommand Call Admit Participant: {0}", userId));
+        }
+
+        public void AdmitParticipantFromWaitingRoomIndex(ushort index)
+        {
+            Debug.Console(1, this, "Attempting to admit user at index {0} from waiting room", index);
+            if (Participants.CurrentParticipants.Count > index)
+            {
+                var user = Participants.CurrentParticipants[index];
+                var userId = Participants.CurrentParticipants[index].UserId;
+
+                AdmitParticipantFromWaitingRoom(userId);
+            }
         }
 
 		#endregion
@@ -2923,6 +2931,24 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.ZoomRoom
 		{
 			SendText(string.Format("zCommand Call MuteParticipant Mute: off Id: {0}", userId));
 		}
+
+        public void ToggleAudioForParticipantIndex(ushort index)
+        {
+            if (Participants.CurrentParticipants.Count > index)
+            {
+                var user = Participants.CurrentParticipants[index];
+                var userId = Participants.CurrentParticipants[index].UserId;
+
+                if (user.AudioMuteFb)
+                {
+                    UnmuteAudioForParticipant(userId);
+                }
+                else
+                {
+                    MuteAudioForParticipant(userId);
+                }
+            }
+        }
 
 		public void ToggleAudioForParticipant(int userId)
 		{
@@ -2957,6 +2983,23 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.ZoomRoom
 		{
 			SendText(string.Format("zCommand Call MuteParticipantVideo Mute: off Id: {0}", userId));
 		}
+
+        public void ToggleVideoForParticipantIndex(ushort index)
+        {
+            if (Participants.CurrentParticipants.Count > index)
+            {
+                var user = Participants.CurrentParticipants[index];
+                var userId = Participants.CurrentParticipants[index].UserId;
+                if (user.VideoMuteFb)
+                {
+                    UnmuteVideoForParticipant(userId);
+                }
+                else
+                {
+                    MuteVideoForParticipant(userId);
+                }
+            }
+        }
 
 		public void ToggleVideoForParticipant(int userId)
 		{
@@ -3000,6 +3043,23 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.ZoomRoom
 		{
 			SendText(string.Format("zCommand Call Pin Id: {0} Enable: off", userId));
 		}
+
+        public void ToggleParticipantPinStateIndex(ushort index, int screenIndex)
+        {
+            if(Participants.CurrentParticipants.Count > index)
+            {
+                var user = Participants.CurrentParticipants[index];
+                var userId = Participants.CurrentParticipants[index].UserId;
+                if (user.IsPinnedFb)
+                {
+                    UnPinParticipant(userId);
+                }
+                else
+                {
+                    PinParticipant(userId, screenIndex);
+                }
+            }
+        }
 
 		public void ToggleParticipantPinState(int userId, int screenIndex)
 		{

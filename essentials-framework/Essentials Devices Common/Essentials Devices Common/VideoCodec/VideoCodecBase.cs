@@ -603,15 +603,15 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec
                     }
                 };
 
+            SetParticipantActions(trilist, joinMap);
+
 			codec.Participants.ParticipantAdded += (sender, args) =>
             {
-                SetParticipantActions(trilist, joinMap, codec.Participants.CurrentParticipants);
                 UpdateParticipantsXSig(codec, trilist, joinMap);
             };
 
             codec.Participants.ParticipantRemoved += (sender, args) =>
             {
-                SetParticipantActions(trilist, joinMap, codec.Participants.CurrentParticipants);
                 UpdateParticipantsXSig(codec, trilist, joinMap);
             };
 
@@ -623,7 +623,6 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec
             // set actions and update the values when the list changes
 			codec.Participants.ParticipantsListHasChanged += (sender, args) =>
 			{
-                SetParticipantActions(trilist, joinMap, codec.Participants.CurrentParticipants);
                 UpdateParticipantsXSig(codec, trilist, joinMap);
 			};
 
@@ -651,7 +650,6 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec
             string participantXSig;
 
             participantXSig = UpdateParticipantXSig(index, participant);
-
             trilist.SetString(joinMap.CurrentParticipants.JoinNumber, participantXSig);
         }
 
@@ -675,50 +673,43 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec
         /// <summary>
         /// Sets the actions for each participant in the list
         /// </summary>
-        private void SetParticipantActions(BasicTriList trilist, VideoCodecControllerJoinMap joinMap, List<Participant> currentParticipants)
+        private void SetParticipantActions(BasicTriList trilist, VideoCodecControllerJoinMap joinMap)
         {
-            uint index = 0; // track the index of the participant in the 
+            var audioMuteCodec = this as IHasParticipantAudioMute;
+            var videoMuteCodec = this as IHasParticipantVideoMute;
+            var pinCodec = this as IHasParticipantPinUnpin;
+            var waitingRoomCodec = this as IHasWaitingRoom;
 
-            foreach (var participant in currentParticipants)
+            for(ushort i=0; i < 100; i++)
             {
-                var p = participant;
-                if (index > MaxParticipants) break;
-
-                var audioMuteCodec = this as IHasParticipantAudioMute;
+                ushort index = i;
                 if (audioMuteCodec != null)
                 {
-                    trilist.SetSigFalseAction(joinMap.ParticipantAudioMuteToggleStart.JoinNumber + index,
-                        () => audioMuteCodec.ToggleAudioForParticipant(p.UserId));
-
-                    trilist.SetSigFalseAction(joinMap.ParticipantVideoMuteToggleStart.JoinNumber + index,
-                        () => audioMuteCodec.ToggleVideoForParticipant(p.UserId));
+                    trilist.SetSigTrueAction(joinMap.ParticipantAudioMuteToggleStart.JoinNumber + index,
+                        () => audioMuteCodec.ToggleAudioForParticipantIndex(index));
                 }
-
-                var pinCodec = this as IHasParticipantPinUnpin;
+                if (videoMuteCodec != null)
+                {
+                    trilist.SetSigTrueAction(joinMap.ParticipantVideoMuteToggleStart.JoinNumber + index,
+                        () => audioMuteCodec.ToggleVideoForParticipantIndex(index));
+                }
                 if (pinCodec != null)
                 {
-                    trilist.SetSigFalseAction(joinMap.ParticipantPinToggleStart.JoinNumber + index,
-                        () => pinCodec.ToggleParticipantPinState(p.UserId, pinCodec.ScreenIndexToPinUserTo));
+                    trilist.SetSigTrueAction(joinMap.ParticipantPinToggleStart.JoinNumber + index,
+                        () => pinCodec.ToggleParticipantPinStateIndex(index, pinCodec.ScreenIndexToPinUserTo));
                 }
-
-                index++;
-            }
-
-            // Clear out any previously set actions
-            while (index < MaxParticipants)
-            {
-                trilist.ClearBoolSigAction(joinMap.ParticipantAudioMuteToggleStart.JoinNumber + index);
-                trilist.ClearBoolSigAction(joinMap.ParticipantVideoMuteToggleStart.JoinNumber + index);
-                trilist.ClearBoolSigAction(joinMap.ParticipantPinToggleStart.JoinNumber + index);
-
-                index++;
+                if(waitingRoomCodec != null)
+                {
+                    trilist.SetSigTrueAction(joinMap.AdmitParticipantFromWaitingRoomStart.JoinNumber + index,
+                        () => waitingRoomCodec.AdmitParticipantFromWaitingRoomIndex(index));
+                }
             }
         }
 
         private string UpdateParticipantXSig(int index, Participant participant)
         {
             const int maxParticipants = MaxParticipants;
-            const int maxDigitals = 8;
+            const int maxDigitals = 9;
             const int maxAnalogs = 1;
             const int maxSerials = 1;
             var digitalIndex = (maxAnalogs + maxSerials) * maxParticipants + index * maxDigitals;
@@ -727,7 +718,7 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec
 
             if (index >= 0 && index < maxParticipants)
             {
-                var tokenArray = new XSigToken[10];
+                var tokenArray = new XSigToken[11];
 
                 //digitals
                 tokenArray[2] = new XSigDigitalToken(digitalIndex + 1, participant.AudioMuteFb);
@@ -738,6 +729,7 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec
                 tokenArray[7] = new XSigDigitalToken(digitalIndex + 6, participant.HandIsRaisedFb);
                 tokenArray[8] = new XSigDigitalToken(digitalIndex + 7, participant.IsPinnedFb);
                 tokenArray[9] = new XSigDigitalToken(digitalIndex + 8, participant.AudioConnected);
+                tokenArray[10] = new XSigDigitalToken(digitalIndex + 9, participant.IsInWaitingRoom);
 
                 //serials
                 tokenArray[0] = new XSigSerialToken(serialIndex + 1, participant.Name);
@@ -757,10 +749,10 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec
 		private string UpdateParticipantsXSig(List<Participant> currentParticipants)
 		{
 			const int maxParticipants = MaxParticipants;
-			const int maxDigitals = 8;
+			const int maxDigitals = 9;
 			const int maxAnalogs = 1;
             const int maxSerials = 1;
-			const int offset = maxDigitals + maxAnalogs + maxSerials; // 10
+			const int offset = maxDigitals + maxAnalogs + maxSerials; // 11
 			var digitalIndex = (maxAnalogs + maxSerials) * maxParticipants;
             var analogIndex = maxSerials * maxParticipants;
             var serialIndex = 0;
@@ -781,6 +773,7 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec
                 tokenArray[digitalIndex + 5] = new XSigDigitalToken(digitalIndex + 6, participant.HandIsRaisedFb);
                 tokenArray[digitalIndex + 6] = new XSigDigitalToken(digitalIndex + 7, participant.IsPinnedFb);
                 tokenArray[digitalIndex + 7] = new XSigDigitalToken(digitalIndex + 8, participant.AudioConnected);
+                tokenArray[digitalIndex + 8] = new XSigDigitalToken(digitalIndex + 9, participant.IsInWaitingRoom);
 
 				//serials
 				tokenArray[serialIndex ] = new XSigSerialToken(serialIndex + 1, participant.Name);
@@ -805,6 +798,7 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec
                 tokenArray[digitalIndex + 5] = new XSigDigitalToken(digitalIndex + 6, false);
                 tokenArray[digitalIndex + 6] = new XSigDigitalToken(digitalIndex + 7, false);
                 tokenArray[digitalIndex + 7] = new XSigDigitalToken(digitalIndex + 8, false);
+                tokenArray[digitalIndex + 8] = new XSigDigitalToken(digitalIndex + 9, false);
 
 				//serials
                 tokenArray[serialIndex] = new XSigSerialToken(serialIndex + 1, String.Empty);
@@ -819,9 +813,6 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec
 			}
 
             var returnString = GetXSigString(tokenArray);
-
-            //Debug.Console(2, this, "{0}", ComTextHelper.GetEscapedText(Encoding.GetEncoding(28591).GetBytes(returnString)));
-
 
             return returnString;
 		}

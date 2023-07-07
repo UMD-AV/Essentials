@@ -1090,7 +1090,7 @@ namespace PepperDash.Essentials.Core.Bridges.JoinMaps
 			new JoinData 
 			{ 
 				JoinNumber = 501,
-				JoinSpan = 50 
+				JoinSpan = 100 
 			},
             new JoinMetadata
             {
@@ -1103,8 +1103,8 @@ namespace PepperDash.Essentials.Core.Bridges.JoinMaps
         public JoinDataComplete ParticipantVideoMuteToggleStart = new JoinDataComplete(
 			new JoinData 
 			{ 
-				JoinNumber = 801, 
-				JoinSpan = 50 
+				JoinNumber = 601, 
+				JoinSpan = 100 
 			},
             new JoinMetadata
             {
@@ -1117,12 +1117,26 @@ namespace PepperDash.Essentials.Core.Bridges.JoinMaps
         public JoinDataComplete ParticipantPinToggleStart = new JoinDataComplete(
 			new JoinData 
 			{ 
-				JoinNumber = 1101, 
-				JoinSpan = 50 
+				JoinNumber = 701, 
+				JoinSpan = 100 
 			},
             new JoinMetadata
             {
                 Description = "Toggles the participant's pin status",
+                JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                JoinType = eJoinType.Digital
+            });
+
+        [JoinName("AdmitParticipantFromWaitingRoomStart")]
+        public JoinDataComplete AdmitParticipantFromWaitingRoomStart = new JoinDataComplete(
+            new JoinData
+            {
+                JoinNumber = 801,
+                JoinSpan = 100
+            },
+            new JoinMetadata
+            {
+                Description = "Admits the participant from the waiting room",
                 JoinCapabilities = eJoinCapabilities.ToSIMPL,
                 JoinType = eJoinType.Digital
             });

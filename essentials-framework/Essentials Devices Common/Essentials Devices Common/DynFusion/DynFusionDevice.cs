@@ -25,6 +25,8 @@ namespace DynFusion
 		public const ushort FusionJoinOffset = 49;
 		//DynFusion Joins
 
+        public event EventHandler<EventArgs> RoomInformationUpdated;
+
 		private DynFusionConfigObjectTemplate _Config;
 		private Dictionary<UInt32, DynFusionDigitalAttribute> DigitalAttributesToFusion;
 		private Dictionary<UInt32, DynFusionAnalogAttribute> AnalogAttributesToFusion;
@@ -350,38 +352,25 @@ namespace DynFusion
 			switch (args.Sig.Type)
 			{
 				case eSigType.Bool:
-					{
+					break;
 
-						break;
-					}
 				case eSigType.UShort:
-					{
-
-						break;
-					}
+					break;
 
 				case eSigType.String:
+					DynFusionSerialAttribute output;
+					
+					if (SerialAttributesFromFusion.TryGetValue(args.Sig.Number, out output))
 					{
-						//var sigDetails = args.UserConfiguredSigDetail as BooleanSigDataFixedName;
-						DynFusionSerialAttribute output;
-
-
-						
-						if (SerialAttributesFromFusion.TryGetValue(args.Sig.Number, out output))
-						{
-							output.StringValue = args.Sig.StringValue;
-						}
-						
-						if (args.Sig == FusionSymbol.ExtenderFusionRoomDataReservedSigs.RoomConfigResponse && args.Sig.StringValue != null)
-						{
-							RoomConfigParseData(args.Sig.StringValue);
-						}
-						 
-
-						break;
+						output.StringValue = args.Sig.StringValue;
 					}
-			}
-
+					
+					if (args.Sig == FusionSymbol.ExtenderFusionRoomDataReservedSigs.RoomConfigResponse && args.Sig.StringValue != null)
+					{
+						RoomConfigParseData(args.Sig.StringValue);
+					}
+					break;
+	        }
 		}
 
 		void FusionSymbol_FusionStateChange(FusionBase device, FusionStateEventArgs args)
@@ -723,62 +712,69 @@ namespace DynFusion
                                 XmlReader roomInfo = new XmlReader(e.OuterXml);
 
                                 RoomInformation = CrestronXMLSerialization.DeSerializeObject<RoomInformation>(roomInfo);
-								var attirbute = SerialAttributesFromFusion.SingleOrDefault(x => x.Value.Name == "Name");
+                                var attirbute = SerialAttributesFromFusion.SingleOrDefault(x => x.Value.Name == "Name");
 
-								if (attirbute.Value != null)
-								{
-									attirbute.Value.StringValue = RoomInformation.Name;
-								}
+                                if (attirbute.Value != null)
+                                {
+                                    attirbute.Value.StringValue = RoomInformation.Name;
+                                }
                             }
                             else if (e.Name == "CustomFields")
                             {
-								foreach (XmlElement el in e)
+                                foreach (XmlElement el in e)
                                 {
-									var id = el.Attributes["ID"].Value;
-				
-									var type = el.SelectSingleNode("CustomFieldType").InnerText;
-									var val = el.SelectSingleNode("CustomFieldValue").InnerText;
-									if (type == "Boolean")
-									{
-										
-										var attribute = DigitalAttributesFromFusion.SingleOrDefault(x => x.Value.Name == id);
+                                    var id = el.Attributes["ID"].Value;
 
-										if (attribute.Value != null)
-										{
-											attribute.Value.BoolValue = Boolean.Parse(val);
-										}
-										
-									}
-									else if (type == "Integer")
-									{
-										var attribute = AnalogAttributesFromFusion.SingleOrDefault(x => x.Value.Name == id);
+                                    var type = el.SelectSingleNode("CustomFieldType").InnerText;
+                                    var val = el.SelectSingleNode("CustomFieldValue").InnerText;
+                                    if (type == "Boolean")
+                                    {
 
-										if (attribute.Value != null)
-										{
-											attribute.Value.UShortValue = uint.Parse(val);
-										}
-									}
-									else if (type == "String" || type == "Text" || type == "URL")
-									{
-										var attribute = SerialAttributesFromFusion.SingleOrDefault(x => x.Value.Name == id);
+                                        var attribute = DigitalAttributesFromFusion.SingleOrDefault(x => x.Value.Name == id);
 
-										if (attribute.Value != null)
-										{
-											attribute.Value.StringValue = val;
-										}
-									}
-									Debug.Console(2, this, "RoomConfigParseData {0} {1} {2}", type, id, val); 
-									}
-							
-							
+                                        if (attribute.Value != null)
+                                        {
+                                            attribute.Value.BoolValue = Boolean.Parse(val);
+                                        }
+
+                                    }
+                                    else if (type == "Integer")
+                                    {
+                                        var attribute = AnalogAttributesFromFusion.SingleOrDefault(x => x.Value.Name == id);
+
+                                        if (attribute.Value != null)
+                                        {
+                                            attribute.Value.UShortValue = uint.Parse(val);
+                                        }
+                                    }
+                                    else if (type == "String" || type == "Text" || type == "URL")
+                                    {
+                                        var attribute = SerialAttributesFromFusion.SingleOrDefault(x => x.Value.Name == id);
+
+                                        if (attribute.Value != null)
+                                        {
+                                            attribute.Value.StringValue = val;
+                                        }
+                                    }
+                                    Debug.Console(2, this, "RoomConfigParseData {0} {1} {2}", type, id, val);
+                                }
+
+
                             }
                         }
                     }
                 }
-				catch (Exception e)
-				{
-					Debug.Console(2, this, "GetRoomConfig Error {0}", e);
-				}
+                catch (Exception e)
+                {
+                    Debug.Console(2, this, "GetRoomConfig Error {0}", e);
+                }
+                finally
+                {
+                    if (RoomInformationUpdated != null)
+                    {
+                        RoomInformationUpdated(this, new EventArgs());
+                    }
+                }
 		}
 	    public override void LinkToApi(BasicTriList trilist, uint joinStart, string joinMapKey, EiscApiAdvanced bridge)
 	    {

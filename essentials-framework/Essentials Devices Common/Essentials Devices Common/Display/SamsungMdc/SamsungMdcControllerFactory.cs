@@ -3,7 +3,7 @@ using PepperDash.Core;
 using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Config;
 
-namespace PepperDash.Plugin.Display.SamsungMdc
+namespace PepperDash.Essentials.Devices.Displays
 {
     public class SamsungMdcControllerFactory:EssentialsDeviceFactory<SamsungMdcDisplayController>
     {

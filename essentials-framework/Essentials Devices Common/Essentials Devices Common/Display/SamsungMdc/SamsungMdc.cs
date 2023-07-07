@@ -1,7 +1,4 @@
-﻿// For Basic SIMPL# Classes
-// For Basic SIMPL#Pro classes
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -15,7 +12,7 @@ using PepperDash.Essentials.Core.DeviceInfo;
 using PepperDash.Essentials.Core.Routing;
 using Feedback = PepperDash.Essentials.Core.Feedback;
 
-namespace PepperDash.Plugin.Display.SamsungMdc
+namespace PepperDash.Essentials.Devices.Displays
 {
     public class SamsungMdcDisplayController : TwoWayDisplayBase, IBasicVolumeWithFeedback, ICommunicationMonitor,
         IBridgeAdvanced, IDeviceInfoProvider
@@ -34,6 +31,7 @@ namespace PepperDash.Plugin.Display.SamsungMdc
         public IntFeedback CurrentLedTemperatureCelsiusFeedback;
         public IntFeedback CurrentLedTemperatureFahrenheitFeedback;
 
+        private DM.DmRmcControllerBase _scaler;
         public List<BoolFeedback> InputFeedback;
         public IntFeedback InputNumberFeedback;
         private RoutingInputPort _currentInputPort;
@@ -91,6 +89,15 @@ namespace PepperDash.Plugin.Display.SamsungMdc
             _RequestedInputState = 0;
             _PowerMutex = new CMutex();
             _feedbackMutex = new CMutex();
+
+            if (config.VideoMuteKey != null)
+            {
+                var dev = DeviceManager.GetDeviceForKey(config.VideoMuteKey);
+                if (dev is DM.DmRmcControllerBase)
+                {
+                    _scaler = dev as DM.DmRmcControllerBase;
+                }
+            }
 
             DeviceInfo = new DeviceInfo();
             Init();
@@ -709,30 +716,53 @@ namespace PepperDash.Plugin.Display.SamsungMdc
             trilist.SetSigTrueAction(joinMap.PowerOn.JoinNumber, PowerOn);
             PowerIsOnFeedback.LinkInputSig(trilist.BooleanInput[joinMap.PowerOn.JoinNumber]);
 
+            //Video Mute
+            if (_scaler != null)
+            {
+                _scaler.HdmiOutputBlankedFeedback.LinkInputSig(trilist.BooleanInput[joinMap.VideoMuteOn.JoinNumber]);
+                trilist.SetSigTrueAction(joinMap.VideoMuteOn.JoinNumber, _scaler.BlankOutput);
+                trilist.SetSigTrueAction(joinMap.VideoMuteOff.JoinNumber, _scaler.UnblankOutput);
+            }
 
             // Input digitals
             var count = 0;
 
-            foreach (var input in InputPorts)
+            if (_config.FriendlyNames == null)
             {
-                var i = input;
-                trilist.SetSigTrueAction((ushort) (joinMap.InputSelectOffset.JoinNumber + count),
-                    () => ExecuteSwitch(InputPorts[i.Key].Selector));
-                
-                var friendlyName = _config.FriendlyNames.FirstOrDefault(n => n.InputKey == i.Key);
-
-                if (friendlyName != null)
+                foreach (var input in InputPorts)
                 {
-                    Debug.Console(1, this, "Friendly Name found for input {0}: {1}", i.Key, friendlyName.Name);
+                    var i = input;
+                    trilist.SetSigTrueAction((ushort)(joinMap.InputSelectOffset.JoinNumber + count),
+                        () => ExecuteSwitch(InputPorts[i.Key].Selector));
+
+                    trilist.StringInput[(ushort)(joinMap.InputNamesOffset.JoinNumber + count)].StringValue = i.Key;
+
+                    InputFeedback[count].LinkInputSig(
+                        trilist.BooleanInput[joinMap.InputSelectOffset.JoinNumber + (uint)count]);
+                    count++;
                 }
+            }
+            else
+            {
+                foreach (FriendlyName name in _config.FriendlyNames)
+                {
+                    try
+                    {
+                        var input = InputPorts.First(n => n.Key == name.InputKey);
+                        trilist.SetSigTrueAction((ushort)(joinMap.InputSelectOffset.JoinNumber + count),
+                            () => ExecuteSwitch(InputPorts[input.Key].Selector));
 
-                var name = friendlyName == null ? i.Key : friendlyName.Name;
-                
-                trilist.StringInput[(ushort) (joinMap.InputNamesOffset.JoinNumber + count)].StringValue = name;
+                        trilist.StringInput[(ushort)(joinMap.InputNamesOffset.JoinNumber + count)].StringValue = name.Name;
 
-                InputFeedback[count].LinkInputSig(
-                    trilist.BooleanInput[joinMap.InputSelectOffset.JoinNumber + (uint) count]);
-                count++;
+                        var index = InputPorts.FindIndex(n => n.Key == name.InputKey);
+                        InputFeedback[index].LinkInputSig(trilist.BooleanInput[joinMap.InputSelectOffset.JoinNumber + (uint)count]);
+                        count++;
+                    }
+                    catch
+                    {
+                        Debug.ConsoleWithLog(0, this, "Error creating input {0}", count+1);
+                    }
+                }
             }
 
 			// Input Analog
