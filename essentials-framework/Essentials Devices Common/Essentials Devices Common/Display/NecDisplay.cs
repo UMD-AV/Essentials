@@ -59,6 +59,8 @@ namespace PepperDash.Essentials.Devices.Displays
         ushort _RequestedPowerState; // 0:none 1:on 2:off
         ushort _RequestedInputState; // 0:none 1-4:inputs 1-4 
 
+        string videoMuteKey;
+        int videoMuteInput;
         private DM.DmRmcControllerBase _scaler;
         readonly NecQueue _cmdQueue;
         readonly NecQueue _priorityQueue;
@@ -116,6 +118,12 @@ namespace PepperDash.Essentials.Devices.Displays
             WarmupTimer = new CTimer(WarmupCallback, Timeout.Infinite);
             CooldownTimer = new CTimer(CooldownCallback, Timeout.Infinite);
 
+            if (config.VideoMuteKey != null)
+            {
+                videoMuteKey = config.VideoMuteKey;
+            }
+            videoMuteInput = config.VideoMuteInput;
+
             CommunicationMonitor = new GenericCommunicationMonitor(this, Communication, 30000, 120000, 300000, StatusGet, true);
             DeviceManager.AddDevice(CommunicationMonitor);
 
@@ -130,15 +138,6 @@ namespace PepperDash.Essentials.Devices.Displays
 
             AddRoutingInputPort(new RoutingInputPort("DP 2", eRoutingSignalType.Audio | eRoutingSignalType.Video,
                 eRoutingPortConnectionType.DisplayPort, new Action(InputDp2), this), "10");
-
-            if (config.VideoMuteKey != null)
-            {
-                var dev = DeviceManager.GetDeviceForKey(config.VideoMuteKey);
-                if (dev is DM.DmRmcControllerBase)
-                {
-                    _scaler = dev as DM.DmRmcControllerBase;
-                }
-            }
 		}
 
         void AddRoutingInputPort(RoutingInputPort port, string fbMatch)
@@ -149,6 +148,16 @@ namespace PepperDash.Essentials.Devices.Displays
 
         public override bool CustomActivate()
         {
+            if (videoMuteKey != null)
+            {
+                var dev = DeviceManager.GetDeviceForKey(videoMuteKey);
+                if (dev is DM.DmRmcControllerBase)
+                {
+                    Debug.Console(0, this, "Using scaler {0} for video mute", videoMuteKey);
+                    _scaler = dev as DM.DmRmcControllerBase;
+                }
+            }
+
             Communication.Connect();
             if (!_tcpComm)
             {
@@ -166,7 +175,6 @@ namespace PepperDash.Essentials.Devices.Displays
             var joinMap = new NecDisplayJoinMap(joinStart);
 
             trilist.BooleanInput[joinMap.LampHoursSupported.JoinNumber].BoolValue = false;
-            trilist.BooleanInput[joinMap.VideoMuteSupported.JoinNumber].BoolValue = false;
 
             //Video Mute
             if (_scaler != null)
@@ -174,6 +182,27 @@ namespace PepperDash.Essentials.Devices.Displays
                 _scaler.HdmiOutputBlankedFeedback.LinkInputSig(trilist.BooleanInput[joinMap.VideoMuteOn.JoinNumber]);
                 trilist.SetSigTrueAction(joinMap.VideoMuteOn.JoinNumber, _scaler.BlankOutput);
                 trilist.SetSigTrueAction(joinMap.VideoMuteOff.JoinNumber, _scaler.UnblankOutput);
+
+                //If config has video mute input defined, only support scaler video mute while on that display input
+                if (videoMuteInput > 0)
+                {
+
+                    CurrentInputFeedback.OutputChange += (o, args) =>
+                    {
+                        if (videoMuteInput == _CurrentInputIndex)
+                        {
+                            trilist.BooleanInput[joinMap.VideoMuteSupported.JoinNumber].BoolValue = true;
+                        }
+                        else
+                        {
+                            trilist.BooleanInput[joinMap.VideoMuteSupported.JoinNumber].BoolValue = false;
+                        }
+                    };
+                }
+                else
+                {
+                    trilist.BooleanInput[joinMap.VideoMuteSupported.JoinNumber].BoolValue = true;
+                }
             }
 
             IsWarmingUpFeedback.LinkInputSig(trilist.BooleanInput[joinMap.Warming.JoinNumber]);
@@ -641,6 +670,11 @@ namespace PepperDash.Essentials.Devices.Displays
 
         private void PowerOffGo()
         {
+            if (_scaler != null)
+            {
+                _scaler.UnblankOutput();
+            }
+
             SendCommand(eCommandType.Power, PowerOffCmd, true);
             CrestronInvoke.BeginInvoke((o) => CooldownStart());
         }
@@ -1003,6 +1037,9 @@ namespace PepperDash.Essentials.Devices.Displays
     {
         [JsonProperty("videoMuteKey")]
         public string VideoMuteKey { get; set; }
+
+        [JsonProperty("videoMuteInput")]
+        public int VideoMuteInput { get; set; }
     }
 
     public class NecDisplayFactory : EssentialsDeviceFactory<NecDisplay>

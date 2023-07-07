@@ -31,6 +31,8 @@ namespace PepperDash.Essentials.Devices.Displays
         public IntFeedback CurrentLedTemperatureCelsiusFeedback;
         public IntFeedback CurrentLedTemperatureFahrenheitFeedback;
 
+        string videoMuteKey;
+        int videoMuteInput;
         private DM.DmRmcControllerBase _scaler;
         public List<BoolFeedback> InputFeedback;
         public IntFeedback InputNumberFeedback;
@@ -92,12 +94,9 @@ namespace PepperDash.Essentials.Devices.Displays
 
             if (config.VideoMuteKey != null)
             {
-                var dev = DeviceManager.GetDeviceForKey(config.VideoMuteKey);
-                if (dev is DM.DmRmcControllerBase)
-                {
-                    _scaler = dev as DM.DmRmcControllerBase;
-                }
+                videoMuteKey = config.VideoMuteKey;
             }
+            videoMuteInput = config.VideoMuteInput;
 
             DeviceInfo = new DeviceInfo();
             Init();
@@ -722,6 +721,26 @@ namespace PepperDash.Essentials.Devices.Displays
                 _scaler.HdmiOutputBlankedFeedback.LinkInputSig(trilist.BooleanInput[joinMap.VideoMuteOn.JoinNumber]);
                 trilist.SetSigTrueAction(joinMap.VideoMuteOn.JoinNumber, _scaler.BlankOutput);
                 trilist.SetSigTrueAction(joinMap.VideoMuteOff.JoinNumber, _scaler.UnblankOutput);
+
+                //If config has video mute input defined, only support scaler video mute while on that display input
+                if (videoMuteInput > 0)
+                {
+                    InputNumberFeedback.OutputChange += (o, args) =>
+                    {
+                        if (videoMuteInput == InputNumberFeedback.UShortValue)
+                        {
+                            trilist.BooleanInput[joinMap.VideoMuteSupported.JoinNumber].BoolValue = true;
+                        }
+                        else
+                        {
+                            trilist.BooleanInput[joinMap.VideoMuteSupported.JoinNumber].BoolValue = false;
+                        }
+                    };
+                }
+                else
+                {
+                    trilist.BooleanInput[joinMap.VideoMuteSupported.JoinNumber].BoolValue = true;
+                }
             }
 
             // Input digitals
@@ -788,7 +807,7 @@ namespace PepperDash.Essentials.Devices.Displays
 			InputNumberFeedback.LinkInputSig(trilist.UShortInput[joinMap.InputSelect.JoinNumber]);
 
 			CurrentInputFeedback.OutputChange +=
-				(sender, args) => Debug.Console(0, "CurrentInputFeedback_OutputChange {0}", args.StringValue);
+				(sender, args) => Debug.Console(1, "CurrentInputFeedback_OutputChange {0}", args.StringValue);
     
 
             // Volume
@@ -988,6 +1007,16 @@ namespace PepperDash.Essentials.Devices.Displays
         /// <returns></returns>
         public override bool CustomActivate()
         {
+            if (videoMuteKey != null)
+            {
+                var dev = DeviceManager.GetDeviceForKey(videoMuteKey);
+                if (dev is DM.DmRmcControllerBase)
+                {
+                    Debug.Console(0, this, "Using scaler {0} for video mute", videoMuteKey);
+                    _scaler = dev as DM.DmRmcControllerBase;
+                }
+            }
+
             Communication.Connect();
             CommunicationMonitor.StatusChange +=
                 (o, a) => Debug.Console(2, this, "Communication monitor state: {0}", CommunicationMonitor.Status);
@@ -1031,7 +1060,7 @@ namespace PepperDash.Essentials.Devices.Displays
                     // Debug.Console(2, this, "Got Data Length:{0} {1}", dataLength, newBytes[3]);
                     if (newBytes.Length >= dataLength)
                     {
-                        var message = new byte[dataLength];
+                        var message = new byte[newBytes.Length];
                         newBytes.CopyTo(message, 0);
                         CrestronInvoke.BeginInvoke((o) => ParseMessage(message));
                         byte[] clear = { };
@@ -1056,7 +1085,7 @@ namespace PepperDash.Essentials.Devices.Displays
             }
             catch (Exception ex)
             {
-                Debug.LogError(Debug.ErrorLogLevel.Warning, String.Format("Exception parsing feedback: {0}", ex.Message));
+                Debug.Console(0, this, String.Format("Exception parsing feedback: {0}", ex.Message));
             }
             finally
             {
@@ -1073,112 +1102,122 @@ namespace PepperDash.Essentials.Devices.Displays
                 // This check is here to prevent following string format from building unnecessarily on level 0 or 1
                 Debug.Console(2, this, "Add to buffer:{0}", ComTextHelper.GetEscapedText(_incomingBuffer));
             }
-
-            switch (command)
+            try
             {
+                switch (command)
+                {
                     // General status
-                case StatusControlCmd:
-                {
-                    //UpdatePowerFB(message[2], message[5]); // "power" can be misrepresented when the display sleeps
-                    // Handle the first power on fb when waiting for it.
-                    if (_isPoweringOnIgnorePowerFb && message[6] == PowerControlOn)
-                    {
-                        _isPoweringOnIgnorePowerFb = false;
-                    }
-                    // Ignore general-status power off messages when powering up
-                    // if (!(_isPoweringOnIgnorePowerFb && message[6] == PowerControlOff))
-                    UpdatePowerFb(message[6]);
-                    UpdateVolumeFb(message[7]);
-                    UpdateMuteFb(message[8]);
-                    UpdateInputFb(message[9]);
-                    if (Debug.Level == 2)
-                    {
-                        // This check is here to prevent following string format from building unnecessarily on level 0 or 1
-                        Debug.Console(2, this, "StatusControlCmd Power{0}, Mute{2}, Volume{1} Input{3}", message[6],
-                            message[7], message[8], message[9]);
-                    }
-                    break;
-                }
+                    case StatusControlCmd:
+                        {
+                            //UpdatePowerFB(message[2], message[5]); // "power" can be misrepresented when the display sleeps
+                            // Handle the first power on fb when waiting for it.
+                            if (_isPoweringOnIgnorePowerFb && message[6] == PowerControlOn)
+                            {
+                                _isPoweringOnIgnorePowerFb = false;
+                            }
+                            // Ignore general-status power off messages when powering up
+                            // if (!(_isPoweringOnIgnorePowerFb && message[6] == PowerControlOff))
+                            UpdatePowerFb(message[6]);
+
+                            if (message.Length > 9)
+                            {
+                                UpdateVolumeFb(message[7]);
+                                UpdateMuteFb(message[8]);
+                                UpdateInputFb(message[9]);
+                                if (Debug.Level == 2)
+                                {
+                                    // This check is here to prevent following string format from building unnecessarily on level 0 or 1
+                                    Debug.Console(2, this, "StatusControlCmd Power{0}, Mute{2}, Volume{1} Input{3}", message[6],
+                                        message[7], message[8], message[9]);
+                                }
+                            }
+                            break;
+                        }
                     // Power status
-                case PowerControlCmd:
-                {
-                    UpdatePowerFb(message[6]);
-                    break;
-                }
+                    case PowerControlCmd:
+                        {
+                            UpdatePowerFb(message[6]);
+                            break;
+                        }
                     // Volume level
-                case VolumeLevelControlCmd:
-                {
-                    UpdateVolumeFb(message[6]);
-                    break;
-                }
+                    case VolumeLevelControlCmd:
+                        {
+                            UpdateVolumeFb(message[6]);
+                            break;
+                        }
                     // Volume mute status
-                case VolumeMuteControlCmd:
-                {
-                    UpdateMuteFb(message[6]);
-                    break;
-                }
+                    case VolumeMuteControlCmd:
+                        {
+                            UpdateMuteFb(message[6]);
+                            break;
+                        }
                     // Input status
-                case InputControlCmd:
-                {
-                    UpdateInputFb(message[6]);
-                    break;
-                }
+                    case InputControlCmd:
+                        {
+                            UpdateInputFb(message[6]);
+                            break;
+                        }
                     // LED product monitor
-                case LedProductMonitoringCmd:
-                {
-                    UpdateLedTemperatureFb(message[6]);
-                    break;
+                    case LedProductMonitoringCmd:
+                        {
+                            UpdateLedTemperatureFb(message[6]);
+                            break;
+                        }
+                    case 0x0b: //Serial Number
+                        {
+                            var serialNumber = new byte[18];
+                            Array.Copy(message, 6, serialNumber, 0, 18);
+
+                            UpdateSerialNumber(serialNumber);
+                            break;
+                        }
+                    case 0x0E: //firmware version;
+                        {
+                            var length = message[3];
+
+                            var firmware = new byte[length];
+
+                            Array.Copy(message, 6, firmware, 0, length);
+
+                            UpdateFirmwareVersion(firmware);
+                            break;
+                        }
+                    case 0x1B: //network info
+                        {
+                            var length = message[3];
+                            if (message[4] == 0x82)
+                            {
+                                var ipAddressInfo = new byte[length - 1];
+
+                                Array.Copy(message, 7, ipAddressInfo, 0, length - 1);
+
+                                UpdateNetworkInfo(ipAddressInfo);
+                                break;
+                            }
+
+                            if (message[4] == 0x81)
+                            {
+                                var macInfo = new byte[length - 1];
+
+                                Array.Copy(message, 6, macInfo, 0, length - 1);
+
+                                UpdateMacAddress(macInfo);
+                                break;
+                            }
+
+                            break;
+                        }
+
+                    default:
+                        {
+                            Debug.Console(1, this, "Unknown message: {0}", ComTextHelper.GetEscapedText(message));
+                            break;
+                        }
                 }
-                case 0x0b: //Serial Number
-                {
-                    var serialNumber = new byte[18];
-                    Array.Copy(message, 6, serialNumber, 0, 18);
-
-                    UpdateSerialNumber(serialNumber);
-                    break;
-                }
-                case 0x0E: //firmware version;
-                {
-                    var length = message[3];
-
-                    var firmware = new byte[length];
-
-                    Array.Copy(message, 6, firmware, 0, length);
-
-                    UpdateFirmwareVersion(firmware);
-                    break;
-                }
-                case 0x1B: //network info
-                {
-                    var length = message[3];
-                    if (message[4] == 0x82)
-                    {
-                        var ipAddressInfo = new byte[length - 1];
-
-                        Array.Copy(message, 7, ipAddressInfo, 0, length - 1);
-
-                        UpdateNetworkInfo(ipAddressInfo);
-                        break;
-                    }
-
-                    if (message[4] == 0x81)
-                    {
-                        var macInfo = new byte[length - 1];
-
-                        Array.Copy(message, 6, macInfo, 0, length - 1);
-
-                        UpdateMacAddress(macInfo);
-                        break;
-                    }
-
-                    break;
-                }
-
-                default:
-                {
-                    Debug.Console(1, this, "Unknown message: {0}", ComTextHelper.GetEscapedText(message));
-                    break;
-                }
+            }
+            catch(Exception ex)
+            {
+                Debug.Console(0, this, "Exception parsing message: {0}, {1}", ComTextHelper.GetEscapedText(message), ex.Message);
             }
         }
 
@@ -1451,6 +1490,11 @@ namespace PepperDash.Essentials.Devices.Displays
             _isPoweringOnIgnorePowerFb = false;
             // If a display has unreliable-power off feedback, just override this and
             // remove this check.
+
+            if (_scaler != null)
+            {
+                _scaler.UnblankOutput();
+            }
 
             SendBytes(new byte[] {Header, PowerControlCmd, 0x00, 0x01, PowerControlOff, 0x00});
             _isCoolingDown = true;

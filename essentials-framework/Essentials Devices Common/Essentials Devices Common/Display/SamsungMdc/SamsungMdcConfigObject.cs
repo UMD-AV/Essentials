@@ -36,6 +36,9 @@ namespace PepperDash.Essentials.Devices.Displays
         [JsonProperty("videoMuteKey")]
         public string VideoMuteKey { get; set; }
 
+        [JsonProperty("videoMuteInput")]
+        public int VideoMuteInput { get; set; }
+
 	    public SamsungMDCDisplayPropertiesConfig()
 	    {
 	        FriendlyNames = new List<FriendlyName>();

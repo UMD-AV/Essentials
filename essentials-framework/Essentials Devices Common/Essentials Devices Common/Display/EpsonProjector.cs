@@ -664,6 +664,12 @@ namespace PepperDash.Essentials.Devices.Displays
                             _readyForNextCommand = false;
                             Debug.Console(1, this, "Sending Text: {0}", kvp.Value);
                             Communication.SendText(kvp.Value + "\x0D");
+
+                            if (kvp.Key == eCommandType.VideoMute)
+                            {
+                                Thread.Sleep(500);
+                                _readyForNextCommand = true;
+                            }
                             if (!Communication.IsConnected)
                             {
                                 //Fail safe for no feedback
@@ -681,7 +687,7 @@ namespace PepperDash.Essentials.Devices.Displays
                                 {
                                     if (!_IsWarmingUp && !_IsCoolingDown)
                                     {
-                                        Debug.Console(0, this, "ProcessQueue timed out waiting for next command");
+                                        Debug.Console(0, this, "ProcessQueue timed out waiting for next command. Last command: {0}", kvp.Value);
                                     }
                                 }
                             }
