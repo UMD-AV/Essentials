@@ -17,6 +17,7 @@ namespace QscQsysDspPlugin
 		public bool Enabled { get; set; }
 		public bool UseAbsoluteValue { get; set; }
 		public ePdtLevelTypes Type;
+        public int Permissions { get; set; }
         CTimer _volumeUpRepeatTimer;
         CTimer _volumeDownRepeatTimer;
         CMutex _volumeUpLock;
@@ -123,6 +124,7 @@ namespace QscQsysDspPlugin
 			Enabled = true;
 			DeviceManager.AddDevice(this);
 			Type = config.IsMic ? ePdtLevelTypes.Microphone : ePdtLevelTypes.Speaker;
+            Permissions = config.Permissions;
 
 			Debug.Console(2, this, "Adding LevelControl '{0}'", Key);
 

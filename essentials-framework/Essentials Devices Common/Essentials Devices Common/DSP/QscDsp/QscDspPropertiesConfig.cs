@@ -161,6 +161,9 @@ namespace QscQsysDspPlugin
 		[JsonProperty("isMic")]
 		public bool IsMic { get; set; }
 
+        [JsonProperty("permissions")]
+        public int Permissions{ get; set; }
+
 		[JsonProperty("useAbsoluteValue")]
 		public bool UseAbsoluteValue { get; set; }
 

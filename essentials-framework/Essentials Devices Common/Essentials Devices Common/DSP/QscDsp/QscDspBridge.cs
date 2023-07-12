@@ -38,6 +38,7 @@ namespace QscQsysDspPlugin
 					trilist.StringInput[joinMap.ChannelName.JoinNumber + x].StringValue = channel.Value.LevelCustomName;
                     trilist.UShortInput[joinMap.ChannelType.JoinNumber + x].UShortValue = (ushort)channel.Value.Type;
                     trilist.BooleanInput[joinMap.ChannelVisible.JoinNumber + x].BoolValue = true;
+                    trilist.UShortInput[joinMap.ChannelPermissions.JoinNumber + x].UShortValue = (ushort)channel.Value.Permissions;
 
 					// from Plugin > to SiMPL
                     genericChannel.MuteFeedback.LinkInputSig(trilist.BooleanInput[joinMap.ChannelMuteToggle.JoinNumber + x]);
@@ -263,6 +264,16 @@ namespace QscQsysDspPlugin
             new JoinMetadata
             {
                 Description = "Channel Type Feedback",
+                JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                JoinType = eJoinType.Analog
+            });
+
+        [JoinName("ChannelPermissions")]
+        public JoinDataComplete ChannelPermissions =
+            new JoinDataComplete(new JoinData { JoinNumber = 800, JoinSpan = 200 },
+            new JoinMetadata
+            {
+                Description = "Channel Permissions Feedback",
                 JoinCapabilities = eJoinCapabilities.ToSIMPL,
                 JoinType = eJoinType.Analog
             });
