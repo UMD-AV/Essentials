@@ -549,6 +549,13 @@ namespace DynFusion
 				trilist.SetSigTrueAction(joinMap.GetSchedule.JoinNumber, () => GetRoomSchedule());
 				RegisteredForPush.Feedback.LinkInputSig(trilist.BooleanInput[joinMap.PushNotificationRegistered.JoinNumber]);
 
+                
+                _DynFusion.RoomInformationUpdated += ((s, e) =>
+                {
+                    trilist.StringInput[joinMap.RoomID.JoinNumber].StringValue = _DynFusion.RoomInformation.ID;
+                    trilist.StringInput[joinMap.RoomLocation.JoinNumber].StringValue = _DynFusion.RoomInformation.Location;
+                });
+
                 MeetingInProgressChanged += ((s, e) =>
                 {
                     if(CurrentMeeting!= null)
