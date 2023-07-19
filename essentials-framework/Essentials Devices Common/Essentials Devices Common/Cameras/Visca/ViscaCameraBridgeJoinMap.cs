@@ -366,6 +366,20 @@ namespace ViscaCameraPlugin
 				JoinType = eJoinType.Serial
 			});
 
+        [JoinName("DeviceModel")]
+        public JoinDataComplete DeviceModel = new JoinDataComplete(
+            new JoinData()
+            {
+                JoinNumber = 2,
+                JoinSpan = 1
+            },
+            new JoinMetadata()
+            {
+                Description = "Model",
+                JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                JoinType = eJoinType.Serial
+            });
+
 		[JoinName("PresetName")]
 		public JoinDataComplete PresetNames = new JoinDataComplete(
 			new JoinData()

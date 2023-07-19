@@ -163,12 +163,14 @@ namespace PepperDash.Essentials.DM
                         tx = GetDmTxForChassisWithIpId(key, name, typeName, ipid, dmInput);
                         if (typeName == "hdbasettx" || typeName == "dmtx4k100c1g")
                         {
-                            useChassisForOfflineFeedback = true;
+                            useChassisForOfflineFeedback = false;
+                            Debug.Console(0, "DM endpoint input {0} does not support online feedback on a legacy DM chassis", num);
+                            tx.IsOnline.SetValueFunc(() => true);
                         }                        
                     }
                     if (useChassisForOfflineFeedback)
                     {
-                        Debug.Console(0, "DM endpoint output {0} does not have direct online feedback, changing online feedback to chassis", num);
+                        Debug.Console(0, "DM endpoint input {0} does not have direct online feedback, changing online feedback to chassis", num);
                         tx.IsOnline.SetValueFunc(() => switchDev.InputEndpointOnlineFeedbacks[num].BoolValue);
                         switchDev.InputEndpointOnlineFeedbacks[num].OutputChange += (o, a) => tx.IsOnline.FireUpdate();
                     }
@@ -226,7 +228,7 @@ namespace PepperDash.Essentials.DM
                     }
                     if (useChassisForOfflineFeedback)
                     {
-                        Debug.Console(0, "DM endpoint output {0} does not have direct online feedback, changing online feedback to chassis", num);
+                        Debug.Console(0, "DM endpoint input {0} does not have direct online feedback, changing online feedback to chassis", num);
                         tx.IsOnline.SetValueFunc(() => dmpsDev.InputEndpointOnlineFeedbacks[num].BoolValue);
                         dmpsDev.InputEndpointOnlineFeedbacks[num].OutputChange += (o, a) => tx.IsOnline.FireUpdate();
                     }

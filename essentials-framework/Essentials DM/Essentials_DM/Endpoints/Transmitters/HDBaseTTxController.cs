@@ -38,21 +38,6 @@ namespace PepperDash.Essentials.DM
             InputPorts = new RoutingPortCollection<RoutingInputPort> { HdmiIn };
             OutputPorts = new RoutingPortCollection<RoutingOutputPort> { DmOut };
 
-            var parentDev = DeviceManager.GetDeviceForKey(key);
-            var num = tx.DMInputOutput.Number;
-            if (parentDev is DmpsRoutingController)
-            {
-                var dmps = parentDev as DmpsRoutingController;
-                IsOnline.SetValueFunc(() => dmps.InputEndpointOnlineFeedbacks[num].BoolValue);
-                dmps.InputEndpointOnlineFeedbacks[num].OutputChange += (o, a) => IsOnline.FireUpdate();
-            }
-            else if (parentDev is DmChassisController)
-            {
-                var controller = parentDev as DmChassisController;
-                IsOnline.SetValueFunc(() => controller.InputEndpointOnlineFeedbacks[num].BoolValue);
-                controller.InputEndpointOnlineFeedbacks[num].OutputChange += (o, a) => IsOnline.FireUpdate();
-            }
-
             tx.Register();
         }
 
@@ -122,7 +107,7 @@ namespace PepperDash.Essentials.DM
             });
 
         [JoinName("Name")]
-        public JoinDataComplete Name = new JoinDataComplete(new JoinData { JoinNumber = 6, JoinSpan = 1 },
+        public JoinDataComplete Name = new JoinDataComplete(new JoinData { JoinNumber = 2, JoinSpan = 1 },
             new JoinMetadata { Description = "DM Tx Name", JoinCapabilities = eJoinCapabilities.ToSIMPL, JoinType = eJoinType.Serial });
 	
         /// <summary>
@@ -130,8 +115,17 @@ namespace PepperDash.Essentials.DM
 		/// </summary>
 		/// <param name="joinStart">This will be the join it starts on the EISC bridge</param>
         public HDBaseTTxControllerJoinMap(uint joinStart)
-            : base(joinStart, typeof(HDBaseTTxControllerJoinMap))
+            : this(joinStart, typeof(HDBaseTTxControllerJoinMap))
 		{
 		}
+
+        /// <summary>
+        /// Constructor to use when extending this Join map
+        /// </summary>
+        /// <param name="joinStart">Join this join map will start at</param>
+        /// <param name="type">Type of the child join map</param>
+        protected HDBaseTTxControllerJoinMap(uint joinStart, Type type) : base(joinStart, type)
+        {
+        }
     }
 }

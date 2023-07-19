@@ -129,6 +129,7 @@
     <Compile Include="Cameras\CameraBase.cs" />
     <Compile Include="Cameras\CameraOnvif.cs" />
     <Compile Include="Cameras\Aver\AverCameraDevice.cs" />
+    <Compile Include="Cameras\RemoteCamera.cs" />
     <Compile Include="Cameras\Crestron\CrestronCameraDevice.cs" />
     <Compile Include="Cameras\Crestron\CrestronCameraFactory.cs" />
     <Compile Include="Cameras\IHasCameraPresets.cs" />
@@ -193,6 +194,7 @@
     <Compile Include="Environment\Lutron\LutronQuantumDevice.cs" />
     <Compile Include="Environment\Lutron\LutronGrafikEye.cs" />
     <Compile Include="Environment\nLight\nLight.cs" />
+    <Compile Include="Environment\Overflow\Overflow.cs" />
     <Compile Include="Microphones\ShureMxa.cs" />
     <Compile Include="SetTopBox\ContemporaryResearch.cs" />
     <Compile Include="VideoCodec\ConvertiblePreset.cs" />
