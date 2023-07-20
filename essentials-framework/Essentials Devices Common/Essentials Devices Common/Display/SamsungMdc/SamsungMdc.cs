@@ -1040,9 +1040,6 @@ namespace PepperDash.Essentials.Devices.Displays
                 _incomingBuffer.CopyTo(newBytes, 0);
                 e.Bytes.CopyTo(newBytes, _incomingBuffer.Length);
 
-                // clear buffer
-                //_incomingBuffer = _incomingBuffer.Skip(_incomingBuffer.Length).ToArray();
-
                 if (Debug.Level == 2)
                 {
                     // This check is here to prevent
@@ -1063,8 +1060,7 @@ namespace PepperDash.Essentials.Devices.Displays
                         var message = new byte[newBytes.Length];
                         newBytes.CopyTo(message, 0);
                         CrestronInvoke.BeginInvoke((o) => ParseMessage(message));
-                        byte[] clear = { };
-                        _incomingBuffer = clear;
+                        _incomingBuffer = new byte[] { };
                         return;
                     }
                 }
@@ -1079,13 +1075,12 @@ namespace PepperDash.Essentials.Devices.Displays
                 }
                 else
                 {
-                    byte[] clear = { };
-                    _incomingBuffer = clear;
+                    _incomingBuffer = new byte[] { };
                 }
             }
             catch (Exception ex)
             {
-                Debug.Console(0, this, String.Format("Exception parsing feedback: {0}", ex.Message));
+                Debug.Console(0, this, String.Format("Samsung MDC exception parsing feedback: {0}, {1}", ex.Message, ComTextHelper.GetEscapedText(_incomingBuffer)));
             }
             finally
             {

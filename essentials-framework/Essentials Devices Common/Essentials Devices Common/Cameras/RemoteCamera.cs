@@ -322,14 +322,62 @@ namespace RemoteCameraPlugin
             }
         }
 
+        private void PushCameraOutputData()
+        {
+            for (uint x = 1; x <= 100; x++)
+            {
+                CameraEisc.BooleanInput[x].BoolValue = InternalEisc.BooleanOutput[x + internalJoinOffset].BoolValue;
+                CameraEisc.UShortInput[x].UShortValue = InternalEisc.UShortOutput[x + internalJoinOffset].UShortValue;
+                CameraEisc.StringInput[x].StringValue = InternalEisc.StringOutput[x + internalJoinOffset].StringValue;
+            }
+        }
+
+        private void PushInternalOutputData()
+        {
+            for (uint x = 1; x <= 50; x++)
+            {
+                InternalEisc.BooleanInput[x + internalJoinOffset].BoolValue = CameraEisc.BooleanOutput[x + 50].BoolValue;
+                InternalEisc.UShortInput[x + internalJoinOffset].UShortValue = CameraEisc.UShortOutput[x + 50].UShortValue;
+                InternalEisc.StringInput[x + internalJoinOffset].StringValue = CameraEisc.StringOutput[x + 50].StringValue;
+            }
+        }
+
+        private void ClearCameraOutputData()
+        {
+            for (uint x = 0; x <= 100; x++)
+            {
+                CameraEisc.BooleanInput[x].BoolValue = false;
+            }
+        }
+
+        private void ClearInternalOutputData()
+        {
+            for (uint x = 1; x <= 50; x++)
+            {
+                InternalEisc.BooleanInput[x + internalJoinOffset].BoolValue = false;
+            }
+        }
+
         private void CameraEisc_OnlineStatusChange(GenericBase currentDevice, OnlineOfflineEventArgs args)
         {
             CameraOnline.FireUpdate();
+            if (args.DeviceOnLine)
+            {
+                PushCameraOutputData();
+                PushInternalOutputData();
+            }
+            else { ClearInternalOutputData(); }
         }
 
         private void InternalEisc_OnlineStatusChange(GenericBase currentDevice, OnlineOfflineEventArgs args)
         {
             InternalOnline.FireUpdate();
+            if (args.DeviceOnLine)
+            {
+                PushCameraOutputData();
+                PushInternalOutputData();
+            }
+            else { ClearCameraOutputData(); }
         }
     }
 

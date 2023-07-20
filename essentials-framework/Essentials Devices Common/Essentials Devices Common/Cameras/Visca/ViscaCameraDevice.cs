@@ -34,9 +34,9 @@ namespace ViscaCameraPlugin
         private byte _feedbackAddress = 0x90;
 		private const uint AddressMax = 7;
 
-		private readonly long _pollTimeMs = 30000; // 30s
-		private readonly long _warningTimeoutMs = 60000; // 60s
-		private readonly long _errorTimeoutMs = 180000; // 180s
+		private long _pollTimeMs = 30000; // 30s
+		private long _warningTimeoutMs = 18000; // 180s
+		private long _errorTimeoutMs = 300000; // 300s
 
 
 		private readonly uint _privacyOnPreset;
@@ -56,6 +56,9 @@ namespace ViscaCameraPlugin
 			get { return _power; }
 			set
 			{
+                //Change error timeout to longer if power is off
+                CommunicationMonitor.ErrorTime = value ? _errorTimeoutMs : 900000;
+
 				if (_power == value) return;
 				_power = value;
 				PowerFeedback.FireUpdate();
@@ -807,7 +810,7 @@ namespace ViscaCameraPlugin
             }
             catch (Exception ex)
             {
-                Debug.LogError(Debug.ErrorLogLevel.Warning, String.Format("Exception parsing feedback: {0}", ex.Message));
+                Debug.LogError(Debug.ErrorLogLevel.Warning, String.Format("Visca exception parsing feedback: {0}, {1}", ex.Message, ComTextHelper.GetEscapedText(_incomingBuffer)));
             }
             finally
             {

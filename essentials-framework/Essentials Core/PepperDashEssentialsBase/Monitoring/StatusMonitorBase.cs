@@ -58,8 +58,8 @@ namespace PepperDash.Essentials.Core
 		}
 		string _Message;
 
-		long WarningTime;
-		long ErrorTime;
+		public long WarningTime;
+		public long ErrorTime;
 		CTimer WarningTimer;
 		CTimer ErrorTimer;
 
