@@ -44,7 +44,7 @@ namespace PepperDash.Essentials.DM
             if (typeName.StartsWith("dmtx401"))
                 return new DmTx401CController(key, name, new DmTx401C(dmInput), true);
             if (typeName.StartsWith("hdbasettx"))
-                new HDBaseTTxController(key, name, new HDTx3CB(dmInput));
+                return new HDBaseTTxController(key, name, new HDTx3CB(dmInput));
 
             return null;
         }
@@ -172,7 +172,14 @@ namespace PepperDash.Essentials.DM
                     {
                         Debug.Console(0, "DM endpoint input {0} does not have direct online feedback, changing online feedback to chassis", num);
                         tx.IsOnline.SetValueFunc(() => switchDev.InputEndpointOnlineFeedbacks[num].BoolValue);
-                        switchDev.InputEndpointOnlineFeedbacks[num].OutputChange += (o, a) => tx.IsOnline.FireUpdate();
+                        switchDev.InputEndpointOnlineFeedbacks[num].OutputChange += (o, a) =>
+                        {
+                            foreach (var feedback in tx.Feedbacks)
+                            {
+                                if (feedback != null)
+                                    feedback.FireUpdate();
+                            }
+                        }; 
                     }
                     return tx;
                 }
@@ -229,8 +236,22 @@ namespace PepperDash.Essentials.DM
                     if (useChassisForOfflineFeedback)
                     {
                         Debug.Console(0, "DM endpoint input {0} does not have direct online feedback, changing online feedback to chassis", num);
-                        tx.IsOnline.SetValueFunc(() => dmpsDev.InputEndpointOnlineFeedbacks[num].BoolValue);
-                        dmpsDev.InputEndpointOnlineFeedbacks[num].OutputChange += (o, a) => tx.IsOnline.FireUpdate();
+                        try
+                        {
+                            tx.IsOnline.SetValueFunc(() => dmpsDev.InputEndpointOnlineFeedbacks[num].BoolValue);
+                            dmpsDev.InputEndpointOnlineFeedbacks[num].OutputChange += (o, a) =>
+                            {
+                                foreach (var feedback in tx.Feedbacks)
+                                {
+                                    if (feedback != null)
+                                        feedback.FireUpdate();
+                                }
+                            };
+                        }
+                        catch(Exception ex)
+                        {
+                            Debug.Console(0, "DM endpoint input {0} not able to set online feedback: {1}", num, ex.Message);
+                        }
                     }
                     return tx;
                 }

@@ -989,14 +989,18 @@ namespace PepperDash.Essentials.DM
                 {
                     case (DMInputEventIds.OnlineFeedbackEventId):
                         {
-                            Debug.Console(2, this, "DM Input OnlineFeedbackEventId for input: {0}. State: {1}", args.Number, device.Inputs[args.Number].EndpointOnlineFeedback);
-                            InputEndpointOnlineFeedbacks[args.Number].FireUpdate();
+                            if (InputEndpointOnlineFeedbacks.ContainsKey(args.Number) && InputEndpointOnlineFeedbacks[args.Number] != null)
+                            {
+                                InputEndpointOnlineFeedbacks[args.Number].FireUpdate();
+                            }
                             break;
                         }
                     case (DMInputEventIds.EndpointOnlineEventId):
                         {
-                            Debug.Console(2, this, "DM Input EndpointOnlineEventId for input: {0}. State: {1}", args.Number, device.Inputs[args.Number].EndpointOnlineFeedback);
-                            InputEndpointOnlineFeedbacks[args.Number].FireUpdate();
+                            if (InputEndpointOnlineFeedbacks.ContainsKey(args.Number) && InputEndpointOnlineFeedbacks[args.Number] != null)
+                            {
+                                InputEndpointOnlineFeedbacks[args.Number].FireUpdate();
+                            }
                             break;
                         }
                     case (DMInputEventIds.VideoDetectedEventId):
