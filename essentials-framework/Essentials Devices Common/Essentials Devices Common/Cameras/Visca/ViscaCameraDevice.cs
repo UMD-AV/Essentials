@@ -16,15 +16,18 @@ namespace ViscaCameraPlugin
         private CrestronQueue<ViscaCameraCommand> _commandQueue;
         private CMutex _commandMutex;
         private CTimer _commandTimer;
+        private CMutex _feedbackMutex;
+        private byte[] _incomingBuffer = { };
         private bool _queueWaiting = false;
         private bool _commandReady = true;
+        private bool _lastCommandFailed = false;
 		private readonly bool _commsIsSerial;
 		private readonly bool _useHeader;
 		private uint _counter = 0;
         protected bool _autoTrackingCapable = false;
         private uint _lastCalledPreset = 0;
         private EDirection _moveInProgress = EDirection.Stop;
-        private eViscaCameraInquiry _lastInquiry = eViscaCameraInquiry.NoFeedback;
+        private eViscaCameraCommand _lastInquiry = eViscaCameraCommand.NoFeedback;
 
 		private readonly ViscaCameraConfig _config;
         Dictionary<uint, uint> presetIds;
@@ -241,10 +244,10 @@ namespace ViscaCameraPlugin
 
         public class ViscaCameraCommand
         {
-            public eViscaCameraInquiry Command;
+            public eViscaCameraCommand Command;
             public byte[] Bytes;
 
-            public ViscaCameraCommand(eViscaCameraInquiry command, byte[] bytes)
+            public ViscaCameraCommand(eViscaCameraCommand command, byte[] bytes)
             {
                 Command = command;
                 Bytes = bytes;
@@ -254,7 +257,7 @@ namespace ViscaCameraPlugin
         /// <summary>
         /// For tracking feedback responses from camera
         /// </summary>
-        public enum eViscaCameraInquiry
+        public enum eViscaCameraCommand
         {
             PowerOnCmd,
             PowerOffCmd,
@@ -383,7 +386,8 @@ namespace ViscaCameraPlugin
 
             _commandQueue = new CrestronQueue<ViscaCameraCommand>(10);
             _commandMutex = new CMutex();
-            _commandTimer = new CTimer(readyForNextCommand, Timeout.Infinite);
+            _commandTimer = new CTimer(commandTimeout, Timeout.Infinite);
+            _feedbackMutex = new CMutex();
 
 			var socket = _comms as ISocketStatus;
 			if (socket != null)
@@ -643,9 +647,17 @@ namespace ViscaCameraPlugin
             }
 		}
 
-        private void readyForNextCommand(object o)
+        private void commandTimeout(object o)
+        {
+            _lastCommandFailed = true;
+            _commandReady = true;
+            ProcessQueue();
+        }
+
+        private void readyForNextCommand()
         {
             _commandTimer.Stop(); //No need for timeout on last command
+            _lastCommandFailed = false;
             _commandReady = true;
             ProcessQueue();
         }
@@ -675,7 +687,14 @@ namespace ViscaCameraPlugin
                                 ViscaCameraCommand cmd = _commandQueue.TryToDequeue();
                                 _lastInquiry = cmd.Command;
                                 _commandReady = false;
-                                _commandTimer.Reset(5000);   //Wait maximum 5000 ms for response before sending next command
+                                if (_lastCommandFailed)
+                                {
+                                    _commandTimer.Reset(1000);   //Wait maximum 1000 ms for response before sending next command if last one failed
+                                }
+                                else
+                                {
+                                    _commandTimer.Reset(3000);   //Wait maximum 3000 ms for response before sending next command. If ack is received, will wait up to 3 more seconds
+                                }
                                 CrestronInvoke.BeginInvoke((obj) =>
                                 {
                                     SendBytes(cmd.Bytes);
@@ -702,10 +721,10 @@ namespace ViscaCameraPlugin
 
         public void QueueCommand(byte[] bytes)
         {
-            QueueCommand(eViscaCameraInquiry.NoFeedback, bytes);
+            QueueCommand(eViscaCameraCommand.NoFeedback, bytes);
         }
 
-        public void QueueCommand(eViscaCameraInquiry inquiry, byte[] bytes)
+        public void QueueCommand(eViscaCameraCommand inquiry, byte[] bytes)
         {
             if (!_commandQueue.IsFull)
             {
@@ -716,7 +735,7 @@ namespace ViscaCameraPlugin
             else
             {                
                 Debug.Console(0, this, "Command queue is full! Dropping command.");
-                readyForNextCommand(null);
+                readyForNextCommand();
             }
         }
 
@@ -761,7 +780,46 @@ namespace ViscaCameraPlugin
 
 		private void Handle_BytesRecieved(object sender, GenericCommMethodReceiveBytesArgs e)
 		{
-            CrestronInvoke.BeginInvoke((o) => ParseMessage(e.Bytes));
+            try
+            {
+                _feedbackMutex.WaitForMutex();
+                // Append the incoming bytes to whatever is in the buffer
+                var newBytes = new byte[_incomingBuffer.Length + e.Bytes.Length];
+                _incomingBuffer.CopyTo(newBytes, 0);
+                e.Bytes.CopyTo(newBytes, _incomingBuffer.Length);
+
+                // Look for FF and process when found
+                int start = 0;
+                for (int i = 0; i < newBytes.Length; i++)
+                {
+                    if (newBytes[i] == 0xFF)
+                    {
+                        var message = new byte[i - start + 1];
+                        Array.Copy(newBytes, start, message, 0, i - start + 1);
+                        start = i+1;
+                        CrestronInvoke.BeginInvoke((o) => ParseMessage(message));
+                    }
+                }
+                int extraDataLength = newBytes.Length - start;
+                if (extraDataLength > 0 && extraDataLength < 16)
+                {
+                    // Copy data after last FF to new incoming buffer
+                    _incomingBuffer = new byte[extraDataLength];
+                    Array.Copy(newBytes, start, _incomingBuffer, 0, extraDataLength);
+                }
+                else
+                {
+                    _incomingBuffer = new byte[] { };
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError(Debug.ErrorLogLevel.Warning, String.Format("Visca exception parsing feedback: {0}, {1}", ex.Message, ComTextHelper.GetEscapedText(_incomingBuffer)));
+            }
+            finally
+            {
+                _feedbackMutex.ReleaseMutex();
+            }
         }
 
         private void ParseMessage(byte[] message)
@@ -770,21 +828,22 @@ namespace ViscaCameraPlugin
             if (message.Length > 2 && message[message.Length - 2] == 0x41 && message[message.Length - 3] == _feedbackAddress)
             {
                 Debug.Console(1, this, "Received ack");
+                _commandTimer.Reset(3000);
                 return;
             }
             else if (message.Length > 3 && message[message.Length - 2] == 0x41 && message[message.Length - 3] == 0x61 && message[message.Length - 4] == _feedbackAddress)
             {
-                if(_lastInquiry == eViscaCameraInquiry.AutoTrackOnPresetCmd)
+                if(_lastInquiry == eViscaCameraCommand.AutoTrackOnPresetCmd)
                 {
                     AutoTrackingOn = true;
                 }
-                else if(_lastInquiry == eViscaCameraInquiry.AutoTrackOffPresetCmd)
+                else if(_lastInquiry == eViscaCameraCommand.AutoTrackOffPresetCmd)
                 {
                     AutoTrackingOn = false;
                 }
                 Debug.Console(1, this, "Received command not executable");
-                _lastInquiry = eViscaCameraInquiry.NoFeedback;
-                readyForNextCommand(null);
+                _lastInquiry = eViscaCameraCommand.NoFeedback;
+                readyForNextCommand();
                 return;
             }
             else if (message.Length > 2 && message[message.Length - 2] == 0x51 && message[message.Length - 3] == _feedbackAddress)
@@ -792,14 +851,14 @@ namespace ViscaCameraPlugin
                 Debug.Console(1, this, "Received execution confirmation, last inquiry: {0}", _lastInquiry.ToString());
                 switch (_lastInquiry)
                 {
-                    case eViscaCameraInquiry.PresetSave:
+                    case eViscaCameraCommand.PresetSave:
                         ActivePreset = _lastCalledPreset;
                         if (PresetSaved != null)
                         {
                             PresetSaved(this, null);
                         }                            
                         break;
-                    case eViscaCameraInquiry.PowerOnCmd:
+                    case eViscaCameraCommand.PowerOnCmd:
                         Power = true;
                         CrestronInvoke.BeginInvoke((o) =>
                         {
@@ -807,7 +866,7 @@ namespace ViscaCameraPlugin
                             PollPower();
                         });
                         break;
-                    case eViscaCameraInquiry.PowerOffCmd:
+                    case eViscaCameraCommand.PowerOffCmd:
                         Power = false;
                         CrestronInvoke.BeginInvoke((o) =>
                         {
@@ -815,40 +874,40 @@ namespace ViscaCameraPlugin
                             PollPower();
                         });
                         break;
-                    case eViscaCameraInquiry.AutoTrackOnPresetCmd:
+                    case eViscaCameraCommand.AutoTrackOnPresetCmd:
                         AutoTrackingOn = true;
                         break;
-                    case eViscaCameraInquiry.AutoTrackOffPresetCmd:
+                    case eViscaCameraCommand.AutoTrackOffPresetCmd:
                         AutoTrackingOn = false;
                         break;
-                    case eViscaCameraInquiry.AutoTrackOnCmd:
+                    case eViscaCameraCommand.AutoTrackOnCmd:
                         CrestronInvoke.BeginInvoke((o) =>
                         {
                             CrestronEnvironment.Sleep(2000);
                             PollAutoTrack();
                         });
                         break;
-                    case eViscaCameraInquiry.AutoTrackOffCmd:
+                    case eViscaCameraCommand.AutoTrackOffCmd:
                         CrestronInvoke.BeginInvoke((o) =>
                         {
                             CrestronEnvironment.Sleep(2000);
                             PollAutoTrack();
                         });
                         break;
-                    case eViscaCameraInquiry.PresetRecallCmd:
+                    case eViscaCameraCommand.PresetRecallCmd:
                         ActivePreset = _lastCalledPreset;
                         break;
                 }
 
-                _lastInquiry = eViscaCameraInquiry.NoFeedback;
-                readyForNextCommand(null);
+                _lastInquiry = eViscaCameraCommand.NoFeedback;
+                readyForNextCommand();
                 return;
             }
-            else if (_lastInquiry != eViscaCameraInquiry.NoFeedback && message.Length > 3)
+            else if (_lastInquiry != eViscaCameraCommand.NoFeedback && message.Length > 3)
             {
                 switch (_lastInquiry)
                 {
-                    case eViscaCameraInquiry.PowerInquiry:
+                    case eViscaCameraCommand.PowerInquiry:
                         if (message[message.Length - 3] == 0x50)
                         {
                             if (message[message.Length - 2] == 0x02)
@@ -859,14 +918,14 @@ namespace ViscaCameraPlugin
                             {
                                 Power = false;
                             }
-                            _lastInquiry = eViscaCameraInquiry.NoFeedback;
-                            readyForNextCommand(null);
+                            _lastInquiry = eViscaCameraCommand.NoFeedback;
+                            readyForNextCommand();
                         }
                         break;
-                    case eViscaCameraInquiry.AutoTrackInquiry:
+                    case eViscaCameraCommand.AutoTrackInquiry:
                         ParseAutoTrackFeedback(message);
                         break;
-                    case eViscaCameraInquiry.FocusInquiry:
+                    case eViscaCameraCommand.FocusInquiry:
                         if (message[message.Length - 3] == 0x50)
                         {
                             if (message[message.Length - 2] == 0x02)
@@ -877,11 +936,11 @@ namespace ViscaCameraPlugin
                             {
                                 AutoFocus = false;
                             }
-                            _lastInquiry = eViscaCameraInquiry.NoFeedback;
-                            readyForNextCommand(null);
+                            _lastInquiry = eViscaCameraCommand.NoFeedback;
+                            readyForNextCommand();
                         }
                         break;
-                    case eViscaCameraInquiry.PresetInquiry:
+                    case eViscaCameraCommand.PresetInquiry:
                         try
                         {
                             var preset = Convert.ToUInt16(message[message.Length - 2]);
@@ -901,8 +960,8 @@ namespace ViscaCameraPlugin
                         {
                             Debug.Console(0, this, "Exception parsing preset feedback");
                         }
-                        _lastInquiry = eViscaCameraInquiry.NoFeedback;
-                        readyForNextCommand(null);
+                        _lastInquiry = eViscaCameraCommand.NoFeedback;
+                        readyForNextCommand();
                         break;
                     default:
                         ParseAdditionalFeedback(message);
@@ -918,9 +977,9 @@ namespace ViscaCameraPlugin
 
         protected virtual void ParseAdditionalFeedback(byte[] message)
         {
-            _lastInquiry = eViscaCameraInquiry.NoFeedback;
+            _lastInquiry = eViscaCameraCommand.NoFeedback;
             Debug.Console(0, this, "Received unknown feedback: {0}", ComTextHelper.GetEscapedText(message));
-            readyForNextCommand(null);
+            readyForNextCommand();
         }
 
         protected virtual void ParseAutoTrackFeedback(byte[] message)
@@ -935,8 +994,8 @@ namespace ViscaCameraPlugin
                 {
                     AutoTrackingOn = false;
                 }
-                _lastInquiry = eViscaCameraInquiry.NoFeedback;
-                readyForNextCommand(null);
+                _lastInquiry = eViscaCameraCommand.NoFeedback;
+                readyForNextCommand();
             }
         }
 
@@ -985,19 +1044,19 @@ namespace ViscaCameraPlugin
         public void PollPower()
         {
             var cmd = new byte[] { _address, 0x09, 0x04, 0x00, 0xFF };
-            QueueCommand(eViscaCameraInquiry.PowerInquiry, cmd);
+            QueueCommand(eViscaCameraCommand.PowerInquiry, cmd);
         }
 
         public virtual void PollAutoTrack()
         {
             var cmd = new byte[] { _address, 0x09, 0x36, 0x69, 0x02, 0xFF };
-            QueueCommand(eViscaCameraInquiry.AutoTrackInquiry, cmd);
+            QueueCommand(eViscaCameraCommand.AutoTrackInquiry, cmd);
         }
 
         public void PollFocus()
         {
             var cmd = new byte[] { _address, 0x09, 0x04, 0x38, 0xFF };
-            QueueCommand(eViscaCameraInquiry.FocusInquiry, cmd);
+            QueueCommand(eViscaCameraCommand.FocusInquiry, cmd);
         }
 
         /// <summary>
@@ -1005,7 +1064,7 @@ namespace ViscaCameraPlugin
         /// </summary>
         public void SetPowerOn()
         {
-            QueueCommand(eViscaCameraInquiry.PowerOnCmd, new byte[] { _address, 0x01, 0x04, 0x00, 0x02, 0xFF });
+            QueueCommand(eViscaCameraCommand.PowerOnCmd, new byte[] { _address, 0x01, 0x04, 0x00, 0x02, 0xFF });
         }
 
         /// <summary>
@@ -1013,7 +1072,7 @@ namespace ViscaCameraPlugin
         /// </summary>
         public void SetPowerOff()
         {
-            QueueCommand(eViscaCameraInquiry.PowerOffCmd, new byte[] { _address, 0x01, 0x04, 0x00, 0x03, 0xFF });
+            QueueCommand(eViscaCameraCommand.PowerOffCmd, new byte[] { _address, 0x01, 0x04, 0x00, 0x03, 0xFF });
             ActivePreset = 0;
         }
 
@@ -1025,7 +1084,7 @@ namespace ViscaCameraPlugin
             if (this._autoTrackingCapable)
             {
                 var cmd = new byte[] { _address, 0x01, 0x04, 0x7D, 0x02, 0xFF };
-                QueueCommand(eViscaCameraInquiry.AutoTrackOnCmd, cmd);            
+                QueueCommand(eViscaCameraCommand.AutoTrackOnCmd, cmd);            
             }
         }
 
@@ -1037,7 +1096,7 @@ namespace ViscaCameraPlugin
             if (this._autoTrackingCapable)
             {
                 var cmd = new byte[] { _address, 0x01, 0x04, 0x7D, 0x03, 0xFF };
-                QueueCommand(eViscaCameraInquiry.AutoTrackOffCmd, cmd);
+                QueueCommand(eViscaCameraCommand.AutoTrackOffCmd, cmd);
             }
         }
 
@@ -1215,7 +1274,7 @@ namespace ViscaCameraPlugin
             if (!OverrideAutoTacking())
                 return;
             _lastCalledPreset = 0;
-            QueueCommand(eViscaCameraInquiry.PresetRecallCmd, new byte[] { _address, 0x01, 0x06, 0x04, 0xFF });
+            QueueCommand(eViscaCameraCommand.PresetRecallCmd, new byte[] { _address, 0x01, 0x06, 0x04, 0xFF });
         }
 
 		/// <summary>
@@ -1232,7 +1291,7 @@ namespace ViscaCameraPlugin
 
             _lastCalledPreset = preset;
 			var cmd = new byte[] { _address, 0x01, 0x04, 0x3F, 0x02, Convert.ToByte(preset), 0xFF };
-            QueueCommand(eViscaCameraInquiry.PresetRecallCmd, cmd);
+            QueueCommand(eViscaCameraCommand.PresetRecallCmd, cmd);
 		}
 
 		/// <summary>
@@ -1246,7 +1305,7 @@ namespace ViscaCameraPlugin
 
             _lastCalledPreset = preset;
 			var cmd = new byte[] { _address, 0x01, 0x04, 0x3F, 0x01, Convert.ToByte(preset), 0xFF };
-            QueueCommand(eViscaCameraInquiry.PresetSave, cmd);
+            QueueCommand(eViscaCameraCommand.PresetSave, cmd);
 		}
 	}
 }

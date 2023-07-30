@@ -27,7 +27,7 @@ namespace CrestronCameraPlugin
             {
                 //Send preset 200 (C8) to set auto track heartbeat on
                 var cmd = new byte[] { _address, 0x01, 0x04, 0x3F, 0x02, 0xC8, 0xFF };
-                QueueCommand(eViscaCameraInquiry.AutoTrackInquiry, cmd);
+                QueueCommand(eViscaCameraCommand.AutoTrackInquiry, cmd);
             }
         }
 
@@ -39,7 +39,7 @@ namespace CrestronCameraPlugin
             if (this._autoTrackingCapable)
             {
                 var cmd = new byte[] { _address, 0x01, 0x04, 0x3F, 0x02, 0x50, 0xFF };
-                QueueCommand(eViscaCameraInquiry.AutoTrackOnPresetCmd, cmd);
+                QueueCommand(eViscaCameraCommand.AutoTrackOnPresetCmd, cmd);
             }
         }
 
@@ -51,7 +51,7 @@ namespace CrestronCameraPlugin
             if (this._autoTrackingCapable)
             {
                 var cmd = new byte[] { _address, 0x01, 0x04, 0x3F, 0x02, 0x51, 0xFF };
-                QueueCommand(eViscaCameraInquiry.AutoTrackOffPresetCmd, cmd);
+                QueueCommand(eViscaCameraCommand.AutoTrackOffPresetCmd, cmd);
             }
 
         }
