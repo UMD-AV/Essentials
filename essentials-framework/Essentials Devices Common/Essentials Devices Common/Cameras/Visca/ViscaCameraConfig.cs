@@ -31,10 +31,10 @@ namespace ViscaCameraPlugin
 		public uint FocusSpeed { get; set; }
 
 		[JsonProperty("privacyOnPreset")]
-		public uint PrivacyOnPreset { get; set; }
+		public uint? PrivacyOnPreset { get; set; }
 
 		[JsonProperty("privacyOffPreset")]
-		public uint PrivacyOffPreset { get; set; }
+		public uint? PrivacyOffPreset { get; set; }
 
 		[JsonProperty("pollTimeMs")]
 		public long PollTimeMs { get; set; }
@@ -62,5 +62,8 @@ namespace ViscaCameraPlugin
 
 		[JsonProperty("name")]
 		public string Name { get; set; }
+
+        [JsonProperty("viscaId")]
+        public uint? ViscaId { get; set; }
 	}
 }

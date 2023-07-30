@@ -16,8 +16,6 @@ namespace ViscaCameraPlugin
         private CrestronQueue<ViscaCameraCommand> _commandQueue;
         private CMutex _commandMutex;
         private CTimer _commandTimer;
-        private CMutex _feedbackMutex;
-        private byte[] _incomingBuffer = { };
         private bool _queueWaiting = false;
         private bool _commandReady = true;
 		private readonly bool _commsIsSerial;
@@ -29,6 +27,7 @@ namespace ViscaCameraPlugin
         private eViscaCameraInquiry _lastInquiry = eViscaCameraInquiry.NoFeedback;
 
 		private readonly ViscaCameraConfig _config;
+        Dictionary<uint, uint> presetIds;
 
 		protected byte _address = 0x81;
         private byte _feedbackAddress = 0x90;
@@ -39,8 +38,8 @@ namespace ViscaCameraPlugin
 		private long _errorTimeoutMs = 300000; // 300s
 
 
-		private readonly uint _privacyOnPreset;
-		private readonly uint _privacyOffPreset;
+		private uint? _privacyOnPreset;
+		private uint? _privacyOffPreset;
 
 
 		private bool _power;
@@ -368,11 +367,11 @@ namespace ViscaCameraPlugin
 			if (_config.FocusSpeed > 0 && _config.FocusSpeed <= FocusSpeedMax)
 				FocusSpeed = _config.FocusSpeed;
 
-			if (_config.PrivacyOnPreset > 0 && _config.PrivacyOnPreset <= PresetMax)
+			if (_config.PrivacyOnPreset != null && _config.PrivacyOnPreset <= PresetMax)
 				_privacyOnPreset = _config.PrivacyOnPreset;
 
-			if (_config.PrivacyOffPreset > 0 && _config.PrivacyOffPreset <= PresetMax)
-				_privacyOffPreset = config.PrivacyOffPreset;
+			if (_config.PrivacyOffPreset != null && _config.PrivacyOffPreset <= PresetMax)
+                _privacyOffPreset = config.PrivacyOffPreset;
 
 			if (_config.Control.Method.ToString().ToLower() == "udp")
 				_useHeader = true;
@@ -385,7 +384,6 @@ namespace ViscaCameraPlugin
             _commandQueue = new CrestronQueue<ViscaCameraCommand>(10);
             _commandMutex = new CMutex();
             _commandTimer = new CTimer(readyForNextCommand, Timeout.Infinite);
-            _feedbackMutex = new CMutex();
 
 			var socket = _comms as ISocketStatus;
 			if (socket != null)
@@ -430,26 +428,18 @@ namespace ViscaCameraPlugin
 			}
 			Debug.Console(0, this, "Intializing presets");
 
+            presetIds = new Dictionary<uint, uint>();
+            PresetNameFeedbacks = new Dictionary<uint, StringFeedback>();
+            PresetActiveFeedbacks = new Dictionary<uint, BoolFeedback>();
 			foreach (var preset in presets)
 			{
-                var index = preset;
-                Debug.Console(0, this, "Preset {0} Name: {1}", index.Index, index.Name);
+                var p = preset;
+                Debug.Console(0, this, "Preset {0} Name: {1}", p.Index, p.Name);
+                uint viscaId = p.ViscaId != null ? (uint)p.ViscaId : p.Index;
 
-				if (PresetNameFeedbacks == null)
-					PresetNameFeedbacks = new Dictionary<uint, StringFeedback>();
-
-                if (PresetActiveFeedbacks == null)
-                    PresetActiveFeedbacks = new Dictionary<uint, BoolFeedback>();
-
-                if (PresetNameFeedbacks.ContainsKey(index.Index))
-                    PresetNameFeedbacks[index.Index] = new StringFeedback(() => index.Name);
-				else
-                    PresetNameFeedbacks.Add(index.Index, new StringFeedback(() => index.Name));
-
-                if (PresetActiveFeedbacks.ContainsKey(index.Index))
-                    PresetActiveFeedbacks[index.Index] = new BoolFeedback(() => index.Index == ActivePreset);
-                else
-                    PresetActiveFeedbacks.Add(index.Index, new BoolFeedback(() => index.Index == ActivePreset));
+                presetIds.Add(p.Index, viscaId);                
+                PresetNameFeedbacks.Add(p.Index, new StringFeedback(() => p.Name));
+                PresetActiveFeedbacks.Add(p.Index, new BoolFeedback(() => viscaId == ActivePreset));
 			}
 		}
 
@@ -531,20 +521,16 @@ namespace ViscaCameraPlugin
 			// privacy
 			trilist.SetBoolSigAction(joinMap.PrivacyOn.JoinNumber, sig =>
             {
-                if (_privacyOnPreset != 0)
+                if (_privacyOnPreset != null)
                 {
-                    RecallPresetByNumber(_privacyOnPreset);
+                    RecallPresetByNumber((uint)_privacyOnPreset);
                 }
             });
 			trilist.SetBoolSigAction(joinMap.PrivacyOff.JoinNumber, sig =>
             {
-                if (_privacyOffPreset != 0)
+                if (_privacyOffPreset != null)
                 {
-                    RecallPresetByNumber(_privacyOffPreset);
-                }
-                else
-                {
-                    RecallHomePosition();
+                    RecallPresetByNumber((uint)_privacyOffPreset);
                 }
             });
             PrivacyOnFeedback.LinkInputSig(trilist.BooleanInput[joinMap.PrivacyOn.JoinNumber]);
@@ -588,16 +574,22 @@ namespace ViscaCameraPlugin
 				var recallJoin = preset + joinMap.PresetRecall.JoinNumber - 1;
                 trilist.SetSigTrueAction(recallJoin, () =>
                 {
-                    RecallPresetByNumber(preset);
-                    Debug.Console(1, this, "LinkToApi PresetRecall[{0}]: RecallPreset({1})", recallJoin, preset);
+                    if (presetIds.ContainsKey(preset))
+                    {
+                        RecallPresetByNumber(presetIds[preset]);
+                        Debug.Console(1, this, "LinkToApi PresetRecall[{0}]: RecallPreset({1})", recallJoin, preset);
+                    }
                 });
 
 				// preset save/store
 				var saveJoin = preset + joinMap.PresetSave.JoinNumber - 1;
 				trilist.SetSigTrueAction(saveJoin, () =>
 				{
-					SavePresetByNumber(preset);
-					Debug.Console(1, this, "LinkToApi PresetSave[{0}]: SavePreset({1})", saveJoin, preset);
+                    if (presetIds.ContainsKey(presetIds[preset]))
+                    {
+                        SavePresetByNumber(preset);
+                        Debug.Console(1, this, "LinkToApi PresetSave[{0}]: SavePreset({1})", saveJoin, preset);
+                    }
 				});
 			}
 
@@ -769,53 +761,7 @@ namespace ViscaCameraPlugin
 
 		private void Handle_BytesRecieved(object sender, GenericCommMethodReceiveBytesArgs e)
 		{
-            try
-            {
-                _feedbackMutex.WaitForMutex();
-                // Append the incoming bytes with whatever is in the buffer
-                var newBytes = new byte[_incomingBuffer.Length + e.Bytes.Length];
-                _incomingBuffer.CopyTo(newBytes, 0);
-                e.Bytes.CopyTo(newBytes, _incomingBuffer.Length);
-
-                // Get data length
-                for (int i = 0; i < newBytes.Length; i++)
-                {
-                    if (newBytes[i] == 0xFF)
-                    {
-                        int extraDataLength = newBytes.Length - (i + 1);
-                        var message = new byte[i + 1];
-                        Array.Copy(newBytes, 0, message, 0, i + 1);
-                        if (extraDataLength > 0)
-                        {
-                            // Copy data after FF to new incoming buffer
-                            _incomingBuffer = new byte[extraDataLength];
-                            Array.Copy(newBytes, i + 1, _incomingBuffer, 0, extraDataLength);
-                        }
-                        else
-                        {
-                            _incomingBuffer = new byte[] { };
-                        }
-                        CrestronInvoke.BeginInvoke((o) => ParseMessage(message));
-                        return;
-                    }
-                }
-                if (newBytes.Length <= 16)
-                {
-                    _incomingBuffer = newBytes;
-                }
-                else
-                {
-                    _incomingBuffer = new byte[] { };
-                }
-            }
-            catch (Exception ex)
-            {
-                Debug.LogError(Debug.ErrorLogLevel.Warning, String.Format("Visca exception parsing feedback: {0}, {1}", ex.Message, ComTextHelper.GetEscapedText(_incomingBuffer)));
-            }
-            finally
-            {
-                _feedbackMutex.ReleaseMutex();
-            }
+            CrestronInvoke.BeginInvoke((o) => ParseMessage(e.Bytes));
         }
 
         private void ParseMessage(byte[] message)
@@ -938,7 +884,7 @@ namespace ViscaCameraPlugin
                     case eViscaCameraInquiry.PresetInquiry:
                         try
                         {
-                            var preset = Convert.ToUInt16(message[message.Length - 2]) + 1;
+                            var preset = Convert.ToUInt16(message[message.Length - 2]);
                             Debug.Console(1, this, "Found preset feedback {0}", preset);
                             if (preset == _config.PrivacyOnPreset)
                             {
@@ -1285,7 +1231,7 @@ namespace ViscaCameraPlugin
                 return;
 
             _lastCalledPreset = preset;
-			var cmd = new byte[] { _address, 0x01, 0x04, 0x3F, 0x02, Convert.ToByte(preset-1), 0xFF };
+			var cmd = new byte[] { _address, 0x01, 0x04, 0x3F, 0x02, Convert.ToByte(preset), 0xFF };
             QueueCommand(eViscaCameraInquiry.PresetRecallCmd, cmd);
 		}
 
@@ -1299,7 +1245,7 @@ namespace ViscaCameraPlugin
 				return;
 
             _lastCalledPreset = preset;
-			var cmd = new byte[] { _address, 0x01, 0x04, 0x3F, 0x01, Convert.ToByte(preset-1), 0xFF };
+			var cmd = new byte[] { _address, 0x01, 0x04, 0x3F, 0x01, Convert.ToByte(preset), 0xFF };
             QueueCommand(eViscaCameraInquiry.PresetSave, cmd);
 		}
 	}
