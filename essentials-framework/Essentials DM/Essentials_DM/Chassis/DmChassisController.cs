@@ -1286,7 +1286,7 @@ namespace PepperDash.Essentials.DM
                         }
                         else
                         {
-                            Chassis.Inputs[i].Name.StringValue = "\0";
+                            Chassis.Inputs[i].Name.StringValue = "-";
                         }
                     }
                 }
@@ -1300,7 +1300,7 @@ namespace PepperDash.Essentials.DM
                         }
                         else
                         {
-                            Chassis.Outputs[i].Name.StringValue = "\0";
+                            Chassis.Outputs[i].Name.StringValue = "-";
                         }
                     }  
                 }
