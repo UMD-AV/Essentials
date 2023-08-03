@@ -189,6 +189,11 @@ namespace PepperDash.Essentials.DM
 
             SetupInputCards();
 
+            // Subscribe to events
+            Dmps.DMInputChange += Dmps_DMInputChange;
+            Dmps.DMOutputChange += Dmps_DMOutputChange;
+            Dmps.DMSystemChange += Dmps_DMSystemChange;
+
             Microphones = new DmpsMicrophoneController(Dmps);
         }
 
@@ -199,11 +204,6 @@ namespace PepperDash.Essentials.DM
 
             SetOutputNames();
 
-            // Subscribe to events
-            Dmps.DMInputChange += Dmps_DMInputChange;
-            Dmps.DMOutputChange += Dmps_DMOutputChange;
-            Dmps.DMSystemChange += Dmps_DMSystemChange;
-            
             foreach (var x in VideoOutputFeedbacks)
             {
                 x.Value.FireUpdate();
@@ -623,7 +623,6 @@ namespace PepperDash.Essentials.DM
                     });
 
                     OutputEndpointOnlineFeedbacks[outputCard.Number] = new BoolFeedback(() => outputCard.EndpointOnlineFeedback);
-
                     AddOutputCard(outputCard.Number, outputCard);
                 }
                 catch (Exception ex)

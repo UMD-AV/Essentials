@@ -156,7 +156,16 @@ namespace PepperDash.Essentials.DM
                         chassis is DmMd128x128 || chassis is DmMd64x64)
                     {
                         tx = GetDmTxForChassisWithoutIpId(key, name, typeName, dmInput);
-                        useChassisForOfflineFeedback = true;
+                        if (typeName == "hdbasettx")
+                        {
+                            useChassisForOfflineFeedback = false;
+                            Debug.Console(0, "DM endpoint input {0} does not support online feedback on a DM chassis", num);
+                            tx.IsOnline.SetValueFunc(() => true);
+                        }
+                        else
+                        {
+                            useChassisForOfflineFeedback = true;
+                        }
                     }
                     else
                     {

@@ -60,8 +60,11 @@ namespace ViscaCameraPlugin
 			{
                 //Change error timeout to longer if power is off
                 CommunicationMonitor.ErrorTime = value ? _errorTimeoutMs : 900000;
-
 				if (_power == value) return;
+                if (Power == false)
+                {
+                    ActivePreset = 0;
+                }
 				_power = value;
 				PowerFeedback.FireUpdate();
 			}
@@ -401,7 +404,6 @@ namespace ViscaCameraPlugin
 			{
 				// device is configured for RS232 control
 				_commsIsSerial = true;
-				InitializeCamera();
 			}
 
 			InitializePresets(_config.Presets);
@@ -418,6 +420,11 @@ namespace ViscaCameraPlugin
 			_comms.Connect();
 			// Essentials will handle starting the comms monitor
             CommunicationMonitor.Start();
+
+            if (_commsIsSerial)
+            {
+                InitializeCamera();
+            }
 
 			return base.CustomActivate();
 		}
@@ -645,6 +652,10 @@ namespace ViscaCameraPlugin
             {
                 _commandQueue.Clear();
             }
+            else
+            {
+                InitializeCamera();
+            }
 		}
 
         private void commandTimeout(object o)
@@ -693,7 +704,7 @@ namespace ViscaCameraPlugin
                                 }
                                 else
                                 {
-                                    _commandTimer.Reset(3000);   //Wait maximum 3000 ms for response before sending next command. If ack is received, will wait up to 3 more seconds
+                                    _commandTimer.Reset(3000);   //Wait maximum 3000 ms for response before sending next command. If ack is received, will wait up to 6 more seconds
                                 }
                                 CrestronInvoke.BeginInvoke((obj) =>
                                 {
@@ -828,12 +839,16 @@ namespace ViscaCameraPlugin
             if (message.Length > 2 && message[message.Length - 2] == 0x41 && message[message.Length - 3] == _feedbackAddress)
             {
                 Debug.Console(1, this, "Received ack");
-                _commandTimer.Reset(3000);
+                _commandTimer.Reset(6000);
                 return;
             }
             else if (message.Length > 3 && message[message.Length - 2] == 0x41 && message[message.Length - 3] == 0x61 && message[message.Length - 4] == _feedbackAddress)
             {
-                if(_lastInquiry == eViscaCameraCommand.AutoTrackOnPresetCmd)
+                if(_lastInquiry == eViscaCameraCommand.PowerInquiry)
+                {
+                    InitializeCamera();
+                }
+                else if(_lastInquiry == eViscaCameraCommand.AutoTrackOnPresetCmd)
                 {
                     AutoTrackingOn = true;
                 }
@@ -1022,18 +1037,10 @@ namespace ViscaCameraPlugin
             {
                 // power inquiry
                 PollPower();
-
-                if (!Power)
-                {
-                    ActivePreset = 0;
-                    return;
-                }
-
-                if (_autoTrackingCapable)
+                if (_autoTrackingCapable && Power)
                 {
                     PollAutoTrack();
                 }
-                PollFocus();
             }
             catch (Exception e)
             {

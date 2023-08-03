@@ -392,8 +392,19 @@ namespace PepperDash.Essentials.DM
                 // Must use different constructor for DMPS4K types. No IPID
                 if (Global.ControlSystemIsDmps4kType)
                 {
-                    rx = GetDmRmcControllerForDmps4k(key, name, typeName, dmps, props.ParentOutputNumber);
-                    useChassisForOfflineFeedback = true;                   
+                    //hdbasetrx onlnie feedback appears broken on DMPS-4K-150, it will work only if hdbaset endpoint is rebooted AFTER dmps boots
+                    if ((typeName == "hdbasetrx" || typeName == "dmrmc4k100c1g") && !Global.ControlSystemIsDmps4k3xxType)
+                    {
+                        rx = GetDmRmcControllerForDmps4k(key, name, typeName, dmps, props.ParentOutputNumber);
+                        useChassisForOfflineFeedback = false;
+                        Debug.Console(0, "DM endpoint output {0} does not support online feedback on a DMPS3-4K-150", num);
+                        rx.IsOnline.SetValueFunc(() => true);
+                    }
+                    else
+                    {
+                        rx = GetDmRmcControllerForDmps4k(key, name, typeName, dmps, props.ParentOutputNumber);
+                        useChassisForOfflineFeedback = true;
+                    }
                 }
                 else 
                 {
