@@ -279,7 +279,8 @@ namespace PepperDash.Essentials.Devices.Common.ShureSbc
                                     Batteries[index].BatteryErrorText = "Communication Failure";
                                     break;
                                 case 255:
-                                    Batteries[index].BatteryErrorText = "No Battery Present";
+                                    //Supposed to be "No battery present" but appears to always send 255 on firmware 1.4.7.0 even with battery present
+                                    Batteries[index].BatteryErrorText = "No Active Error";
                                     break;
                                 default:
                                     Batteries[index].BatteryErrorText = "Unknown Error";
@@ -295,8 +296,10 @@ namespace PepperDash.Essentials.Devices.Common.ShureSbc
                 case "BATT_STATE":
                     {
                         var index = Convert.ToInt16(indexString) - 1;
-                        if(index < 8)
+                        if (index < 8)
+                        {
                             Batteries[index].BatteryState = state;
+                        }
                         break;
                     }
                 // Model Number
@@ -391,6 +394,8 @@ namespace PepperDash.Essentials.Devices.Common.ShureSbc
             // links to bridge
             trilist.SetString(joinMap.DeviceName.JoinNumber, Name);
 
+            trilist.SetSigTrueAction(joinMap.RefreshData.JoinNumber, UpdateStatus);
+
             // _commsMonitor.IsOnlineFeedback is used to drive IsOnlineFb on the bridge
             _commsMonitor.IsOnlineFeedback.LinkInputSig(trilist.BooleanInput[joinMap.IsOnline.JoinNumber]);
             SocketStatusFeedback.LinkInputSig(trilist.UShortInput[joinMap.SocketStatus.JoinNumber]);
@@ -401,6 +406,7 @@ namespace PepperDash.Essentials.Devices.Common.ShureSbc
             {
                 ushort index = i;
                 Batteries[index].BatteryEnabledFeedback.LinkInputSig(trilist.BooleanInput[joinMap.BatteryEnabled.JoinNumber + index]);
+                Batteries[index].BatteryPresentFeedback.LinkInputSig(trilist.BooleanInput[joinMap.BatteryPresent.JoinNumber + index]);
                 Batteries[index].PercentChargeFeedback.LinkInputSig(trilist.UShortInput[joinMap.PercentCharge.JoinNumber + index]);
                 Batteries[index].PercentHealthFeedback.LinkInputSig(trilist.UShortInput[joinMap.PercentHealth.JoinNumber + index]);
                 Batteries[index].TemperatureFFeedback.LinkInputSig(trilist.UShortInput[joinMap.TemperatureF.JoinNumber + index]);
@@ -434,6 +440,7 @@ namespace PepperDash.Essentials.Devices.Common.ShureSbc
             for (ushort i = 0; i < 8; i++)
             {
                 Batteries[i].BatteryEnabledFeedback.FireUpdate();
+                Batteries[i].BatteryPresentFeedback.FireUpdate();
                 Batteries[i].PercentChargeFeedback.FireUpdate();
                 Batteries[i].PercentHealthFeedback.FireUpdate();
                 Batteries[i].TemperatureFFeedback.FireUpdate();
@@ -472,6 +479,23 @@ namespace PepperDash.Essentials.Devices.Common.ShureSbc
         /// Battery enabled feedback
         /// </summary>
         public BoolFeedback BatteryEnabledFeedback { get; private set; }
+        #endregion
+
+        #region Battery Present
+        private bool _batteryPresent;
+        public bool BatteryPresent
+        {
+            get { return _batteryPresent; }
+            set
+            {
+                _batteryPresent = value;
+                BatteryPresentFeedback.FireUpdate();
+            }
+        }
+        /// <summary>
+        /// Battery present feedback
+        /// </summary>
+        public BoolFeedback BatteryPresentFeedback { get; private set; }
         #endregion
 
         #region Percent Charge (BATT_CHARGE)
@@ -567,6 +591,7 @@ namespace PepperDash.Essentials.Devices.Common.ShureSbc
             set
             {
                 _batteryState = value;
+                BatteryPresent = (value.Length > 0 && value != "NO_BATT");
                 BatteryStateFeedback.FireUpdate();
             }
         }
@@ -579,6 +604,7 @@ namespace PepperDash.Essentials.Devices.Common.ShureSbc
         public ShureSbcBattery()
         {
             BatteryEnabledFeedback = new BoolFeedback(() => BatteryEnabled);
+            BatteryPresentFeedback = new BoolFeedback(() => BatteryPresent);
             PercentChargeFeedback = new IntFeedback(() => PercentCharge);
             PercentHealthFeedback = new IntFeedback(() => PercentHealth);
             TemperatureFFeedback = new IntFeedback(() => TemperatureF);
@@ -610,6 +636,23 @@ namespace PepperDash.Essentials.Devices.Common.ShureSbc
             });
 
         /// <summary>
+        /// Refresh all data
+        /// </summary>
+        [JoinName("RefreshData")]
+        public JoinDataComplete RefreshData = new JoinDataComplete(
+            new JoinData
+            {
+                JoinNumber = 2,
+                JoinSpan = 1
+            },
+            new JoinMetadata
+            {
+                Description = "Refresh all battery data",
+                JoinCapabilities = eJoinCapabilities.FromSIMPL,
+                JoinType = eJoinType.Digital
+            });
+
+        /// <summary>
         /// Get enabled feedback for a battery
         /// </summary>
         [JoinName("BatteryEnabled")]
@@ -621,7 +664,24 @@ namespace PepperDash.Essentials.Devices.Common.ShureSbc
             },
             new JoinMetadata
             {
-                Description = "Enabled feedback a battery",
+                Description = "Enabled feedback for a battery",
+                JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                JoinType = eJoinType.Digital
+            });
+
+        /// <summary>
+        /// Get present feedback for a battery
+        /// </summary>
+        [JoinName("BatteryPresent")]
+        public JoinDataComplete BatteryPresent = new JoinDataComplete(
+            new JoinData
+            {
+                JoinNumber = 21,
+                JoinSpan = 8
+            },
+            new JoinMetadata
+            {
+                Description = "Present feedback for a battery",
                 JoinCapabilities = eJoinCapabilities.ToSIMPL,
                 JoinType = eJoinType.Digital
             });

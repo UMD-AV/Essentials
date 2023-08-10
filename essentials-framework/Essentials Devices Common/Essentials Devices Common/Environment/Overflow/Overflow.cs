@@ -33,8 +33,8 @@ namespace OverflowPlugin
             OverflowOnline = new BoolFeedback(() => OverflowEisc.IsOnline);
             OverflowEisc.SigChange += new SigEventHandler(OverflowEisc_SigChange);
             OverflowEisc.OnlineStatusChange += new Crestron.SimplSharpPro.OnlineStatusChangeEventHandler(OverflowEisc_OnlineStatusChange);
-            RemoteOverflowOn = new BoolFeedback(() => OverflowEisc.BooleanInput[overflowJoinMap.OverflowOn.JoinNumber].BoolValue);
-            RemoteOverflowOff = new BoolFeedback(() => OverflowEisc.BooleanInput[overflowJoinMap.OverflowOff.JoinNumber].BoolValue);
+            RemoteOverflowOn = new BoolFeedback(() => OverflowEisc.BooleanOutput[overflowJoinMap.OverflowOn.JoinNumber].BoolValue);
+            RemoteOverflowOff = new BoolFeedback(() => OverflowEisc.BooleanOutput[overflowJoinMap.OverflowOff.JoinNumber].BoolValue);
         }
 
         public override void LinkToApi(BasicTriList trilist, uint joinStart, string joinMapKey, EiscApiAdvanced bridge)
@@ -75,7 +75,7 @@ namespace OverflowPlugin
                 {
                     //Remote overflow command
                     if (args.Sig.Number == overflowJoinMap.OverflowOn.JoinNumber)
-                    {
+                    {       
                         RemoteOverflowOn.FireUpdate();
                     }
                     else if (args.Sig.Number == overflowJoinMap.OverflowOff.JoinNumber)
@@ -132,14 +132,28 @@ namespace OverflowPlugin
             }
         }
 
+        private void ClearInternalOutputData()
+        {
+            InternalEisc.BooleanInput[internalJoinOffset + 2].BoolValue = false;
+            InternalEisc.BooleanInput[internalJoinOffset + 3].BoolValue = false;
+        }
+
         private void OverflowEisc_OnlineStatusChange(GenericBase currentDevice, OnlineOfflineEventArgs args)
         {
             OverflowOnline.FireUpdate();
+            if (args.DeviceOnLine)
+            {
+                RemoteOverflowOn.FireUpdate();
+                RemoteOverflowOff.FireUpdate();
+            }
+            else { ClearInternalOutputData(); }
         }
 
         private void InternalEisc_OnlineStatusChange(GenericBase currentDevice, OnlineOfflineEventArgs args)
         {
             InternalOnline.FireUpdate();
+            RemoteOverflowOn.FireUpdate();
+            RemoteOverflowOff.FireUpdate();
         }
     }
 

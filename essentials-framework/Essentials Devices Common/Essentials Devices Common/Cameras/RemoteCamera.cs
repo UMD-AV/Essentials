@@ -219,9 +219,9 @@ namespace RemoteCameraPlugin
                     //Remote camera feedback - shift to offset joins on bridge
                     if (args.Sig.Number > 50 && args.Sig.Number <= 100 && InternalEisc != null)
                     {
-                        if (args.Sig.Number == 51)
+                        if (args.Sig.Number == 51 || args.Sig.Number == 52)
                         {
-                            //Ignore camera name on join 51
+                            //Ignore camera name on join 51 and device model on join 52
                         }
                         else
                         {
@@ -274,7 +274,7 @@ namespace RemoteCameraPlugin
 				var preset = (ushort)item.Key;
 
 				// preset names
-				var nameJoin = preset + joinMapFeedback.PresetNames.JoinNumber - 1;
+				uint nameJoin = preset + joinMapFeedback.PresetNames.JoinNumber - 1;
 				var nameFeedback = item.Value;
 				nameFeedback.LinkInputSig(trilist.StringInput[nameJoin]);
 			}
@@ -324,12 +324,27 @@ namespace RemoteCameraPlugin
 
         private void PushCameraOutputData()
         {
-            for (uint x = 1; x <= 100; x++)
+            for (uint x = 1; x <= 50; x++)
             {
                 CameraEisc.BooleanInput[x].BoolValue = InternalEisc.BooleanOutput[x + internalJoinOffset].BoolValue;
                 CameraEisc.UShortInput[x].UShortValue = InternalEisc.UShortOutput[x + internalJoinOffset].UShortValue;
                 CameraEisc.StringInput[x].StringValue = InternalEisc.StringOutput[x + internalJoinOffset].StringValue;
             }
+            localCamera.ActivePresetFeedback.FireUpdate();
+            localCamera.AutoFocusFeedback.FireUpdate();
+            localCamera.AutoTrackingOnFeedback.FireUpdate();
+            localCamera.OnlineFeedback.FireUpdate();
+            localCamera.PowerFeedback.FireUpdate();
+            foreach(var p in localCamera.PresetActiveFeedbacks)
+            {
+                p.Value.FireUpdate();
+            }
+            foreach (var p in localCamera.PresetNameFeedbacks)
+            {
+                p.Value.FireUpdate();
+            }
+            localCamera.PresetCountFeedback.FireUpdate();
+            localCamera.PrivacyOnFeedback.FireUpdate();
         }
 
         private void PushInternalOutputData()
@@ -338,7 +353,12 @@ namespace RemoteCameraPlugin
             {
                 InternalEisc.BooleanInput[x + internalJoinOffset].BoolValue = CameraEisc.BooleanOutput[x + 50].BoolValue;
                 InternalEisc.UShortInput[x + internalJoinOffset].UShortValue = CameraEisc.UShortOutput[x + 50].UShortValue;
-                InternalEisc.StringInput[x + internalJoinOffset].StringValue = CameraEisc.StringOutput[x + 50].StringValue;
+
+                //skip join 1 & 2 which is used for camera name and camera device to SIMPL
+                if (x != 1 && x != 2)
+                {
+                    InternalEisc.StringInput[x + internalJoinOffset].StringValue = CameraEisc.StringOutput[x + 50].StringValue;
+                }
             }
         }
 
