@@ -704,7 +704,7 @@ namespace ViscaCameraPlugin
                                 }
                                 else
                                 {
-                                    _commandTimer.Reset(3000);   //Wait maximum 3000 ms for response before sending next command. If ack is received, will wait up to 6 more seconds
+                                    _commandTimer.Reset(2000);   //Wait maximum 2000 ms for response before sending next command
                                 }
                                 CrestronInvoke.BeginInvoke((obj) =>
                                 {
@@ -838,17 +838,16 @@ namespace ViscaCameraPlugin
             Debug.Console(1, this, "Parsing: {0}, last inquiry: {1}", ComTextHelper.GetEscapedText(message), _lastInquiry.ToString());
             if (message.Length > 2 && message[message.Length - 2] == 0x41 && message[message.Length - 3] == _feedbackAddress)
             {
-                Debug.Console(1, this, "Received ack");
-                _commandTimer.Reset(6000);
+                Debug.Console(1, this, "Received ack");                
+                if (_lastInquiry == eViscaCameraCommand.PresetRecallCmd)
+                {
+                    ActivePreset = _lastCalledPreset;
+                }
                 return;
             }
             else if (message.Length > 3 && message[message.Length - 2] == 0x41 && message[message.Length - 3] == 0x61 && message[message.Length - 4] == _feedbackAddress)
             {
-                if(_lastInquiry == eViscaCameraCommand.PowerInquiry)
-                {
-                    InitializeCamera();
-                }
-                else if(_lastInquiry == eViscaCameraCommand.AutoTrackOnPresetCmd)
+                if(_lastInquiry == eViscaCameraCommand.AutoTrackOnPresetCmd)
                 {
                     AutoTrackingOn = true;
                 }

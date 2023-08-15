@@ -113,7 +113,6 @@ namespace PepperDash.Essentials.Core
             SetMonitorBytesReceived(monitorBytesReceived);
         }
 
-
 		/// <summary>
 		/// Build the monitor from a config object
 		/// </summary>

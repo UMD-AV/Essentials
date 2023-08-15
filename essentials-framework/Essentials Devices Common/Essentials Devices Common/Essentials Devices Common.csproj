@@ -195,6 +195,7 @@
     <Compile Include="Environment\Lutron\LutronGrafikEye.cs" />
     <Compile Include="Environment\nLight\nLight.cs" />
     <Compile Include="Environment\Overflow\Overflow.cs" />
+    <Compile Include="Microphones\ShureUlxd.cs" />
     <Compile Include="Microphones\ShureSbc.cs" />
     <Compile Include="Microphones\ShureMxa.cs" />
     <Compile Include="SetTopBox\ContemporaryResearch.cs" />
