@@ -79,6 +79,12 @@ namespace PepperDash.Essentials.Core
                             comm = udp;
                             break;
                         }
+                    case eControlMethod.UdpShared:
+                        {
+                            var udpShared = new SharedUdpServerDevice(deviceConfig.Key + "-udp", c.Address, c.Port, c.BufferSize);
+                            comm = udpShared;
+                            break;
+                        }
 					case eControlMethod.Telnet:
 						break;
 					default:
