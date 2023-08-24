@@ -153,7 +153,10 @@ namespace AverCameraPlugin
         /// </summary>
         public override void SetAutoTrackingOn()
         {
-            PostData("cgi-bin?Set=trk_tracking_on,3,1", eAverCameraInquiry.AutoTrackOnCmd);
+            if (AutoTrackingCapable.BoolValue)
+            {
+                PostData("cgi-bin?Set=trk_tracking_on,3,1", eAverCameraInquiry.AutoTrackOnCmd);
+            }
         }
 
         /// <summary>
