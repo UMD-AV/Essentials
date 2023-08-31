@@ -15,12 +15,13 @@ using PepperDash.Essentials.Core.Queues;
 
 namespace PepperDash.Essentials.Devices.Common.ShureSbc
 {
-    public class ShureSbcDevice : EssentialsBridgeableDevice
+    public class ShureSbcDevice : EssentialsBridgeableDevice, IHasErrorString
     {
         private readonly IBasicCommunication _comms;
         private readonly GenericCommunicationMonitor _commsMonitor;
         private const string CommsDelimiter = ">";
         private readonly GenericQueue _commsQueue;
+        public int NumberOfDevicesExpected { get; private set; }
         public ShureSbcBattery[] Batteries;
 
         /// <summary>
@@ -84,13 +85,13 @@ namespace PepperDash.Essentials.Devices.Common.ShureSbc
             set
             {
                 _deviceError = value;
-                DeviceErrorFeedback.FireUpdate();
+                ErrorFeedback.FireUpdate();
             }
         }
         /// <summary>
         /// Deivce error feedback
         /// </summary>
-        public StringFeedback DeviceErrorFeedback { get; private set; }
+        public StringFeedback ErrorFeedback { get; private set; }
         #endregion
         
         /// <summary>
@@ -102,14 +103,16 @@ namespace PepperDash.Essentials.Devices.Common.ShureSbc
         /// <param name="comms">device communication as IBasicCommunication</param>
         /// <see cref="PepperDash.Core.IBasicCommunication"/>
         /// <seealso cref="Crestron.SimplSharp.CrestronSockets.SocketStatus"/>
-        public ShureSbcDevice(string key, string name, DeviceConfig config, IBasicCommunication comms)
+        public ShureSbcDevice(string key, string name, ShureSbcPropertiesConfig config, IBasicCommunication comms)
             : base(key, name)
         {
             Debug.Console(0, this, "Constructing new {0} instance", name);
             MonitorStatusFeedback = new IntFeedback(() => (int)_commsMonitor.Status);
             DeviceModelFeedback = new StringFeedback(() => DeviceModel);
             DeviceFirmwareVersionFeedback = new StringFeedback(() => DeviceFirmwareVersion);
-            DeviceErrorFeedback = new StringFeedback(() => DeviceError);
+            ErrorFeedback = new StringFeedback(() => DeviceError);
+
+            NumberOfDevicesExpected = config.numberOfDevices <= 8 ? config.numberOfDevices : 8;
             Batteries = new ShureSbcBattery[8];
             for (ushort i = 0; i < 8; i++)
             {
@@ -938,7 +941,7 @@ namespace PepperDash.Essentials.Devices.Common.ShureSbc
                 Debug.Console(0, "[{0}] Factory attempting to create new device from type: {1}", dc.Key, dc.Type);
 
                 // get the device properties configuration object & check for null 
-                var propertiesConfig = dc.Properties.ToObject<DeviceConfig>();
+                var propertiesConfig = dc.Properties.ToObject<ShureSbcPropertiesConfig>();
                 if (propertiesConfig == null)
                 {
                     Debug.Console(0, "[{0}] Factory: failed to read properties config for {1}", dc.Key, dc.Name);
@@ -956,6 +959,16 @@ namespace PepperDash.Essentials.Devices.Common.ShureSbc
                 Debug.Console(0, "[{0}] Factory BuildDevice Exception: {1}", dc.Key, ex);
                 return null;
             }
+        }
+    }
+
+    public class ShureSbcPropertiesConfig
+    {
+        [JsonProperty("numberOfDevices")]
+        public int numberOfDevices { get; set; }
+
+        public ShureSbcPropertiesConfig()
+        {
         }
     }
 }

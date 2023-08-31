@@ -78,7 +78,6 @@ namespace PepperDash.Essentials.Core
 			IsWarmingUpFeedback = new BoolFeedback("IsWarmingUp", IsWarmingUpFeedbackFunc);
 
 			InputPorts = new RoutingPortCollection<RoutingInputPort>();
-
 		}
 
 		public abstract void PowerOn();

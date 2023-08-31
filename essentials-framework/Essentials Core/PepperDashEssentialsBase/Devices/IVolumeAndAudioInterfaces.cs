@@ -139,4 +139,20 @@ namespace PepperDash.Essentials.Core
 	{
 		void SelectInput(ushort input);
 	}
+
+    /// <summary>
+    /// Identifies a device that reports lamp hours
+    /// </summary>
+    public interface IHasLampHours
+    {
+        IntFeedback LampHoursFeedback { get; }
+    }
+
+    /// <summary>
+    /// Identifies a device that reports an error string
+    /// </summary>
+    public interface IHasErrorString
+    {
+        StringFeedback ErrorFeedback { get; }
+    }
 }

@@ -21,7 +21,7 @@ namespace PepperDash.Essentials.Devices.Displays
 	/// <summary>
 	/// 
 	/// </summary>
-    public class EpsonProjector : TwoWayDisplayBase, ICommunicationMonitor, IBridgeAdvanced, IBasicVolumeWithFeedback
+    public class EpsonProjector : TwoWayDisplayBase, ICommunicationMonitor, IBridgeAdvanced, IBasicVolumeWithFeedback, IHasLampHours, IHasErrorString
 	{
 		public IBasicCommunication Communication { get; private set; }				
         public StatusMonitorBase CommunicationMonitor { get; private set; }

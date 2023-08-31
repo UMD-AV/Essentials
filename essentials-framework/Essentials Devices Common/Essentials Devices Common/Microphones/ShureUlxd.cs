@@ -21,6 +21,8 @@ namespace PepperDash.Essentials.Devices.Common.ShureUlxd
         private readonly GenericCommunicationMonitor _commsMonitor;
         private const string CommsDelimiter = ">";
         private readonly GenericQueue _commsQueue;
+        public int NumberOfDevicesExpected { get; private set; }
+
         public ShureUlxdMicrophone[] Microphones;
 
         /// <summary>
@@ -83,13 +85,14 @@ namespace PepperDash.Essentials.Devices.Common.ShureUlxd
         /// <param name="comms">device communication as IBasicCommunication</param>
         /// <see cref="PepperDash.Core.IBasicCommunication"/>
         /// <seealso cref="Crestron.SimplSharp.CrestronSockets.SocketStatus"/>
-        public ShureUlxdDevice(string key, string name, DeviceConfig config, IBasicCommunication comms)
+        public ShureUlxdDevice(string key, string name, ShureUlxdPropertiesConfig config, IBasicCommunication comms)
             : base(key, name)
         {
             Debug.Console(0, this, "Constructing new {0} instance", name);
             MonitorStatusFeedback = new IntFeedback(() => (int)_commsMonitor.Status);
             DeviceModelFeedback = new StringFeedback(() => DeviceModel);
             DeviceFirmwareVersionFeedback = new StringFeedback(() => DeviceFirmwareVersion);
+            NumberOfDevicesExpected = config.numberOfDevices <= 4 ? config.numberOfDevices : 4;
             Microphones = new ShureUlxdMicrophone[4];
             for (ushort i = 0; i < 4; i++)
             {
@@ -876,7 +879,7 @@ namespace PepperDash.Essentials.Devices.Common.ShureUlxd
                 Debug.Console(0, "[{0}] Factory attempting to create new device from type: {1}", dc.Key, dc.Type);
 
                 // get the device properties configuration object & check for null 
-                var propertiesConfig = dc.Properties.ToObject<DeviceConfig>();
+                var propertiesConfig = dc.Properties.ToObject<ShureUlxdPropertiesConfig>();
                 if (propertiesConfig == null)
                 {
                     Debug.Console(0, "[{0}] Factory: failed to read properties config for {1}", dc.Key, dc.Name);
@@ -894,6 +897,16 @@ namespace PepperDash.Essentials.Devices.Common.ShureUlxd
                 Debug.Console(0, "[{0}] Factory BuildDevice Exception: {1}", dc.Key, ex);
                 return null;
             }
+        }
+    }
+
+    public class ShureUlxdPropertiesConfig
+    {
+        [JsonProperty("numberOfDevices")]
+        public int numberOfDevices { get; set; }
+
+        public ShureUlxdPropertiesConfig()
+        {
         }
     }
 }

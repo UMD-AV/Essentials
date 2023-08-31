@@ -25,15 +25,15 @@ namespace ViscaCameraPlugin
 		private readonly bool _useHeader;
 		private uint _counter = 0;
         protected bool _autoTrackingCapable = false;
-        private uint _lastCalledPreset = 0;
+        protected uint _lastCalledPreset = 0;
         private EDirection _moveInProgress = EDirection.Stop;
-        private eViscaCameraCommand _lastInquiry = eViscaCameraCommand.NoFeedback;
+        protected eViscaCameraCommand _lastInquiry = eViscaCameraCommand.NoFeedback;
 
 		private readonly ViscaCameraConfig _config;
         Dictionary<uint, uint> presetIds;
 
 		protected byte _address = 0x81;
-        private byte _feedbackAddress = 0x90;
+        protected byte _feedbackAddress = 0x90;
 		private const uint AddressMax = 7;
 
 		private long _pollTimeMs = 30000; // 30s
@@ -665,7 +665,7 @@ namespace ViscaCameraPlugin
             ProcessQueue();
         }
 
-        private void readyForNextCommand()
+        protected void readyForNextCommand()
         {
             _commandTimer.Stop(); //No need for timeout on last command
             _lastCommandFailed = false;
@@ -867,10 +867,7 @@ namespace ViscaCameraPlugin
                 {
                     case eViscaCameraCommand.PresetSave:
                         ActivePreset = _lastCalledPreset;
-                        if (PresetSaved != null)
-                        {
-                            PresetSaved(this, null);
-                        }                            
+                        PresetSavedFb();                       
                         break;
                     case eViscaCameraCommand.PowerOnCmd:
                         Power = true;
@@ -1281,6 +1278,14 @@ namespace ViscaCameraPlugin
                 return;
             _lastCalledPreset = 0;
             QueueCommand(eViscaCameraCommand.PresetRecallCmd, new byte[] { _address, 0x01, 0x06, 0x04, 0xFF });
+        }
+
+        protected void PresetSavedFb()
+        {
+            if (PresetSaved != null)
+            {
+                PresetSaved(this, null);
+            }    
         }
 
 		/// <summary>

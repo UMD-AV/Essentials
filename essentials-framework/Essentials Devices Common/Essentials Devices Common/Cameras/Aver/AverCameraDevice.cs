@@ -113,6 +113,73 @@ namespace AverCameraPlugin
             }
         }
 
+        protected override void ParseAdditionalFeedback(byte[] message)
+        {
+            if (message.Length > 2 && message[message.Length - 2] == 0x42 && message[message.Length - 3] == _feedbackAddress)
+            {
+                Debug.Console(1, this, "Received ack");
+                if (_lastInquiry == eViscaCameraCommand.PresetRecallCmd)
+                {
+                    ActivePreset = _lastCalledPreset;
+                }
+                return;
+            }
+            else if (message.Length > 2 && message[message.Length - 2] == 0x52 && message[message.Length - 3] == _feedbackAddress)
+            {
+                Debug.Console(1, this, "Received execution confirmation, last inquiry: {0}", _lastInquiry.ToString());
+                switch (_lastInquiry)
+                {
+                    case eViscaCameraCommand.PresetSave:
+                        ActivePreset = _lastCalledPreset;
+                        PresetSavedFb();
+                        break;
+                    case eViscaCameraCommand.PowerOnCmd:
+                        Power = true;
+                        CrestronInvoke.BeginInvoke((o) =>
+                        {
+                            CrestronEnvironment.Sleep(2000);
+                            PollPower();
+                        });
+                        break;
+                    case eViscaCameraCommand.PowerOffCmd:
+                        Power = false;
+                        CrestronInvoke.BeginInvoke((o) =>
+                        {
+                            CrestronEnvironment.Sleep(2000);
+                            PollPower();
+                        });
+                        break;
+                    case eViscaCameraCommand.AutoTrackOnPresetCmd:
+                        AutoTrackingOn = true;
+                        break;
+                    case eViscaCameraCommand.AutoTrackOffPresetCmd:
+                        AutoTrackingOn = false;
+                        break;
+                    case eViscaCameraCommand.AutoTrackOnCmd:
+                        CrestronInvoke.BeginInvoke((o) =>
+                        {
+                            CrestronEnvironment.Sleep(2000);
+                            PollAutoTrack();
+                        });
+                        break;
+                    case eViscaCameraCommand.AutoTrackOffCmd:
+                        CrestronInvoke.BeginInvoke((o) =>
+                        {
+                            CrestronEnvironment.Sleep(2000);
+                            PollAutoTrack();
+                        });
+                        break;
+                    case eViscaCameraCommand.PresetRecallCmd:
+                        ActivePreset = _lastCalledPreset;
+                        break;
+                }
+
+                _lastInquiry = eViscaCameraCommand.NoFeedback;
+                this.readyForNextCommand();
+                return;
+            }
+        }
+
         private void ParseMessage(eAverCameraInquiry request, string message)
         {
             Debug.Console(1, "Aver Camera Parsing: {0}, request: {1}", message, request.ToString());

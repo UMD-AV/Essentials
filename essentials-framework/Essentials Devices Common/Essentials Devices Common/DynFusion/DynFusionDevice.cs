@@ -34,6 +34,7 @@ namespace DynFusion
 		private Dictionary<UInt32, DynFusionDigitalAttribute> DigitalAttributesFromFusion;
 		private Dictionary<UInt32, DynFusionAnalogAttribute> AnalogAttributesFromFusion;
 		private Dictionary<UInt32, DynFusionSerialAttribute> SerialAttributesFromFusion;
+        private Dictionary<UInt32, StaticAsset> StaticAssets;
 		private static DynFusionJoinMap JoinMapStatic;
         private List<DynFusionAssetOccupancySensor> OccSensors;
 
@@ -59,6 +60,7 @@ namespace DynFusion
 			DigitalAttributesFromFusion = new Dictionary<UInt32, DynFusionDigitalAttribute>();
 			AnalogAttributesFromFusion = new Dictionary<UInt32, DynFusionAnalogAttribute>();
 			SerialAttributesFromFusion = new Dictionary<UInt32, DynFusionSerialAttribute>();
+            StaticAssets = new Dictionary<UInt32, StaticAsset>();
             OccSensors = new List<DynFusionAssetOccupancySensor>();
 			JoinMapStatic = new DynFusionJoinMap(1);
 			Debug.Console(2, "Creating Fusion Symbol {0} {1}", _Config.control.IpId, Key);
@@ -84,8 +86,7 @@ namespace DynFusion
                         OccSensors.Add(new DynFusionAssetOccupancySensor(Key + "-" + occSensorConfig.Name, occSensorConfig.JoinNumber, FusionSymbol, tempAssetNumber));
                     }
                 }
-            }
-
+            }            
 		}
 
 		public override bool CustomActivate()
@@ -211,13 +212,46 @@ namespace DynFusion
                 HelpRequest.GetOpenItems();
 
 				DeviceUsageFactory(); 
-				// Scheduling Bits for Future 
-				//FusionSymbol.ExtenderRoomViewSchedulingDataReservedSigs.Use();
-				//FusionSymbol.ExtenderRoomViewSchedulingDataReservedSigs.DeviceExtenderSigChange += new DeviceExtenderJoinChangeEventHandler(ExtenderRoomViewSchedulingDataReservedSigs_DeviceExtenderSigChange);
 
-				// Future for time sync
-				// FusionSymbol.ExtenderFusionRoomDataReservedSigs.DeviceExtenderSigChange += new DeviceExtenderJoinChangeEventHandler(ExtenderFusionRoomDataReservedSigs_DeviceExtenderSigChange);
+                //Static Assets
+                FusionSymbol.FusionAssetStateChange += FusionSymbol_FusionAssetStateChange;
+                foreach (var device in DeviceManager.AllDevices)
+                {
+                    try
+                    {
+                        var displayDevice = device as DisplayBase;
+                        if (displayDevice != null)
+                        {
+                            uint num = GetNextAvailableAssetNumber(FusionSymbol);
+                            StaticAssets.Add(num, new DisplayStaticAsset(displayDevice, num, FusionSymbol));
+                        }
 
+                        var sbcDevice = device as PepperDash.Essentials.Devices.Common.ShureSbc.ShureSbcDevice;
+                        if (sbcDevice != null)
+                        {
+                            for (uint i = 1; i <= sbcDevice.NumberOfDevicesExpected; i++)
+                            {
+                                uint num = GetNextAvailableAssetNumber(FusionSymbol);
+                                string name = string.Format("{0} - Battery {1}", sbcDevice.Name, i);
+                                StaticAssets.Add(num, new MicBatteryStaticAsset(name, sbcDevice.Batteries[i-1], num, FusionSymbol));
+                            }
+                        }
+
+                        var ulxdDevice = device as PepperDash.Essentials.Devices.Common.ShureUlxd.ShureUlxdDevice;
+                        if (ulxdDevice != null)
+                        {
+                            for (uint i = 1; i <= ulxdDevice.NumberOfDevicesExpected; i++)
+                            {
+                                uint num = GetNextAvailableAssetNumber(FusionSymbol);
+                                //StaticAssets.Add(num, new ShureUlxdStaticAsset(sbcDevice, num, FusionSymbol));
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.Console(0, this, "Exception creating static asset for device key {0}: {1}", device.Key, ex.Message);
+                    }
+                }
 
                 Debug.Console(0, this, "Generating Fuson RVI");
 				FusionRVI.GenerateFileForAllFusionDevices();
@@ -230,9 +264,9 @@ namespace DynFusion
 			}
 
 		}
+
 		void DeviceUsageFactory()
-		{
-			
+		{			
 			if (_Config.DeviceUsage != null)
 			{
 				DeviceUsage = new DynFusionDeviceUsage(string.Format("{0}-DeviceUsage", Key), this);
@@ -533,6 +567,15 @@ namespace DynFusion
 			}
 		}
 
+        void FusionSymbol_FusionAssetStateChange(FusionBase device, FusionAssetStateEventArgs args)
+        {
+            Debug.Console(1, this, "DynFusion Asset State Change index:{0}", args.UserConfigurableAssetDetailIndex);
+            if (StaticAssets.ContainsKey(args.UserConfigurableAssetDetailIndex))
+            {
+                StaticAssets[args.UserConfigurableAssetDetailIndex].FusionAssetStateChange(args);
+            }
+        }
+
         void CrestronEnvironment_EthernetEventHandler(EthernetEventArgs args)
         {
             if (_isInitialized)
@@ -609,19 +652,16 @@ namespace DynFusion
 			uint slotNum = 0;
 			foreach (var item in room.UserConfigurableAssetDetails) 
 			{
-				if (item.Number > slotNum) {
+				if (item.Number > slotNum)
+                {
 					slotNum = item.Number;
-					}
 				}
-				if (slotNum < 5){
-					slotNum = 5;
-					}
-				else
-					slotNum = slotNum + 1;
-				Debug.Console(2, string.Format("#Next available fusion asset number is: {0}", slotNum));
-
-				return slotNum;
 			}
+			slotNum = slotNum + 1;
+			Debug.Console(1, string.Format("Next available fusion asset number is: {0}", slotNum));
+
+			return slotNum;
+		}
 	    #region Overrides of EssentialsBridgeableDevice
 
 		public void GetRoomConfig()
@@ -921,6 +961,7 @@ namespace DynFusion
 
 
 	}
+
 	public class RoomInformation
 	{
 		public string ID { get; set; }

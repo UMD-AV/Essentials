@@ -187,6 +187,10 @@
     <Compile Include="DSP\Tesira\TesiraExpanderMonitor.cs" />
     <Compile Include="DSP\Tesira\TesiraExpanderTracker.cs" />
     <Compile Include="DSP\Tesira\TesiraQueue.cs" />
+    <Compile Include="DynFusion\StaticAssets\MicStaticAsset.cs" />
+    <Compile Include="DynFusion\StaticAssets\MicBatteryStaticAsset.cs" />
+    <Compile Include="DynFusion\StaticAssets\StaticAsset.cs" />
+    <Compile Include="DynFusion\StaticAssets\DisplayStaticAsset.cs" />
     <Compile Include="DynFusion\DynFusionHelpRequest.cs" />
     <Compile Include="CameraControllers\AutomateVx.cs" />
     <Compile Include="Environment\Crestron Lighting\CrestronLighting.cs" />
