@@ -27,32 +27,36 @@ namespace DynFusion.Assets
             _asset.PowerOn.AddSigToRVIFile = false;
             _asset.PowerOff.AddSigToRVIFile = false;
             _asset.AssetError.AddSigToRVIFile = true;
+            _asset.Connected.AddSigToRVIFile = true;
 
             _asset.Connected.InputSig.BoolValue = true;
             _battery.BatteryErrorTextFeedback.LinkInputSig(_asset.AssetError.InputSig);
 
+            _asset.ParamMake.Value = "Shure";
+            _asset.ParamModel.Value = "Battery";
+
             //Battery Present
-            _asset.AddSig(eSigType.Bool, 1, "Battery Present", eSigIoMask.InputSigOnly);
+            _asset.AddSig(eSigType.Bool, 1, "Mic Battery - Present", eSigIoMask.InputSigOnly);
             _battery.BatteryPresentFeedback.LinkInputSig(_asset.FusionGenericAssetDigitalsAsset1.BooleanInput[50]);
 
             //Battery Error Int
-            _asset.AddSig(eSigType.UShort, 1, "Battery Error", eSigIoMask.InputSigOnly);
+            _asset.AddSig(eSigType.UShort, 1, "Mic Battery - Error", eSigIoMask.InputSigOnly);
             _battery.BatteryErrorFeedback.LinkInputSig(_asset.FusionGenericAssetAnalogsAsset2.UShortInput[50]);
 
-            //Battery Health
-            _asset.AddSig(eSigType.UShort, 2, "Battery Health", eSigIoMask.InputSigOnly);
+            //Battery % Health
+            _asset.AddSig(eSigType.UShort, 2, "Mic Battery - % Health", eSigIoMask.InputSigOnly);
             _battery.PercentHealthFeedback.LinkInputSig(_asset.FusionGenericAssetAnalogsAsset2.UShortInput[51]);
 
             //Battery Temp
-            _asset.AddSig(eSigType.UShort, 3, "Battery Temp F", eSigIoMask.InputSigOnly);
+            _asset.AddSig(eSigType.UShort, 3, "Mic Battery - Temp F", eSigIoMask.InputSigOnly);
             _battery.TemperatureFFeedback.LinkInputSig(_asset.FusionGenericAssetAnalogsAsset2.UShortInput[52]);
 
-            //Battery Temp
-            _asset.AddSig(eSigType.UShort, 4, "Battery Percent Charge", eSigIoMask.InputSigOnly);
+            //Battery % Charge
+            _asset.AddSig(eSigType.UShort, 4, "Mic Battery - % Charge", eSigIoMask.InputSigOnly);
             _battery.PercentChargeFeedback.LinkInputSig(_asset.FusionGenericAssetAnalogsAsset2.UShortInput[53]);
         
             //Battery State
-            _asset.AddSig(eSigType.String, 1, "Battery State", eSigIoMask.InputSigOnly);
+            _asset.AddSig(eSigType.String, 1, "Mic Battery - State", eSigIoMask.InputSigOnly);
             _battery.BatteryStateFeedback.LinkInputSig(_asset.FusionGenericAssetSerialsAsset3.StringInput[50]);
 		}
 

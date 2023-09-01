@@ -16,7 +16,8 @@ using Crestron.SimplSharp.CrestronXml.Serialization;
 using Crestron.SimplSharp.CrestronXmlLinq;
 using DynFusion.Assets;
 using Crestron.SimplSharp;
-
+using PepperDash_Essentials_Core.Extensions;
+using System.Text.RegularExpressions;
 
 namespace DynFusion 
 {
@@ -64,13 +65,14 @@ namespace DynFusion
             OccSensors = new List<DynFusionAssetOccupancySensor>();
 			JoinMapStatic = new DynFusionJoinMap(1);
 			Debug.Console(2, "Creating Fusion Symbol {0} {1}", _Config.control.IpId, Key);
-			FusionSymbol = new FusionRoom(_Config.control.IpIdInt, Global.ControlSystem, Key, Guid.NewGuid().ToString());
+
+			FusionSymbol = new FusionRoom(_Config.control.IpIdInt, Global.ControlSystem, Key, FusionUuid.GenerateUuid(key));
 
             HelpRequest = new DynFusionHelpRequest(FusionSymbol.Help);
 			
 			if (FusionSymbol.Register() != eDeviceRegistrationUnRegistrationResponse.Success)
 			{
-				Debug.Console(0, this, "Faliure to register Fusion Symbol");
+				Debug.Console(0, this, "Failure to register Fusion Symbol");
 			}
 			FusionSymbol.ExtenderFusionRoomDataReservedSigs.Use();
 
@@ -82,7 +84,7 @@ namespace DynFusion
                     {
                         uint tempAssetNumber = GetNextAvailableAssetNumber(FusionSymbol);
                         Debug.Console(2, this, string.Format("Creating occSensor: {0}, {1}", tempAssetNumber, occSensorConfig.Name));
-                        FusionSymbol.AddAsset(eAssetType.OccupancySensor, tempAssetNumber, occSensorConfig.Name, "Occupancy Sensor", Guid.NewGuid().ToString());
+                        FusionSymbol.AddAsset(eAssetType.OccupancySensor, tempAssetNumber, occSensorConfig.Name, "Occupancy Sensor", FusionUuid.GenerateUuid(occSensorConfig.Name));
                         OccSensors.Add(new DynFusionAssetOccupancySensor(Key + "-" + occSensorConfig.Name, occSensorConfig.JoinNumber, FusionSymbol, tempAssetNumber));
                     }
                 }
@@ -243,7 +245,8 @@ namespace DynFusion
                             for (uint i = 1; i <= ulxdDevice.NumberOfDevicesExpected; i++)
                             {
                                 uint num = GetNextAvailableAssetNumber(FusionSymbol);
-                                //StaticAssets.Add(num, new ShureUlxdStaticAsset(sbcDevice, num, FusionSymbol));
+                                string name = string.Format("{0} - Microphone {1}", ulxdDevice.Name, i);
+                                StaticAssets.Add(num, new MicStaticAsset(name, ulxdDevice.Microphones[i-1], num, FusionSymbol));
                             }
                         }
                     }
@@ -961,6 +964,28 @@ namespace DynFusion
 
 
 	}
+
+    public static class FusionUuid
+    {
+        public static string GenerateUuid(string key)
+        {
+            try
+            {
+                //Make version 3 UUID instead of guid, this way it remains the same after reboot
+                string mac = CrestronEthernetHelper.GetEthernetParameter(CrestronEthernetHelper.ETHERNET_PARAMETER_TO_GET.GET_MAC_ADDRESS, 0);
+                string hash = MD5.Calculate(Encoding.GetEncoding(28591).GetBytes(mac + key));
+                string uuid = Regex.Replace(hash, "(.{8})(.{4})(.{4})(.{4})(.{12})", "$1-$2-$3-$4-$5");
+                Debug.Console(0, "Generated fusion uuid for mac+key {0}: {1}", mac+key, uuid);
+                return uuid;
+            }
+            catch
+            {
+                string guid = Guid.NewGuid().ToString();
+                Debug.Console(0, "Uuid generation failed for key {0}, using random guid: {1}", key, guid);
+                return guid;
+            }
+        }
+    }
 
 	public class RoomInformation
 	{

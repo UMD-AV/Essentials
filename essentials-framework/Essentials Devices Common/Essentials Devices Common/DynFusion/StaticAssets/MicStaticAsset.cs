@@ -11,43 +11,55 @@ using Newtonsoft.Json.Linq;
 using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Bridges;
 using PepperDash.Core;
+using PepperDash.Essentials.Devices.Common.ShureUlxd;
 
 namespace DynFusion.Assets
 {
-	public class MicrophoneStaticAsset : StaticAsset
+	public class MicStaticAsset : StaticAsset
 	{
-        private DisplayBase _device;
+        private ShureUlxdMicrophone _mic;
 
-		public MicrophoneStaticAsset(DisplayBase device, uint assetNumber, FusionRoom symbol):
-            base(device.Name, device.Key + "-Asset", assetNumber, "Microphone", symbol)
+		public MicStaticAsset(string name, ShureUlxdMicrophone mic, uint assetNumber, FusionRoom symbol):
+            base(name, name + "-Asset", assetNumber, "Microphone", symbol)
 		{
-            _device = device;
+            _mic = mic;
             _asset.AssetUsage.AddSigToRVIFile = false;
             _asset.PowerOn.AddSigToRVIFile = false;
             _asset.PowerOff.AddSigToRVIFile = false;
+            _asset.AssetError.AddSigToRVIFile = false;
+            _asset.Connected.AddSigToRVIFile = true;
 
-            var commMonitor = _device as ICommunicationMonitor;
-            if (commMonitor != null)
-            {
-                _asset.Connected.AddSigToRVIFile = true;
-                commMonitor.CommunicationMonitor.IsOnlineFeedback.LinkInputSig(_asset.Connected.InputSig);
-            }
-            else
-            {
-                _asset.Connected.AddSigToRVIFile = false;
-            }
+            _asset.Connected.InputSig.BoolValue = true;
 
-            var errorDevice = _device as IHasErrorString;
-            if (errorDevice != null)
-            {
-                _asset.AssetError.AddSigToRVIFile = true;
-                errorDevice.ErrorFeedback.LinkInputSig(_asset.AssetError.InputSig);
-            }
-            else
-            {
-                _asset.AssetError.AddSigToRVIFile = false;
-            }
+            _asset.ParamMake.Value = "Shure";
+
+            _mic.ModelFeedback.OutputChange +=new EventHandler<FeedbackEventArgs>(ModelFeedback_OutputChange);
+
+            //Microphone Present
+            _asset.AddSig(eSigType.Bool, 1, "Microphone - Present", eSigIoMask.InputSigOnly);
+            _mic.MicrophonePresentFeedback.LinkInputSig(_asset.FusionGenericAssetDigitalsAsset1.BooleanInput[50]);
+
+            //Microphone Runtime Minutes
+            _asset.AddSig(eSigType.UShort, 1, "Microphone - Runtime Minutes", eSigIoMask.InputSigOnly);
+            _mic.RuntimeFeedback.LinkInputSig(_asset.FusionGenericAssetAnalogsAsset2.UShortInput[50]);
+
+            //Battery % Health
+            _asset.AddSig(eSigType.UShort, 2, "Microphone - Battery % Health", eSigIoMask.InputSigOnly);
+            _mic.PercentHealthFeedback.LinkInputSig(_asset.FusionGenericAssetAnalogsAsset2.UShortInput[51]);
+
+            //Battery Temp
+            _asset.AddSig(eSigType.UShort, 3, "Microphone - Battery Temp F", eSigIoMask.InputSigOnly);
+            _mic.TemperatureFFeedback.LinkInputSig(_asset.FusionGenericAssetAnalogsAsset2.UShortInput[52]);
+
+            //Battery % Charge
+            _asset.AddSig(eSigType.UShort, 4, "Microphone - Battery % Charge", eSigIoMask.InputSigOnly);
+            _mic.PercentChargeFeedback.LinkInputSig(_asset.FusionGenericAssetAnalogsAsset2.UShortInput[53]);
 		}
+
+        public void ModelFeedback_OutputChange(object o, FeedbackEventArgs args)
+        {
+            _asset.ParamModel.Value = args.StringValue;
+        }
 
         public override void FusionAssetStateChange(FusionAssetStateEventArgs args)
         {
@@ -56,7 +68,7 @@ namespace DynFusion.Assets
                 return;
             }
 
-            Debug.Console(1, this, "Display static asset state change {0} recieved EventID {1} Index {2}", Name, args.EventId, args.UserConfigurableAssetDetailIndex);
+            Debug.Console(1, this, "Microphone static asset state change {0} recieved EventID {1} Index {2}", Name, args.EventId, args.UserConfigurableAssetDetailIndex);
             switch (args.EventId)
             {
                 case FusionAssetEventId.StaticAssetAssetBoolAssetSigEventReceivedEventId:

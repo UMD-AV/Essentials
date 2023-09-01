@@ -27,6 +27,13 @@ namespace DynFusion.Assets
             _asset.PowerOn.AddSigToRVIFile = true;
             _asset.PowerOff.AddSigToRVIFile = true;
 
+            var epson = _device as PepperDash.Essentials.Devices.Displays.EpsonProjector;
+            if (epson != null)
+            {
+                _asset.ParamMake.Value = "Epson";
+                _asset.ParamModel.Value = "Projector";
+            }
+
             var commMonitor = _device as ICommunicationMonitor;
             if (commMonitor != null)
             {
@@ -59,7 +66,7 @@ namespace DynFusion.Assets
             if (lampHours != null)
             {
                 uint joinNumber = 1;
-                _asset.AddSig(eSigType.UShort, joinNumber, "Lamp Hours", eSigIoMask.InputSigOnly);
+                _asset.AddSig(eSigType.UShort, joinNumber, "Display - Lamp Hours", eSigIoMask.InputSigOnly);
                 lampHours.LampHoursFeedback.LinkInputSig(_asset.FusionGenericAssetAnalogsAsset2.UShortInput[50]);
             }
 		}
