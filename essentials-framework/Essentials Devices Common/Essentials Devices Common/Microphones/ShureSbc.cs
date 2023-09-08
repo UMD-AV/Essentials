@@ -395,8 +395,7 @@ namespace PepperDash.Essentials.Devices.Common.ShureSbc
             Debug.Console(0, "Linking to Bridge Type {0}", GetType().Name);
 
             // links to bridge
-            trilist.SetString(joinMap.DeviceName.JoinNumber, Name);
-
+            trilist.StringInput[joinMap.DeviceName.JoinNumber].StringValue = Name;
             trilist.SetSigTrueAction(joinMap.RefreshData.JoinNumber, UpdateStatus);
 
             // _commsMonitor.IsOnlineFeedback is used to drive IsOnlineFb on the bridge
@@ -427,8 +426,7 @@ namespace PepperDash.Essentials.Devices.Common.ShureSbc
             trilist.OnlineStatusChange += (o, a) =>
             {
                 if (!a.DeviceOnLine) return;
-
-                trilist.SetString(joinMap.DeviceName.JoinNumber, Name);
+                trilist.StringInput[joinMap.DeviceName.JoinNumber].StringValue = Name;
                 UpdateFeedbacks();
             };
         }

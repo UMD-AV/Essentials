@@ -76,8 +76,8 @@ namespace PepperDash.Essentials.Devices.Displays
         private CCriticalSection _rampLock;
         private eRampDirection _rampDirection;
         private bool _isMuted;
+        private ushort _savedVolumeForMute;
         private ushort _lastVolumeFb;
-        private int? _lastVolumeRaw;
         private ushort _defaultVolume;
         private ushort _volumeSteps;
         private ushort _upperLimit;
@@ -87,7 +87,6 @@ namespace PepperDash.Essentials.Devices.Displays
             get { return _isMuted; }
             set
             {
-                if (_isMuted == value) return;
                 _isMuted = value;
                 MuteFeedback.FireUpdate();
             }
@@ -97,11 +96,16 @@ namespace PepperDash.Essentials.Devices.Displays
             get { return _lastVolumeFb; }
             set
             {
-                if (_lastVolumeFb == value)
-                {
-                    return;
-                }
                 _lastVolumeFb = value;
+                if(value > 0)
+                {
+                    MuteFb = false;
+                    _savedVolumeForMute = value;
+                }
+                else
+                {
+                    MuteFb = true;
+                }
                 VolumeLevelFeedback.FireUpdate();
             }
         }
@@ -499,11 +503,9 @@ namespace PepperDash.Essentials.Devices.Displays
                     }
                     else if (data[0].EndsWith("VOL"))
                     {
-                        int newVol = int.Parse(data[1]);
-                        if (MuteFb == false)
-                        {
-                            VolumeFb = GetScaledVolumeFb(newVol);
-                        }
+                        ushort newVol = ushort.Parse(data[1]);
+                        ushort scaledVol = GetScaledVolumeFb(newVol);
+                        VolumeFb = scaledVol;
                     }
                     else if (data[0].EndsWith("ERR"))
                     {
@@ -647,9 +649,8 @@ namespace PepperDash.Essentials.Devices.Displays
                                 Communication.SendText(kvp.Value + "\x0D");
                                 Thread.Sleep(100);
                                 Communication.SendText("VOL?\x0D");
-                                Thread.Sleep(100);
                             }
-                            kvp = new KeyValuePair<eCommandType, string>(eCommandType.VolumePoll, "VOL?");
+                            kvp = new KeyValuePair<eCommandType, string>();
                         }
                         else if (_priorityQueue.Count > 0)
                         {
@@ -707,7 +708,6 @@ namespace PepperDash.Essentials.Devices.Displays
         /// </summary>
         public void StatusGet()
         {
-            _lastVolumeRaw = null;
             if (_readyForCommands)
             {
                 PowerGet();
@@ -786,6 +786,7 @@ namespace PepperDash.Essentials.Devices.Displays
 
             VideoMuteGet();
             InputGet();
+            VolumeGet();
 
             if (_RequestedVideoMuteState == 1)
             {
@@ -1283,7 +1284,10 @@ namespace PepperDash.Essentials.Devices.Displays
         {
             //Scale volume from Crestron 16 bit to configurable volume range
             var scaled = Math.Round((double)(NumericalHelpers.Scale(level, 0, 65535, _lowerLimit, _upperLimit)));
-            SetVolumeRaw((ushort)scaled);
+            if (scaled > 0)
+            {
+                SetVolumeRaw((ushort)scaled);
+            }
         }
 
         /// <summary>
@@ -1295,14 +1299,8 @@ namespace PepperDash.Essentials.Devices.Displays
             //Convert to 8 bit based on Epson model. Different models have different volume ranges but typically 0-20 (21 steps) - see API doc and set via "volumeSteps" config value.
             var scaled = Math.Floor((double)(level * 256 / _volumeSteps));
 
-            //Only send if new value or if muted, this gets reset by the poll function to allow recovery from weird state
-            if (_lastVolumeRaw != scaled || MuteFb)
-            {
-                Debug.Console(1, this, "Setting volume to raw level: {0}", level);
-                MuteFb = false;
-                _lastVolumeRaw = (int)scaled;
-                SendCommand(eCommandType.Volume, string.Format("VOL {0}", scaled), true);
-            }
+            Debug.Console(1, this, "Setting volume to raw level: {0}", level);
+            SendCommand(eCommandType.Volume, string.Format("VOL {0}", scaled), true);
         }
 
         public ushort GetScaledVolumeFb(int level)
@@ -1339,7 +1337,6 @@ namespace PepperDash.Essentials.Devices.Displays
             {
                 SetVolumeRaw(_defaultVolume);
             }
-
         }
 
         /// <summary>
@@ -1354,10 +1351,9 @@ namespace PepperDash.Essentials.Devices.Displays
 
         public void MuteOff()
         {
-            MuteFb = false;
-            if (VolumeFb > 0)
+            if (_savedVolumeForMute > 0)
             {
-                SetVolume((ushort)VolumeFb);
+                SetVolume(_savedVolumeForMute);
             }
             else
             {
@@ -1367,9 +1363,11 @@ namespace PepperDash.Essentials.Devices.Displays
 
         public void MuteOn()
         {
-            MuteFb = true;
+            if (VolumeFb > 0)
+            {
+                _savedVolumeForMute = VolumeFb;
+            }
             SendCommand(eCommandType.Volume, "VOL 0", false);
-            VolumeGet();
         }
 
         /// <summary>

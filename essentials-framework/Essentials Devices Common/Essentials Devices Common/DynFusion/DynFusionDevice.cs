@@ -217,7 +217,7 @@ namespace DynFusion
 
                 //Static Assets
                 FusionSymbol.FusionAssetStateChange += FusionSymbol_FusionAssetStateChange;
-                foreach (var device in DeviceManager.AllDevices)
+                /*foreach (var device in DeviceManager.AllDevices)
                 {
                     try
                     {
@@ -254,7 +254,7 @@ namespace DynFusion
                     {
                         Debug.Console(0, this, "Exception creating static asset for device key {0}: {1}", device.Key, ex.Message);
                     }
-                }
+                }*/
 
                 Debug.Console(0, this, "Generating Fuson RVI");
 				FusionRVI.GenerateFileForAllFusionDevices();

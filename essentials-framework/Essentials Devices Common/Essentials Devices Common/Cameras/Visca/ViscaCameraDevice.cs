@@ -20,7 +20,6 @@ namespace ViscaCameraPlugin
         private byte[] _incomingBuffer = { };
         private bool _queueWaiting = false;
         private bool _commandReady = true;
-        private bool _lastCommandFailed = false;
 		private readonly bool _commsIsSerial;
 		private readonly bool _useHeader;
 		private uint _counter = 0;
@@ -36,7 +35,7 @@ namespace ViscaCameraPlugin
         protected byte _feedbackAddress = 0x90;
 		private const uint AddressMax = 7;
 
-		private long _pollTimeMs = 30000; // 30s
+		private long _pollTimeMs = 60000; // 60s
 		private long _warningTimeoutMs = 18000; // 180s
 		private long _errorTimeoutMs = 300000; // 300s
 
@@ -274,6 +273,8 @@ namespace ViscaCameraPlugin
             FocusInquiry,
             PresetInquiry,
             PresetSave,
+            PtzCommand,
+            AutoFocusCommand,
             NoFeedback
         }
 
@@ -660,7 +661,6 @@ namespace ViscaCameraPlugin
 
         private void commandTimeout(object o)
         {
-            _lastCommandFailed = true;
             _commandReady = true;
             ProcessQueue();
         }
@@ -668,7 +668,6 @@ namespace ViscaCameraPlugin
         protected void readyForNextCommand()
         {
             _commandTimer.Stop(); //No need for timeout on last command
-            _lastCommandFailed = false;
             _commandReady = true;
             ProcessQueue();
         }
@@ -698,13 +697,16 @@ namespace ViscaCameraPlugin
                                 ViscaCameraCommand cmd = _commandQueue.TryToDequeue();
                                 _lastInquiry = cmd.Command;
                                 _commandReady = false;
-                                if (_lastCommandFailed)
+                                switch (_lastInquiry)
                                 {
-                                    _commandTimer.Reset(1000);   //Wait maximum 1000 ms for response before sending next command if last one failed
-                                }
-                                else
-                                {
-                                    _commandTimer.Reset(2000);   //Wait maximum 2000 ms for response before sending next command
+                                    case eViscaCameraCommand.PtzCommand:
+                                    case eViscaCameraCommand.AutoFocusCommand:
+                                        _commandTimer.Reset(100); //Wait maximum 100 ms for response
+                                        break;
+
+                                    default:
+                                        _commandTimer.Reset(1000);   //Wait maximum 1000 ms for response before sending next command
+                                        break;
                                 }
                                 CrestronInvoke.BeginInvoke((obj) =>
                                 {
@@ -855,7 +857,13 @@ namespace ViscaCameraPlugin
                 {
                     AutoTrackingOn = false;
                 }
-                Debug.Console(1, this, "Received command not executable");
+                else if (_lastInquiry == eViscaCameraCommand.PowerInquiry)
+                {
+                    Debug.Console(0, this, "Power inquiry received command not executable, possible camera issue");
+                    IFClear();
+                }
+
+                Debug.Console(0, this, "Received command not executable");
                 _lastInquiry = eViscaCameraCommand.NoFeedback;
                 readyForNextCommand();
                 return;
@@ -1023,6 +1031,11 @@ namespace ViscaCameraPlugin
 			cmd = new byte[] { 0x88, 0x01, 0x00, 0x01, 0xFF };
 			QueueCommand(cmd);
 		}
+
+        private void IFClear()
+        {
+            SendBytes(new byte[] { 0x88, 0x01, 0x00, 0x01, 0xFF });
+        }
 
 		/// <summary>
 		/// Poll 
@@ -1199,32 +1212,32 @@ namespace ViscaCameraPlugin
             {
                 case EDirection.PanLeft:
                     {
-                        QueueCommand(new byte[] { _address, 0x01, 0x06, 0x01, Convert.ToByte(speed), Convert.ToByte(speed), 0x01, 0x03, 0xFF });
+                        QueueCommand(eViscaCameraCommand.PtzCommand, new byte[] { _address, 0x01, 0x06, 0x01, Convert.ToByte(speed), Convert.ToByte(speed), 0x01, 0x03, 0xFF });
                         break;
                     }
                 case EDirection.PanRight:
                     {
-                        QueueCommand(new byte[] { _address, 0x01, 0x06, 0x01, Convert.ToByte(speed), Convert.ToByte(speed), 0x02, 0x03, 0xFF });
+                        QueueCommand(eViscaCameraCommand.PtzCommand, new byte[] { _address, 0x01, 0x06, 0x01, Convert.ToByte(speed), Convert.ToByte(speed), 0x02, 0x03, 0xFF });
                         break;
                     }
                 case EDirection.TiltUp:
                     {
-                        QueueCommand(new byte[] { _address, 0x01, 0x06, 0x01, Convert.ToByte(speed), Convert.ToByte(speed), 0x03, 0x01, 0xFF });
+                        QueueCommand(eViscaCameraCommand.PtzCommand, new byte[] { _address, 0x01, 0x06, 0x01, Convert.ToByte(speed), Convert.ToByte(speed), 0x03, 0x01, 0xFF });
                         break;
                     }
                 case EDirection.TiltDown:
                     {
-                        QueueCommand(new byte[] { _address, 0x01, 0x06, 0x01, Convert.ToByte(speed), Convert.ToByte(speed), 0x03, 0x02, 0xFF });
+                        QueueCommand(eViscaCameraCommand.PtzCommand, new byte[] { _address, 0x01, 0x06, 0x01, Convert.ToByte(speed), Convert.ToByte(speed), 0x03, 0x02, 0xFF });
                         break;
                     }
                 case EDirection.ZoomIn:
                     {
-                        QueueCommand(new byte[] { _address, 0x01, 0x04, 0x07, Convert.ToByte(0x20 + speed), 0xFF });
+                        QueueCommand(eViscaCameraCommand.PtzCommand, new byte[] { _address, 0x01, 0x04, 0x07, Convert.ToByte(0x20 + speed), 0xFF });
                         break;
                     }
                 case EDirection.ZoomOut:
                     {
-                        QueueCommand(new byte[] { _address, 0x01, 0x04, 0x07, Convert.ToByte(0x30 + speed), 0xFF });
+                        QueueCommand(eViscaCameraCommand.PtzCommand, new byte[] { _address, 0x01, 0x04, 0x07, Convert.ToByte(0x30 + speed), 0xFF });
                         break;
                     }
             }
@@ -1244,13 +1257,13 @@ namespace ViscaCameraPlugin
                 case EDirection.TiltUp:
                 case EDirection.TiltDown:
                     {
-                        QueueCommand(new byte[] { _address, 0x01, 0x06, 0x01, 0x05, 0x05, 0x03, 0x03, 0xFF });
+                        QueueCommand(eViscaCameraCommand.PtzCommand, new byte[] { _address, 0x01, 0x06, 0x01, 0x05, 0x05, 0x03, 0x03, 0xFF });
                         break;
                     }
                 case EDirection.ZoomIn:
                 case EDirection.ZoomOut:
                     {
-                        QueueCommand(new byte[] { _address, 0x01, 0x04, 0x07, 0x00, 0xFF });
+                        QueueCommand(eViscaCameraCommand.PtzCommand, new byte[] { _address, 0x01, 0x04, 0x07, 0x00, 0xFF });
                         break;
                     }
             }
@@ -1265,7 +1278,7 @@ namespace ViscaCameraPlugin
             var cmd = state
                 ? new byte[] { _address, 0x01, 0x04, 0x38, 0x03, 0xFF }
                 : new byte[] { _address, 0x01, 0x04, 0x38, 0x02, 0xFF };
-            QueueCommand(cmd);
+            QueueCommand(eViscaCameraCommand.AutoFocusCommand, cmd);
             PollFocus();
 		}
 

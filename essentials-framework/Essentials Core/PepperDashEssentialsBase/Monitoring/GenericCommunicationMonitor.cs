@@ -206,7 +206,7 @@ namespace PepperDash.Essentials.Core
             }
 		}
 
-        void  Client_TextReceived(object sender, GenericCommMethodReceiveTextArgs e)
+        void Client_TextReceived(object sender, GenericCommMethodReceiveTextArgs e)
         {
             DataReceived();
         }
