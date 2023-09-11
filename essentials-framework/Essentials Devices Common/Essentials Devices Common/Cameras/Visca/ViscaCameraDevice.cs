@@ -22,6 +22,7 @@ namespace ViscaCameraPlugin
         private bool _commandReady = true;
 		private readonly bool _commsIsSerial;
 		private readonly bool _useHeader;
+        private bool _offlineIFClearSent;
 		private uint _counter = 0;
         protected bool _autoTrackingCapable = false;
         protected uint _lastCalledPreset = 0;
@@ -661,8 +662,9 @@ namespace ViscaCameraPlugin
 
         private void commandTimeout(object o)
         {
-            if (_lastInquiry == eViscaCameraCommand.PowerInquiry)
+            if (_lastInquiry == eViscaCameraCommand.PowerInquiry && !_offlineIFClearSent)
             {
+                _offlineIFClearSent = true;
                 Debug.ConsoleWithLog(0, this, "Power inquiry never received response, possible camera issue. Sending IF Clear.");
                 IFClear();
             }
@@ -801,6 +803,10 @@ namespace ViscaCameraPlugin
             try
             {
                 _feedbackMutex.WaitForMutex();
+                if (_offlineIFClearSent)
+                {
+                    _offlineIFClearSent = false;
+                }
                 // Append the incoming bytes to whatever is in the buffer
                 var newBytes = new byte[_incomingBuffer.Length + e.Bytes.Length];
                 _incomingBuffer.CopyTo(newBytes, 0);
