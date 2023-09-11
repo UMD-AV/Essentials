@@ -661,6 +661,11 @@ namespace ViscaCameraPlugin
 
         private void commandTimeout(object o)
         {
+            if (_lastInquiry == eViscaCameraCommand.PowerInquiry)
+            {
+                Debug.ConsoleWithLog(0, this, "Power inquiry never received response, possible camera issue. Sending IF Clear.");
+                IFClear();
+            }
             _commandReady = true;
             ProcessQueue();
         }
@@ -705,7 +710,7 @@ namespace ViscaCameraPlugin
                                         break;
 
                                     default:
-                                        _commandTimer.Reset(1000);   //Wait maximum 1000 ms for response before sending next command
+                                        _commandTimer.Reset(2000);   //Wait maximum 2000 ms for response before sending next command
                                         break;
                                 }
                                 CrestronInvoke.BeginInvoke((obj) =>
@@ -859,7 +864,7 @@ namespace ViscaCameraPlugin
                 }
                 else if (_lastInquiry == eViscaCameraCommand.PowerInquiry)
                 {
-                    Debug.Console(0, this, "Power inquiry received command not executable, possible camera issue");
+                    Debug.ConsoleWithLog(0, this, "Power inquiry received command not executable, possible camera issue. Sending IF Clear.");
                     IFClear();
                 }
 
