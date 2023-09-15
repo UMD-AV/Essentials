@@ -51,7 +51,8 @@ namespace PepperDash.Essentials.Devices.Displays
         ushort _offRetryCount;
         ushort _RequestedPowerState; // 0:none 1:on 2:off
         ushort _RequestedInputState; // 0:none 1-4:inputs 1-4 
-        ushort _RequestedVideoMuteState; // 0:none/off 1:on
+        ushort _RequestedVideoMuteState; // 0:none 1:on 2:off
+        ushort? _RequestedVolume;
         string _errorFeedback;
         public string ErrorFb
         {
@@ -100,7 +101,6 @@ namespace PepperDash.Essentials.Devices.Displays
                 if(value > 0)
                 {
                     MuteFb = false;
-                    _savedVolumeForMute = value;
                 }
                 else
                 {
@@ -172,6 +172,7 @@ namespace PepperDash.Essentials.Devices.Displays
             CooldownTimer = new CTimer(CooldownCallback, Timeout.Infinite);
 
             _defaultVolume = (ushort)(config.defaultVolume == null ? 10 : config.defaultVolume);
+            _RequestedVolume = null;
             _volumeSteps = (ushort)(config.volumeSteps == null ? 20 : config.volumeSteps);
             _upperLimit = (ushort)(config.volumeUpperLimit == null ? 255 : config.volumeUpperLimit);
             _lowerLimit = (ushort)(config.volumeLowerLimit == null ? 0 : config.volumeLowerLimit);
@@ -461,12 +462,16 @@ namespace PepperDash.Essentials.Devices.Displays
                             {
                                 _CurrentInputIndex = index + 1; //Offset from 0 based index
                             }
-
+                            if (_CurrentInputIndex == _RequestedInputState)
+                            {
+                                _RequestedInputState = 0;
+                            }
                             if (newInput != null && newInput != _CurrentInputPort)
                             {
                                 _CurrentInputPort = newInput;
                                 CurrentInputFeedback.FireUpdate();
                                 OnSwitchChange(new RoutingNumericEventArgs(null, _CurrentInputPort, eRoutingSignalType.AudioVideo));
+                                VolumeGet();
                             }
                             Input1Feedback.FireUpdate();
                             Input2Feedback.FireUpdate();
@@ -490,21 +495,35 @@ namespace PepperDash.Essentials.Devices.Displays
                     }
                     else if (data[0].EndsWith("MUTE"))
                     {
+                        
                         if (data[1] == "ON")
                         {
+                            _RequestedVideoMuteState = 0;
                             _VideoMuteIsOn = true;
-
+                            VideoMuteIsOnFeedback.FireUpdate();
                         }
                         else if (data[1] == "OFF")
                         {
+                            _RequestedVideoMuteState = 0;
                             _VideoMuteIsOn = false;
+                            VideoMuteIsOnFeedback.FireUpdate();
+                            ResyncPowerOnState();
                         }
-                        VideoMuteIsOnFeedback.FireUpdate();
                     }
                     else if (data[0].EndsWith("VOL"))
                     {
                         ushort newVol = ushort.Parse(data[1]);
+                        if (newVol > 0)
+                        {
+                            _savedVolumeForMute = newVol;
+                        }
                         ushort scaledVol = GetScaledVolumeFb(newVol);
+
+                        Debug.Console(0, this, "Requested volume: {0} feedback volume {1}", _RequestedVolume, newVol);
+                        if (_RequestedVolume == newVol)
+                        {                            
+                            _RequestedVolume = null;
+                        }
                         VolumeFb = scaledVol;
                     }
                     else if (data[0].EndsWith("ERR"))
@@ -583,17 +602,29 @@ namespace PepperDash.Essentials.Devices.Displays
             {
                 if (_RequestedVideoMuteState == 1)
                 {
-                    _RequestedVideoMuteState = 0;
                     VideoMuteOnGo();
                 }
-                if (_RequestedInputState != 0)
+                else
                 {
-                    if (_RequestedInputState != 0)
-                    {
-                        InputSelectGo(_RequestedInputState);
-                    }
+                    ResyncPowerOnState();
                 }
             } 
+        }
+
+        private void ResyncPowerOnState()
+        {
+            if (_RequestedVideoMuteState == 2)
+            {
+                VideoMuteOffGo();
+            }
+            if (_RequestedInputState != 0)
+            {
+                InputSelectGo(_RequestedInputState);
+            }
+            if (_RequestedVolume != null)
+            {
+                SetVolumeRaw((ushort)_RequestedVolume);
+            }
         }
 
         /// <summary>
@@ -769,6 +800,14 @@ namespace PepperDash.Essentials.Devices.Displays
                 while (_IsWarmingUp)
                 {
                     SendCommand(eCommandType.PowerPoll, "PWR?", true);
+                    if (_RequestedVideoMuteState == 1)
+                    {
+                        VideoMuteOnGo();
+                    }
+                    else
+                    {
+                        ResyncPowerOnState();
+                    }
                     Thread.Sleep(2000);
                 }
             }
@@ -788,17 +827,16 @@ namespace PepperDash.Essentials.Devices.Displays
             InputGet();
             VolumeGet();
 
+            ProcessPower();
+
             if (_RequestedVideoMuteState == 1)
             {
-                _RequestedVideoMuteState = 0;
                 VideoMuteOnGo();
             }
-            if (_RequestedInputState != 0)
+            else
             {
-                InputSelectGo(_RequestedInputState);
+                ResyncPowerOnState();
             }
-
-            ProcessPower();
         }
 
         private void CooldownCallback(object o)
@@ -871,6 +909,7 @@ namespace PepperDash.Essentials.Devices.Displays
             _PowerMutex.ReleaseMutex();
             _RequestedInputState = 0;
             _RequestedVideoMuteState = 0;
+            _RequestedVolume = null;
             ProcessPower();
 		}
 
@@ -920,14 +959,13 @@ namespace PepperDash.Essentials.Devices.Displays
 
         public void VideoMuteOn()
         {
-            if (_PowerIsOn && !_IsWarmingUp)
-            {
-                _RequestedVideoMuteState = 0;
-                VideoMuteOnGo();
-            }
-            else if(_RequestedPowerState == 1)
+            if (_RequestedPowerState == 1 || _PowerIsOn)
             {
                 _RequestedVideoMuteState = 1;
+                if (!_IsWarmingUp)
+                {
+                    VideoMuteOnGo();
+                }
             }
         }
 
@@ -943,7 +981,7 @@ namespace PepperDash.Essentials.Devices.Displays
 
         public void VideoMuteOff()
         {
-            _RequestedVideoMuteState = 0;
+            _RequestedVideoMuteState = 2;
             if (_PowerIsOn && !_IsWarmingUp)
             {
                 VideoMuteOffGo();
@@ -1017,58 +1055,53 @@ namespace PepperDash.Essentials.Devices.Displays
                     InputVgaGo();
                     break;
             }
-            _RequestedInputState = 0;
         }
 
 		public void InputHdmi1()
 		{
-            if (_PowerIsOn && !_IsWarmingUp)
-            {
-                _RequestedInputState = 0;
-                InputHdmi1Go();
-            }
-            else if (_RequestedPowerState == 1)
+            if (_RequestedPowerState == 1 || _PowerIsOn)
             {
                 RequestInput(1);
+                if (!_IsWarmingUp)
+                {
+                    InputHdmi1Go();
+                }
             }
 		}
 
         public void InputHdmi2()
         {
-            if (_PowerIsOn && !_IsWarmingUp)
-            {
-                _RequestedInputState = 0;
-                InputHdmi2Go();
-            }
-            else if (_RequestedPowerState == 1)
+            if (_RequestedPowerState == 1 || _PowerIsOn)
             {
                 RequestInput(2);
+                if (!_IsWarmingUp)
+                {
+                    InputHdmi2Go();
+                }
             }
         }
 
         public void InputNetwork()
         {
-            if (_PowerIsOn && !_IsWarmingUp)
-            {
-                _RequestedInputState = 0;
-                InputNetworkGo();
-            }
-            else if (_RequestedPowerState == 1)
+            if (_RequestedPowerState == 1 || _PowerIsOn)
             {
                 RequestInput(3);
+                 if (!_IsWarmingUp)
+                {
+                    InputNetworkGo();
+                }   
             }
         }
 
         public void InputVga()
         {
-            if (_PowerIsOn && !_IsWarmingUp)
-            {
-                _RequestedInputState = 0;
-                InputVgaGo();
-            }
-            else if (_RequestedPowerState == 1)
+            if (_RequestedPowerState == 1 || _PowerIsOn)
             {
                 RequestInput(4);
+                if (!_IsWarmingUp)
+                {
+                    InputVgaGo();
+                }
             }
         }
 
@@ -1077,31 +1110,27 @@ namespace PepperDash.Essentials.Devices.Displays
             _RequestedInputState = input;
             CrestronInvoke.BeginInvoke(o =>
             {
-                while (_IsWarmingUp && _RequestedInputState == input)
+                switch (_RequestedInputState)
                 {
-                    switch (_RequestedInputState)
-                    {
-                        case 1:
-                            InputHdmi1Go();
-                            break;
-                        case 2:
-                            InputHdmi2Go();
-                            break;
-                        case 3:
-                            InputNetworkGo();
-                            break;
-                        case 4:
-                            InputVgaGo();
-                            break;
-                    }
-                    Thread.Sleep(2000);
+                    case 1:
+                        InputHdmi1Go();
+                        break;
+                    case 2:
+                        InputHdmi2Go();
+                        break;
+                    case 3:
+                        InputNetworkGo();
+                        break;
+                    case 4:
+                        InputVgaGo();
+                        break;
                 }
             });
         }
 
         private void InputHdmi1Go()
         {
-            if (_CurrentInputIndex != 1)
+            if (_CurrentInputIndex != 1 && _RequestedVideoMuteState != 1 && !_VideoMuteIsOn)
             {
                 _CurrentInputIndex = 0;
                 SendCommand(eCommandType.Input, "SOURCE 30", false);
@@ -1112,7 +1141,7 @@ namespace PepperDash.Essentials.Devices.Displays
 
         public void InputHdmi2Go()
         {
-            if (_CurrentInputIndex != 2)
+            if (_CurrentInputIndex != 2 && _RequestedVideoMuteState != 1 && !_VideoMuteIsOn)
             {
                 _CurrentInputIndex = 0;
                 SendCommand(eCommandType.Input, "SOURCE A0", false);
@@ -1123,7 +1152,7 @@ namespace PepperDash.Essentials.Devices.Displays
 
 		public void InputNetworkGo()
 		{
-            if (_CurrentInputIndex != 3)
+            if (_CurrentInputIndex != 3 && _RequestedVideoMuteState != 1 && !_VideoMuteIsOn)
             {
                 _CurrentInputIndex = 0;
                 SendCommand(eCommandType.Input, "SOURCE 80", false);
@@ -1134,7 +1163,7 @@ namespace PepperDash.Essentials.Devices.Displays
 
         public void InputVgaGo()
         {
-            if (_CurrentInputIndex != 4)
+            if (_CurrentInputIndex != 4 && _RequestedVideoMuteState != 1 && !_VideoMuteIsOn)
             {
                 _CurrentInputIndex = 0;
                 SendCommand(eCommandType.Input, "SOURCE 11", false);
@@ -1294,13 +1323,29 @@ namespace PepperDash.Essentials.Devices.Displays
         /// Scales the raw level to the range of the display and sends the command
         /// </summary>
         /// <param name="level"></param>
-        private void SetVolumeRaw(ushort level)
+        private void SetVolumeScaled(ushort level)
         {
             //Convert to 8 bit based on Epson model. Different models have different volume ranges but typically 0-20 (21 steps) - see API doc and set via "volumeSteps" config value.
             var scaled = Math.Floor((double)(level * 256 / _volumeSteps));
+            SetVolumeRaw((ushort)scaled);
+        }
 
-            Debug.Console(1, this, "Setting volume to raw level: {0}", level);
-            SendCommand(eCommandType.Volume, string.Format("VOL {0}", scaled), true);
+        /// <summary>
+        /// Sends a raw volume command to the display
+        /// </summary>
+        /// <param name="level"></param>
+        private void SetVolumeRaw(ushort level)
+        {
+            if (_RequestedPowerState == 1 || _PowerIsOn)
+            {
+                _RequestedVolume = level;
+                if (_RequestedVideoMuteState != 1 && !_VideoMuteIsOn)
+                {
+                    Debug.Console(1, this, "Setting volume to raw level: {0}", level);
+                    SendCommand(eCommandType.Volume, string.Format("VOL {0}", level), true);
+                    VolumeGet();
+                }
+            }
         }
 
         public ushort GetScaledVolumeFb(int level)
@@ -1321,22 +1366,7 @@ namespace PepperDash.Essentials.Devices.Displays
 
         public void DefaultVolume()
         {
-            Thread.Sleep(1000);
-            if (_IsWarmingUp)
-            {
-                CrestronInvoke.BeginInvoke(o =>
-                {
-                    while (_IsWarmingUp)
-                    {
-                        Thread.Sleep(1000);
-                    }
-                    SetVolumeRaw(_defaultVolume);
-                });
-            }
-            else if(_PowerIsOn)
-            {
-                SetVolumeRaw(_defaultVolume);
-            }
+            SetVolumeScaled(_defaultVolume);
         }
 
         /// <summary>
@@ -1351,23 +1381,26 @@ namespace PepperDash.Essentials.Devices.Displays
 
         public void MuteOff()
         {
-            if (_savedVolumeForMute > 0)
+            if (_RequestedVideoMuteState != 1 && !_VideoMuteIsOn)
             {
-                SetVolume(_savedVolumeForMute);
-            }
-            else
-            {
-                DefaultVolume();
+                if (_savedVolumeForMute > 0)
+                {
+                    SetVolumeRaw(_savedVolumeForMute);
+                }
+                else
+                {
+                    DefaultVolume();
+                }
             }
         }
 
         public void MuteOn()
         {
-            if (VolumeFb > 0)
+            if (_RequestedVideoMuteState != 1 && !_VideoMuteIsOn)
             {
-                _savedVolumeForMute = VolumeFb;
+                _RequestedVolume = null;
+                SendCommand(eCommandType.Volume, "VOL 0", false);
             }
-            SendCommand(eCommandType.Volume, "VOL 0", false);
         }
 
         /// <summary>
@@ -1411,8 +1444,9 @@ namespace PepperDash.Essentials.Devices.Displays
             try
             {
                 _rampLock.Enter();
-                while (_rampDirection == eRampDirection.Down)
-                {
+                _RequestedVolume = null;
+                while (_rampDirection == eRampDirection.Down && _RequestedVideoMuteState != 1 && !_VideoMuteIsOn)
+                {                    
                     SendCommand(eCommandType.Volume, "VOL DEC", false);
                     VolumeGet();
                     Thread.Sleep(200);
@@ -1443,8 +1477,9 @@ namespace PepperDash.Essentials.Devices.Displays
             try
             {
                 _rampLock.Enter();
-                while (_rampDirection == eRampDirection.Up)
-                {
+                _RequestedVolume = null;
+                while (_rampDirection == eRampDirection.Up && _RequestedVideoMuteState != 1 && !_VideoMuteIsOn)
+                {                    
                     SendCommand(eCommandType.Volume, "VOL INC", false);
                     VolumeGet();
                     Thread.Sleep(200);

@@ -24,6 +24,7 @@ namespace PepperDash.Essentials.Core
         Action<int> SetAction;
         Func<int> GetFunc;
         CTimer Timer;
+        CMutex TimerMutex;
 
         /// <summary>
         /// 
@@ -44,6 +45,8 @@ namespace PepperDash.Essentials.Core
             MinValue = minValue;
             RepeatDelay = repeatDelay;
             RepeatTime = repeatTime;
+
+            TimerMutex = new CMutex();
         }
 
         /// <summary>
@@ -51,7 +54,15 @@ namespace PepperDash.Essentials.Core
         /// </summary>
         public void StartUp()
         {
-            if (Timer != null) return;
+            TimerMutex.WaitForMutex();
+            try
+            {
+                if (Timer != null) return;
+            }
+            finally
+            {
+                TimerMutex.ReleaseMutex();
+            }
             Go(ChangeAmount);
         }
 
@@ -60,7 +71,15 @@ namespace PepperDash.Essentials.Core
         /// </summary>
         public void StartDown()
         {
-            if (Timer != null) return;
+            TimerMutex.WaitForMutex();
+            try
+            {
+                if (Timer != null) return;
+            }
+            finally
+            {
+                TimerMutex.ReleaseMutex();
+            }
             Go(-ChangeAmount);
         }
 
@@ -69,9 +88,17 @@ namespace PepperDash.Essentials.Core
         /// </summary>
         public void Stop()
         {
-            if (Timer != null)
-                Timer.Stop();
-            Timer = null;
+            TimerMutex.WaitForMutex();
+            try
+            {
+                if (Timer != null)
+                    Timer.Stop();
+                Timer = null;
+            }
+            finally
+            {
+                TimerMutex.ReleaseMutex();
+            }
         }
 
         /// <summary>
@@ -87,9 +114,23 @@ namespace PepperDash.Essentials.Core
             SetAction(newLevel);
 
             if (atLimit) // Don't go past end
+            {
                 Stop();
-            else if (Timer == null) // Only enter the timer if it's not already running
-                Timer = new CTimer(o => { Go(change); }, null, RepeatDelay, RepeatTime);
+                return;
+            }
+            
+            TimerMutex.WaitForMutex();
+            try
+            {
+                if (Timer == null) // Only enter the timer if it's not already running
+                {
+                    Timer = new CTimer(o => { Go(change); }, null, RepeatDelay, RepeatTime);
+                }
+            }
+            finally
+            {
+                TimerMutex.ReleaseMutex();
+            }
         }
 
         /// <summary>

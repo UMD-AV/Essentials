@@ -47,7 +47,7 @@ namespace PepperDash.Essentials.Devices.Displays
         private bool _isPoweringOnIgnorePowerFb;
         private bool _isWarmingUp;
         private bool _lastCommandSentWasVolume;
-        private int _lastVolumeSent;
+        private int _lastVolumeSent; //not scaled, should be in range of 0-100 for samsung
         private bool _volumeWaitingToSend;
         private CCriticalSection _parseLock = new CCriticalSection();
         private CTimer _pollRing;
@@ -547,25 +547,33 @@ namespace PepperDash.Essentials.Devices.Displays
         /// <param name="level"></param>
         public void SetVolume(ushort level)
         {
-            if (_isWarmingUp)
+            ushort scaled;
+            if (!ScaleVolume)
             {
-                _volumeWaitingToSend = true;
-                _lastVolumeSent = level;
+                scaled = (ushort)Math.Round(NumericalHelpers.Scale(level, 0, 65535, 0, 100));
             }
             else
             {
-                int scaled;
-                _lastVolumeSent = level;
-                if (!ScaleVolume)
-                {
-                    scaled = (int)Math.Round(NumericalHelpers.Scale(level, 0, 65535, 0, 100));
-                }
-                else
-                {
-                    scaled = (int)Math.Round(NumericalHelpers.Scale(level, 0, 65535, _lowerLimit, _upperLimit));
-                }
-                // The inputs to Scale ensure that byte won't overflow
-                SendBytes(new byte[] { Header, VolumeLevelControlCmd, 0x00, 0x01, Convert.ToByte(scaled), 0x00 });
+                scaled = (ushort)Math.Round(NumericalHelpers.Scale(level, 0, 65535, _lowerLimit, _upperLimit));
+            }
+            SetVolumeRaw(scaled);
+        }
+
+        public void SetVolumeRaw(ushort level)
+        {
+            if (level > _upperLimit || level < _lowerLimit)
+            {
+                return;
+            }
+
+            _lastVolumeSent = level;
+            if (_isWarmingUp)
+            {
+                _volumeWaitingToSend = true;
+            }
+            else
+            {
+                SendBytes(new byte[] { Header, VolumeLevelControlCmd, 0x00, 0x01, Convert.ToByte(level), 0x00 });
                 if (_isMuted)
                 {
                     MuteOff();
@@ -575,16 +583,7 @@ namespace PepperDash.Essentials.Devices.Displays
 
         public void DefaultVolume()
         {
-            ushort scaled;
-            if (!ScaleVolume)
-            {
-                scaled = (ushort)NumericalHelpers.Scale(_defaultVolume, 0, 100, 0, 65535);
-            }
-            else
-            {
-                scaled = (ushort)NumericalHelpers.Scale(_defaultVolume, _lowerLimit, _upperLimit, 0, 65535);
-            }
-            SetVolume(scaled);
+            SetVolumeRaw(_defaultVolume);
         }
 
         /// <summary>
@@ -983,17 +982,17 @@ namespace PepperDash.Essentials.Devices.Displays
 
             if (!ScaleVolume)
             {
-                _volumeIncrementer = new ActionIncrementer(655, 0, 65535, 800, 80,
-                    v => SetVolume((ushort) v),
+                Debug.Console(0, this, "Not using scaled volume");
+                _volumeIncrementer = new ActionIncrementer(1, 0, 65535, 800, 80,
+                    v => SetVolumeRaw((ushort) v),
                     () => _lastVolumeSent);
             }
             else
             {
-                var scaleUpper = NumericalHelpers.Scale(_upperLimit, 0, 100, 0, 65535);
-                var scaleLower = NumericalHelpers.Scale(_lowerLimit, 0, 100, 0, 65535);
+                Debug.Console(0, this, "Using scaled volume with min {0} and max {1}", _lowerLimit, _upperLimit);
 
-                _volumeIncrementer = new ActionIncrementer(655, (int) scaleLower, (int) scaleUpper, 800, 80,
-                    v => SetVolume((ushort) v),
+                _volumeIncrementer = new ActionIncrementer(1, _lowerLimit, _upperLimit, 800, 80,
+                    v => SetVolumeRaw((ushort) v),
                     () => _lastVolumeSent);
             }
 
@@ -1099,6 +1098,12 @@ namespace PepperDash.Essentials.Devices.Displays
             }
             try
             {
+                if (message[4] == 0x4E)
+                {
+                    Debug.Console(0, this, "Received nack for command {0} error {1}", message[5], message [6]);
+                    return;
+                }
+
                 switch (command)
                 {
                     // General status
@@ -1302,7 +1307,7 @@ namespace PepperDash.Essentials.Devices.Displays
             }
             if (!_volumeIsRamping)
             {
-                _lastVolumeSent = newVol;
+                _lastVolumeSent = b;
             }
 
             if (newVol == _volumeLevelForSig)
@@ -1465,7 +1470,7 @@ namespace PepperDash.Essentials.Devices.Displays
                 }
                 if (_volumeWaitingToSend == true)
                 {
-                    SetVolume((ushort)_lastVolumeSent);
+                    SetVolumeRaw((ushort)_lastVolumeSent);
                     _volumeWaitingToSend = false;
                 }
                 if(_RequestedInputState != 0)
