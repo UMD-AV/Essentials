@@ -192,16 +192,16 @@ namespace DynFusion
 
                 foreach (Event e in _scheduleResponse.Events)
                 {
-                    if (DateTime.Now >= e.dtStart && DateTime.Now <= e.dtEnd)
+                    //Check for current meeting
+                    //Current meeting is valid if meeting starts in 20 minutes or is currently active
+                    if (DateTime.Now >= (e.dtStart - TimeSpan.FromMinutes(20)) && DateTime.Now <= e.dtEnd && (_currentMeetingTemp == null || _currentMeetingTemp.dtStart > e.dtStart))
                     {
                         _currentMeetingTemp = e;
                     }
-                    else if (DateTime.Now < e.dtStart)
+                    //If not the current meeting, make the next meeting if it occurs in the future and isn't later than the current "next meeting"
+                    else if (DateTime.Now < e.dtStart && (_nextMeetingTemp == null || _nextMeetingTemp.dtStart > e.dtStart))
                     {
-                        if (_nextMeetingTemp == null || _nextMeetingTemp.dtStart > e.dtStart)
-                        {
-                            _nextMeetingTemp = e;
-                        }
+                        _nextMeetingTemp = e;
                     }
                 }
 
@@ -260,7 +260,6 @@ namespace DynFusion
                         string RFCTime = String.Format("{0:s}", DateTime.Today);
 
                         fusionScheduleRequest = String.Format("<RequestSchedule><RequestID>{0}</RequestID><RoomID>{1}</RoomID><Start>{2}</Start><HourSpan>24</HourSpan></RequestSchedule>", requestType, roomID, RFCTime.ToString());
-
                         Debug.Console(1, this, String.Format("Get full room schedule request: {0}", fusionScheduleRequest));
                         _DynFusion.FusionSymbol.ExtenderRoomViewSchedulingDataReservedSigs.ScheduleQuery.StringValue = fusionScheduleRequest;
                     }
@@ -408,14 +407,22 @@ namespace DynFusion
 
 					if (scheduleXML != null)
 					{
-
 						Debug.Console(1, this, string.Format("Escaped XML {0}", scheduleXML.ToString()));
 
 						var response = scheduleXML["ScheduleResponse"];
-						var responseEvent = response.SelectSingleNode("Event");
-
 						if (response != null)
 						{
+                            var errors = response["Errors"];
+                            if (errors != null)
+                            {
+                                var error = errors["Error"];
+                                if (error != null)
+                                {
+                                    Debug.Console(0, this, "Schedule request error: {0}", error.InnerText);
+                                    return;
+                                }
+                            }
+
 							if (response["RequestID"].InnerText == "RVRequest")
 							{
 								var action = response["Action"];
@@ -483,6 +490,7 @@ namespace DynFusion
 							#region RoomListScheduleRequest
 							else if (response["RequestID"].InnerText == "AvailableRoomSchedule")
 							{
+                                var responseEvent = response.SelectSingleNode("Event");
 								if (responseEvent != null)
 								{
 									RoomAvailabilityScheduleResponse = null;

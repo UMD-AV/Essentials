@@ -519,7 +519,7 @@ namespace PepperDash.Essentials.Devices.Displays
                         }
                         ushort scaledVol = GetScaledVolumeFb(newVol);
 
-                        Debug.Console(0, this, "Requested volume: {0} feedback volume {1}", _RequestedVolume, newVol);
+                        Debug.Console(1, this, "Requested volume: {0} feedback volume {1}", _RequestedVolume, newVol);
                         if (_RequestedVolume == newVol)
                         {                            
                             _RequestedVolume = null;

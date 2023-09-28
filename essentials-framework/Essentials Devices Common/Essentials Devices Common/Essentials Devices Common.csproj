@@ -148,6 +148,7 @@
     <Compile Include="Display\LgDisplay\LgDisplayDevice.cs" />
     <Compile Include="Display\LgDisplay\LgDisplayPropertiesConfig.cs" />
     <Compile Include="Display\PanasonicDisplay.cs" />
+    <Compile Include="DocumentCameras\Lumens.cs" />
     <Compile Include="DSP\ExtronDmpDsp\ExtronDmp.cs" />
     <Compile Include="DSP\ExtronDmpDsp\ExtronDmpConfig.cs" />
     <Compile Include="DSP\ExtronDmpDsp\ExtronDmpDialer.cs" />
