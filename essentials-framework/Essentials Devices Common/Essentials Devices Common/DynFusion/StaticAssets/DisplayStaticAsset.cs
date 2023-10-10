@@ -34,16 +34,8 @@ namespace DynFusion.Assets
                 _asset.ParamModel.Value = "Projector";
             }
 
-            var commMonitor = _device as ICommunicationMonitor;
-            if (commMonitor != null)
-            {
-                _asset.Connected.AddSigToRVIFile = true;
-                commMonitor.CommunicationMonitor.IsOnlineFeedback.LinkInputSig(_asset.Connected.InputSig);
-            }
-            else
-            {
-                _asset.Connected.AddSigToRVIFile = false;
-            }
+            _asset.Connected.AddSigToRVIFile = true;
+            _asset.Connected.InputSig.BoolValue = true;
 
             var errorDevice = _device as IHasErrorString;
             if (errorDevice != null)

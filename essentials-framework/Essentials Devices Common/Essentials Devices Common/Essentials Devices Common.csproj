@@ -203,6 +203,7 @@
     <Compile Include="Microphones\ShureUlxd.cs" />
     <Compile Include="Microphones\ShureSbc.cs" />
     <Compile Include="Microphones\ShureMxa.cs" />
+    <Compile Include="Scheduling\CollegeNet.cs" />
     <Compile Include="SetTopBox\ContemporaryResearch.cs" />
     <Compile Include="VideoCodec\ConvertiblePreset.cs" />
     <Compile Include="Codec\IHasCallHold.cs" />

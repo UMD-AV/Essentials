@@ -700,10 +700,10 @@ namespace DynFusion
                         }
                         for (ushort i = meetingCount; i < 20; i++)
                         {
-                            trilist.StringInput[joinMap.MeetingSubject.JoinNumber + meetingCount].StringValue = "";
-                            trilist.StringInput[joinMap.MeetingOrganizer.JoinNumber + meetingCount].StringValue = "";
-                            trilist.StringInput[joinMap.MeetingTime.JoinNumber + meetingCount].StringValue = "";
-                            trilist.BooleanInput[joinMap.MeetingInProgress.JoinNumber + meetingCount].BoolValue = false;
+                            trilist.StringInput[joinMap.MeetingSubject.JoinNumber + i].StringValue = "";
+                            trilist.StringInput[joinMap.MeetingOrganizer.JoinNumber + i].StringValue = "";
+                            trilist.StringInput[joinMap.MeetingTime.JoinNumber + i].StringValue = "";
+                            trilist.BooleanInput[joinMap.MeetingInProgress.JoinNumber + i].BoolValue = false;
                         }
 					}
 					catch (Exception ex)

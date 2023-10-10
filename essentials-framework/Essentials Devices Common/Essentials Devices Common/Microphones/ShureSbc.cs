@@ -23,6 +23,7 @@ namespace PepperDash.Essentials.Devices.Common.ShureSbc
         private readonly GenericQueue _commsQueue;
         public int NumberOfDevicesExpected { get; private set; }
         public ShureSbcBattery[] Batteries;
+        private CTimer batteryCheckTimer;
 
         /// <summary>
         /// Reports socket status feedback through the bridge
@@ -143,8 +144,34 @@ namespace PepperDash.Essentials.Devices.Common.ShureSbc
         {                      
             _comms.Connect();
             _commsMonitor.Start();
+            batteryCheckTimer = new CTimer(batteryCheckTimerCallback, Crestron.SimplSharp.Timeout.Infinite);
+            armBatteryCheckTimer();
 
             return base.CustomActivate();
+        }
+
+        private void armBatteryCheckTimer()
+        {
+            DateTime now = DateTime.Now;
+            DateTime twoAM = DateTime.Today.AddHours(2);
+
+            //runs twice for dst fallback, doesn't matter much
+            if (now >= twoAM)
+            {
+                twoAM = twoAM.AddDays(1);
+            }
+
+            int timeUntilTwoAM = (int)(twoAM - now).TotalMilliseconds;
+            batteryCheckTimer.Reset(timeUntilTwoAM);
+        }
+
+        private void batteryCheckTimerCallback(object o)
+        {
+            armBatteryCheckTimer();
+            foreach (ShureSbcBattery b in Batteries)
+            {
+                b.BatteryMissing = !b.BatteryPresent && b.BatteryEnabled;
+            }
         }
 
         // socket connection change event handler
@@ -442,6 +469,7 @@ namespace PepperDash.Essentials.Devices.Common.ShureSbc
             {
                 Batteries[i].BatteryEnabledFeedback.FireUpdate();
                 Batteries[i].BatteryPresentFeedback.FireUpdate();
+                Batteries[i].BatteryMissingFeedback.FireUpdate();
                 Batteries[i].PercentChargeFeedback.FireUpdate();
                 Batteries[i].PercentHealthFeedback.FireUpdate();
                 Batteries[i].TemperatureFFeedback.FireUpdate();
@@ -497,6 +525,23 @@ namespace PepperDash.Essentials.Devices.Common.ShureSbc
         /// Battery present feedback
         /// </summary>
         public BoolFeedback BatteryPresentFeedback { get; private set; }
+        #endregion
+
+        #region Battery Missing
+        private bool _batteryMissing;
+        public bool BatteryMissing
+        {
+            get { return _batteryMissing; }
+            set
+            {
+                _batteryMissing = value;
+                BatteryMissingFeedback.FireUpdate();
+            }
+        }
+        /// <summary>
+        /// Battery missing feedback
+        /// </summary>
+        public BoolFeedback BatteryMissingFeedback { get; private set; }
         #endregion
 
         #region Percent Charge (BATT_CHARGE)
@@ -606,6 +651,7 @@ namespace PepperDash.Essentials.Devices.Common.ShureSbc
         {
             BatteryEnabledFeedback = new BoolFeedback(() => BatteryEnabled);
             BatteryPresentFeedback = new BoolFeedback(() => BatteryPresent);
+            BatteryMissingFeedback = new BoolFeedback(() => BatteryMissing);
             PercentChargeFeedback = new IntFeedback(() => PercentCharge);
             PercentHealthFeedback = new IntFeedback(() => PercentHealth);
             TemperatureFFeedback = new IntFeedback(() => TemperatureF);

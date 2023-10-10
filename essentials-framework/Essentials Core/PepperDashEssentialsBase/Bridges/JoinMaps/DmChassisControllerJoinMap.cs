@@ -101,7 +101,7 @@ namespace PepperDash.Essentials.Core.Bridges
             new JoinMetadata { Description = "DM Chassis Output Name", JoinCapabilities = eJoinCapabilities.ToSIMPL, JoinType = eJoinType.Serial });
 
         [JoinName("InputVideoNames")] public JoinDataComplete InputVideoNames =
-            new JoinDataComplete(new JoinData {JoinNumber = 501, JoinSpan = 200},
+            new JoinDataComplete(new JoinData {JoinNumber = 501, JoinSpan = 32},
                 new JoinMetadata
                 {
                     Description = "DM Chassis Video Input Names",
@@ -111,7 +111,7 @@ namespace PepperDash.Essentials.Core.Bridges
 
         [JoinName("InputAudioNames")]
         public JoinDataComplete InputAudioNames =
-            new JoinDataComplete(new JoinData { JoinNumber = 701, JoinSpan = 200 },
+            new JoinDataComplete(new JoinData { JoinNumber = 701, JoinSpan = 32 },
             new JoinMetadata
             {
                 Description = "DM Chassis Audio Input Names",
@@ -120,7 +120,7 @@ namespace PepperDash.Essentials.Core.Bridges
             });
         [JoinName("OutputVideoNames")]
         public JoinDataComplete OutputVideoNames =
-            new JoinDataComplete(new JoinData { JoinNumber = 901, JoinSpan = 200 },
+            new JoinDataComplete(new JoinData { JoinNumber = 901, JoinSpan = 32 },
             new JoinMetadata
             {
                 Description = "DM Chassis Video Output Names",
@@ -129,7 +129,7 @@ namespace PepperDash.Essentials.Core.Bridges
             });
         [JoinName("OutputAudioNames")]
         public JoinDataComplete OutputAudioNames =
-            new JoinDataComplete(new JoinData { JoinNumber = 1101, JoinSpan = 200 },
+            new JoinDataComplete(new JoinData { JoinNumber = 1101, JoinSpan = 32 },
             new JoinMetadata
             {
                 Description = "DM Chassis Audio Output Names",
