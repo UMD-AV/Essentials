@@ -18,7 +18,22 @@ namespace PepperDash.Essentials.Core.Lighting
         public event EventHandler<LightingSceneChangeEventArgs> LightingSceneChange;
 
         public List<LightingScene> LightingScenes { get; protected set; }
-        public LightingScene CurrentLightingScene { get; protected set; }
+
+        private LightingScene _currentLightingScene;
+        public LightingScene CurrentLightingScene
+        {
+            get
+            {
+                return _currentLightingScene;
+            }
+            protected set
+            {        
+                if(_currentLightingScene == value)
+                    return;
+                _currentLightingScene = value;
+                OnLightingSceneChange();
+            }
+        }
 
         protected bool occupiedFb;
         protected bool vacantFb;
@@ -56,7 +71,7 @@ namespace PepperDash.Essentials.Core.Lighting
         /// <summary>
         /// Sets the IsActive property on each scene and fires the LightingSceneChange event
         /// </summary>
-        protected void OnLightingSceneChange()
+        private void OnLightingSceneChange()
         {
             foreach (var scene in LightingScenes)
             {
@@ -97,8 +112,6 @@ namespace PepperDash.Essentials.Core.Lighting
                 trilist.SetSigTrueAction((uint)(joinMap.SelectButtonDirect.JoinNumber + index), () => this.SelectScene(this.LightingScenes[index]));
                 scene.IsActiveFeedback.LinkInputSig(trilist.BooleanInput[(uint)(joinMap.SelectButtonDirect.JoinNumber + index)]);
                 trilist.StringInput[(uint)(joinMap.SelectButtonDirect.JoinNumber + index)].StringValue = scene.Name;
-                trilist.BooleanInput[(uint)(joinMap.ButtonVisibility.JoinNumber + index)].BoolValue = true;
-
                 sceneIndex++;
             }
 
@@ -112,9 +125,7 @@ namespace PepperDash.Essentials.Core.Lighting
                     var index = sceneIndex;
 
                     trilist.StringInput[(uint)(joinMap.ButtonTextFb.JoinNumber + index)].StringValue = scene.Name;
-                    trilist.BooleanInput[(uint)(joinMap.ButtonVisibility.JoinNumber + index)].BoolValue = true;
                     scene.IsActiveFeedback.FireUpdate();
-
                     sceneIndex++;
                 }
             };

@@ -62,6 +62,10 @@ namespace DynFusion.Assets
             //Battery State
             _asset.AddSig(eSigType.String, 1, "Mic Battery - State", eSigIoMask.InputSigOnly);
             _battery.BatteryStateFeedback.LinkInputSig(_asset.FusionGenericAssetSerialsAsset3.StringInput[50]);
+
+            //Battery Error String
+            _asset.AddSig(eSigType.String, 2, "Mic Battery - Error Text", eSigIoMask.InputSigOnly);
+            _battery.BatteryErrorTextFeedback.LinkInputSig(_asset.FusionGenericAssetSerialsAsset3.StringInput[51]);
 		}
 
         public override void FusionAssetStateChange(FusionAssetStateEventArgs args)

@@ -167,9 +167,6 @@ namespace PepperDash.Essentials.Devices.Common.Environment.Lutron
                                 {
                                     var scene = response[3];
                                     CurrentLightingScene = LightingScenes.FirstOrDefault(s => s.ID.Equals(scene));
-
-                                    OnLightingSceneChange();
-
                                     break;
                                 }
                             default:

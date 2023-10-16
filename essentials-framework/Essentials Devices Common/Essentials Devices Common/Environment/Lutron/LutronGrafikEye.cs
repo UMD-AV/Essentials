@@ -20,18 +20,17 @@ namespace PepperDash.Essentials.Devices.Common.Environment.Lutron
         public IBasicCommunication Communication { get; private set; }
         public CommunicationGather PortGather { get; private set; }
         public StatusMonitorBase CommunicationMonitor { get; private set; }
+        private const string ResponseHeader = ":ss";
 
         LutronGrafikEyePropertiesConfig _props;
-
-        private string _controlUnit;
-        public string ControlUnit
+        private int _controlUnit;
+        public int ControlUnit
         {
             get { return _controlUnit; }
             set
             {
                 if (_controlUnit == value) return;
                 _controlUnit = value;
-                UpdateConfigControlUnit(value);
             }
         }
 
@@ -41,7 +40,7 @@ namespace PepperDash.Essentials.Devices.Common.Environment.Lutron
             Communication = comm;
             _props = props;
 
-            ControlUnit = (props.ControlUnit != null && props.ControlUnit.Length > 0) ? props.ControlUnit : "1";
+            ControlUnit = (props.ControlUnit != null) ? props.ControlUnit : 1;
             if (props.Scenes != null)
             {
                 LightingScenes = props.Scenes;
@@ -50,7 +49,7 @@ namespace PepperDash.Essentials.Devices.Common.Environment.Lutron
             PortGather = new CommunicationGather(Communication, "\x0D\x0A");
             PortGather.LineReceived += new EventHandler<GenericCommMethodReceiveTextArgs>(PortGather_LineReceived);
 
-            CommunicationMonitor = new GenericCommunicationMonitor(this, Communication, 60000, 120000, 300000, ":G\x0d\x0a");
+            CommunicationMonitor = new GenericCommunicationMonitor(this, Communication, 60000, 120000, 300000, ":G\x0D\x0A");
         }
 
         public override bool CustomActivate()
@@ -68,13 +67,17 @@ namespace PepperDash.Essentials.Devices.Common.Environment.Lutron
             CommunicationMonitor.IsOnlineFeedback.LinkInputSig(trilist.BooleanInput[joinMap.IsOnline.JoinNumber]);
         }
 
-        private void UpdateConfigControlUnit(string id)
+        private bool IsNumeric(string s)
         {
-            if (_props.ControlUnit != id)
+            bool isNumeric = true;
+            foreach (char c in s)
             {
-                _props.ControlUnit = id;
-                //ConfigWriter.UpdateDeviceProperties(this.Key, JToken.FromObject(_props));
+                if (!Char.IsNumber(c))
+                {
+                    isNumeric = false;
+                }
             }
+            return isNumeric;
         }
 
         /// <summary>
@@ -85,9 +88,35 @@ namespace PepperDash.Essentials.Devices.Common.Environment.Lutron
         void PortGather_LineReceived(object sender, GenericCommMethodReceiveTextArgs args)
         {
             Debug.Console(2, this, "Line Received: '{0}'", args.Text);
-
             try
             {
+                if (string.IsNullOrEmpty(args.Text))
+                {
+                    Debug.Console(2, this, "Response data is null or empty");
+                    return;
+                }
+                if (args.Text.StartsWith(ResponseHeader))
+                {
+                    var response = args.Text.Substring(ResponseHeader.Length);
+                    Debug.Console(2, this, "Response:[{0}]", response);
+
+                    if (response[ControlUnit - 1] == 'M')
+                    {
+                        Debug.Console(2, this, "Unit[{0}] is missing Scene", ControlUnit);
+                        CurrentLightingScene = null;
+                    }
+                    else
+                    {
+                        var responseScene = response[ControlUnit - 1];
+                        Debug.Console(2, this, "Unit[{0}] Setting Scene[{1}]", ControlUnit, responseScene);
+                        uint scene = uint.Parse(responseScene.ToString(), System.Globalization.NumberStyles.HexNumber);
+                        CurrentLightingScene = LightingScenes.FirstOrDefault(s => s.ID.Equals(scene));
+                    }
+                }
+                else
+                {
+                    Debug.Console(2, this, "Unhandled response:[{0}]", args.Text);
+                }
             }
             catch (Exception e)
             {
@@ -121,6 +150,7 @@ namespace PepperDash.Essentials.Devices.Common.Environment.Lutron
                 {
                     Debug.Console(1, this, "Selecting Scene: '{0}'", LightingScenes[scene].ID);
                     SendLine(string.Format(":A{0}{1}", LightingScenes[scene].ID, ControlUnit));
+                    SendLine(":G\x0D\x0A");
                 }
             }
         }
@@ -140,7 +170,7 @@ namespace PepperDash.Essentials.Devices.Common.Environment.Lutron
         public CommunicationMonitorConfig CommunicationMonitorProperties { get; set; }
         public ControlPropertiesConfig Control { get; set; }
 
-        public string ControlUnit { get; set; }
+        public int ControlUnit { get; set; }
         public List<LightingScene> Scenes { get; set; }
     }
 

@@ -25,10 +25,6 @@ namespace PepperDash.Essentials.Core.Bridges
         public JoinDataComplete SelectButtonDirect = new JoinDataComplete(new JoinData { JoinNumber = 11, JoinSpan = 10 },
             new JoinMetadata { Description = "Lighting Controller Select Button and Feedback", JoinCapabilities = eJoinCapabilities.ToFromSIMPL, JoinType = eJoinType.DigitalSerial });
 
-        [JoinName("ButtonVisibility")]
-        public JoinDataComplete ButtonVisibility = new JoinDataComplete(new JoinData { JoinNumber = 21, JoinSpan = 10 },
-            new JoinMetadata { Description = "Lighting Controller Button Visibility", JoinCapabilities = eJoinCapabilities.ToSIMPL, JoinType = eJoinType.Digital });
-
         [JoinName("IntegrationIdSet")]
         public JoinDataComplete IntegrationIdSet = new JoinDataComplete(new JoinData { JoinNumber = 1, JoinSpan = 1 },
             new JoinMetadata { Description = "Lighting Controller Set Integration Id", JoinCapabilities = eJoinCapabilities.FromSIMPL, JoinType = eJoinType.Serial });

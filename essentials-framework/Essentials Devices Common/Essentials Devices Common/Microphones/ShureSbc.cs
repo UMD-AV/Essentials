@@ -568,8 +568,11 @@ namespace PepperDash.Essentials.Devices.Common.ShureSbc
             get { return _percentHealth; }
             set
             {
-                _percentHealth = value;
-                PercentHealthFeedback.FireUpdate();
+                if (value > 0)
+                {
+                    _percentHealth = value;
+                    PercentHealthFeedback.FireUpdate();
+                }
             }
         }
         /// <summary>
