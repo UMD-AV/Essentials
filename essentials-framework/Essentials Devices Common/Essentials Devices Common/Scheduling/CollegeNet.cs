@@ -21,7 +21,11 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
         public event EventHandler MeetingsUpdated;
         public event EventHandler CurrentMeetingUpdated;
         public event EventHandler NextMeetingUpdated;
+        public event EventHandler SpaceInfoUpdated;
         public List<Meeting> Meetings { get; private set; }
+        public string SpaceName { get; private set; }
+        public string Instructions { get; private set; }
+        public List<Feature> SpaceFeatures { get; private set; }
         CTimer updateCurrentMeeting;
 
         private CurrentMeeting _currentMeeting;
@@ -30,7 +34,7 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
             get { return _currentMeeting; }
             private set
             {
-                _nextMeeting = value;
+                _currentMeeting = value;
                 if (CurrentMeetingUpdated != null)
                 {
                     CurrentMeetingUpdated(this, new EventArgs());
@@ -90,6 +94,7 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
             
             //Events from SIMPL
             trilist.SetSigTrueAction(joinMap.RefreshReservations.JoinNumber, GetTodaysReservations);
+            trilist.SetSigTrueAction(joinMap.RefreshSpaceInfo.JoinNumber, GetSpaceInfo);
 
 
             MeetingsUpdated += (o, a) =>
@@ -119,12 +124,53 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
 
             CurrentMeetingUpdated += (o, a) =>
             {
-
+                trilist.StringInput[joinMap.CurrentMeetingTitle.JoinNumber].StringValue = CurrentMeeting.Title;
+                trilist.StringInput[joinMap.CurrentMeetingName.JoinNumber].StringValue = CurrentMeeting.Name;
+                trilist.StringInput[joinMap.CurrentMeetingOrganizer.JoinNumber].StringValue = CurrentMeeting.OrganizerName;
+                trilist.StringInput[joinMap.CurrentMeetingOrganizerEmail.JoinNumber].StringValue = CurrentMeeting.OrganizerEmail;
+                trilist.StringInput[joinMap.CurrentMeetingType.JoinNumber].StringValue = CurrentMeeting.Type;
+                trilist.BooleanInput[joinMap.CurrentMeetingActive.JoinNumber].BoolValue = CurrentMeeting.MeetingActive;
+                trilist.StringInput[joinMap.CurrentMeetingStartTime.JoinNumber].StringValue = CurrentMeeting.Start.ToShortTimeString();
+                trilist.StringInput[joinMap.CurrentMeetingEndTime.JoinNumber].StringValue = CurrentMeeting.End.ToShortTimeString();
+                trilist.UShortInput[joinMap.CurrentMeetingTimeRemaining.JoinNumber].UShortValue = CurrentMeeting.TimeRemainingInMin;
+                trilist.StringInput[joinMap.CurrentMeetingTimeRemainingString.JoinNumber].StringValue = CurrentMeeting.TimeRemainingString;
             };
 
             NextMeetingUpdated += (o, a) =>
             {
+                trilist.StringInput[joinMap.NextMeetingTitle.JoinNumber].StringValue = NextMeeting.Title;
+                trilist.StringInput[joinMap.NextMeetingName.JoinNumber].StringValue = NextMeeting.Name;
+                trilist.StringInput[joinMap.NextMeetingType.JoinNumber].StringValue = NextMeeting.Type;
+                trilist.StringInput[joinMap.NextMeetingStartTime.JoinNumber].StringValue = NextMeeting.Start.ToShortTimeString();
+                trilist.StringInput[joinMap.NextMeetingEndTime.JoinNumber].StringValue = NextMeeting.End.ToShortTimeString();
+            };
 
+            SpaceInfoUpdated += (o, a) =>
+            {
+                uint count = 0;
+                trilist.StringInput[joinMap.SpaceName.JoinNumber + count].StringValue = SpaceName;
+                trilist.StringInput[joinMap.SpaceInstructions.JoinNumber + count].StringValue = Instructions;
+                if (SpaceFeatures != null)
+                {
+                    foreach (var feature in SpaceFeatures)
+                    {
+                        if (feature.Quantity > 1)
+                        {
+                            trilist.StringInput[joinMap.Features.JoinNumber + count].StringValue = string.Format("{0} (x{1})", feature.Name, feature.Quantity); 
+                        }
+                        else
+                        {
+                            trilist.StringInput[joinMap.Features.JoinNumber + count].StringValue = feature.Name;
+                        }
+                        count++;
+                        if (count > 50)
+                            break;
+                    }
+                }
+                for (uint i = count; i < 50; i++)
+                {
+                    trilist.StringInput[joinMap.Features.JoinNumber + count].StringValue = "";
+                }
             };
         }
 
@@ -185,7 +231,7 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
         {
             if (spaceId != null)
             {
-                GetData(string.Format("space/detail/spdetail.json?space_id={0}", spaceId), "Space");
+                GetData(string.Format("space.json?space_id={0}", spaceId), "Space");
             }
         }
 
@@ -224,6 +270,13 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
             {
                 CurrentMeeting = new CurrentMeeting(_currentMeetingTemp);
                 GetEvent(CurrentMeeting.Id);
+            }
+            else
+            {
+                if (CurrentMeetingUpdated != null)
+                {
+                    CurrentMeetingUpdated(this, new EventArgs());
+                }
             }
 
             if (_nextMeetingTemp == null)
@@ -357,6 +410,24 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
                     meetingMutex.ReleaseMutex();
                 }
             }
+            else if (requestName == "Space")
+            {
+                try
+                {
+                    SpaceResponse response = JsonConvert.DeserializeObject<SpaceResponse>(content);
+                    SpaceFeatures = response.Spaces.Space.Features;
+                    SpaceName = response.Spaces.Space.SpaceName;
+                    Instructions = response.Spaces.Space.Instructions;
+                    if (SpaceInfoUpdated != null)
+                    {
+                        SpaceInfoUpdated(this, new EventArgs());
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Debug.Console(0, this, "Spaces processing exception: {0}", ex.Message);
+                }
+            }
         }
     }
 
@@ -433,14 +504,8 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
         public string OrganizerName { get; set; }
         public string OrganizerEmail { get; set; }
 
-        public CurrentMeeting(Meeting meeting)
+        public CurrentMeeting(Meeting meeting) : base (meeting)
         {
-            Id = meeting.Id;
-            Title = meeting.Title;
-            Name = meeting.Name;
-            Type = meeting.Type;
-            Start = meeting.Start;
-            End = meeting.End;
             OrganizerName = "";
             OrganizerEmail = "";
         }
@@ -495,7 +560,86 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
             Start = DateTime.MinValue;
             End = DateTime.MinValue;
         }
+
+        public Meeting(Meeting m)
+        {
+            Id = m.Id;
+            Title = m.Title;
+            Name = m.Name;
+            Type = m.Type;
+            Start = m.Start;
+            End = m.End;
+        }
+
+        public ushort TimeRemainingInMin
+        {
+            get
+            {
+                double totalMinutes;
+                if (Start <= DateTime.Now)
+                {
+                    totalMinutes = End.Subtract(DateTime.Now).TotalMinutes;
+                }
+                else
+                {
+                    totalMinutes = End.Subtract(Start).TotalMinutes;
+                }
+                if (totalMinutes >= 0)
+                    return (ushort)Math.Round(totalMinutes);
+                else
+                    return 0;
+            }
+        }
+
+        public string TimeRemainingString
+        {
+            get
+            {
+                var hourTag = "";
+                var minTag = "";
+                double hours = TimeRemainingInMin / 60;
+                double minutes = TimeRemainingInMin % 60;
+                if (hours > 1) { hourTag = "Hours"; }
+                else if (hours == 1) { hourTag = "Hour"; }
+                if (minutes == 1) { minTag = "Minute"; }
+                else { minTag = "Minutes"; }
+
+                if (hourTag.Length == 0) { return string.Format("{0} {1}", minutes, minTag); }
+                else { return string.Format("{0} {1} {2} {3}", hours, hourTag, minutes, minTag); }
+            }
+        }
     }
+
+    public class SpaceResponse
+    {
+        [JsonProperty("spaces")]
+        public Spaces Spaces { get; set; }
+    }
+
+    public class Spaces
+    {
+        [JsonProperty("space")]
+        public Space Space { get; set; }
+    }
+
+    public class Space
+    {
+        [JsonProperty("instructions")]
+        public string Instructions { get; set; }
+        [JsonProperty("space_name")]
+        public string SpaceName { get; set; }
+        [JsonProperty("feature")]
+        public List<Feature> Features { get; set; }
+    }
+
+    public class Feature
+    {
+        [JsonProperty("feature_name")]
+        public string Name {get; set;}
+        [JsonProperty("quantity")]
+        public int Quantity { get; set; }
+    }
+
 
     public class CollegeNetPropertiesConfig
     {
@@ -520,19 +664,255 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
                 JoinCapabilities = eJoinCapabilities.FromSIMPL,
                 JoinType = eJoinType.Digital
             });
+        [JoinName("Refresh Space Info")]
+        public JoinDataComplete RefreshSpaceInfo = new JoinDataComplete(
+            new JoinData()
+            {
+                JoinNumber = 2,
+                JoinSpan = 1
+            },
+            new JoinMetadata()
+            {
+                Description = "Refresh Space Information",
+                JoinCapabilities = eJoinCapabilities.FromSIMPL,
+                JoinType = eJoinType.Digital
+            });
+        [JoinName("CurrentMeetingActive")]
+        public JoinDataComplete CurrentMeetingActive = new JoinDataComplete(
+            new JoinData()
+            {
+                JoinNumber = 1,
+                JoinSpan = 1
+            },
+            new JoinMetadata()
+            {
+                Description = "Current Meeting Active",
+                JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                JoinType = eJoinType.Digital
+            });
         #endregion
 
 
         #region Analog
+        [JoinName("CurrentMeetingTimeRemaining")]
+        public JoinDataComplete CurrentMeetingTimeRemaining = new JoinDataComplete(
+            new JoinData()
+            {
+                JoinNumber = 1,
+                JoinSpan = 1
+            },
+            new JoinMetadata()
+            {
+                Description = "Current Meeting Time Remaining in Minutes",
+                JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                JoinType = eJoinType.Analog
+            });
         #endregion
 
 
         #region Serial
+        [JoinName("CurrentMeetingTitle")]
+        public JoinDataComplete CurrentMeetingTitle = new JoinDataComplete(
+            new JoinData()
+            {
+                JoinNumber = 1,
+                JoinSpan = 1
+            },
+            new JoinMetadata()
+            {
+                Description = "Current Meeting Title",
+                JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                JoinType = eJoinType.Serial
+            });
+        [JoinName("CurrentMeetingName")]
+        public JoinDataComplete CurrentMeetingName = new JoinDataComplete(
+            new JoinData()
+            {
+                JoinNumber = 2,
+                JoinSpan = 1
+            },
+            new JoinMetadata()
+            {
+                Description = "Current Meeting Name",
+                JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                JoinType = eJoinType.Serial
+            });
+        [JoinName("CurrentMeetingOrganizer")]
+        public JoinDataComplete CurrentMeetingOrganizer = new JoinDataComplete(
+            new JoinData()
+            {
+                JoinNumber = 3,
+                JoinSpan = 1
+            },
+            new JoinMetadata()
+            {
+                Description = "Current Meeting Organizer",
+                JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                JoinType = eJoinType.Serial
+            });
+        [JoinName("CurrentMeetingOrganizerEmail")]
+        public JoinDataComplete CurrentMeetingOrganizerEmail = new JoinDataComplete(
+            new JoinData()
+            {
+                JoinNumber = 4,
+                JoinSpan = 1
+            },
+            new JoinMetadata()
+            {
+                Description = "Current Meeting Organizer Email",
+                JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                JoinType = eJoinType.Serial
+            });
+        [JoinName("CurrentMeetingType")]
+        public JoinDataComplete CurrentMeetingType = new JoinDataComplete(
+            new JoinData()
+            {
+                JoinNumber = 5,
+                JoinSpan = 1
+            },
+            new JoinMetadata()
+            {
+                Description = "Current Meeting Type",
+                JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                JoinType = eJoinType.Serial
+            });
+        [JoinName("CurrentMeetingStartTime")]
+        public JoinDataComplete CurrentMeetingStartTime = new JoinDataComplete(
+            new JoinData()
+            {
+                JoinNumber = 6,
+                JoinSpan = 1
+            },
+            new JoinMetadata()
+            {
+                Description = "Current Meeting Start Time",
+                JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                JoinType = eJoinType.Serial
+            });
+        [JoinName("CurrentMeetingEndTime")]
+        public JoinDataComplete CurrentMeetingEndTime = new JoinDataComplete(
+            new JoinData()
+            {
+                JoinNumber = 7,
+                JoinSpan = 1
+            },
+            new JoinMetadata()
+            {
+                Description = "Current Meeting End Time",
+                JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                JoinType = eJoinType.Serial
+            });
+        [JoinName("CurrentMeetingTimeRemainingString")]
+        public JoinDataComplete CurrentMeetingTimeRemainingString = new JoinDataComplete(
+            new JoinData()
+            {
+                JoinNumber = 8,
+                JoinSpan = 1
+            },
+            new JoinMetadata()
+            {
+                Description = "Current Meeting Time Remaining String",
+                JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                JoinType = eJoinType.Serial
+            });
+
+        [JoinName("NextMeetingTitle")]
+        public JoinDataComplete NextMeetingTitle = new JoinDataComplete(
+            new JoinData()
+            {
+                JoinNumber = 11,
+                JoinSpan = 1
+            },
+            new JoinMetadata()
+            {
+                Description = "Next Meeting Title",
+                JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                JoinType = eJoinType.Serial
+            });
+        [JoinName("NextMeetingName")]
+        public JoinDataComplete NextMeetingName = new JoinDataComplete(
+            new JoinData()
+            {
+                JoinNumber = 12,
+                JoinSpan = 1
+            },
+            new JoinMetadata()
+            {
+                Description = "Next Meeting Name",
+                JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                JoinType = eJoinType.Serial
+            });
+        [JoinName("NextMeetingType")]
+        public JoinDataComplete NextMeetingType = new JoinDataComplete(
+            new JoinData()
+            {
+                JoinNumber = 13,
+                JoinSpan = 1
+            },
+            new JoinMetadata()
+            {
+                Description = "Next Meeting Type",
+                JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                JoinType = eJoinType.Serial
+            });
+        [JoinName("NextMeetingStartTime")]
+        public JoinDataComplete NextMeetingStartTime = new JoinDataComplete(
+            new JoinData()
+            {
+                JoinNumber = 14,
+                JoinSpan = 1
+            },
+            new JoinMetadata()
+            {
+                Description = "Next Meeting Start Time",
+                JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                JoinType = eJoinType.Serial
+            });
+        [JoinName("NextMeetingEndTime")]
+        public JoinDataComplete NextMeetingEndTime = new JoinDataComplete(
+            new JoinData()
+            {
+                JoinNumber = 15,
+                JoinSpan = 1
+            },
+            new JoinMetadata()
+            {
+                Description = "Next Meeting End Time",
+                JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                JoinType = eJoinType.Serial
+            });
+        [JoinName("SpaceName")]
+        public JoinDataComplete SpaceName = new JoinDataComplete(
+            new JoinData()
+            {
+                JoinNumber = 21,
+                JoinSpan = 1
+            },
+            new JoinMetadata()
+            {
+                Description = "Space Name",
+                JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                JoinType = eJoinType.Serial
+            });
+        [JoinName("SpaceInstructions")]
+        public JoinDataComplete SpaceInstructions = new JoinDataComplete(
+            new JoinData()
+            {
+                JoinNumber = 22,
+                JoinSpan = 1
+            },
+            new JoinMetadata()
+            {
+                Description = "Space Instructions",
+                JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                JoinType = eJoinType.Serial
+            });
+
         [JoinName("MeetingTitle")]
         public JoinDataComplete MeetingTitle = new JoinDataComplete(
             new JoinData()
             {
-                JoinNumber = 1,
+                JoinNumber = 51,
                 JoinSpan = 50
             },
             new JoinMetadata()
@@ -546,7 +926,7 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
         public JoinDataComplete MeetingName = new JoinDataComplete(
             new JoinData()
             {
-                JoinNumber = 51,
+                JoinNumber = 101,
                 JoinSpan = 50
             },
             new JoinMetadata()
@@ -560,7 +940,7 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
         public JoinDataComplete MeetingType = new JoinDataComplete(
             new JoinData()
             {
-                JoinNumber = 101,
+                JoinNumber = 151,
                 JoinSpan = 50
             },
             new JoinMetadata()
@@ -574,12 +954,26 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
         public JoinDataComplete MeetingTime = new JoinDataComplete(
             new JoinData()
             {
-                JoinNumber = 151,
+                JoinNumber = 201,
                 JoinSpan = 50
             },
             new JoinMetadata()
             {
                 Description = "Meeting Time",
+                JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                JoinType = eJoinType.Serial
+            });
+
+        [JoinName("Features")]
+        public JoinDataComplete Features = new JoinDataComplete(
+            new JoinData()
+            {
+                JoinNumber = 251,
+                JoinSpan = 50
+            },
+            new JoinMetadata()
+            {
+                Description = "Room Features",
                 JoinCapabilities = eJoinCapabilities.ToSIMPL,
                 JoinType = eJoinType.Serial
             });

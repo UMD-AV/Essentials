@@ -358,7 +358,6 @@ namespace PepperDash.Essentials.Devices.Displays
                             if (_abnormalStandby)
                             {
                                 _abnormalStandby = false;
-                                ErrorFb = "";
                             }
 
                             //Finish warming up process
@@ -413,7 +412,6 @@ namespace PepperDash.Essentials.Devices.Displays
                             if (_abnormalStandby)
                             {
                                 _abnormalStandby = false;
-                                ErrorFb = "";
                             }
 
                             //Finish cooling down process
@@ -428,7 +426,6 @@ namespace PepperDash.Essentials.Devices.Displays
                             if (!_abnormalStandby)
                             {
                                 _abnormalStandby = true;
-                                ErrorFb = "Projector in abnormal standby";
                                 Debug.LogError(Debug.ErrorLogLevel.Warning, "Projector in abnormal standby");
                             }
 
@@ -591,6 +588,22 @@ namespace PepperDash.Essentials.Devices.Displays
             catch (Exception ex)
             {
                 Debug.Console(1, this, "Error parsing feedback: {0}", ex);
+            }
+        }
+
+        private void SetErrorString(string error)
+        {
+            if (_abnormalStandby && error.Length > 0)
+            {
+                ErrorFb = string.Format("{0}, Projector in abnormal standby", error);
+            }
+            else if (_abnormalStandby)
+            {
+                ErrorFb = "Projector in abnormal standby";
+            }
+            else
+            {
+                ErrorFb = error;
             }
         }
 
