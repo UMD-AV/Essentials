@@ -815,7 +815,8 @@ namespace PepperDash.Essentials.Devices.Displays
                     SendCommand(eCommandType.PowerPoll, "PWR?", true);
                     if (_RequestedVideoMuteState == 1)
                     {
-                        VideoMuteOnGo();
+                        Debug.Console(0, "Sending video mute");
+                        SendCommand(eCommandType.VideoMute, "MUTE ON", true);
                     }
                     else
                     {
@@ -974,6 +975,7 @@ namespace PepperDash.Essentials.Devices.Displays
         {
             if (_RequestedPowerState == 1 || _PowerIsOn)
             {
+                Debug.Console(0, "Video Mute Requested");
                 _RequestedVideoMuteState = 1;
                 if (!_IsWarmingUp)
                 {

@@ -260,6 +260,11 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.Cisco
 
         public CodecPhonebookSyncState PhonebookSyncState { get; private set; }
 
+        private bool _getZoomContact;
+        public CiscoCodecPhonebook.Contact ZoomContact;
+        private string _zoomMeeting;
+        private string _zoomPassword;
+
         private StringBuilder _jsonMessage;
 
         private bool _jsonFeedbackMessageIsIncoming;
@@ -1182,7 +1187,23 @@ ConnectorID: {2}"
 
                         JsonConvert.PopulateObject(response, codecPhonebookResponse);
 
-                        if (!PhonebookSyncState.InitialPhonebookFoldersWasReceived)
+                        if (_getZoomContact)
+                        {
+                            _getZoomContact = false;
+                            if(codecPhonebookResponse.CommandResponse.PhonebookSearchResult.Contact != null)
+                            {
+                                foreach(CiscoCodecPhonebook.Contact contact in codecPhonebookResponse.CommandResponse.PhonebookSearchResult.Contact)
+                                {
+                                    if(contact.Name.Value.ToLower().Contains("zoom"))
+                                    {
+                                        ZoomContact = contact;
+                                        Debug.Console(0, "Found zoom contact {0}", contact.Name.Value);
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                        else if (!PhonebookSyncState.InitialPhonebookFoldersWasReceived)
                         {
                             // Check if the phonebook has any folders
                             PhonebookSyncState.InitialPhonebookFoldersReceived();
@@ -1342,6 +1363,40 @@ ConnectorID: {2}"
 
             return callId;
 
+        }
+
+        public void CallZoomMeeting()
+        {
+            GetZoomContact();
+            int count = 0;
+            while (_getZoomContact == true && count < 20)
+            {
+                CrestronEnvironment.Sleep(100);
+                count++;
+            }
+
+            if (ZoomContact != null)
+            {
+                string[] buildString = ZoomContact.ContactMethod[0].Number.Value.Split('.');                
+                buildString[0] = (_zoomMeeting != null && _zoomMeeting.Length > 1) ? _zoomMeeting.PadLeft(11, '0') : "0";
+                buildString[1] = (_zoomPassword != null  && _zoomPassword.Length > 1) ? _zoomPassword : "";
+                string dialString = "";
+                for(var i = 0; i < buildString.Length; i++)
+                {
+                    if (i > 0)
+                    {
+                        dialString = dialString + ".";
+                    }
+                    dialString = dialString + buildString[i]; 
+                }
+                EnqueueCommand(string.Format("xCommand Dial Number: \"{0}\"", dialString));
+            }
+        }
+
+        public void GetZoomContact()
+        {
+            _getZoomContact = true;
+            EnqueueCommand("xCommand Phonebook Search SearchString: \"Join Zoom Meeting\" Tag: Favorite");
         }
 
         public void GetCallHistory()
@@ -1783,6 +1838,9 @@ ConnectorID: {2}"
         {
             // Custom commands to codec
             trilist.SetStringSigAction(joinMap.CommandToDevice.JoinNumber, (s) => this.EnqueueCommand(s));
+            trilist.SetStringSigAction(joinMap.ZoomMeetingId.JoinNumber, (s) => { _zoomMeeting = s; });
+            trilist.SetStringSigAction(joinMap.ZoomMeetingPassword.JoinNumber, (s) => { _zoomPassword = s; });
+            trilist.SetSigTrueAction(joinMap.CallZoomMeeting.JoinNumber, CallZoomMeeting);
 
 
             var dndCodec = this as IHasDoNotDisturbMode;
@@ -1808,6 +1866,17 @@ ConnectorID: {2}"
                 trilist.SetSigFalseAction(joinMap.DeactivateStandby.JoinNumber, () => halfwakeCodec.StandbyDeactivate());
                 trilist.SetSigFalseAction(joinMap.ActivateHalfWakeMode.JoinNumber, () => halfwakeCodec.HalfwakeActivate());
             }
+
+            //Codec volume
+            trilist.SetUShortSigAction(joinMap.VolumeLevel.JoinNumber, SetVolume);
+            trilist.SetSigFalseAction(joinMap.VolumeMuteOn.JoinNumber, MuteOn);
+            trilist.SetSigFalseAction(joinMap.VolumeMuteOff.JoinNumber, MuteOff);
+            trilist.SetSigFalseAction(joinMap.VolumeMuteToggle.JoinNumber, MuteToggle);
+            trilist.SetBoolSigAction(joinMap.VolumeUp.JoinNumber, VolumeUp);
+            trilist.SetBoolSigAction(joinMap.VolumeDown.JoinNumber, VolumeDown);
+            trilist.SetSigFalseAction(joinMap.MicMuteOn.JoinNumber, PrivacyModeOn);
+            trilist.SetSigFalseAction(joinMap.MicMuteOff.JoinNumber, PrivacyModeOff);
+            trilist.SetSigFalseAction(joinMap.MicMuteToggle.JoinNumber, PrivacyModeToggle);
 
             // Ringtone volume
             trilist.SetUShortSigAction(joinMap.RingtoneVolume.JoinNumber, (u) => SetRingtoneVolume(u));
@@ -2055,16 +2124,23 @@ ConnectorID: {2}"
                     var cam = CodecStatus.Status.Cameras.Camera[i];
 
                     var id = (uint)i;
-                    var name = string.Format("Camera {0}", id);
+                    var name = string.Format("Camera {0}", id + 1);
 
                     // Check for a config object that matches the camera number
                     var camInfo = cameraInfo.FirstOrDefault(c => c.CameraNumber == i + 1);
                     if (camInfo != null)
                     {
                         id = (uint)camInfo.SourceId;
-                        name = camInfo.Name;
                     }
 
+                    if (_config.CameraNames != null)
+                    {
+                        string nameKey = (i + 1).ToString();
+                        if (_config.CameraNames.ContainsKey(nameKey))
+                        {
+                            name = _config.CameraNames[nameKey];
+                        }
+                    }
                     var key = string.Format("{0}-camera{1}", Key, id);
                     var camera = new CiscoSparkCamera(key, name, this, id);
 

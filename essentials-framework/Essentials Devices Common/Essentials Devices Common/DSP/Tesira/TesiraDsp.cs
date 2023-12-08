@@ -104,10 +104,6 @@ namespace Tesira_DSP_EPI
 
         private bool _initalSubscription = true;
 
-
-
-        //private TesiraDspDeviceInfo DeviceInfo { get; set; }
-
         private bool WatchDogSniffer { get; set; }
         public bool WatchdogSuspend { get; private set; }
 
@@ -1102,6 +1098,8 @@ namespace Tesira_DSP_EPI
         public override void LinkToApi(BasicTriList trilist, uint joinStart, string joinMapKey, EiscApiAdvanced bridge)
         {
             var deviceJoinMap = new TesiraDspDeviceJoinMapAdvanced(joinStart);
+            trilist.StringInput[deviceJoinMap.Name.JoinNumber].StringValue = Name;
+
             var dialerJoinMap = new TesiraDialerJoinMapAdvanced(joinStart);
             var faderJoinMap = new TesiraFaderJoinMapAdvanced(joinStart);
             var stateJoinMap = new TesiraStateJoinMapAdvanced(joinStart);
@@ -1128,7 +1126,7 @@ namespace Tesira_DSP_EPI
 
             CommunicationMonitor.IsOnlineFeedback.LinkInputSig(trilist.BooleanInput[deviceJoinMap.IsOnline.JoinNumber]);
             CommandPassthruFeedback.LinkInputSig(trilist.StringInput[deviceJoinMap.CommandPassThru.JoinNumber]);
-            trilist.StringInput[deviceJoinMap.Name.JoinNumber].StringValue = Name;
+            
             trilist.SetStringSigAction(presetJoinMap.PresetName.JoinNumber, RunPreset);
             trilist.SetStringSigAction(deviceJoinMap.CommandPassThru.JoinNumber, SendLineRaw);
             trilist.SetSigTrueAction(deviceJoinMap.Resubscribe.JoinNumber, Resubscribe);

@@ -39,10 +39,6 @@ namespace DynFusion.Assets
             _asset.AddSig(eSigType.Bool, 1, "Mic Battery - Present", eSigIoMask.InputSigOnly);
             _battery.BatteryPresentFeedback.LinkInputSig(_asset.FusionGenericAssetDigitalsAsset1.BooleanInput[50]);
 
-            //Battery Missing
-            _asset.AddSig(eSigType.Bool, 2, "Mic Battery - Missing", eSigIoMask.InputSigOnly);
-            _battery.BatteryMissingFeedback.LinkInputSig(_asset.FusionGenericAssetDigitalsAsset1.BooleanInput[51]);
-
             //Battery Error Int
             _asset.AddSig(eSigType.UShort, 1, "Mic Battery - Error", eSigIoMask.InputSigOnly);
             _battery.BatteryErrorFeedback.LinkInputSig(_asset.FusionGenericAssetAnalogsAsset2.UShortInput[50]);

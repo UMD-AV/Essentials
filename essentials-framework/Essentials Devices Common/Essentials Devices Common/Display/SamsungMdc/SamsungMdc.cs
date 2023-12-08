@@ -1282,12 +1282,12 @@ namespace PepperDash.Essentials.Devices.Displays
                 return;
             }
             _powerIsOn = newVal;
+            _PowerMutex.WaitForMutex();
             if ((_RequestedPowerState == 1 && _powerIsOn) || (_RequestedPowerState == 2 && !_powerIsOn))
-            {
-                _PowerMutex.WaitForMutex();
+            {   
                 _RequestedPowerState = 0;
-                _PowerMutex.ReleaseMutex();
             }
+            _PowerMutex.ReleaseMutex();
             PowerIsOnFeedback.FireUpdate();
         }
 
@@ -1427,8 +1427,8 @@ namespace PepperDash.Essentials.Devices.Displays
         {
             _PowerMutex.WaitForMutex();
             _RequestedPowerState = 1;
-            _PowerMutex.ReleaseMutex();
             ProcessPower();
+            _PowerMutex.ReleaseMutex();
         }
 
         /// <summary>
@@ -1438,9 +1438,9 @@ namespace PepperDash.Essentials.Devices.Displays
         {
             _PowerMutex.WaitForMutex();
             _RequestedPowerState = 2;
-            _PowerMutex.ReleaseMutex();
             _RequestedInputState = 0;
             ProcessPower();
+            _PowerMutex.ReleaseMutex();
         }
         /// <summary>
         /// Power on (Cmd: 0x11) pdf page 42 

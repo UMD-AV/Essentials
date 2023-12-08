@@ -167,6 +167,7 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
                             break;
                     }
                 }
+                trilist.UShortInput[joinMap.FeatureCount.JoinNumber].UShortValue = (ushort)count;
                 for (uint i = count; i < 50; i++)
                 {
                     trilist.StringInput[joinMap.Features.JoinNumber + count].StringValue = "";
@@ -704,6 +705,20 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
             new JoinMetadata()
             {
                 Description = "Current Meeting Time Remaining in Minutes",
+                JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                JoinType = eJoinType.Analog
+            });
+
+        [JoinName("FeatureCount")]
+        public JoinDataComplete FeatureCount = new JoinDataComplete(
+            new JoinData()
+            {
+                JoinNumber = 2,
+                JoinSpan = 1
+            },
+            new JoinMetadata()
+            {
+                Description = "Feature Count",
                 JoinCapabilities = eJoinCapabilities.ToSIMPL,
                 JoinType = eJoinType.Analog
             });

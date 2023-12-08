@@ -226,28 +226,31 @@ namespace DynFusion
                         {
                             uint num = GetNextAvailableAssetNumber(FusionSymbol);
                             StaticAssets.Add(num, new DisplayStaticAsset(displayDevice, num, FusionSymbol));
+                            continue;
                         }
 
                         var sbcDevice = device as PepperDash.Essentials.Devices.Common.ShureSbc.ShureSbcDevice;
                         if (sbcDevice != null)
                         {
-                            for (uint i = 1; i <= sbcDevice.NumberOfDevicesExpected; i++)
+                            for (uint i = 1; i <= sbcDevice.SbcSize; i++)
                             {
                                 uint num = GetNextAvailableAssetNumber(FusionSymbol);
                                 string name = string.Format("{0} - Battery {1}", sbcDevice.Name, i);
                                 StaticAssets.Add(num, new MicBatteryStaticAsset(name, sbcDevice.Batteries[i-1], num, FusionSymbol));
                             }
+                            continue;
                         }
 
                         var ulxdDevice = device as PepperDash.Essentials.Devices.Common.ShureUlxd.ShureUlxdDevice;
                         if (ulxdDevice != null)
                         {
-                            for (uint i = 1; i <= ulxdDevice.NumberOfDevicesExpected; i++)
+                            for (uint i = 1; i <= ulxdDevice.UlxdSize; i++)
                             {
                                 uint num = GetNextAvailableAssetNumber(FusionSymbol);
                                 string name = string.Format("{0} - Microphone {1}", ulxdDevice.Name, i);
                                 StaticAssets.Add(num, new MicStaticAsset(name, ulxdDevice.Microphones[i-1], num, FusionSymbol));
                             }
+                            continue;
                         }
                     }
                     catch (Exception ex)
@@ -652,15 +655,20 @@ namespace DynFusion
 		}
 		public static uint GetNextAvailableAssetNumber(FusionRoom room)
 		{
-			uint slotNum = 0;
+			uint slotNum = 1;
 			foreach (var item in room.UserConfigurableAssetDetails) 
 			{
-				if (item.Number > slotNum)
+				if (item.Number >= slotNum)
                 {
-					slotNum = item.Number;
+					slotNum = item.Number + 1;
 				}
 			}
-			slotNum = slotNum + 1;
+            //Skip slot num 15 (offset by 3) in rvi as 15 has been causing issues in Fusion
+            if (slotNum == 12)
+            {
+                slotNum = 13;
+            }
+
 			Debug.Console(1, string.Format("Next available fusion asset number is: {0}", slotNum));
 
 			return slotNum;

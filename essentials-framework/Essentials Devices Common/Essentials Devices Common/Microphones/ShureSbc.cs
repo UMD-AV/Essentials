@@ -21,7 +21,7 @@ namespace PepperDash.Essentials.Devices.Common.ShureSbc
         private readonly GenericCommunicationMonitor _commsMonitor;
         private const string CommsDelimiter = ">";
         private readonly GenericQueue _commsQueue;
-        public int NumberOfDevicesExpected { get; private set; }
+        public int SbcSize { get; private set; }
         public ShureSbcBattery[] Batteries;
         private CTimer batteryCheckTimer;
 
@@ -75,7 +75,7 @@ namespace PepperDash.Essentials.Devices.Common.ShureSbc
         /// </summary>
         public StringFeedback DeviceFirmwareVersionFeedback { get; private set; }
 
-        // devicee error field
+        // device error field
         private string _deviceError;
         /// <summary>
         /// Device error property
@@ -93,6 +93,25 @@ namespace PepperDash.Essentials.Devices.Common.ShureSbc
         /// Deivce error feedback
         /// </summary>
         public StringFeedback ErrorFeedback { get; private set; }
+
+        // battery check ran field
+        private bool _batteryCheckRan2AM;
+        /// <summary>
+        /// battery check ran property
+        /// </summary>
+        public bool BatteryCheckRan2AM
+        {
+            get { return _batteryCheckRan2AM; }
+            set
+            {
+                _batteryCheckRan2AM = value;
+                BatteryCheckRan2AMFeedback.FireUpdate();
+            }
+        }
+        /// <summary>
+        /// Battery check ran feedback
+        /// </summary>
+        public BoolFeedback BatteryCheckRan2AMFeedback { get; private set; }
         #endregion
         
         /// <summary>
@@ -112,8 +131,9 @@ namespace PepperDash.Essentials.Devices.Common.ShureSbc
             DeviceModelFeedback = new StringFeedback(() => DeviceModel);
             DeviceFirmwareVersionFeedback = new StringFeedback(() => DeviceFirmwareVersion);
             ErrorFeedback = new StringFeedback(() => DeviceError);
+            BatteryCheckRan2AMFeedback = new BoolFeedback(() => BatteryCheckRan2AM);
 
-            NumberOfDevicesExpected = config.numberOfDevices <= 8 ? config.numberOfDevices : 8;
+            SbcSize = config.size <= 8 ? config.size : 8;
             Batteries = new ShureSbcBattery[8];
             for (ushort i = 0; i < 8; i++)
             {
@@ -168,10 +188,12 @@ namespace PepperDash.Essentials.Devices.Common.ShureSbc
         private void batteryCheckTimerCallback(object o)
         {
             armBatteryCheckTimer();
+            BatteryCheckRan2AM = false;
             foreach (ShureSbcBattery b in Batteries)
             {
-                b.BatteryMissing = !b.BatteryPresent && b.BatteryEnabled;
+                b.BatteryPresent2AM = b.BatteryPresent;
             }
+            BatteryCheckRan2AM = true;
         }
 
         // socket connection change event handler
@@ -410,52 +432,61 @@ namespace PepperDash.Essentials.Devices.Common.ShureSbc
         /// <param name="bridge"></param>
         public override void LinkToApi(BasicTriList trilist, uint joinStart, string joinMapKey, EiscApiAdvanced bridge)
         {
-            var joinMap = new ShureSbcBridgeJoinMap(joinStart);
-
-            // This adds the join map to the collection on the bridge
-            if (bridge != null)
+            try
             {
-                bridge.AddJoinMap(Key, joinMap);
-            }
+                var joinMap = new ShureSbcBridgeJoinMap(joinStart);
 
-            Debug.Console(1, "Linking to Trilist '{0}'", trilist.ID.ToString("X"));
-            Debug.Console(0, "Linking to Bridge Type {0}", GetType().Name);
+                // This adds the join map to the collection on the bridge
+                if (bridge != null)
+                {
+                    bridge.AddJoinMap(Key, joinMap);
+                }
 
-            // links to bridge
-            trilist.StringInput[joinMap.DeviceName.JoinNumber].StringValue = Name;
-            trilist.SetSigTrueAction(joinMap.RefreshData.JoinNumber, UpdateStatus);
+                Debug.Console(1, "Linking to Trilist '{0}'", trilist.ID.ToString("X"));
+                Debug.Console(0, "Linking to Bridge Type {0}", GetType().Name);
 
-            // _commsMonitor.IsOnlineFeedback is used to drive IsOnlineFb on the bridge
-            _commsMonitor.IsOnlineFeedback.LinkInputSig(trilist.BooleanInput[joinMap.IsOnline.JoinNumber]);
-            SocketStatusFeedback.LinkInputSig(trilist.UShortInput[joinMap.SocketStatus.JoinNumber]);
-            MonitorStatusFeedback.LinkInputSig(trilist.UShortInput[joinMap.MonitorStatus.JoinNumber]);
-
-            // battery info **feedback only**
-            for (ushort i = 0; i < 8; i++)
-            {
-                ushort index = i;
-                Batteries[index].BatteryEnabledFeedback.LinkInputSig(trilist.BooleanInput[joinMap.BatteryEnabled.JoinNumber + index]);
-                Batteries[index].BatteryPresentFeedback.LinkInputSig(trilist.BooleanInput[joinMap.BatteryPresent.JoinNumber + index]);
-                Batteries[index].PercentChargeFeedback.LinkInputSig(trilist.UShortInput[joinMap.PercentCharge.JoinNumber + index]);
-                Batteries[index].PercentHealthFeedback.LinkInputSig(trilist.UShortInput[joinMap.PercentHealth.JoinNumber + index]);
-                Batteries[index].TemperatureFFeedback.LinkInputSig(trilist.UShortInput[joinMap.TemperatureF.JoinNumber + index]);
-                Batteries[index].BatteryErrorFeedback.LinkInputSig(trilist.UShortInput[joinMap.BatteryError.JoinNumber + index]);
-                Batteries[index].BatteryErrorTextFeedback.LinkInputSig(trilist.StringInput[joinMap.BatteryErrorText.JoinNumber + index]);
-                Batteries[index].BatteryStateFeedback.LinkInputSig(trilist.StringInput[joinMap.BatteryStateText.JoinNumber + index]);
-            }
-
-            // device information feedback
-            DeviceModelFeedback.LinkInputSig(trilist.StringInput[joinMap.DeviceModel.JoinNumber]);
-            DeviceFirmwareVersionFeedback.LinkInputSig(trilist.StringInput[joinMap.DeviceFirmwareVersion.JoinNumber]);
-
-            UpdateFeedbacks();
-
-            trilist.OnlineStatusChange += (o, a) =>
-            {
-                if (!a.DeviceOnLine) return;
+                // links to bridge
                 trilist.StringInput[joinMap.DeviceName.JoinNumber].StringValue = Name;
+                trilist.SetSigTrueAction(joinMap.RefreshData.JoinNumber, UpdateStatus);
+
+                // _commsMonitor.IsOnlineFeedback is used to drive IsOnlineFb on the bridge
+                _commsMonitor.IsOnlineFeedback.LinkInputSig(trilist.BooleanInput[joinMap.IsOnline.JoinNumber]);
+                SocketStatusFeedback.LinkInputSig(trilist.UShortInput[joinMap.SocketStatus.JoinNumber]);
+                MonitorStatusFeedback.LinkInputSig(trilist.UShortInput[joinMap.MonitorStatus.JoinNumber]);
+                BatteryCheckRan2AMFeedback.LinkInputSig(trilist.BooleanInput[joinMap.Battery2AMCheckRan.JoinNumber]);
+
+                // battery info **feedback only**
+                for (ushort i = 0; i < 8; i++)
+                {
+                    ushort index = i;
+                    Batteries[index].BatteryEnabledFeedback.LinkInputSig(trilist.BooleanInput[joinMap.BatteryEnabled.JoinNumber + index]);
+                    Batteries[index].BatteryPresentFeedback.LinkInputSig(trilist.BooleanInput[joinMap.BatteryPresent.JoinNumber + index]);
+                    Batteries[index].BatteryPresent2AMFeedback.LinkInputSig(trilist.BooleanInput[joinMap.BatteryPresent2AM.JoinNumber + index]);
+                    Batteries[index].PercentChargeFeedback.LinkInputSig(trilist.UShortInput[joinMap.PercentCharge.JoinNumber + index]);
+                    Batteries[index].PercentHealthFeedback.LinkInputSig(trilist.UShortInput[joinMap.PercentHealth.JoinNumber + index]);
+                    Batteries[index].TemperatureFFeedback.LinkInputSig(trilist.UShortInput[joinMap.TemperatureF.JoinNumber + index]);
+                    Batteries[index].BatteryErrorFeedback.LinkInputSig(trilist.UShortInput[joinMap.BatteryError.JoinNumber + index]);
+                    Batteries[index].BatteryErrorTextFeedback.LinkInputSig(trilist.StringInput[joinMap.BatteryErrorText.JoinNumber + index]);
+                    Batteries[index].BatteryStateFeedback.LinkInputSig(trilist.StringInput[joinMap.BatteryStateText.JoinNumber + index]);
+                }
+
+                // device information feedback
+                DeviceModelFeedback.LinkInputSig(trilist.StringInput[joinMap.DeviceModel.JoinNumber]);
+                DeviceFirmwareVersionFeedback.LinkInputSig(trilist.StringInput[joinMap.DeviceFirmwareVersion.JoinNumber]);
+
                 UpdateFeedbacks();
-            };
+
+                trilist.OnlineStatusChange += (o, a) =>
+                {
+                    if (!a.DeviceOnLine) return;
+                    trilist.StringInput[joinMap.DeviceName.JoinNumber].StringValue = Name;
+                    UpdateFeedbacks();
+                };
+            }
+            catch (Exception ex)
+            {
+                Debug.ConsoleWithLog(0, "Exception Linking to Bridge Type {0}: {1}", GetType().Name, ex.Message);
+            }
         }
 
         private void UpdateFeedbacks()
@@ -469,7 +500,7 @@ namespace PepperDash.Essentials.Devices.Common.ShureSbc
             {
                 Batteries[i].BatteryEnabledFeedback.FireUpdate();
                 Batteries[i].BatteryPresentFeedback.FireUpdate();
-                Batteries[i].BatteryMissingFeedback.FireUpdate();
+                Batteries[i].BatteryPresent2AMFeedback.FireUpdate();
                 Batteries[i].PercentChargeFeedback.FireUpdate();
                 Batteries[i].PercentHealthFeedback.FireUpdate();
                 Batteries[i].TemperatureFFeedback.FireUpdate();
@@ -477,6 +508,8 @@ namespace PepperDash.Essentials.Devices.Common.ShureSbc
                 Batteries[i].BatteryErrorTextFeedback.FireUpdate();
                 Batteries[i].BatteryStateFeedback.FireUpdate();
             }
+
+            BatteryCheckRan2AMFeedback.FireUpdate();
         }
 
         #endregion Overrides of EssentialsBridgeableDevice
@@ -519,6 +552,12 @@ namespace PepperDash.Essentials.Devices.Common.ShureSbc
             {
                 _batteryPresent = value;
                 BatteryPresentFeedback.FireUpdate();
+
+                //Fix for issue where battery health persists after battery disappears
+                if (!_batteryPresent)
+                {
+                    PercentHealth = 0;
+                }
             }
         }
         /// <summary>
@@ -527,21 +566,21 @@ namespace PepperDash.Essentials.Devices.Common.ShureSbc
         public BoolFeedback BatteryPresentFeedback { get; private set; }
         #endregion
 
-        #region Battery Missing
-        private bool _batteryMissing;
-        public bool BatteryMissing
+        #region Battery Present 2AM
+        private bool _batteryPresent2AM = false;
+        public bool BatteryPresent2AM
         {
-            get { return _batteryMissing; }
+            get { return _batteryPresent2AM; }
             set
             {
-                _batteryMissing = value;
-                BatteryMissingFeedback.FireUpdate();
+                _batteryPresent2AM = value;
+                BatteryPresent2AMFeedback.FireUpdate();
             }
         }
         /// <summary>
-        /// Battery missing feedback
+        /// Battery present 2AM feedback
         /// </summary>
-        public BoolFeedback BatteryMissingFeedback { get; private set; }
+        public BoolFeedback BatteryPresent2AMFeedback { get; private set; }
         #endregion
 
         #region Percent Charge (BATT_CHARGE)
@@ -654,7 +693,7 @@ namespace PepperDash.Essentials.Devices.Common.ShureSbc
         {
             BatteryEnabledFeedback = new BoolFeedback(() => BatteryEnabled);
             BatteryPresentFeedback = new BoolFeedback(() => BatteryPresent);
-            BatteryMissingFeedback = new BoolFeedback(() => BatteryMissing);
+            BatteryPresent2AMFeedback = new BoolFeedback(() => BatteryPresent2AM);
             PercentChargeFeedback = new IntFeedback(() => PercentCharge);
             PercentHealthFeedback = new IntFeedback(() => PercentHealth);
             TemperatureFFeedback = new IntFeedback(() => TemperatureF);
@@ -732,6 +771,40 @@ namespace PepperDash.Essentials.Devices.Common.ShureSbc
             new JoinMetadata
             {
                 Description = "Present feedback for a battery",
+                JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                JoinType = eJoinType.Digital
+            });
+
+        /// <summary>
+        /// Get present feedback for a battery at 2AM
+        /// </summary>
+        [JoinName("BatteryPresent2AM")]
+        public JoinDataComplete BatteryPresent2AM = new JoinDataComplete(
+            new JoinData
+            {
+                JoinNumber = 31,
+                JoinSpan = 8
+            },
+            new JoinMetadata
+            {
+                Description = "Present feedback at 2AM for a battery",
+                JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                JoinType = eJoinType.Digital
+            });
+
+        /// <summary>
+        /// Report battery check ran at 2AM
+        /// </summary>
+        [JoinName("Battery2AMCheckRan")]
+        public JoinDataComplete Battery2AMCheckRan = new JoinDataComplete(
+            new JoinData
+            {
+                JoinNumber = 40,
+                JoinSpan = 1
+            },
+            new JoinMetadata
+            {
+                Description = "Report if battery check at 2AM ran already",
                 JoinCapabilities = eJoinCapabilities.ToSIMPL,
                 JoinType = eJoinType.Digital
             });
@@ -1011,8 +1084,8 @@ namespace PepperDash.Essentials.Devices.Common.ShureSbc
 
     public class ShureSbcPropertiesConfig
     {
-        [JsonProperty("numberOfDevices")]
-        public int numberOfDevices { get; set; }
+        [JsonProperty("size")]
+        public int size { get; set; }
 
         public ShureSbcPropertiesConfig()
         {

@@ -21,7 +21,7 @@ namespace PepperDash.Essentials.Devices.Common.ShureUlxd
         private readonly GenericCommunicationMonitor _commsMonitor;
         private const string CommsDelimiter = ">";
         private readonly GenericQueue _commsQueue;
-        public int NumberOfDevicesExpected { get; private set; }
+        public int UlxdSize { get; private set; }
 
         public ShureUlxdMicrophone[] Microphones;
 
@@ -92,7 +92,7 @@ namespace PepperDash.Essentials.Devices.Common.ShureUlxd
             MonitorStatusFeedback = new IntFeedback(() => (int)_commsMonitor.Status);
             DeviceModelFeedback = new StringFeedback(() => DeviceModel);
             DeviceFirmwareVersionFeedback = new StringFeedback(() => DeviceFirmwareVersion);
-            NumberOfDevicesExpected = config.numberOfDevices <= 4 ? config.numberOfDevices : 4;
+            UlxdSize = config.size <= 4 ? config.size : 4;
             Microphones = new ShureUlxdMicrophone[4];
             for (ushort i = 0; i < 4; i++)
             {
@@ -360,51 +360,58 @@ namespace PepperDash.Essentials.Devices.Common.ShureUlxd
         /// <param name="bridge"></param>
         public override void LinkToApi(BasicTriList trilist, uint joinStart, string joinMapKey, EiscApiAdvanced bridge)
         {
-            var joinMap = new ShureUlxdBridgeJoinMap(joinStart);
-
-            // This adds the join map to the collection on the bridge
-            if (bridge != null)
+            try
             {
-                bridge.AddJoinMap(Key, joinMap);
-            }
+                var joinMap = new ShureUlxdBridgeJoinMap(joinStart);
 
-            Debug.Console(1, "Linking to Trilist '{0}'", trilist.ID.ToString("X"));
-            Debug.Console(0, "Linking to Bridge Type {0}", GetType().Name);
+                // This adds the join map to the collection on the bridge
+                if (bridge != null)
+                {
+                    bridge.AddJoinMap(Key, joinMap);
+                }
 
-            // links to bridge
-            trilist.StringInput[joinMap.DeviceName.JoinNumber].StringValue = Name;
-            trilist.SetSigTrueAction(joinMap.RefreshData.JoinNumber, UpdateStatus);
+                Debug.Console(1, "Linking to Trilist '{0}'", trilist.ID.ToString("X"));
+                Debug.Console(0, "Linking to Bridge Type {0}", GetType().Name);
 
-            // _commsMonitor.IsOnlineFeedback is used to drive IsOnlineFb on the bridge
-            _commsMonitor.IsOnlineFeedback.LinkInputSig(trilist.BooleanInput[joinMap.IsOnline.JoinNumber]);
-            SocketStatusFeedback.LinkInputSig(trilist.UShortInput[joinMap.SocketStatus.JoinNumber]);
-            MonitorStatusFeedback.LinkInputSig(trilist.UShortInput[joinMap.MonitorStatus.JoinNumber]);
-
-            // microphone info **feedback only**
-            for (ushort i = 0; i < 4; i++)
-            {
-                ushort index = i;
-                Microphones[index].MicrophoneEnabledFeedback.LinkInputSig(trilist.BooleanInput[joinMap.MicrophoneEnabled.JoinNumber + index]);
-                Microphones[index].MicrophonePresentFeedback.LinkInputSig(trilist.BooleanInput[joinMap.MicrophonePresent.JoinNumber + index]);
-                Microphones[index].PercentChargeFeedback.LinkInputSig(trilist.UShortInput[joinMap.PercentCharge.JoinNumber + index]);
-                Microphones[index].PercentHealthFeedback.LinkInputSig(trilist.UShortInput[joinMap.PercentHealth.JoinNumber + index]);
-                Microphones[index].TemperatureFFeedback.LinkInputSig(trilist.UShortInput[joinMap.TemperatureF.JoinNumber + index]);
-                Microphones[index].RuntimeFeedback.LinkInputSig(trilist.UShortInput[joinMap.Runtime.JoinNumber + index]);
-                Microphones[index].ModelFeedback.LinkInputSig(trilist.StringInput[joinMap.Model.JoinNumber + index]);
-            }
-
-            // device information feedback
-            DeviceModelFeedback.LinkInputSig(trilist.StringInput[joinMap.DeviceModel.JoinNumber]);
-            DeviceFirmwareVersionFeedback.LinkInputSig(trilist.StringInput[joinMap.DeviceFirmwareVersion.JoinNumber]);
-
-            UpdateFeedbacks();
-
-            trilist.OnlineStatusChange += (o, a) =>
-            {
-                if (!a.DeviceOnLine) return;
+                // links to bridge
                 trilist.StringInput[joinMap.DeviceName.JoinNumber].StringValue = Name;
+                trilist.SetSigTrueAction(joinMap.RefreshData.JoinNumber, UpdateStatus);
+
+                // _commsMonitor.IsOnlineFeedback is used to drive IsOnlineFb on the bridge
+                _commsMonitor.IsOnlineFeedback.LinkInputSig(trilist.BooleanInput[joinMap.IsOnline.JoinNumber]);
+                SocketStatusFeedback.LinkInputSig(trilist.UShortInput[joinMap.SocketStatus.JoinNumber]);
+                MonitorStatusFeedback.LinkInputSig(trilist.UShortInput[joinMap.MonitorStatus.JoinNumber]);
+
+                // microphone info **feedback only**
+                for (ushort i = 0; i < 4; i++)
+                {
+                    ushort index = i;
+                    Microphones[index].MicrophoneEnabledFeedback.LinkInputSig(trilist.BooleanInput[joinMap.MicrophoneEnabled.JoinNumber + index]);
+                    Microphones[index].MicrophonePresentFeedback.LinkInputSig(trilist.BooleanInput[joinMap.MicrophonePresent.JoinNumber + index]);
+                    Microphones[index].PercentChargeFeedback.LinkInputSig(trilist.UShortInput[joinMap.PercentCharge.JoinNumber + index]);
+                    Microphones[index].PercentHealthFeedback.LinkInputSig(trilist.UShortInput[joinMap.PercentHealth.JoinNumber + index]);
+                    Microphones[index].TemperatureFFeedback.LinkInputSig(trilist.UShortInput[joinMap.TemperatureF.JoinNumber + index]);
+                    Microphones[index].RuntimeFeedback.LinkInputSig(trilist.UShortInput[joinMap.Runtime.JoinNumber + index]);
+                    Microphones[index].ModelFeedback.LinkInputSig(trilist.StringInput[joinMap.Model.JoinNumber + index]);
+                }
+
+                // device information feedback
+                DeviceModelFeedback.LinkInputSig(trilist.StringInput[joinMap.DeviceModel.JoinNumber]);
+                DeviceFirmwareVersionFeedback.LinkInputSig(trilist.StringInput[joinMap.DeviceFirmwareVersion.JoinNumber]);
+
                 UpdateFeedbacks();
-            };
+
+                trilist.OnlineStatusChange += (o, a) =>
+                {
+                    if (!a.DeviceOnLine) return;
+                    trilist.StringInput[joinMap.DeviceName.JoinNumber].StringValue = Name;
+                    UpdateFeedbacks();
+                };
+            }
+            catch (Exception ex)
+            {
+                Debug.ConsoleWithLog(0, "Exception Linking to Bridge Type {0}: {1}", GetType().Name, ex.Message);
+            }
         }
 
         private void UpdateFeedbacks()
@@ -900,8 +907,8 @@ namespace PepperDash.Essentials.Devices.Common.ShureUlxd
 
     public class ShureUlxdPropertiesConfig
     {
-        [JsonProperty("numberOfDevices")]
-        public int numberOfDevices { get; set; }
+        [JsonProperty("size")]
+        public int size { get; set; }
 
         public ShureUlxdPropertiesConfig()
         {

@@ -435,7 +435,6 @@ namespace Tesira_DSP_EPI
 
                     SendFullCommand("set", "level", string.Format("{0:0.000000}", volumeLevel), 1);
                     break;
-
                 }
             }
         }

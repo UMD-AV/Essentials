@@ -25,6 +25,9 @@ namespace PepperDash.Essentials.Devices.Common.Codec
         [JsonProperty("phonebookMode")]
         public string PhonebookMode { get; set; }
 
+        [JsonProperty("zoomSuffix")]
+        public string ZoomSuffix { get; set; }
+
         [JsonProperty("showSelfViewByDefault")]
         public bool ShowSelfViewByDefault { get; set; }
 
@@ -42,6 +45,9 @@ namespace PepperDash.Essentials.Devices.Common.Codec
         /// </summary>
         [JsonProperty("externalSourceInputPort")]
         public string ExternalSourceInputPort { get; set; }
+
+        [JsonProperty("cameraNames")]
+        public Dictionary<string, string> CameraNames { get; set; }
 
         /// <summary>
         /// Optionsal property to set the limit of any phonebook queries for directory or searching

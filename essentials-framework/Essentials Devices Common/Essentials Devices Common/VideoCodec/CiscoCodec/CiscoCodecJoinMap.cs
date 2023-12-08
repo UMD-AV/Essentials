@@ -9,6 +9,20 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.Cisco
     {
         #region Digital
 
+        [JoinName("CallZoomMeeting")]
+        public JoinDataComplete CallZoomMeeting = new JoinDataComplete(
+            new JoinData
+            {
+                JoinNumber = 72,
+                JoinSpan = 1
+            },
+            new JoinMetadata
+            {
+                Description = "Call Zoom Meeting",
+                JoinCapabilities = eJoinCapabilities.FromSIMPL,
+                JoinType = eJoinType.Digital
+            });
+
         [JoinName("PresentationLocalOnly")]
         public JoinDataComplete PresentationLocalOnly = new JoinDataComplete(
             new JoinData
@@ -173,6 +187,34 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.Cisco
 
 
         #region Serials
+
+        [JoinName("ZoomMeetingId")]
+        public JoinDataComplete ZoomMeetingId = new JoinDataComplete(
+            new JoinData
+            {
+                JoinNumber = 9,
+                JoinSpan = 1
+            },
+            new JoinMetadata
+            {
+                Description = "ZoomMeetingId",
+                JoinCapabilities = eJoinCapabilities.FromSIMPL,
+                JoinType = eJoinType.Serial
+            });
+
+        [JoinName("ZoomMeetingPassword")]
+        public JoinDataComplete ZoomMeetingPassword = new JoinDataComplete(
+            new JoinData
+            {
+                JoinNumber = 10,
+                JoinSpan = 1
+            },
+            new JoinMetadata
+            {
+                Description = "ZoomMeetingPassword",
+                JoinCapabilities = eJoinCapabilities.FromSIMPL,
+                JoinType = eJoinType.Serial
+            });
 
         [JoinName("CommandToDevice")]
         public JoinDataComplete CommandToDevice = new JoinDataComplete(
