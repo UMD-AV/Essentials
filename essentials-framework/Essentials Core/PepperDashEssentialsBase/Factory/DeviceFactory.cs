@@ -126,7 +126,7 @@ namespace PepperDash.Essentials.Core
         {
             try
             {
-                Debug.Console(0, Debug.ErrorLogLevel.Notice, "Loading '{0}' from Essentials Core", dc.Type);
+                Debug.Console(0, "Loading '{0}' from Essentials Core", dc.Type);
 
                 var localDc = new DeviceConfig(dc);
 

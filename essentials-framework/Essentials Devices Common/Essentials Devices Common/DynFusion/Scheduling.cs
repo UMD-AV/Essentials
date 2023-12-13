@@ -588,8 +588,8 @@ namespace DynFusion
 
                 MeetingInProgressChanged += ((s, e) =>
                 {
-                    if(CurrentMeeting!= null)
-                        trilist.BooleanInput[joinMap.CurrentMeetingInProgress.JoinNumber].BoolValue = CurrentMeeting.isInProgress;
+                    if(CurrentMeeting != null)
+                        trilist.BooleanInput[joinMap.CurrentMeetingInProgress.JoinNumber].BoolValue = true;
                     else
                         trilist.BooleanInput[joinMap.CurrentMeetingInProgress.JoinNumber].BoolValue = false;
 
@@ -630,7 +630,7 @@ namespace DynFusion
                             trilist.StringInput[joinMap.CurrentMeetingEndTime.JoinNumber].StringValue = CurrentMeeting.EndTime;
                             trilist.StringInput[joinMap.CurrentMeetingEndDate.JoinNumber].StringValue = CurrentMeeting.EndDate;
                             trilist.StringInput[joinMap.CurrentMeetingDuration.JoinNumber].StringValue = CurrentMeeting.DurationInMinutes;
-                            trilist.BooleanInput[joinMap.CurrentMeetingInProgress.JoinNumber].BoolValue = CurrentMeeting.isInProgress;
+                            trilist.BooleanInput[joinMap.CurrentMeetingInProgress.JoinNumber].BoolValue = true;
                             trilist.StringInput[joinMap.CurrentMeetingOrganizerSMTP.JoinNumber].StringValue = CurrentMeeting.OrganizerSMTP;
                         }
                         else
@@ -964,10 +964,12 @@ namespace DynFusion
  
 			if (now >= dtStart && now <= dtEnd)
 			{
+                Debug.Console(0,"Meeting in progress {0}", this.Subject);
 				return true;
 			}
 			else
 			{
+                Debug.Console(0, "Meeting not in progress {0}", this.Subject);
 				return false;
 			}
 		}

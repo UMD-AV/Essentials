@@ -1,0 +1,432 @@
+{
+  "CustomAttributes": {
+    "DigitalAttributes": [
+      {
+        "joinNumber": 51,
+        "rwType": "RW",
+        "name": "Occ Shutdown - Enable"
+      },
+      {
+        "joinNumber": 52,
+        "rwType": "RW",
+        "name": "Occ Shutdown - Disable"
+      },
+      {
+        "joinNumber": 53,
+        "rwType": "W",
+        "name": "Processor - Reboot"
+      },
+      {
+        "joinNumber": 54,
+        "rwType": "R",
+        "name": "TP01 - SIP Enabled"
+      },
+      {
+        "joinNumber": 55,
+        "rwType": "R",
+        "name": "TP02 - SIP Enabled"
+      },
+      {
+        "joinNumber": 56,
+        "rwType": "R",
+        "name": "TP03 - SIP Enabled"
+      },
+      {
+        "joinNumber": 57,
+        "rwType": "R",
+        "name": "TP04 - SIP Enabled"
+      },
+      {
+        "joinNumber": 121,
+        "rwType": "R",
+        "name": "Dali01 Loop1 Lamp Failure"
+      },
+      {
+        "joinNumber": 122,
+        "rwType": "R",
+        "name": "Dali01 Loop2 Lamp Failure"
+      },
+      {
+        "joinNumber": 131,
+        "rwType": "R",
+        "name": "Dali01 Loop1 Ballast Failure"
+      },
+      {
+        "joinNumber": 132,
+        "rwType": "R",
+        "name": "Dali01 Loop2 Ballast Failure"
+      },
+      {
+        "joinNumber": 141,
+        "rwType": "R",
+        "name": "Dali02 Loop1 Lamp Failure"
+      },
+      {
+        "joinNumber": 142,
+        "rwType": "R",
+        "name": "Dali02 Loop2 Lamp Failure"
+      },
+      {
+        "joinNumber": 151,
+        "rwType": "R",
+        "name": "Dali02 Loop1 Ballast Failure"
+      },
+      {
+        "joinNumber": 152,
+        "rwType": "R",
+        "name": "Dali02 Loop2 Ballast Failure"
+      }
+    ],
+    "AnalogAttributes": [
+      {
+        "joinNumber": 51,
+        "rwType": "RW",
+        "name": "Occ Shutdown - Minutes"
+      },
+      {
+        "joinNumber": 52,
+        "rwType": "R",
+        "name": "Occ Shutdown - Minutes Remaining"
+      }
+    ],
+    "SerialAttributes": [
+      {
+        "joinNumber": 50,
+        "RwType": "R",
+        "name": "Processor - IP"
+      },
+      {
+        "joinNumber": 51,
+        "RwType": "R",
+        "name": "Processor - IP Subnet"
+      },
+      {
+        "joinNumber": 52,
+        "RwType": "R",
+        "name": "Processor - Gateway"
+      },
+      {
+        "joinNumber": 53,
+        "RwType": "R",
+        "name": "Processor - Hostname"
+      },
+      {
+        "joinNumber": 54,
+        "RwType": "R",
+        "name": "Processor - Domain"
+      },
+      {
+        "joinNumber": 55,
+        "RwType": "R",
+        "name": "Processor - DNS"
+      },
+      {
+        "joinNumber": 56,
+        "RwType": "R",
+        "name": "Processor - MAC"
+      },
+      {
+        "joinNumber": 57,
+        "RwType": "R",
+        "name": "Processor - MAC Subnet"
+      },
+      {
+        "joinNumber": 58,
+        "RwType": "R",
+        "name": "Processor - Subnet Mask"
+      },
+      {
+        "joinNumber": 59,
+        "RwType": "R",
+        "name": "Processor - Firmware"
+      },
+      {
+        "joinNumber": 60,
+        "RwType": "R",
+        "name": "Processor - Uptime"
+      },
+      {
+        "joinNumber": 61,
+        "RwType": "R",
+        "name": "Processor - Program 01"
+      },
+      {
+        "joinNumber": 62,
+        "RwType": "R",
+        "name": "Processor - Program 02"
+      },
+      {
+        "joinNumber": 63,
+        "RwType": "R",
+        "name": "Processor - Program 03"
+      },
+      {
+        "joinNumber": 64,
+        "RwType": "R",
+        "name": "Processor - Program 04"
+      },
+      {
+        "joinNumber": 65,
+        "RwType": "R",
+        "name": "Processor - Program 05"
+      },
+      {
+        "joinNumber": 66,
+        "RwType": "R",
+        "name": "Processor - Program 06"
+      },
+      {
+        "joinNumber": 67,
+        "RwType": "R",
+        "name": "Processor - Program 07"
+      },
+      {
+        "joinNumber": 68,
+        "RwType": "R",
+        "name": "Processor - Program 08"
+      },
+      {
+        "joinNumber": 69,
+        "RwType": "R",
+        "name": "Processor - Program 09"
+      },
+      {
+        "joinNumber": 70,
+        "RwType": "R",
+        "name": "Processor - Program 10"
+      },
+      {
+        "joinNumber": 71,
+        "rwType": "R",
+        "name": "Touch Panel 1 - IP Address"
+      },
+      {
+        "joinNumber": 72,
+        "rwType": "R",
+        "name": "Touch Panel 1 - Project Name"
+      },
+      {
+        "joinNumber": 73,
+        "rwType": "R",
+        "name": "Touch Panel 2 - IP Address"
+      },
+      {
+        "joinNumber": 74,
+        "rwType": "R",
+        "name": "Touch Panel 2 - Project Name"
+      },
+      {
+        "joinNumber": 75,
+        "rwType": "R",
+        "name": "Touch Panel 3 - IP Address"
+      },
+      {
+        "joinNumber": 76,
+        "rwType": "R",
+        "name": "Touch Panel 3 - Project Name"
+      },
+      {
+        "joinNumber": 77,
+        "rwType": "R",
+        "name": "Touch Panel 4 - IP Address"
+      },
+      {
+        "joinNumber": 78,
+        "rwType": "R",
+        "name": "Touch Panel 4 - Project Name"
+      },
+      {
+        "joinNumber": 79,
+        "RwType": "R",
+        "name": "Processor - Program 01 Compile Time"
+      },
+      {
+        "joinNumber": 80,
+        "RwType": "R",
+        "name": "Processor - Program 02 Compile Time"
+      },
+      {
+        "joinNumber": 81,
+        "RwType": "R",
+        "name": "Processor - Program 03 Compile Time"
+      },
+      {
+        "joinNumber": 82,
+        "RwType": "R",
+        "name": "Processor - Program 04 Compile Time"
+      },
+      {
+        "joinNumber": 83,
+        "RwType": "R",
+        "name": "Processor - Program 05 Compile Time"
+      },
+      {
+        "joinNumber": 84,
+        "RwType": "R",
+        "name": "Processor - Program 06 Compile Time"
+      },
+      {
+        "joinNumber": 85,
+        "RwType": "R",
+        "name": "Processor - Program 07 Compile Time"
+      },
+      {
+        "joinNumber": 86,
+        "RwType": "R",
+        "name": "Processor - Program 08 Compile Time"
+      },
+      {
+        "joinNumber": 87,
+        "RwType": "R",
+        "name": "Processor - Program 09 Compile Time"
+      },
+      {
+        "joinNumber": 88,
+        "RwType": "R",
+        "name": "Processor - Program 10 Compile Time"
+      },
+      {
+        "joinNumber": 89,
+        "RwType": "R",
+        "name": "Processor - Serial"
+      },
+      {
+        "joinNumber": 100,
+        "RwType": "R",
+        "name": "Help - Report Issue"
+      },
+      {
+        "joinNumber": 101,
+        "RwType": "R",
+        "name": "AV Switcher - IP Address"
+      },
+      {
+        "joinNumber": 111,
+        "RwType": "R",
+        "name": "Codec - IP Address"
+      },
+      {
+        "joinNumber": 112,
+        "RwType": "R",
+        "name": "Codec - Version"
+      },
+      {
+        "joinNumber": 121,
+        "rwType": "R",
+        "name": "Lights 01 - Error"
+      },
+      {
+        "joinNumber": 122,
+        "rwType": "R",
+        "name": "Lights 02 - Error"
+      },
+      {
+        "joinNumber": 131,
+        "rwType": "R",
+        "name": "Number Of Mic Batteries - Error"
+      },
+      {
+        "joinNumber": 201,
+        "rwType": "R",
+        "name": "Destination 01 - Current Source"
+      },
+      {
+        "joinNumber": 202,
+        "rwType": "R",
+        "name": "Destination 02 - Current Source"
+      },
+      {
+        "joinNumber": 203,
+        "rwType": "R",
+        "name": "Destination 03 - Current Source"
+      },
+      {
+        "joinNumber": 204,
+        "rwType": "R",
+        "name": "Destination 04 - Current Source"
+      },
+      {
+        "joinNumber": 205,
+        "rwType": "R",
+        "name": "Destination 05 - Current Source"
+      },
+      {
+        "joinNumber": 206,
+        "rwType": "R",
+        "name": "Destination 06 - Current Source"
+      },
+      {
+        "joinNumber": 207,
+        "rwType": "R",
+        "name": "Destination 07 - Current Source"
+      },
+      {
+        "joinNumber": 208,
+        "rwType": "R",
+        "name": "Destination 08 - Current Source"
+      },
+      {
+        "joinNumber": 209,
+        "rwType": "R",
+        "name": "Destination 09 - Current Source"
+      },
+      {
+        "joinNumber": 210,
+        "rwType": "R",
+        "name": "Destination 10 - Current Source"
+      },
+      {
+        "joinNumber": 211,
+        "rwType": "R",
+        "name": "Destination 11 - Current Source"
+      },
+      {
+        "joinNumber": 212,
+        "rwType": "R",
+        "name": "Destination 12 - Current Source"
+      },
+      {
+        "joinNumber": 213,
+        "rwType": "R",
+        "name": "Destination 13 - Current Source"
+      },
+      {
+        "joinNumber": 214,
+        "rwType": "R",
+        "name": "Destination 14 - Current Source"
+      },
+      {
+        "joinNumber": 215,
+        "rwType": "R",
+        "name": "Destination 15 - Current Source"
+      },
+      {
+        "joinNumber": 216,
+        "rwType": "R",
+        "name": "Destination 16 - Current Source"
+      }
+    ]
+  },
+  "CustomProperties": {
+    "AnalogProperties": [
+      {
+        "ID": "NumberOfMicBatteries",
+        "joinNumber": 901
+      }
+    ],
+    "SerialProperties": [
+      {
+        "ID": "Name",
+        "joinNumber": 900
+      },
+      {
+        "ID": "HelpDeskSipNumber",
+        "joinNumber": 901
+      },
+      {
+        "ID": "LightingID",
+        "joinNumber": 902
+      }
+    ]
+  }
+}

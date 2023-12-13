@@ -162,8 +162,6 @@ namespace DynFusion
 			{
 				Debug.Console(0, this, "{0}", ex);
 			}
-
-
 		}
 		public void StartDevice(string key)
 		{

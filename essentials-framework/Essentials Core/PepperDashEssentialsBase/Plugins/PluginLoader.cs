@@ -123,7 +123,6 @@ namespace PepperDash.Essentials
         /// <param name="fileName"></param>
         static LoadedAssembly LoadAssembly(string filePath)
         {
-            //Debug.Console(2, "Attempting to load {0}", filePath);
             var assembly = Assembly.LoadFrom(filePath);
             if (assembly != null)
             {
@@ -501,8 +500,6 @@ namespace PepperDash.Essentials
         {
             if (Directory.Exists(_pluginDirectory))
             {
-                Debug.Console(0, Debug.ErrorLogLevel.Notice, "Plugins directory found, checking for plugins");
-
                 // Deal with any .dll files
                 MoveDllAssemblies();
 
@@ -519,7 +516,6 @@ namespace PepperDash.Essentials
                 }
             }
         }
-
     }
 
     /// <summary>

@@ -203,6 +203,11 @@
     <Compile Include="Microphones\ShureUlxd.cs" />
     <Compile Include="Microphones\ShureSbc.cs" />
     <Compile Include="Microphones\ShureMxa.cs" />
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
     <Compile Include="Scheduling\CollegeNet.cs" />
     <Compile Include="SetTopBox\ContemporaryResearch.cs" />
     <Compile Include="VideoCodec\ConvertiblePreset.cs" />
@@ -314,12 +319,19 @@
     <Compile Include="VideoCodec\ZoomRoom\ZoomRoomJoinMap.cs" />
     <Compile Include="VideoCodec\ZoomRoom\ZoomRoomPropertiesConfig.cs" />
     <None Include="Properties\ControlSystem.cfg" />
+    <None Include="Resources\dynFusionCustomAttributes.json" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Essentials Core\PepperDashEssentialsBase\PepperDash_Essentials_Core.csproj">
       <Project>{A49AD6C8-FC0A-4CC0-9089-DFB4CF92D2B5}</Project>
       <Name>PepperDash_Essentials_Core</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CompactFramework.CSharp.targets" />
   <ProjectExtensions>

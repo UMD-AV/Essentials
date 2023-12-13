@@ -128,7 +128,6 @@ namespace PepperDash.Essentials.Core.Bridges
             CommunicationMonitor = new CrestronGenericBaseCommunicationMonitor(this, Eisc, 120000, 300000);
 
             AddPostActivationAction(LinkDevices);
-            AddPostActivationAction(LinkRooms);
             AddPostActivationAction(RegisterEisc);
         }
 
@@ -192,36 +191,11 @@ namespace PepperDash.Essentials.Core.Bridges
 
             if (registerResult != eDeviceRegistrationUnRegistrationResponse.Success)
             {
-                Debug.Console(2, this, Debug.ErrorLogLevel.Error, "Registration result: {0}", registerResult);
+                Debug.Console(0, this, Debug.ErrorLogLevel.Error, "Registration result: {0}", registerResult);
                 return;
             }
 
-            Debug.Console(1, this, Debug.ErrorLogLevel.Notice, "EISC registration successful");
-        }
-
-        public void LinkRooms()
-        {
-            Debug.Console(1, this, "Linking Rooms...");
-
-            if (PropertiesConfig.Rooms == null)
-            {
-                Debug.Console(1, this, Debug.ErrorLogLevel.Notice, "No rooms linked to this bridge.");
-                return;
-            }
-
-            foreach (var room in PropertiesConfig.Rooms)
-            {
-                var rm = DeviceManager.GetDeviceForKey(room.RoomKey) as IBridgeAdvanced;
-
-                if (rm == null)
-                {
-                    Debug.Console(1, this, Debug.ErrorLogLevel.Notice,
-                        "Room {0} does not implement IBridgeAdvanced. Skipping...", room.RoomKey);
-                    continue;
-                }
-
-                rm.LinkToApi(Eisc, room.JoinStart, room.JoinMapKey, this);
-            }
+            Debug.Console(1, this, "EISC registration successful");
         }
 
         /// <summary>

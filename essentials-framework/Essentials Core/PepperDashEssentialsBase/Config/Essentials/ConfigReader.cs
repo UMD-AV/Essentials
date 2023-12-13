@@ -24,13 +24,10 @@ namespace PepperDash.Essentials.Core.Config
 
 		public static bool LoadConfig2()
 		{
-			Debug.Console(0, Debug.ErrorLogLevel.Notice, "Loading configuration file.");
 			try
 			{
                 // Check for local config file first
                 var filePath = Global.FilePathPrefix + Global.ConfigFileName;
-
-                Debug.Console(0, Debug.ErrorLogLevel.Notice, "Attempting to load config file: '{0}'", filePath);
 
                 // Check for local config directory first
 
@@ -61,12 +58,8 @@ namespace PepperDash.Essentials.Core.Config
                 // Read the file
                 using (StreamReader fs = new StreamReader(filePath))
                 {
-                    Debug.Console(0, Debug.ErrorLogLevel.Notice, "Loading config file: '{0}'", filePath);
-
                     ConfigObject = JObject.Parse(fs.ReadToEnd()).ToObject<EssentialsConfig>();
-
-                    Debug.Console(0, Debug.ErrorLogLevel.Notice, "Successfully Loaded Local Config");
-
+                    Debug.Console(0, Debug.ErrorLogLevel.Notice, "Successfully Loaded Config: {0}", filePath);
                     return true;
                 }
 			}
@@ -174,9 +167,7 @@ namespace PepperDash.Essentials.Core.Config
                 // Line 8
 	            .Append(new string('*', debugStringWidth));
 
-            Debug.Console(2, Debug.ErrorLogLevel.Notice, "Found Local config file: '{0}'", filePath);
             Debug.Console(0, newDebugString.ToString());
 	    }
-
 	}
 }

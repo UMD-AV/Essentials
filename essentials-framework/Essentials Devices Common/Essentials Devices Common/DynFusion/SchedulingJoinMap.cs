@@ -54,8 +54,6 @@ namespace DynFusion
 		public JoinDataComplete NextMeetingDuration = new JoinDataComplete(new JoinData { JoinNumber = 38, JoinSpan = 1 }, new JoinMetadata { Label = "NextMeetingDuration", JoinCapabilities = eJoinCapabilities.ToSIMPL, JoinType = eJoinType.Serial });
 
         //Arrays of 20 for meeting list
-        [JoinName("MeetingActive")]
-        public JoinDataComplete MeetingActive = new JoinDataComplete(new JoinData { JoinNumber = 41, JoinSpan = 20 }, new JoinMetadata { Label = "MeetingActive", JoinCapabilities = eJoinCapabilities.ToSIMPL, JoinType = eJoinType.Digital });
         [JoinName("MeetingSubject")]
 		public JoinDataComplete MeetingSubject = new JoinDataComplete(new JoinData { JoinNumber = 41, JoinSpan = 20 }, new JoinMetadata { Label = "MeetingSubject", JoinCapabilities = eJoinCapabilities.ToSIMPL, JoinType = eJoinType.Serial });
         [JoinName("MeetingOrganizer")]

@@ -18,6 +18,8 @@ using DynFusion.Assets;
 using Crestron.SimplSharp;
 using PepperDash_Essentials_Core.Extensions;
 using System.Text.RegularExpressions;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace DynFusion 
 {
@@ -74,21 +76,7 @@ namespace DynFusion
 			{
 				Debug.Console(0, this, "Failure to register Fusion Symbol");
 			}
-			FusionSymbol.ExtenderFusionRoomDataReservedSigs.Use();
-
-            if (_Config.Assets != null)
-            {
-                if (_Config.Assets.OccupancySensors != null)
-                {
-                    foreach (var occSensorConfig in _Config.Assets.OccupancySensors)
-                    {
-                        uint tempAssetNumber = GetNextAvailableAssetNumber(FusionSymbol);
-                        Debug.Console(2, this, string.Format("Creating occSensor: {0}, {1}", tempAssetNumber, occSensorConfig.Name));
-                        FusionSymbol.AddAsset(eAssetType.OccupancySensor, tempAssetNumber, occSensorConfig.Name, "Occupancy Sensor", FusionUuid.GenerateUuid(occSensorConfig.Name));
-                        OccSensors.Add(new DynFusionAssetOccupancySensor(Key + "-" + occSensorConfig.Name, occSensorConfig.JoinNumber, FusionSymbol, tempAssetNumber));
-                    }
-                }
-            }            
+			FusionSymbol.ExtenderFusionRoomDataReservedSigs.Use();           
 		}
 
 		public override bool CustomActivate()
@@ -112,10 +100,14 @@ namespace DynFusion
 				FusionSymbol.FusionStateChange += new FusionStateEventHandler(FusionSymbol_FusionStateChange);
 				FusionSymbol.ExtenderFusionRoomDataReservedSigs.DeviceExtenderSigChange += new DeviceExtenderJoinChangeEventHandler(FusionSymbol_RoomDataDeviceExtenderSigChange);
 
-				// Create Custom Atributes 
-                if (_Config.CustomAttributes.DigitalAttributes != null)
+
+                string customAttr = Encoding.GetEncoding(28591).GetString(PepperDash.Essentials.Devices.Common.Properties.Resources.dynFusionCustomAttributes, 0, PepperDash.Essentials.Devices.Common.Properties.Resources.dynFusionCustomAttributes.Length);
+                DynFusionConfigObjectTemplate customAttrConfig = JObject.Parse(customAttr).ToObject<DynFusionConfigObjectTemplate>();
+				
+                // Create Custom Atributes 
+                if (customAttrConfig.CustomAttributes.DigitalAttributes != null)
                 {
-                    foreach (var att in _Config.CustomAttributes.DigitalAttributes)
+                    foreach (var att in customAttrConfig.CustomAttributes.DigitalAttributes)
                     {
                         FusionSymbol.AddSig(eSigType.Bool, att.JoinNumber - FusionJoinOffset, att.Name, GetIOMask(att.RwType));
 
@@ -131,9 +123,9 @@ namespace DynFusion
                     }
                 }
 
-                if (_Config.CustomAttributes.AnalogAttributes != null)
+                if (customAttrConfig.CustomAttributes.AnalogAttributes != null)
                 {
-                    foreach (var att in _Config.CustomAttributes.AnalogAttributes)
+                    foreach (var att in customAttrConfig.CustomAttributes.AnalogAttributes)
                     {
                         FusionSymbol.AddSig(eSigType.UShort, att.JoinNumber - FusionJoinOffset, att.Name, GetIOMask(att.RwType));
 
@@ -149,9 +141,9 @@ namespace DynFusion
 
                     }
                 }
-                if (_Config.CustomAttributes.SerialAttributes != null)
+                if (customAttrConfig.CustomAttributes.SerialAttributes != null)
                 {
-				    foreach (var att in _Config.CustomAttributes.SerialAttributes)
+                    foreach (var att in customAttrConfig.CustomAttributes.SerialAttributes)
 				    {
 					    FusionSymbol.AddSig(eSigType.String, att.JoinNumber - FusionJoinOffset, att.Name, GetIOMask(att.RwType));
 					    if (att.RwType == eReadWrite.ReadWrite || att.RwType == eReadWrite.Read)
@@ -184,27 +176,27 @@ namespace DynFusion
 				// Room Data Extender 
 				CreateStandardJoin(JoinMapStatic.ActionQuery, FusionSymbol.ExtenderFusionRoomDataReservedSigs.ActionQuery);
 				CreateStandardJoin(JoinMapStatic.RoomConfig, FusionSymbol.ExtenderFusionRoomDataReservedSigs.RoomConfigQuery);
-				if (_Config.CustomProperties != null)
+
+                if (customAttrConfig.CustomProperties != null)
 				{
-					if (_Config.CustomProperties.DigitalProperties != null)
+                    if (customAttrConfig.CustomProperties.DigitalProperties != null)
 					{
-						foreach (var att in _Config.CustomProperties.DigitalProperties)
+                        foreach (var att in customAttrConfig.CustomProperties.DigitalProperties)
 						{
 							DigitalAttributesFromFusion.Add(att.JoinNumber, new DynFusionDigitalAttribute(att.ID, att.JoinNumber));
 						}
 					}
-					if (_Config.CustomProperties.AnalogProperties != null)
+                    if (customAttrConfig.CustomProperties.AnalogProperties != null)
 					{
-
-						foreach (var att in _Config.CustomProperties.AnalogProperties)
+                        foreach (var att in customAttrConfig.CustomProperties.AnalogProperties)
 						{
 							AnalogAttributesFromFusion.Add(att.JoinNumber, new DynFusionAnalogAttribute(att.ID, att.JoinNumber));
 						}
 					}
-					if (_Config.CustomProperties.SerialProperties != null)
+                    if (customAttrConfig.CustomProperties.SerialProperties != null)
 					{
 
-						foreach (var att in _Config.CustomProperties.SerialProperties)
+                        foreach (var att in customAttrConfig.CustomProperties.SerialProperties)
 						{
 							SerialAttributesFromFusion.Add(att.JoinNumber, new DynFusionSerialAttribute(att.ID, att.JoinNumber));
 						}
@@ -212,11 +204,24 @@ namespace DynFusion
 				}
 
                 HelpRequest.GetOpenItems();
-
 				DeviceUsageFactory(); 
 
                 //Static Assets
                 FusionSymbol.FusionAssetStateChange += FusionSymbol_FusionAssetStateChange;
+                
+                try
+                {
+                    string occSensorName = "Room Occupancy";
+                    uint tempAssetNumber = GetNextAvailableAssetNumber(FusionSymbol);
+                    Debug.Console(2, this, string.Format("Creating occSensor: {0}, {1}", tempAssetNumber, occSensorName));
+                    FusionSymbol.AddAsset(eAssetType.OccupancySensor, tempAssetNumber, occSensorName, "Occupancy Sensor", FusionUuid.GenerateUuid(occSensorName));
+                    OccSensors.Add(new DynFusionAssetOccupancySensor(Key + "-" + occSensorName, 951, FusionSymbol, tempAssetNumber));
+                }
+                catch(Exception ex)
+                {
+                    Debug.ConsoleWithLog(0, this, string.Format("Creating occSensor failed: {0}", ex.Message));
+                }
+
                 foreach (var device in DeviceManager.AllDevices)
                 {
                     try
@@ -268,7 +273,6 @@ namespace DynFusion
 			{
 				Debug.Console(0, this, "Exception DynFusion Initialize {0}", ex);
 			}
-
 		}
 
 		void DeviceUsageFactory()

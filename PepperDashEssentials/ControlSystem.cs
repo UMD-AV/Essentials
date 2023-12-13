@@ -139,8 +139,6 @@ namespace PepperDash.Essentials
         {
             try
             {
-                Debug.Console(0, Debug.ErrorLogLevel.Notice, "Determining Platform....");
-
                 string filePathPrefix;
 
                 var dirSeparator = Global.DirectorySeparator;
@@ -212,10 +210,7 @@ namespace PepperDash.Essentials
                 var filesReady = SetupFilesystem();
                 if (filesReady)
                 {
-                    Debug.Console(0, Debug.ErrorLogLevel.Notice, "Checking for plugins");
                     PluginLoader.LoadPlugins();
-
-                    Debug.Console(0, Debug.ErrorLogLevel.Notice, "Folder structure verified. Loading config...");
                     if (!ConfigReader.LoadConfig2())
                     {
                         Debug.Console(0, Debug.ErrorLogLevel.Error, "Essentials Load complete with errors");
@@ -402,7 +397,6 @@ namespace PepperDash.Essentials
             {
                 try
                 {
-                    Debug.Console(0, Debug.ErrorLogLevel.Notice, "Creating device '{0}', type '{1}'", devConf.Key, devConf.Type);
                     // Try local factories first
                     IKeyed newDev = null;
 
@@ -419,7 +413,6 @@ namespace PepperDash.Essentials
                     Debug.Console(0, Debug.ErrorLogLevel.Error, "ERROR: Creating device {0}. Skipping device. \r{1}", devConf.Key, e);
                 }
             }
-            Debug.Console(0, Debug.ErrorLogLevel.Notice, "All Devices Loaded.");
         }
     }
 }

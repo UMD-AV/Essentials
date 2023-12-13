@@ -877,24 +877,12 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
 
 
         #region Serial
-        [JoinName("CurrentMeetingTitle")]
-        public JoinDataComplete CurrentMeetingTitle = new JoinDataComplete(
-            new JoinData()
-            {
-                JoinNumber = 1,
-                JoinSpan = 1
-            },
-            new JoinMetadata()
-            {
-                Description = "Current Meeting Title",
-                JoinCapabilities = eJoinCapabilities.ToSIMPL,
-                JoinType = eJoinType.Serial
-            });
+
         [JoinName("CurrentMeetingName")]
         public JoinDataComplete CurrentMeetingName = new JoinDataComplete(
             new JoinData()
             {
-                JoinNumber = 2,
+                JoinNumber = 1,
                 JoinSpan = 1
             },
             new JoinMetadata()
@@ -903,6 +891,21 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
                 JoinCapabilities = eJoinCapabilities.ToSIMPL,
                 JoinType = eJoinType.Serial
             });
+
+        [JoinName("CurrentMeetingTitle")]
+        public JoinDataComplete CurrentMeetingTitle = new JoinDataComplete(
+            new JoinData()
+            {
+                JoinNumber = 2,
+                JoinSpan = 1
+            },
+            new JoinMetadata()
+            {
+                Description = "Current Meeting Title",
+                JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                JoinType = eJoinType.Serial
+            });
+
         [JoinName("CurrentMeetingOrganizer")]
         public JoinDataComplete CurrentMeetingOrganizer = new JoinDataComplete(
             new JoinData()
@@ -916,6 +919,7 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
                 JoinCapabilities = eJoinCapabilities.ToSIMPL,
                 JoinType = eJoinType.Serial
             });
+
         [JoinName("CurrentMeetingOrganizerEmail")]
         public JoinDataComplete CurrentMeetingOrganizerEmail = new JoinDataComplete(
             new JoinData()
@@ -929,6 +933,7 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
                 JoinCapabilities = eJoinCapabilities.ToSIMPL,
                 JoinType = eJoinType.Serial
             });
+
         [JoinName("CurrentMeetingType")]
         public JoinDataComplete CurrentMeetingType = new JoinDataComplete(
             new JoinData()
@@ -942,6 +947,7 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
                 JoinCapabilities = eJoinCapabilities.ToSIMPL,
                 JoinType = eJoinType.Serial
             });
+
         [JoinName("CurrentMeetingStartTime")]
         public JoinDataComplete CurrentMeetingStartTime = new JoinDataComplete(
             new JoinData()
@@ -955,6 +961,7 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
                 JoinCapabilities = eJoinCapabilities.ToSIMPL,
                 JoinType = eJoinType.Serial
             });
+
         [JoinName("CurrentMeetingEndTime")]
         public JoinDataComplete CurrentMeetingEndTime = new JoinDataComplete(
             new JoinData()
@@ -982,24 +989,11 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
                 JoinType = eJoinType.Serial
             });
 
-        [JoinName("NextMeetingTitle")]
-        public JoinDataComplete NextMeetingTitle = new JoinDataComplete(
-            new JoinData()
-            {
-                JoinNumber = 11,
-                JoinSpan = 1
-            },
-            new JoinMetadata()
-            {
-                Description = "Next Meeting Title",
-                JoinCapabilities = eJoinCapabilities.ToSIMPL,
-                JoinType = eJoinType.Serial
-            });
         [JoinName("NextMeetingName")]
         public JoinDataComplete NextMeetingName = new JoinDataComplete(
             new JoinData()
             {
-                JoinNumber = 12,
+                JoinNumber = 11,
                 JoinSpan = 1
             },
             new JoinMetadata()
@@ -1008,6 +1002,21 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
                 JoinCapabilities = eJoinCapabilities.ToSIMPL,
                 JoinType = eJoinType.Serial
             });
+
+        [JoinName("NextMeetingTitle")]
+        public JoinDataComplete NextMeetingTitle = new JoinDataComplete(
+            new JoinData()
+            {
+                JoinNumber = 12,
+                JoinSpan = 1
+            },
+            new JoinMetadata()
+            {
+                Description = "Next Meeting Title",
+                JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                JoinType = eJoinType.Serial
+            });
+
         [JoinName("NextMeetingType")]
         public JoinDataComplete NextMeetingType = new JoinDataComplete(
             new JoinData()
@@ -1021,6 +1030,7 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
                 JoinCapabilities = eJoinCapabilities.ToSIMPL,
                 JoinType = eJoinType.Serial
             });
+
         [JoinName("NextMeetingStartTime")]
         public JoinDataComplete NextMeetingStartTime = new JoinDataComplete(
             new JoinData()
@@ -1034,6 +1044,7 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
                 JoinCapabilities = eJoinCapabilities.ToSIMPL,
                 JoinType = eJoinType.Serial
             });
+
         [JoinName("NextMeetingEndTime")]
         public JoinDataComplete NextMeetingEndTime = new JoinDataComplete(
             new JoinData()
@@ -1047,6 +1058,7 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
                 JoinCapabilities = eJoinCapabilities.ToSIMPL,
                 JoinType = eJoinType.Serial
             });
+
         [JoinName("SpaceName")]
         public JoinDataComplete SpaceName = new JoinDataComplete(
             new JoinData()
@@ -1060,6 +1072,7 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
                 JoinCapabilities = eJoinCapabilities.ToSIMPL,
                 JoinType = eJoinType.Serial
             });
+
         [JoinName("SpaceInstructions")]
         public JoinDataComplete SpaceInstructions = new JoinDataComplete(
             new JoinData()
@@ -1074,8 +1087,8 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
                 JoinType = eJoinType.Serial
             });
 
-        [JoinName("MeetingTitle")]
-        public JoinDataComplete MeetingTitle = new JoinDataComplete(
+        [JoinName("MeetingName")]
+        public JoinDataComplete MeetingName = new JoinDataComplete(
             new JoinData()
             {
                 JoinNumber = 51,
@@ -1083,13 +1096,13 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
             },
             new JoinMetadata()
             {
-                Description = "Meeting Title",
+                Description = "Meeting Name",
                 JoinCapabilities = eJoinCapabilities.ToSIMPL,
                 JoinType = eJoinType.Serial
             });
 
-        [JoinName("MeetingName")]
-        public JoinDataComplete MeetingName = new JoinDataComplete(
+        [JoinName("MeetingTitle")]
+        public JoinDataComplete MeetingTitle = new JoinDataComplete(
             new JoinData()
             {
                 JoinNumber = 101,
@@ -1097,7 +1110,7 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
             },
             new JoinMetadata()
             {
-                Description = "Meeting Name",
+                Description = "Meeting Title",
                 JoinCapabilities = eJoinCapabilities.ToSIMPL,
                 JoinType = eJoinType.Serial
             });
