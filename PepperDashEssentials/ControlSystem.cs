@@ -15,18 +15,18 @@ using PepperDash.Essentials.Core.Config;
 using PepperDash.Essentials.Core.Fusion;
 using PepperDash.Essentials.Devices.Common;
 using PepperDash.Essentials.DM;
-using PepperDash.Essentials.Fusion;
 using PepperDash.Essentials.Room.Config;
 
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using PepperDash.Core.Config;
 using PepperDash.Essentials.Core.DeviceTypeInterfaces;
+using System.Text;
 
 namespace PepperDash.Essentials
 {
     public class ControlSystem : CrestronControlSystem
     {
-        HttpLogoServer LogoServer;
-
         private CTimer _startTimer;
         private CEvent _initializeEvent;
         private const long StartupTime = 500;
@@ -250,10 +250,7 @@ namespace PepperDash.Essentials
                 // Notify the OS that the program intitialization has completed
                 SystemMonitor.ProgramInitialization.ProgramInitializationComplete = true;
             }
-
-        }
-
-       
+        }       
 
         /// <summary>
         /// Verifies filesystem is set up. IR, SGD, and programX folders
@@ -307,18 +304,7 @@ namespace PepperDash.Essentials
 		void Load()
 		{
 			LoadDevices();
-			LoadTieLines();
-			LoadRooms();
-			LoadLogoServer();
-
-			DeviceManager.ActivateAll();
-
-		    var mobileControl = GetMobileControlDevice();
-
-		    if (mobileControl == null) return;
-
-            mobileControl.LinkSystemMonitorToAppServer();
-		    
+			DeviceManager.ActivateAll();		    
 		}
 
         /// <summary>
@@ -339,7 +325,6 @@ namespace PepperDash.Essentials
 
             foreach (var devConf in ConfigReader.ConfigObject.Devices)
             {
-
                 try
                 {
                     Debug.Console(0, Debug.ErrorLogLevel.Notice, "Creating device '{0}', type '{1}'", devConf.Key, devConf.Type);
@@ -366,7 +351,7 @@ namespace PepperDash.Essentials
                             if(propertiesConfig == null)
                                 propertiesConfig =  new DM.Config.DmpsRoutingPropertiesConfig();
 
-                            DeviceManager.AddDevice(DmpsRoutingController.GetDmpsRoutingController("processor-avRouting", this.ControllerPrompt, propertiesConfig));
+                            DeviceManager.AddDevice(DmpsRoutingController.GetDmpsRoutingController("switcher01", this.ControllerPrompt, propertiesConfig));
                         }
                         else if (this.ControllerPrompt.IndexOf("mpc3", StringComparison.OrdinalIgnoreCase) > -1)
                         {
@@ -388,9 +373,7 @@ namespace PepperDash.Essentials
                         else
                         {
                             Debug.Console(2, "************Processor is not DMPS type***************");
-                        }
-
-                        
+                        }                        
 
                         continue;
                     }
@@ -411,221 +394,32 @@ namespace PepperDash.Essentials
                     Debug.Console(0, Debug.ErrorLogLevel.Error, "ERROR: Creating device {0}. Skipping device. \r{1}", devConf.Key, e);
                 }
             }
+
+            string bridges = Encoding.GetEncoding(28591).GetString(PepperDashEssentials.Properties.Resources.umdBridges, 0, PepperDashEssentials.Properties.Resources.umdBridges.Length);
+            EssentialsConfig BridgesObject = JObject.Parse(bridges).ToObject<EssentialsConfig>();
+            
+            foreach (var devConf in BridgesObject.Devices)
+            {
+                try
+                {
+                    Debug.Console(0, Debug.ErrorLogLevel.Notice, "Creating device '{0}', type '{1}'", devConf.Key, devConf.Type);
+                    // Try local factories first
+                    IKeyed newDev = null;
+
+                    if (newDev == null)
+                        newDev = PepperDash.Essentials.Core.DeviceFactory.GetDevice(devConf);
+
+                    if (newDev != null)
+                        DeviceManager.AddDevice(newDev);
+                    else
+                        Debug.Console(0, Debug.ErrorLogLevel.Error, "ERROR: Cannot load unknown device type '{0}', key '{1}'.", devConf.Type, devConf.Key);
+                }
+                catch (Exception e)
+                {
+                    Debug.Console(0, Debug.ErrorLogLevel.Error, "ERROR: Creating device {0}. Skipping device. \r{1}", devConf.Key, e);
+                }
+            }
             Debug.Console(0, Debug.ErrorLogLevel.Notice, "All Devices Loaded.");
-
-        }
-
-
-        /// <summary>
-        /// Helper method to load tie lines.  This should run after devices have loaded
-        /// </summary>
-        public void LoadTieLines()
-        {
-            // In the future, we can't necessarily just clear here because devices
-            // might be making their own internal sources/tie lines
-
-            var tlc = TieLineCollection.Default;
-            //tlc.Clear();
-            if (ConfigReader.ConfigObject.TieLines == null)
-            {
-                return;
-            }
-
-            foreach (var tieLineConfig in ConfigReader.ConfigObject.TieLines)
-            {
-                var newTL = tieLineConfig.GetTieLine();
-                if (newTL != null)
-                    tlc.Add(newTL);
-            }
-
-            Debug.Console(0, Debug.ErrorLogLevel.Notice, "All Tie Lines Loaded.");
-
-        }
-
-        /// <summary>
-        /// Reads all rooms from config and adds them to DeviceManager
-        /// </summary>
-        public void LoadRooms()
-        {
-            if (ConfigReader.ConfigObject.Rooms == null)
-            {
-                Debug.Console(0, Debug.ErrorLogLevel.Notice, "Notice: Configuration contains no rooms - Is this intentional?  This may be a valid configuration.");
-                return;
-            }
-
-            uint fusionIpId = 0xf1;
-
-            foreach (var roomConfig in ConfigReader.ConfigObject.Rooms)
-            {
-                var room = EssentialsRoomConfigHelper.GetRoomObject(roomConfig) as IEssentialsRoom;
-                if (room != null)
-                {
-                    // default to no join map key
-                    string fusionJoinMapKey = string.Empty;
-
-                    if (room.Config.Properties["fusion"] != null)
-                    {
-                        Debug.Console(2, "Custom Fusion config found. Using custom values");
-
-                        var fusionConfig = room.Config.Properties["fusion"].ToObject<EssentialsRoomFusionConfig>();
-
-                        if (fusionConfig != null)
-                        {
-                            fusionIpId = fusionConfig.IpIdInt;
-                            fusionJoinMapKey = fusionConfig.JoinMapKey;
-                        }
-                    }
-
-                    AddRoomAndBuildMC(room);
-
-                    if (room is IEssentialsHuddleSpaceRoom)
-                    {
-
-                        Debug.Console(0, Debug.ErrorLogLevel.Notice, "Room is EssentialsHuddleSpaceRoom, attempting to add to DeviceManager with Fusion with IP-ID {0:X2}", fusionIpId);
-                        DeviceManager.AddDevice(new Core.Fusion.EssentialsHuddleSpaceFusionSystemControllerBase(room, fusionIpId, fusionJoinMapKey));
-
-                    }
-                    else if (room is IEssentialsHuddleVtc1Room)
-                    {
-
-                        if (!(room is EssentialsCombinedHuddleVtc1Room))
-                        {
-                            Debug.Console(0, Debug.ErrorLogLevel.Notice, "Room is EssentialsHuddleVtc1Room, attempting to add to DeviceManager with Fusion with IP-ID {0:X2}", fusionIpId);
-                            DeviceManager.AddDevice(new EssentialsHuddleVtc1FusionController((IEssentialsHuddleVtc1Room)room, fusionIpId, fusionJoinMapKey));
-                        }
-
-                    }
-                    else if (room is EssentialsTechRoom)
-                    {
-
-                        Debug.Console(0, Debug.ErrorLogLevel.Notice,
-                            "Room is EssentialsTechRoom, Attempting to add to DeviceManager with Fusion with IP-ID {0:X2}", fusionIpId);
-                        DeviceManager.AddDevice(new EssentialsTechRoomFusionSystemController((EssentialsTechRoom)room, fusionIpId, fusionJoinMapKey));
-
-                    }
-                    fusionIpId += 1;
-                }
-                else
-                {
-                    Debug.Console(0, Debug.ErrorLogLevel.Notice, "Notice: Cannot create room from config, key '{0}' - Is this intentional?  This may be a valid configuration.", roomConfig.Key);
-                    
-                }
-            }
-
-            Debug.Console(0, Debug.ErrorLogLevel.Notice, "All Rooms Loaded.");
-
-        }
-
-        private static void AddRoomAndBuildMC(IEssentialsRoom room)
-        {
-            DeviceManager.AddDevice(room);
-
-            Debug.Console(0, Debug.ErrorLogLevel.Notice, "Attempting to build Mobile Control Bridge");
-
-            CreateMobileControlBridge(room);
-        }
-
-        private static void CreateMobileControlBridge(object room)
-        {
-            var mobileControl = GetMobileControlDevice();
-
-            if (mobileControl == null) return;
-
-            var mobileControl3 = mobileControl as IMobileControl3;
-
-            if (mobileControl3 != null)
-            {
-                mobileControl3.CreateMobileControlRoomBridge(room as IEssentialsRoom, mobileControl);
-            }
-            else
-            {
-                mobileControl.CreateMobileControlRoomBridge(room as EssentialsRoomBase, mobileControl);
-            }
-
-            Debug.Console(0, Debug.ErrorLogLevel.Notice, "Mobile Control Bridge Added...");
-        }
-
-        private static IMobileControl GetMobileControlDevice()
-        {
-            var mobileControlList = DeviceManager.AllDevices.OfType<IMobileControl>().ToList();
-
-            if (mobileControlList.Count > 1)
-            {
-                Debug.Console(0, Debug.ErrorLogLevel.Warning,
-                    "Multiple instances of Mobile Control Server found.");
-
-                return null;
-            }
-
-            if (mobileControlList.Count > 0)
-            {
-                return mobileControlList[0];
-            }
-
-            Debug.Console(0, Debug.ErrorLogLevel.Notice, "Mobile Control not enabled for this system");
-            return null;
-        }
-
-        /// <summary>
-        /// Fires up a logo server if not already running
-        /// </summary>
-        void LoadLogoServer()
-        {
-            if (ConfigReader.ConfigObject.Rooms == null)
-            {
-                Debug.Console(0, Debug.ErrorLogLevel.Notice, "No rooms configured. Bypassing Logo server startup.");
-                return;
-            }
-
-            if (
-                !ConfigReader.ConfigObject.Rooms.Any(
-                    CheckRoomConfig))
-            {
-                Debug.Console(0, Debug.ErrorLogLevel.Notice, "No rooms configured to use system Logo server. Bypassing Logo server startup");
-                return;
-            }
-
-            try
-            {
-                LogoServer = new HttpLogoServer(8080, Global.DirectorySeparator + "html" + Global.DirectorySeparator + "logo");
-            }
-            catch (Exception)
-            {
-                Debug.Console(0, Debug.ErrorLogLevel.Notice, "NOTICE: Logo server cannot be started. Likely already running in another program");
-            }
-        }
-
-        private bool CheckRoomConfig(DeviceConfig c)
-        {
-            string logoDark = null;
-            string logoLight = null;
-            string logo = null;
-
-            try
-            {
-                if (c.Properties["logoDark"] != null)
-                {
-                    logoDark = c.Properties["logoDark"].Value<string>("type");
-                }
-
-                if (c.Properties["logoLight"] != null)
-                {
-                    logoLight = c.Properties["logoLight"].Value<string>("type");
-                }
-
-                if (c.Properties["logo"] != null)
-                {
-                    logo = c.Properties["logo"].Value<string>("type");
-                }
-
-                return ((logoDark != null && logoDark == "system") ||
-                        (logoLight != null && logoLight == "system") || (logo != null && logo == "system"));
-            }
-            catch
-            {
-                Debug.Console(1, Debug.ErrorLogLevel.Notice, "Unable to find logo information in any room config");
-                return false;
-            }
         }
     }
 }

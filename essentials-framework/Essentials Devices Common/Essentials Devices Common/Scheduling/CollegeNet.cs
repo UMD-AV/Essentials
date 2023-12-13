@@ -26,7 +26,12 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
         public string SpaceName { get; private set; }
         public string Instructions { get; private set; }
         public List<Feature> SpaceFeatures { get; private set; }
-        CTimer updateCurrentMeeting;
+        private CTimer updateCurrentMeeting;
+        private CTimer scheduleUpdateTimer;
+        private CTimer scheduleTimeout;
+        private uint scheduleFailCount;
+
+        public bool ScheduleOnline { get; private set; }
 
         private CurrentMeeting _currentMeeting;
         public CurrentMeeting CurrentMeeting
@@ -75,7 +80,11 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
         public override bool CustomActivate()
         {
             BuildClient();
+            ScheduleOnline = false;
+            scheduleTimeout = new CTimer(scheduleTimeoutCallback, Crestron.SimplSharp.Timeout.Infinite);
+            scheduleUpdateTimer = new CTimer(scheduleUpdateTimerCallback, 5000);
             updateCurrentMeeting = new CTimer(UpdateCurrentMeetingCallback, Crestron.SimplSharp.Timeout.Infinite);
+            armScheduleUpdateTimer();
             return true;
         }
 
@@ -93,17 +102,19 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
             }
             
             //Events from SIMPL
-            trilist.SetSigTrueAction(joinMap.RefreshReservations.JoinNumber, GetTodaysReservations);
+            trilist.SetSigTrueAction(joinMap.RefreshReservations.JoinNumber, ManualGetTodaysReservations);
             trilist.SetSigTrueAction(joinMap.RefreshSpaceInfo.JoinNumber, GetSpaceInfo);
 
 
             MeetingsUpdated += (o, a) =>
             {
+                trilist.BooleanInput[joinMap.ScheduleOnline.JoinNumber].BoolValue = ScheduleOnline;
                 uint count = 0;
                 if (Meetings != null)
                 {
                     foreach (var meeting in Meetings)
                     {
+                        trilist.BooleanInput[joinMap.MeetingActive.JoinNumber + count].BoolValue = meeting.MeetingActive;
                         trilist.StringInput[joinMap.MeetingTitle.JoinNumber + count].StringValue = meeting.Title;
                         trilist.StringInput[joinMap.MeetingName.JoinNumber + count].StringValue = meeting.Name;
                         trilist.StringInput[joinMap.MeetingType.JoinNumber + count].StringValue = meeting.Type;
@@ -115,34 +126,79 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
                 }
                 for(uint i = count; i < 50; i++)
                 {
-                    trilist.StringInput[joinMap.MeetingTitle.JoinNumber + count].StringValue = "";
-                    trilist.StringInput[joinMap.MeetingName.JoinNumber + count].StringValue = "";
-                    trilist.StringInput[joinMap.MeetingType.JoinNumber + count].StringValue = "";
-                    trilist.StringInput[joinMap.MeetingTime.JoinNumber + count].StringValue = "";
+                    trilist.BooleanInput[joinMap.MeetingActive.JoinNumber + i].BoolValue = false;
+                    trilist.StringInput[joinMap.MeetingTitle.JoinNumber + i].StringValue = "";
+                    trilist.StringInput[joinMap.MeetingName.JoinNumber + i].StringValue = "";
+                    trilist.StringInput[joinMap.MeetingType.JoinNumber + i].StringValue = "";
+                    trilist.StringInput[joinMap.MeetingTime.JoinNumber + i].StringValue = "";
                 }
             };
 
             CurrentMeetingUpdated += (o, a) =>
             {
-                trilist.StringInput[joinMap.CurrentMeetingTitle.JoinNumber].StringValue = CurrentMeeting.Title;
-                trilist.StringInput[joinMap.CurrentMeetingName.JoinNumber].StringValue = CurrentMeeting.Name;
-                trilist.StringInput[joinMap.CurrentMeetingOrganizer.JoinNumber].StringValue = CurrentMeeting.OrganizerName;
-                trilist.StringInput[joinMap.CurrentMeetingOrganizerEmail.JoinNumber].StringValue = CurrentMeeting.OrganizerEmail;
-                trilist.StringInput[joinMap.CurrentMeetingType.JoinNumber].StringValue = CurrentMeeting.Type;
-                trilist.BooleanInput[joinMap.CurrentMeetingActive.JoinNumber].BoolValue = CurrentMeeting.MeetingActive;
-                trilist.StringInput[joinMap.CurrentMeetingStartTime.JoinNumber].StringValue = CurrentMeeting.Start.ToShortTimeString();
-                trilist.StringInput[joinMap.CurrentMeetingEndTime.JoinNumber].StringValue = CurrentMeeting.End.ToShortTimeString();
-                trilist.UShortInput[joinMap.CurrentMeetingTimeRemaining.JoinNumber].UShortValue = CurrentMeeting.TimeRemainingInMin;
-                trilist.StringInput[joinMap.CurrentMeetingTimeRemainingString.JoinNumber].StringValue = CurrentMeeting.TimeRemainingString;
+                if (CurrentMeeting == null)
+                {
+                    trilist.StringInput[joinMap.CurrentMeetingTitle.JoinNumber].StringValue = "";
+                    trilist.StringInput[joinMap.CurrentMeetingName.JoinNumber].StringValue = "";
+                    trilist.StringInput[joinMap.CurrentMeetingOrganizer.JoinNumber].StringValue = "";
+                    trilist.StringInput[joinMap.CurrentMeetingOrganizerEmail.JoinNumber].StringValue = "";
+                    trilist.StringInput[joinMap.CurrentMeetingType.JoinNumber].StringValue = "";
+                    trilist.BooleanInput[joinMap.CurrentMeetingActive.JoinNumber].BoolValue = false;
+                    trilist.StringInput[joinMap.CurrentMeetingStartTime.JoinNumber].StringValue = "";
+                    trilist.StringInput[joinMap.CurrentMeetingEndTime.JoinNumber].StringValue = "";
+                    trilist.UShortInput[joinMap.CurrentMeetingTimeRemaining.JoinNumber].UShortValue = 0;
+                    trilist.StringInput[joinMap.CurrentMeetingTimeRemainingString.JoinNumber].StringValue = "";
+                }
+                else
+                {
+                    trilist.StringInput[joinMap.CurrentMeetingTitle.JoinNumber].StringValue = CurrentMeeting.Title;
+                    trilist.StringInput[joinMap.CurrentMeetingName.JoinNumber].StringValue = CurrentMeeting.Name;
+                    trilist.StringInput[joinMap.CurrentMeetingOrganizer.JoinNumber].StringValue = CurrentMeeting.OrganizerName;
+                    trilist.StringInput[joinMap.CurrentMeetingOrganizerEmail.JoinNumber].StringValue = CurrentMeeting.OrganizerEmail;
+                    trilist.StringInput[joinMap.CurrentMeetingType.JoinNumber].StringValue = CurrentMeeting.Type;
+                    trilist.BooleanInput[joinMap.CurrentMeetingActive.JoinNumber].BoolValue = CurrentMeeting.MeetingActive;
+                    trilist.StringInput[joinMap.CurrentMeetingStartTime.JoinNumber].StringValue = CurrentMeeting.Start.ToShortTimeString();
+                    trilist.StringInput[joinMap.CurrentMeetingEndTime.JoinNumber].StringValue = CurrentMeeting.End.ToShortTimeString();
+                    trilist.UShortInput[joinMap.CurrentMeetingTimeRemaining.JoinNumber].UShortValue = CurrentMeeting.TimeRemainingInMin;
+                    trilist.StringInput[joinMap.CurrentMeetingTimeRemainingString.JoinNumber].StringValue = CurrentMeeting.TimeRemainingString;
+                }
+
+                //Update active meeting feedback on list
+                uint count = 0;
+                if (Meetings != null)
+                {
+                    foreach (var meeting in Meetings)
+                    {
+                        trilist.BooleanInput[joinMap.MeetingActive.JoinNumber + count].BoolValue = meeting.MeetingActive;
+                        count++;
+                        if (count > 50)
+                            break;
+                    }
+                }
+                for (uint i = count; i < 50; i++)
+                {
+                    trilist.BooleanInput[joinMap.MeetingActive.JoinNumber + i].BoolValue = false;
+                }
             };
 
             NextMeetingUpdated += (o, a) =>
             {
-                trilist.StringInput[joinMap.NextMeetingTitle.JoinNumber].StringValue = NextMeeting.Title;
-                trilist.StringInput[joinMap.NextMeetingName.JoinNumber].StringValue = NextMeeting.Name;
-                trilist.StringInput[joinMap.NextMeetingType.JoinNumber].StringValue = NextMeeting.Type;
-                trilist.StringInput[joinMap.NextMeetingStartTime.JoinNumber].StringValue = NextMeeting.Start.ToShortTimeString();
-                trilist.StringInput[joinMap.NextMeetingEndTime.JoinNumber].StringValue = NextMeeting.End.ToShortTimeString();
+                if (NextMeeting == null)
+                {
+                    trilist.StringInput[joinMap.NextMeetingTitle.JoinNumber].StringValue = "";
+                    trilist.StringInput[joinMap.NextMeetingName.JoinNumber].StringValue = "";
+                    trilist.StringInput[joinMap.NextMeetingType.JoinNumber].StringValue = "";
+                    trilist.StringInput[joinMap.NextMeetingStartTime.JoinNumber].StringValue = "";
+                    trilist.StringInput[joinMap.NextMeetingEndTime.JoinNumber].StringValue = "";
+                }
+                else
+                {
+                    trilist.StringInput[joinMap.NextMeetingTitle.JoinNumber].StringValue = NextMeeting.Title;
+                    trilist.StringInput[joinMap.NextMeetingName.JoinNumber].StringValue = NextMeeting.Name;
+                    trilist.StringInput[joinMap.NextMeetingType.JoinNumber].StringValue = NextMeeting.Type;
+                    trilist.StringInput[joinMap.NextMeetingStartTime.JoinNumber].StringValue = NextMeeting.Start.ToShortTimeString();
+                    trilist.StringInput[joinMap.NextMeetingEndTime.JoinNumber].StringValue = NextMeeting.End.ToShortTimeString();
+                }
             };
 
             SpaceInfoUpdated += (o, a) =>
@@ -170,7 +226,7 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
                 trilist.UShortInput[joinMap.FeatureCount.JoinNumber].UShortValue = (ushort)count;
                 for (uint i = count; i < 50; i++)
                 {
-                    trilist.StringInput[joinMap.Features.JoinNumber + count].StringValue = "";
+                    trilist.StringInput[joinMap.Features.JoinNumber + i].StringValue = "";
                 }
             };
         }
@@ -220,8 +276,19 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
             GetData(string.Format("event.json?event_id={0}", id), "Event");
         }
 
-        public void GetTodaysReservations()
+        private void GetTodaysReservations()
         {
+            Debug.Console(0, this, "Getting reservations for spaceId {0}", spaceId != null ? spaceId : "null");
+            if (spaceId != null)
+            {
+                scheduleTimeout.Reset(10000);
+                GetData(string.Format("reservations.json?space_id={0}", spaceId), "Reservations");
+            }
+        }
+
+        public void ManualGetTodaysReservations()
+        {
+            Debug.Console(0, this, "Manually getting reservations for spaceId {0}", spaceId != null ? spaceId : "null");
             if (spaceId != null)
             {
                 GetData(string.Format("reservations.json?space_id={0}", spaceId), "Reservations");
@@ -230,13 +297,57 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
 
         public void GetSpaceInfo()
         {
+            Debug.Console(0, this, "Getting space info for spaceId {0}", spaceId != null ? spaceId : "null");
             if (spaceId != null)
             {
                 GetData(string.Format("space.json?space_id={0}", spaceId), "Space");
             }
         }
 
-        void UpdateCurrentMeetingCallback(object unused)
+        private void scheduleTimeoutCallback(object o)
+        {
+            if (scheduleFailCount < 5)
+            {
+                scheduleFailCount++;
+                Debug.Console(0, this, "CollegeNet Schedule Timeout. Attempt {0}", scheduleFailCount);
+                GetTodaysReservations();
+            }
+            else
+            {
+                Debug.ConsoleWithLog(0, this, "CollegeNet Schedule Timeout");
+                ScheduleOnline = false;
+                if (MeetingsUpdated != null)
+                {
+                    MeetingsUpdated(this, null);
+                }
+                UpdateCurrentMeetingCallback(null);
+            }
+        }
+
+        private void armScheduleUpdateTimer()
+        {
+            DateTime now = DateTime.Now;
+            DateTime oneAM = DateTime.Today.AddHours(1);
+
+            if (now >= oneAM)
+            {
+                oneAM = oneAM.AddDays(1);
+            }
+
+            int timeUntilOneAM = (int)(oneAM - now).TotalMilliseconds;
+            scheduleUpdateTimer.Reset(timeUntilOneAM + 60000);
+        }
+
+        private void scheduleUpdateTimerCallback(object o)
+        {
+            armScheduleUpdateTimer();
+            scheduleFailCount = 0;
+            Meetings = new List<Meeting>();
+            GetTodaysReservations();
+            GetSpaceInfo();
+        }
+
+        private void UpdateCurrentMeetingCallback(object unused)
         {
             Meeting _currentMeetingTemp = null;
             Meeting _nextMeetingTemp = null;
@@ -250,12 +361,12 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
                 {
                     //Check for current meeting
                     //Current meeting is valid if meeting starts in 20 minutes or is currently active
-                    if (DateTime.Now >= (m.Start - TimeSpan.FromMinutes(20)) && DateTime.Now <= m.End && (_currentMeetingTemp == null || _currentMeetingTemp.Start > m.Start))
+                    if (m.Type != "Maintenance" && DateTime.Now >= (m.Start - TimeSpan.FromMinutes(20)) && DateTime.Now <= m.End && (_currentMeetingTemp == null || _currentMeetingTemp.Start > m.Start))
                     {
                         _currentMeetingTemp = m;
                     }
                     //If not the current meeting, make the next meeting if it occurs in the future and isn't later than the current "next meeting"
-                    else if (DateTime.Now < m.Start && (_nextMeetingTemp == null || _nextMeetingTemp.Start > m.Start))
+                    else if (m.Type != "Maintenance" && DateTime.Now < m.Start && (_nextMeetingTemp == null || _nextMeetingTemp.Start > m.Start))
                     {
                         _nextMeetingTemp = m;
                     }
@@ -335,19 +446,31 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
                     meetingMutex.WaitForMutex();
                     Meetings = new List<Meeting>();
                     ReservationsResponse response = JsonConvert.DeserializeObject<ReservationsResponse>(content);
+                    scheduleTimeout.Stop();
+                    ScheduleOnline = true;
+                    scheduleFailCount = 0;
                     foreach (Reservation reservation in response.reservations.reservation)
                     {
                         try
                         {
-                            Meetings.Add(new Meeting()
+                            bool matchExists = false;
+                            var matchesStart = Meetings.FindAll(m => m.Start == reservation.reservation_start_dt);
+                            if (matchesStart.Count > 0)
                             {
-                                Id = reservation.event_id,
-                                Name = reservation.event_name,
-                                Title = reservation.event_title,
-                                Start = reservation.reservation_start_dt,
-                                End = reservation.reservation_end_dt,
-                                Type = reservation.event_type_name
-                            });
+                                matchExists = matchesStart.Exists(m => m.End == reservation.reservation_end_dt);
+                            }
+                            if (!matchExists)
+                            {
+                                Meetings.Add(new Meeting()
+                                {
+                                    Id = reservation.event_id,
+                                    Name = reservation.event_name,
+                                    Title = reservation.event_title,
+                                    Start = reservation.reservation_start_dt,
+                                    End = reservation.reservation_end_dt,
+                                    Type = reservation.event_type_name
+                                });
+                            }
                         }
                         catch (Exception ex)
                         {
@@ -688,6 +811,34 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
             new JoinMetadata()
             {
                 Description = "Current Meeting Active",
+                JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                JoinType = eJoinType.Digital
+            });
+
+        [JoinName("ScheduleOnline")]
+        public JoinDataComplete ScheduleOnline = new JoinDataComplete(
+            new JoinData()
+            {
+                JoinNumber = 2,
+                JoinSpan = 1
+            },
+            new JoinMetadata()
+            {
+                Description = "Schedule Online",
+                JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                JoinType = eJoinType.Digital
+            });
+
+        [JoinName("MeetingActive")]
+        public JoinDataComplete MeetingActive = new JoinDataComplete(
+            new JoinData()
+            {
+                JoinNumber = 51,
+                JoinSpan = 50
+            },
+            new JoinMetadata()
+            {
+                Description = "Meeting Active",
                 JoinCapabilities = eJoinCapabilities.ToSIMPL,
                 JoinType = eJoinType.Digital
             });

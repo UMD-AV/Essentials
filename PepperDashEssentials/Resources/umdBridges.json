@@ -1,0 +1,1003 @@
+{
+    "devices": [
+        {
+            "key": "bridge-switcher01",
+            "name": "AV Routing Bridge 1",
+            "group": "api",
+            "type": "eiscApiAdvanced",
+            "properties": {
+              "control": {
+                "tcpSshProperties": {
+                  "address": "127.0.0.2",
+                  "port": 0
+                },
+                "ipId": "A0"
+              },
+              "devices": [
+                {
+                  "deviceKey": "switcher01",
+                  "joinStart": 1
+                }
+              ]
+            }
+          },
+          {
+            "key": "bridge-switcher02",
+            "name": "AV Routing Bridge 2/3",
+            "group": "api",
+            "type": "eiscApiAdvanced",
+            "properties": {
+              "control": {
+                "tcpSshProperties": {
+                  "address": "127.0.0.2",
+                  "port": 0
+                },
+                "ipId": "AB"
+              },
+              "devices": [
+                {
+                  "deviceKey": "switcher02",
+                  "joinStart": 1
+                },
+                {
+                  "deviceKey": "switcher03",
+                  "joinStart": 2001
+                }
+              ]
+            }
+          },
+        {
+            "key": "bridge-dmpsAudio",
+            "name": "DMPS Audio Bridge",
+            "group": "api",
+            "type": "eiscApiAdvanced",
+            "properties": {
+                "control": {
+                    "tcpSshProperties": {
+                        "address": "127.0.0.2",
+                        "port": 0
+                    },
+                    "ipId": "A1"
+                },
+                "devices": [
+                    {
+                        "deviceKey": "processor-programAudioOutput",
+                        "joinStart": 1
+                    },
+                    {
+                        "deviceKey": "processor-aux1AudioOutput",
+                        "joinStart": 101
+                    },
+                    {
+                        "deviceKey": "processor-aux2AudioOutput",
+                        "joinStart": 201
+                    },
+                    {
+                        "deviceKey": "processor-microphone1",
+                        "joinStart": 301
+                    },
+                    {
+                        "deviceKey": "processor-microphone2",
+                        "joinStart": 311
+                    },
+                    {
+                        "deviceKey": "processor-microphone3",
+                        "joinStart": 321
+                    },
+                    {
+                        "deviceKey": "processor-microphone4",
+                        "joinStart": 331
+                    },
+                    {
+                        "deviceKey": "processor-microphone5",
+                        "joinStart": 341
+                    },
+                    {
+                        "deviceKey": "processor-microphone6",
+                        "joinStart": 351
+                    },
+                    {
+                        "deviceKey": "processor-digitalAudioOutput1",
+                        "joinStart": 401
+                    },
+                    {
+                        "deviceKey": "processor-digitalAudioOutput2",
+                        "joinStart": 451
+                    },
+                    {
+                        "deviceKey": "processor-digitalAudioOutput3",
+                        "joinStart": 501
+                    },
+                    {
+                        "deviceKey": "processor-digitalAudioOutput4",
+                        "joinStart": 551
+                    }
+                ]
+            }
+        },
+        {
+            "key": "bridge-dsp",
+            "name": "DSP Bridge",
+            "group": "api",
+            "type": "eiscApiAdvanced",
+            "properties": {
+                "control": {
+                    "tcpSshProperties": {
+                        "address": "127.0.0.2",
+                        "port": 0
+                    },
+                    "ipId": "A2"
+                },
+                "devices": [
+                    {
+                        "deviceKey": "dsp01",
+                        "joinStart": 1
+                    },
+                    {
+                        "deviceKey": "microphone01",
+                        "joinStart": 2001
+                    },
+                    {
+                        "deviceKey": "microphone02",
+                        "joinStart": 2051
+                    },
+                    {
+                        "deviceKey": "microphone03",
+                        "joinStart": 2101
+                    },
+                    {
+                        "deviceKey": "microphone04",
+                        "joinStart": 2151
+                    },
+                    {
+                        "deviceKey": "microphone05",
+                        "joinStart": 2201
+                    },
+                    {
+                        "deviceKey": "microphone06",
+                        "joinStart": 2251
+                    },
+                    {
+                        "deviceKey": "microphone07",
+                        "joinStart": 2301
+                    },
+                    {
+                        "deviceKey": "microphone08",
+                        "joinStart": 2351
+                    },
+                    {
+                        "deviceKey": "microphone09",
+                        "joinStart": 2401
+                    },
+                    {
+                        "deviceKey": "microphone10",
+                        "joinStart": 2451
+                    },
+                    {
+                        "deviceKey": "microphone11",
+                        "joinStart": 2501
+                    },
+                    {
+                        "deviceKey": "microphone12",
+                        "joinStart": 2551
+                    },
+                    {
+                        "deviceKey": "microphone13",
+                        "joinStart": 2601
+                    },
+                    {
+                        "deviceKey": "microphone14",
+                        "joinStart": 2651
+                    },
+                    {
+                        "deviceKey": "microphone15",
+                        "joinStart": 2701
+                    },
+                    {
+                        "deviceKey": "microphone16",
+                        "joinStart": 2751
+                    },
+                    {
+                        "deviceKey": "micdock01",
+                        "joinStart": 3001
+                    },
+                    {
+                        "deviceKey": "micdock02",
+                        "joinStart": 3051
+                    },
+                    {
+                        "deviceKey": "micrx01",
+                        "joinStart": 3101
+                    },
+                    {
+                        "deviceKey": "micrx02",
+                        "joinStart": 3151
+                    },
+                    {
+                        "deviceKey": "micrx03",
+                        "joinStart": 3201
+                    },
+                    {
+                        "deviceKey": "micrx04",
+                        "joinStart": 3251
+                    }
+                ]
+            }
+        },
+        {
+            "key": "bridge-codec",
+            "name": "Codec Bridge",
+            "group": "api",
+            "type": "eiscapiadvanced",
+            "properties": {
+                "control": {
+                    "tcpSshProperties": {
+                        "address": "127.0.0.2",
+                        "port": 0
+                    },
+                    "ipid": "A3"
+                },
+                "devices": [
+                    {
+                        "deviceKey": "codec01",
+                        "joinStart": 1
+                    }
+                ]
+            }
+        },
+        {
+            "key": "bridge-displays",
+            "name": "Display Bridge",
+            "group": "api",
+            "type": "eiscApiAdvanced",
+            "properties": {
+                "control": {
+                    "tcpSshProperties": {
+                        "address": "127.0.0.2",
+                        "port": 0
+                    },
+                    "ipid": "A4"
+                },
+                "devices": [
+                    {
+                        "deviceKey": "display01",
+                        "joinStart": 1
+                    },
+                    {
+                        "deviceKey": "display02",
+                        "joinStart": 101
+                    },
+                    {
+                        "deviceKey": "display03",
+                        "joinStart": 201
+                    },
+                    {
+                        "deviceKey": "display04",
+                        "joinStart": 301
+                    },
+                    {
+                        "deviceKey": "display05",
+                        "joinStart": 401
+                    },
+                    {
+                        "deviceKey": "display06",
+                        "joinStart": 501
+                    },
+                    {
+                        "deviceKey": "display07",
+                        "joinStart": 601
+                    },
+                    {
+                        "deviceKey": "display08",
+                        "joinStart": 701
+                    },
+                    {
+                        "deviceKey": "display09",
+                        "joinStart": 801
+                    },
+                    {
+                        "deviceKey": "display10",
+                        "joinStart": 901
+                    },
+                    {
+                        "deviceKey": "display01ScreenUp",
+                        "joinStart": 1001
+                    },
+                    {
+                        "deviceKey": "display01ScreenDown",
+                        "joinStart": 1002
+                    },
+                    {
+                        "deviceKey": "display02ScreenUp",
+                        "joinStart": 1003
+                    },
+                    {
+                        "deviceKey": "display02ScreenDown",
+                        "joinStart": 1004
+                    },
+                    {
+                        "deviceKey": "display03ScreenUp",
+                        "joinStart": 1005
+                    },
+                    {
+                        "deviceKey": "display03ScreenDown",
+                        "joinStart": 1006
+                    },
+                    {
+                        "deviceKey": "display04ScreenUp",
+                        "joinStart": 1007
+                    },
+                    {
+                        "deviceKey": "display04ScreenDown",
+                        "joinStart": 1008
+                    },
+                    {
+                        "deviceKey": "display05ScreenUp",
+                        "joinStart": 1009
+                    },
+                    {
+                        "deviceKey": "display05ScreenDown",
+                        "joinStart": 1010
+                    },
+                    {
+                        "deviceKey": "display06ScreenUp",
+                        "joinStart": 1011
+                    },
+                    {
+                        "deviceKey": "display06ScreenDown",
+                        "joinStart": 1012
+                    },
+                    {
+                        "deviceKey": "display07ScreenUp",
+                        "joinStart": 1013
+                    },
+                    {
+                        "deviceKey": "display07ScreenDown",
+                        "joinStart": 1014
+                    },
+                    {
+                        "deviceKey": "display08ScreenUp",
+                        "joinStart": 1015
+                    },
+                    {
+                        "deviceKey": "display08ScreenDown",
+                        "joinStart": 1016
+                    },
+                    {
+                        "deviceKey": "display09ScreenUp",
+                        "joinStart": 1017
+                    },
+                    {
+                        "deviceKey": "display09ScreenDown",
+                        "joinStart": 1018
+                    },
+                    {
+                        "deviceKey": "display10ScreenUp",
+                        "joinStart": 1019
+                    },
+                    {
+                        "deviceKey": "display10ScreenDown",
+                        "joinStart": 1020
+                    },
+                    {
+                        "deviceKey": "display11ScreenUp",
+                        "joinStart": 1021
+                    },
+                    {
+                        "deviceKey": "display11ScreenDown",
+                        "joinStart": 1022
+                    },
+                    {
+                        "deviceKey": "display12ScreenUp",
+                        "joinStart": 1023
+                    },
+                    {
+                        "deviceKey": "display12ScreenDown",
+                        "joinStart": 1024
+                    },
+                    {
+                        "deviceKey": "display13ScreenUp",
+                        "joinStart": 1025
+                    },
+                    {
+                        "deviceKey": "display13ScreenDown",
+                        "joinStart": 1026
+                    },
+                    {
+                        "deviceKey": "display14ScreenUp",
+                        "joinStart": 1027
+                    },
+                    {
+                        "deviceKey": "display14ScreenDown",
+                        "joinStart": 1028
+                    },
+                    {
+                        "deviceKey": "display15ScreenUp",
+                        "joinStart": 1029
+                    },
+                    {
+                        "deviceKey": "display15ScreenDown",
+                        "joinStart": 1030
+                    },
+                    {
+                        "deviceKey": "display16ScreenUp",
+                        "joinStart": 1031
+                    },
+                    {
+                        "deviceKey": "display16ScreenDown",
+                        "joinStart": 1032
+                    },
+                    {
+                        "deviceKey": "display01LiftUp",
+                        "joinStart": 1051
+                    },
+                    {
+                        "deviceKey": "display01LiftDown",
+                        "joinStart": 1052
+                    },
+                    {
+                        "deviceKey": "display02LiftUp",
+                        "joinStart": 1053
+                    },
+                    {
+                        "deviceKey": "display02LiftDown",
+                        "joinStart": 1054
+                    },
+                    {
+                        "deviceKey": "display03LiftUp",
+                        "joinStart": 1055
+                    },
+                    {
+                        "deviceKey": "display03LiftDown",
+                        "joinStart": 1056
+                    },
+                    {
+                        "deviceKey": "display04LiftUp",
+                        "joinStart": 1057
+                    },
+                    {
+                        "deviceKey": "display04LiftDown",
+                        "joinStart": 1058
+                    },
+                    {
+                        "deviceKey": "display05LiftUp",
+                        "joinStart": 1059
+                    },
+                    {
+                        "deviceKey": "display05LiftDown",
+                        "joinStart": 1060
+                    },
+                    {
+                        "deviceKey": "display06LiftUp",
+                        "joinStart": 1061
+                    },
+                    {
+                        "deviceKey": "display06LiftDown",
+                        "joinStart": 1062
+                    },
+                    {
+                        "deviceKey": "display07LiftUp",
+                        "joinStart": 1063
+                    },
+                    {
+                        "deviceKey": "display07LiftDown",
+                        "joinStart": 1064
+                    },
+                    {
+                        "deviceKey": "display08LiftUp",
+                        "joinStart": 1065
+                    },
+                    {
+                        "deviceKey": "display08LiftDown",
+                        "joinStart": 1066
+                    },
+                    {
+                        "deviceKey": "display09LiftUp",
+                        "joinStart": 1067
+                    },
+                    {
+                        "deviceKey": "display09LiftDown",
+                        "joinStart": 1068
+                    },
+                    {
+                        "deviceKey": "display10LiftUp",
+                        "joinStart": 1069
+                    },
+                    {
+                        "deviceKey": "display10LiftDown",
+                        "joinStart": 1070
+                    },
+                    {
+                        "deviceKey": "display11LiftUp",
+                        "joinStart": 1071
+                    },
+                    {
+                        "deviceKey": "display11LiftDown",
+                        "joinStart": 1072
+                    },
+                    {
+                        "deviceKey": "display12LiftUp",
+                        "joinStart": 1073
+                    },
+                    {
+                        "deviceKey": "display12LiftDown",
+                        "joinStart": 1074
+                    },
+                    {
+                        "deviceKey": "display13LiftUp",
+                        "joinStart": 1075
+                    },
+                    {
+                        "deviceKey": "display13LiftDown",
+                        "joinStart": 1076
+                    },
+                    {
+                        "deviceKey": "display14LiftUp",
+                        "joinStart": 1077
+                    },
+                    {
+                        "deviceKey": "display14LiftDown",
+                        "joinStart": 1078
+                    },
+                    {
+                        "deviceKey": "display15LiftUp",
+                        "joinStart": 1079
+                    },
+                    {
+                        "deviceKey": "display15LiftDown",
+                        "joinStart": 1080
+                    },
+                    {
+                        "deviceKey": "display16LiftUp",
+                        "joinStart": 1081
+                    },
+                    {
+                        "deviceKey": "display16LiftDown",
+                        "joinStart": 1082
+                    },
+                    {
+                        "deviceKey": "display11",
+                        "joinStart": 1101
+                    },
+                    {
+                        "deviceKey": "display12",
+                        "joinStart": 1201
+                    },
+                    {
+                        "deviceKey": "display13",
+                        "joinStart": 1301
+                    },
+                    {
+                        "deviceKey": "display14",
+                        "joinStart": 1401
+                    },
+                    {
+                        "deviceKey": "display15",
+                        "joinStart": 1501
+                    },
+                    {
+                        "deviceKey": "display16",
+                        "joinStart": 1601
+                    }
+                ]
+            }
+        },
+        {
+            "key": "bridge-tvTuners",
+            "name": "TV Tuner Bridge",
+            "group": "api",
+            "type": "eiscApiAdvanced",
+            "properties": {
+                "control": {
+                    "tcpSshProperties": {
+                        "address": "127.0.0.2",
+                        "port": 0
+                    },
+                    "ipid": "A5"
+                },
+                "devices": [
+                    {
+                        "deviceKey": "tvTuner01",
+                        "joinStart": 1
+                    },
+                    {
+                        "deviceKey": "tvTuner02",
+                        "joinStart": 101
+                    },
+                    {
+                        "deviceKey": "tvTuner03",
+                        "joinStart": 201
+                    },
+                    {
+                        "deviceKey": "tvTuner04",
+                        "joinStart": 301
+                    }
+                ]
+            }
+        },
+        {
+            "key": "bridge-cameras",
+            "name": "Camera Bridge",
+            "group": "api",
+            "type": "eiscApiAdvanced",
+            "properties": {
+                "control": {
+                    "tcpSshProperties": {
+                        "address": "127.0.0.2",
+                        "port": 0
+                    },
+                    "ipId": "A6"
+                },
+                "devices": [
+                    {
+                        "deviceKey": "cam01",
+                        "joinStart": 1
+                    },
+                    {
+                        "deviceKey": "cam02",
+                        "joinStart": 51
+                    },
+                    {
+                        "deviceKey": "cam03",
+                        "joinStart": 101
+                    },
+                    {
+                        "deviceKey": "cam04",
+                        "joinStart": 151
+                    },
+                    {
+                        "deviceKey": "cam05",
+                        "joinStart": 201
+                    },
+                    {
+                        "deviceKey": "cam06",
+                        "joinStart": 251
+                    },
+                    {
+                        "deviceKey": "cam07",
+                        "joinStart": 301
+                    },
+                    {
+                        "deviceKey": "cam08",
+                        "joinStart": 351
+                    },
+                    {
+                        "deviceKey": "doccam01",
+                        "joinStart": 401
+                    },
+                    {
+                        "deviceKey": "doccam02",
+                        "joinStart": 551
+                    },
+                    {
+                        "deviceKey": "avBridge01",
+                        "joinStart": 1001
+                    },
+                    {
+                        "deviceKey": "avBridge02",
+                        "joinStart": 1101
+                    },
+                    {
+                        "deviceKey": "cameraController01",
+                        "joinStart": 1201
+                    }
+                ]
+            }
+        },
+        {
+            "key": "bridge-bluRays",
+            "name": "BluRay Bridge",
+            "group": "api",
+            "type": "eiscApiAdvanced",
+            "properties": {
+                "control": {
+                    "tcpSshProperties": {
+                        "address": "127.0.0.2",
+                        "port": 0
+                    },
+                    "ipid": "A7"
+                },
+                "devices": [
+                    {
+                        "deviceKey": "bluRay01",
+                        "joinStart": 1
+                    }
+                ]
+            }
+        },
+        {
+            "key": "bridge-tx",
+            "name": "Transmitter Bridge",
+            "group": "api",
+            "type": "eiscApiAdvanced",
+            "properties": {
+                "control": {
+                    "tcpSshProperties": {
+                        "address": "127.0.0.2",
+                        "port": 0
+                    },
+                    "ipId": "A8"
+                },
+                "devices": [
+                    {
+                        "deviceKey": "tx01",
+                        "joinStart": 1
+                    },
+                    {
+                        "deviceKey": "tx02",
+                        "joinStart": 11
+                    },
+                    {
+                        "deviceKey": "tx03",
+                        "joinStart": 21
+                    },
+                    {
+                        "deviceKey": "tx04",
+                        "joinStart": 31
+                    },
+                    {
+                        "deviceKey": "tx05",
+                        "joinStart": 41
+                    },
+                    {
+                        "deviceKey": "tx06",
+                        "joinStart": 51
+                    },
+                    {
+                        "deviceKey": "tx07",
+                        "joinStart": 61
+                    },
+                    {
+                        "deviceKey": "tx08",
+                        "joinStart": 71
+                    },
+                    {
+                        "deviceKey": "tx09",
+                        "joinStart": 81
+                    },
+                    {
+                        "deviceKey": "tx10",
+                        "joinStart": 91
+                    },
+                    {
+                        "deviceKey": "tx11",
+                        "joinStart": 101
+                    },
+                    {
+                        "deviceKey": "tx12",
+                        "joinStart": 111
+                    },
+                    {
+                        "deviceKey": "tx13",
+                        "joinStart": 121
+                    },
+                    {
+                        "deviceKey": "tx14",
+                        "joinStart": 131
+                    },
+                    {
+                        "deviceKey": "tx15",
+                        "joinStart": 141
+                    },
+                    {
+                        "deviceKey": "tx16",
+                        "joinStart": 151
+                    }
+                ]
+            }
+        },
+        {
+            "key": "bridge-rx",
+            "name": "Receiver Bridge",
+            "group": "api",
+            "type": "eiscApiAdvanced",
+            "properties": {
+                "control": {
+                    "tcpSshProperties": {
+                        "address": "127.0.0.2",
+                        "port": 0
+                    },
+                    "ipId": "A9"
+                },
+                "devices": [
+                    {
+                        "deviceKey": "rx01",
+                        "joinStart": 1
+                    },
+                    {
+                        "deviceKey": "rx02",
+                        "joinStart": 11
+                    },
+                    {
+                        "deviceKey": "rx03",
+                        "joinStart": 21
+                    },
+                    {
+                        "deviceKey": "rx04",
+                        "joinStart": 31
+                    },
+                    {
+                        "deviceKey": "rx05",
+                        "joinStart": 41
+                    },
+                    {
+                        "deviceKey": "rx06",
+                        "joinStart": 51
+                    },
+                    {
+                        "deviceKey": "rx07",
+                        "joinStart": 61
+                    },
+                    {
+                        "deviceKey": "rx08",
+                        "joinStart": 71
+                    },
+                    {
+                        "deviceKey": "rx09",
+                        "joinStart": 81
+                    },
+                    {
+                        "deviceKey": "rx10",
+                        "joinStart": 91
+                    },
+                    {
+                        "deviceKey": "rx11",
+                        "joinStart": 101
+                    },
+                    {
+                        "deviceKey": "rx12",
+                        "joinStart": 111
+                    },
+                    {
+                        "deviceKey": "rx13",
+                        "joinStart": 121
+                    },
+                    {
+                        "deviceKey": "rx14",
+                        "joinStart": 131
+                    },
+                    {
+                        "deviceKey": "rx15",
+                        "joinStart": 141
+                    },
+                    {
+                        "deviceKey": "rx16",
+                        "joinStart": 151
+                    }
+                ]
+            }
+        },
+        {
+            "key": "bridge-environmental",
+            "group": "api",
+            "name": "eisc-Bridge",
+            "properties": {
+                "control": {
+                    "tcpSshProperties": {
+                        "address": "127.0.0.2",
+                        "port": 0
+                    },
+                    "ipid": "AA"
+                },
+                "devices": [
+                    {
+                        "deviceKey": "lights01",
+                        "joinStart": 1
+                    },
+                    {
+                        "deviceKey": "lights02",
+                        "joinStart": 101
+                    },
+                    {
+                        "deviceKey": "occSensor01",
+                        "joinStart": 201
+                    },
+                    {
+                        "deviceKey": "occSensor02",
+                        "joinStart": 301
+                    },
+                    {
+                        "deviceKey": "partition01",
+                        "joinStart": 401
+                    },
+                    {
+                        "deviceKey": "digitalPartition01",
+                        "joinStart": 403
+                    },
+                    {
+                        "deviceKey": "shades01",
+                        "joinStart": 501
+                    },
+                    {
+                        "deviceKey": "shades02",
+                        "joinStart": 511
+                    },
+                    {
+                      "deviceKey": "overflow01",
+                      "joinStart": 601
+                    }
+                ]
+            },
+            "type": "eiscApiAdvanced"
+        },
+        {
+            "key": "bridge-sysInfo",
+            "group": "api",
+            "name": "eisc-Bridge",
+            "properties": {
+                "control": {
+                    "tcpSshProperties": {
+                        "address": "127.0.0.2",
+                        "port": 0
+                    },
+                    "ipid": "B0"
+                },
+                "devices": [
+                    {
+                        "deviceKey": "systemMonitor",
+                        "joinStart": 1
+                    }
+                ]
+            },
+            "type": "eiscApiAdvanced"
+        },
+        {
+            "key": "bridge-fusion01",
+            "group": "api",
+            "name": "eisc-Bridge",
+            "properties": {
+                "control": {
+                    "tcpSshProperties": {
+                        "address": "127.0.0.2",
+                        "port": 0
+                    },
+                    "ipid": "B1"
+                },
+                "devices": [
+                    {
+                        "deviceKey": "dynFusion01",
+                        "joinStart": 1
+                    },
+                    {
+                        "deviceKey": "schedule01",
+                        "joinStart": 1001
+                    },
+                    {
+                        "deviceKey": "collegeNet01",
+                        "joinStart": 1401
+                    }
+                ]
+            },
+            "type": "eiscApiAdvanced"
+        },
+        {
+            "key": "bridge-fusion02",
+            "group": "api",
+            "name": "eisc-Bridge",
+            "properties": {
+                "control": {
+                    "tcpSshProperties": {
+                        "address": "127.0.0.2",
+                        "port": 0
+                    },
+                    "ipid": "B2"
+                },
+                "devices": [
+                    {
+                        "deviceKey": "dynFusion02",
+                        "joinStart": 1
+                    },
+                    {
+                        "deviceKey": "schedule02",
+                        "joinStart": 1001
+                    },
+                    {
+                        "deviceKey": "collegeNet02",
+                        "joinStart": 1401
+                    }
+                ]
+            },
+            "type": "eiscApiAdvanced"
+        }
+    ]
+}

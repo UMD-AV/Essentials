@@ -20,7 +20,6 @@ namespace PepperDash.Essentials.Core.Config
 ***************************************************
 ************* Using Local config file *************
 ***************************************************";
-
 		public static EssentialsConfig ConfigObject { get; private set; }
 
 		public static bool LoadConfig2()

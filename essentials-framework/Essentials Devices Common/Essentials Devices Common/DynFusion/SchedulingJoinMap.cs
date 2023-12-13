@@ -6,8 +6,8 @@ namespace DynFusion
 	{
 		[JoinName("GetSchedule")]
 		public JoinDataComplete GetSchedule = new JoinDataComplete(new JoinData { JoinNumber = 3, JoinSpan = 1 }, new JoinMetadata { Label = "GetSchedule", JoinCapabilities = eJoinCapabilities.FromSIMPL, JoinType = eJoinType.Digital });
-		[JoinName("ScheduleBusy")]
-		public JoinDataComplete ScheduleBusy = new JoinDataComplete(new JoinData { JoinNumber = 3, JoinSpan = 1 }, new JoinMetadata { Label = "ScheduleBusy", JoinCapabilities = eJoinCapabilities.ToSIMPL, JoinType = eJoinType.Digital });
+		[JoinName("ScheduleOnline")]
+		public JoinDataComplete ScheduleOnline = new JoinDataComplete(new JoinData { JoinNumber = 3, JoinSpan = 1 }, new JoinMetadata { Label = "ScheduleOnline", JoinCapabilities = eJoinCapabilities.ToSIMPL, JoinType = eJoinType.Digital });
 		[JoinName("GetRoomInfo")]
 		public JoinDataComplete GetRoomInfo = new JoinDataComplete(new JoinData { JoinNumber = 4, JoinSpan = 1 }, new JoinMetadata { Label = "GetRoomInfo", JoinCapabilities = eJoinCapabilities.FromSIMPL, JoinType = eJoinType.Digital });
         [JoinName("PushNotificationRegistered")]

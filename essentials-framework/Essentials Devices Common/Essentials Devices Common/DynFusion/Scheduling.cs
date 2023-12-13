@@ -33,10 +33,13 @@ namespace DynFusion
 		SchedulingConfig _Config;
         ScheduleResponse _scheduleResponse;
 
+        private uint scheduleFailCount;
+
 		List<ScheduleResponse> RoomAvailabilityScheduleResponse = new List<ScheduleResponse>();
 
 		private BoolWithFeedback RegisteredForPush = new BoolWithFeedback();
 		private BoolWithFeedback ScheduleBusy = new BoolWithFeedback();
+        private BoolWithFeedback ScheduleOnline = new BoolWithFeedback();
 
         private Event _currentMeeting;
 		public Event CurrentMeeting
@@ -109,6 +112,7 @@ namespace DynFusion
 			_DynFusion.FusionSymbol.ExtenderFusionRoomDataReservedSigs.DeviceExtenderSigChange += new DeviceExtenderJoinChangeEventHandler(FusionRoomDataExtenderSigChange);
             _DynFusion.RoomInformationUpdated += new EventHandler<EventArgs>(_DynFusion_RoomInformationUpdated);
 
+            ScheduleOnline.value = false;
             getScheduleTimeOut = new CTimer(getScheduleTimeOutCallback, Crestron.SimplSharp.Timeout.Infinite);
             getScheduleDaily = new CTimer(GetRoomSchedule, Crestron.SimplSharp.Timeout.Infinite);
             updateCurrentMeeting = new CTimer(UpdateCurrentMeetingCallback, Crestron.SimplSharp.Timeout.Infinite);
@@ -234,20 +238,27 @@ namespace DynFusion
 
 		void GetRoomSchedule(object unused)
 		{
-			GetRoomSchedule();
-            DateTime midnight = DateTime.Today.AddDays(1);
+            DateTime now = DateTime.Now;
+            DateTime oneAM = DateTime.Today.AddHours(1);
 
-            long msUntilMidnight = (long)(midnight - DateTime.Now).TotalMilliseconds;
-            Debug.Console(1, this, String.Format("Getting room schedule again in {0} ms", msUntilMidnight));
-            getScheduleDaily.Reset(msUntilMidnight, Crestron.SimplSharp.Timeout.Infinite);
+            if (now >= oneAM)
+            {
+                oneAM = oneAM.AddDays(1);
+            }
+
+            int timeUntilOneAM = (int)(oneAM - now).TotalMilliseconds;
+            getScheduleDaily.Reset(timeUntilOneAM + 60000);
+
+            scheduleFailCount = 0;
+            GetRoomSchedule();
 		}
 
 		public void GetRoomSchedule()
 		{
+            getScheduleTimeOut.Reset(10000);
             if (ScheduleBusy.value == false && fusionOnline)
 			{
-				ScheduleBusy.value = true;
-                getScheduleTimeOut.Reset(6000);
+				ScheduleBusy.value = true;                
 				Debug.Console(2, this, String.Format("Get RoomSchedule"));
 
                 try
@@ -280,6 +291,16 @@ namespace DynFusion
 		{
 			ScheduleBusy.value = false;
 			Debug.ConsoleWithLog(0, this, "Error getRoomScheduleTimeOut");
+
+            if (scheduleFailCount < 5)
+            {
+                scheduleFailCount++;
+                GetRoomSchedule();
+            }
+            else
+            {
+                ScheduleOnline.value = false;
+            }
 		}
 
 		void FusionRoomAttributeExtenderSigChange(DeviceExtender currentDeviceExtender, SigEventArgs args)
@@ -468,6 +489,7 @@ namespace DynFusion
 								}
 
                                 getScheduleTimeOut.Stop();
+                                ScheduleOnline.value = true;
 								ScheduleBusy.value = false;
                                 CrestronInvoke.BeginInvoke((o) =>
                                 {
@@ -553,7 +575,7 @@ namespace DynFusion
 			try
 			{
 				var joinMap = new SchedulingJoinMap(joinStart);
-				ScheduleBusy.Feedback.LinkInputSig(trilist.BooleanInput[joinMap.ScheduleBusy.JoinNumber]);
+				ScheduleOnline.Feedback.LinkInputSig(trilist.BooleanInput[joinMap.ScheduleOnline.JoinNumber]);
 				trilist.SetSigTrueAction(joinMap.GetSchedule.JoinNumber, () => GetRoomSchedule());
 				RegisteredForPush.Feedback.LinkInputSig(trilist.BooleanInput[joinMap.PushNotificationRegistered.JoinNumber]);
 
