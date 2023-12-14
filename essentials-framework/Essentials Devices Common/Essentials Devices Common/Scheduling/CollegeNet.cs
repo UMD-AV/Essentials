@@ -63,14 +63,18 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
 
         private string username;
         private string password;
-        private string spaceId;
+        private int spaceId;
+        private string roomName;
         private HttpsClient secureClient;
         private CMutex meetingMutex;
         
 		public CollegeNet(string key, string name, CollegeNetPropertiesConfig props) :
             base(key, name)
         {
-            this.spaceId = props.spaceId;
+            if (props.spaceId > 0)
+            {
+                this.spaceId = props.spaceId;
+            }
 			this.username = props.username;
 			this.password = props.password;
             meetingMutex = new CMutex();
@@ -104,6 +108,7 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
             //Events from SIMPL
             trilist.SetSigTrueAction(joinMap.RefreshReservations.JoinNumber, ManualGetTodaysReservations);
             trilist.SetSigTrueAction(joinMap.RefreshSpaceInfo.JoinNumber, GetSpaceInfo);
+            trilist.SetStringSigAction(joinMap.SetRoomName.JoinNumber, SetRoomName);
 
 
             MeetingsUpdated += (o, a) =>
@@ -278,29 +283,63 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
 
         private void GetTodaysReservations()
         {
-            Debug.Console(0, this, "Getting reservations for spaceId {0}", spaceId != null ? spaceId : "null");
-            if (spaceId != null)
+            Debug.Console(0, this, "Getting reservations for spaceId {0}", spaceId);
+            if (spaceId != 0)
             {
                 scheduleTimeout.Reset(10000);
                 GetData(string.Format("reservations.json?space_id={0}", spaceId), "Reservations");
+            }
+            else
+            {
+                GetSpaceId();
             }
         }
 
         public void ManualGetTodaysReservations()
         {
-            Debug.Console(0, this, "Manually getting reservations for spaceId {0}", spaceId != null ? spaceId : "null");
-            if (spaceId != null)
+            Debug.Console(0, this, "Manually getting reservations for spaceId {0}", spaceId);
+            if (spaceId != 0)
             {
                 GetData(string.Format("reservations.json?space_id={0}", spaceId), "Reservations");
+            }
+            else
+            {
+                GetSpaceId();
             }
         }
 
         public void GetSpaceInfo()
         {
-            Debug.Console(0, this, "Getting space info for spaceId {0}", spaceId != null ? spaceId : "null");
-            if (spaceId != null)
+            Debug.Console(0, this, "Getting space info for spaceId {0}", spaceId);
+            if (spaceId != 0)
             {
                 GetData(string.Format("space.json?space_id={0}", spaceId), "Space");
+            }
+            else
+            {
+                GetSpaceId();
+            }
+        }
+
+        public void SetRoomName(string _roomName)
+        {
+            if (_roomName != roomName && _roomName.Length > 3)
+            {
+                roomName = _roomName;
+                GetSpaceId();
+            }
+        }
+
+        private void GetSpaceId()
+        {
+            if (roomName != null)
+            {
+                Debug.Console(0, this, "Getting space id for room with name: {0}", roomName);
+                GetData(string.Format("spaces.json?name={0}", roomName), "SpacesName");
+            }
+            else
+            {
+                Debug.ConsoleWithLog(0, this, "Error getting space id - room name null");
             }
         }
 
@@ -344,7 +383,11 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
             scheduleFailCount = 0;
             Meetings = new List<Meeting>();
             GetTodaysReservations();
-            GetSpaceInfo();
+            if (SpaceFeatures == null || SpaceFeatures.Count == 0)
+            {
+                CrestronEnvironment.Sleep(5000);
+                GetSpaceInfo();
+            }
         }
 
         private void UpdateCurrentMeetingCallback(object unused)
@@ -552,6 +595,21 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
                     Debug.Console(0, this, "Spaces processing exception: {0}", ex.Message);
                 }
             }
+            else if (requestName == "SpacesName")
+            {
+                try
+                {
+                    SpaceResponse response = JsonConvert.DeserializeObject<SpaceResponse>(content);
+                    spaceId = response.Spaces.Space.SpaceId;
+                    GetTodaysReservations();
+                    CrestronEnvironment.Sleep(5000);
+                    GetSpaceInfo();
+                }
+                catch (Exception ex)
+                {
+                    Debug.Console(0, this, "SpacesName processing exception - possible multiple results for that name: {0}", ex.Message);
+                }
+            }
         }
     }
 
@@ -752,6 +810,8 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
         public string Instructions { get; set; }
         [JsonProperty("space_name")]
         public string SpaceName { get; set; }
+        [JsonProperty("space_id")]
+        public int SpaceId { get; set; }
         [JsonProperty("feature")]
         public List<Feature> Features { get; set; }
     }
@@ -769,7 +829,7 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
     {
         public string username { get; set; }
         public string password { get; set; }
-        public string spaceId { get; set; }
+        public int spaceId { get; set; }
     }
 
     public class CollegeNetJoinMap : JoinMapBaseAdvanced
@@ -889,6 +949,20 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
             {
                 Description = "Current Meeting Name",
                 JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                JoinType = eJoinType.Serial
+            });
+
+        [JoinName("SetRoomName")]
+        public JoinDataComplete SetRoomName = new JoinDataComplete(
+            new JoinData()
+            {
+                JoinNumber = 1,
+                JoinSpan = 1
+            },
+            new JoinMetadata()
+            {
+                Description = "Set room name for linking to CollegeNet ID",
+                JoinCapabilities = eJoinCapabilities.FromSIMPL,
                 JoinType = eJoinType.Serial
             });
 
