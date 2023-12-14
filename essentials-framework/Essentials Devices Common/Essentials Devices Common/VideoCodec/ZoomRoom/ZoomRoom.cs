@@ -53,8 +53,8 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.ZoomRoom
 		private readonly ZoomRoomSyncState _syncState;
 		public bool CommDebuggingIsOn;
 		private CodecDirectory _currentDirectoryResult;
-		private uint _jsonCurlyBraceCounter;
-		private bool _jsonFeedbackMessageIsIncoming;
+		//private uint _jsonCurlyBraceCounter;
+		//private bool _jsonFeedbackMessageIsIncoming;
 		private StringBuilder _jsonMessage;
 		private int _previousVolumeLevel;
 		private CameraBase _selectedCamera;

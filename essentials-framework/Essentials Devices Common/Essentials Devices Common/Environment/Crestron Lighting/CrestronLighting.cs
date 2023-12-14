@@ -62,6 +62,7 @@ namespace PepperDash.Essentials.Devices.Common.Environment.CrestronLighting
 
         public override bool CustomActivate()
         {
+            InternalEisc.Register();
             LightingEisc.Register();
             return true;
         }
@@ -70,6 +71,10 @@ namespace PepperDash.Essentials.Devices.Common.Environment.CrestronLighting
         {
             Debug.Console(2, this, "Lighting Eisc change IPID: {0} Type:{1} Number:{2}", currentDevice.ID, args.Sig.Type, args.Sig.Number);
 
+            if (InternalEisc == null || !InternalEisc.Registered)
+            {
+                return;
+            }
             switch (args.Sig.Type)
             {
                 case eSigType.Bool :
@@ -103,6 +108,10 @@ namespace PepperDash.Essentials.Devices.Common.Environment.CrestronLighting
         {
             Debug.Console(2, this, "Internal Eisc change IPID: {0} Type:{1} Number:{2}", currentDevice.ID, args.Sig.Type, args.Sig.Number);
 
+            if (LightingEisc == null || !LightingEisc.Registered)
+            {
+                return;
+            }
             switch (args.Sig.Type)
             {
                 case eSigType.Bool:

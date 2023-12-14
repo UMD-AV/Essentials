@@ -27,6 +27,7 @@ namespace DynFusion
 	{
 		public const ushort FusionJoinOffset = 49;
 		//DynFusion Joins
+        public string customResourceConfig { get; set; }
 
         public event EventHandler<EventArgs> RoomInformationUpdated;
 
@@ -100,64 +101,101 @@ namespace DynFusion
 				FusionSymbol.FusionStateChange += new FusionStateEventHandler(FusionSymbol_FusionStateChange);
 				FusionSymbol.ExtenderFusionRoomDataReservedSigs.DeviceExtenderSigChange += new DeviceExtenderJoinChangeEventHandler(FusionSymbol_RoomDataDeviceExtenderSigChange);
 
+                if (customResourceConfig != null)
+                {
+                    try
+                    {
+                        DynFusionConfigObjectTemplate customAttrConfig = JObject.Parse(customResourceConfig).ToObject<DynFusionConfigObjectTemplate>();
+                        Debug.Console(0, "Fusion embdedded config read");
 
-                string customAttr = Encoding.GetEncoding(28591).GetString(PepperDash.Essentials.Devices.Common.Properties.Resources.dynFusionCustomAttributes, 0, PepperDash.Essentials.Devices.Common.Properties.Resources.dynFusionCustomAttributes.Length);
-                DynFusionConfigObjectTemplate customAttrConfig = JObject.Parse(customAttr).ToObject<DynFusionConfigObjectTemplate>();
+                        // Create Custom Atributes 
+                        if (customAttrConfig.CustomAttributes.DigitalAttributes != null)
+                        {
+                            foreach (var att in customAttrConfig.CustomAttributes.DigitalAttributes)
+                            {
+                                Debug.Console(0, "Fusion embdedded attribute: {0}", att.Name);
+                                FusionSymbol.AddSig(eSigType.Bool, att.JoinNumber - FusionJoinOffset, att.Name, GetIOMask(att.RwType));
+
+                                if (att.RwType == eReadWrite.ReadWrite || att.RwType == eReadWrite.Read)
+                                {
+                                    DigitalAttributesToFusion.Add(att.JoinNumber, new DynFusionDigitalAttribute(att.Name, att.JoinNumber, att.LinkDeviceKey, att.LinkDeviceMethod, att.LinkDeviceFeedback));
+                                    DigitalAttributesToFusion[att.JoinNumber].BoolValueFeedback.LinkInputSig(FusionSymbol.UserDefinedBooleanSigDetails[att.JoinNumber - FusionJoinOffset].InputSig);
+                                }
+                                if (att.RwType == eReadWrite.ReadWrite || att.RwType == eReadWrite.Write)
+                                {
+                                    DigitalAttributesFromFusion.Add(att.JoinNumber, new DynFusionDigitalAttribute(att.Name, att.JoinNumber));
+                                }
+                            }
+                        }
+
+                        if (customAttrConfig.CustomAttributes.AnalogAttributes != null)
+                        {
+                            foreach (var att in customAttrConfig.CustomAttributes.AnalogAttributes)
+                            {
+                                FusionSymbol.AddSig(eSigType.UShort, att.JoinNumber - FusionJoinOffset, att.Name, GetIOMask(att.RwType));
+
+                                if (att.RwType == eReadWrite.ReadWrite || att.RwType == eReadWrite.Read)
+                                {
+                                    AnalogAttributesToFusion.Add(att.JoinNumber, new DynFusionAnalogAttribute(att.Name, att.JoinNumber));
+                                    AnalogAttributesToFusion[att.JoinNumber].UShortValueFeedback.LinkInputSig(FusionSymbol.UserDefinedUShortSigDetails[att.JoinNumber - FusionJoinOffset].InputSig);
+                                }
+                                if (att.RwType == eReadWrite.ReadWrite || att.RwType == eReadWrite.Write)
+                                {
+                                    AnalogAttributesFromFusion.Add(att.JoinNumber, new DynFusionAnalogAttribute(att.Name, att.JoinNumber));
+                                }
+
+                            }
+                        }
+                        if (customAttrConfig.CustomAttributes.SerialAttributes != null)
+                        {
+                            foreach (var att in customAttrConfig.CustomAttributes.SerialAttributes)
+                            {
+                                FusionSymbol.AddSig(eSigType.String, att.JoinNumber - FusionJoinOffset, att.Name, GetIOMask(att.RwType));
+                                if (att.RwType == eReadWrite.ReadWrite || att.RwType == eReadWrite.Read)
+                                {
+                                    SerialAttributesToFusion.Add(att.JoinNumber, new DynFusionSerialAttribute(att.Name, att.JoinNumber));
+                                    SerialAttributesToFusion[att.JoinNumber].StringValueFeedback.LinkInputSig(FusionSymbol.UserDefinedStringSigDetails[att.JoinNumber - FusionJoinOffset].InputSig);
+                                }
+                                if (att.RwType == eReadWrite.ReadWrite || att.RwType == eReadWrite.Write)
+                                {
+                                    SerialAttributesFromFusion.Add(att.JoinNumber, new DynFusionSerialAttribute(att.Name, att.JoinNumber));
+                                }
+                            }
+                        }
+
+
+                        if (customAttrConfig.CustomProperties != null)
+                        {
+                            if (customAttrConfig.CustomProperties.DigitalProperties != null)
+                            {
+                                foreach (var att in customAttrConfig.CustomProperties.DigitalProperties)
+                                {
+                                    DigitalAttributesFromFusion.Add(att.JoinNumber, new DynFusionDigitalAttribute(att.ID, att.JoinNumber));
+                                }
+                            }
+                            if (customAttrConfig.CustomProperties.AnalogProperties != null)
+                            {
+                                foreach (var att in customAttrConfig.CustomProperties.AnalogProperties)
+                                {
+                                    AnalogAttributesFromFusion.Add(att.JoinNumber, new DynFusionAnalogAttribute(att.ID, att.JoinNumber));
+                                }
+                            }
+                            if (customAttrConfig.CustomProperties.SerialProperties != null)
+                            {
+
+                                foreach (var att in customAttrConfig.CustomProperties.SerialProperties)
+                                {
+                                    SerialAttributesFromFusion.Add(att.JoinNumber, new DynFusionSerialAttribute(att.ID, att.JoinNumber));
+                                }
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.ConsoleWithLog(0, "Fusion embedded config exception: {0}", ex.Message);
+                    }
+                }
 				
-                // Create Custom Atributes 
-                if (customAttrConfig.CustomAttributes.DigitalAttributes != null)
-                {
-                    foreach (var att in customAttrConfig.CustomAttributes.DigitalAttributes)
-                    {
-                        FusionSymbol.AddSig(eSigType.Bool, att.JoinNumber - FusionJoinOffset, att.Name, GetIOMask(att.RwType));
-
-                        if (att.RwType == eReadWrite.ReadWrite || att.RwType == eReadWrite.Read)
-                        {
-                            DigitalAttributesToFusion.Add(att.JoinNumber, new DynFusionDigitalAttribute(att.Name, att.JoinNumber, att.LinkDeviceKey, att.LinkDeviceMethod, att.LinkDeviceFeedback));
-                            DigitalAttributesToFusion[att.JoinNumber].BoolValueFeedback.LinkInputSig(FusionSymbol.UserDefinedBooleanSigDetails[att.JoinNumber - FusionJoinOffset].InputSig);
-                        }
-                        if (att.RwType == eReadWrite.ReadWrite || att.RwType == eReadWrite.Write)
-                        {
-                            DigitalAttributesFromFusion.Add(att.JoinNumber, new DynFusionDigitalAttribute(att.Name, att.JoinNumber));
-                        }
-                    }
-                }
-
-                if (customAttrConfig.CustomAttributes.AnalogAttributes != null)
-                {
-                    foreach (var att in customAttrConfig.CustomAttributes.AnalogAttributes)
-                    {
-                        FusionSymbol.AddSig(eSigType.UShort, att.JoinNumber - FusionJoinOffset, att.Name, GetIOMask(att.RwType));
-
-                        if (att.RwType == eReadWrite.ReadWrite || att.RwType == eReadWrite.Read)
-                        {
-                            AnalogAttributesToFusion.Add(att.JoinNumber, new DynFusionAnalogAttribute(att.Name, att.JoinNumber));
-                            AnalogAttributesToFusion[att.JoinNumber].UShortValueFeedback.LinkInputSig(FusionSymbol.UserDefinedUShortSigDetails[att.JoinNumber - FusionJoinOffset].InputSig);
-                        }
-                        if (att.RwType == eReadWrite.ReadWrite || att.RwType == eReadWrite.Write)
-                        {
-                            AnalogAttributesFromFusion.Add(att.JoinNumber, new DynFusionAnalogAttribute(att.Name, att.JoinNumber));
-                        }
-
-                    }
-                }
-                if (customAttrConfig.CustomAttributes.SerialAttributes != null)
-                {
-                    foreach (var att in customAttrConfig.CustomAttributes.SerialAttributes)
-				    {
-					    FusionSymbol.AddSig(eSigType.String, att.JoinNumber - FusionJoinOffset, att.Name, GetIOMask(att.RwType));
-					    if (att.RwType == eReadWrite.ReadWrite || att.RwType == eReadWrite.Read)
-					    {
-						    SerialAttributesToFusion.Add(att.JoinNumber, new DynFusionSerialAttribute(att.Name, att.JoinNumber));
-						    SerialAttributesToFusion[att.JoinNumber].StringValueFeedback.LinkInputSig(FusionSymbol.UserDefinedStringSigDetails[att.JoinNumber - FusionJoinOffset].InputSig);
-					    }
-					    if (att.RwType == eReadWrite.ReadWrite || att.RwType == eReadWrite.Write)
-					    {
-						    SerialAttributesFromFusion.Add(att.JoinNumber, new DynFusionSerialAttribute(att.Name, att.JoinNumber));
-					    }
-				    }
-                }
-
 				// Create Links for Standard joins 
 				CreateStandardJoin(JoinMapStatic.SystemPowerOn, FusionSymbol.SystemPowerOn);
 				CreateStandardJoin(JoinMapStatic.SystemPowerOff, FusionSymbol.SystemPowerOff);
@@ -176,32 +214,6 @@ namespace DynFusion
 				// Room Data Extender 
 				CreateStandardJoin(JoinMapStatic.ActionQuery, FusionSymbol.ExtenderFusionRoomDataReservedSigs.ActionQuery);
 				CreateStandardJoin(JoinMapStatic.RoomConfig, FusionSymbol.ExtenderFusionRoomDataReservedSigs.RoomConfigQuery);
-
-                if (customAttrConfig.CustomProperties != null)
-				{
-                    if (customAttrConfig.CustomProperties.DigitalProperties != null)
-					{
-                        foreach (var att in customAttrConfig.CustomProperties.DigitalProperties)
-						{
-							DigitalAttributesFromFusion.Add(att.JoinNumber, new DynFusionDigitalAttribute(att.ID, att.JoinNumber));
-						}
-					}
-                    if (customAttrConfig.CustomProperties.AnalogProperties != null)
-					{
-                        foreach (var att in customAttrConfig.CustomProperties.AnalogProperties)
-						{
-							AnalogAttributesFromFusion.Add(att.JoinNumber, new DynFusionAnalogAttribute(att.ID, att.JoinNumber));
-						}
-					}
-                    if (customAttrConfig.CustomProperties.SerialProperties != null)
-					{
-
-                        foreach (var att in customAttrConfig.CustomProperties.SerialProperties)
-						{
-							SerialAttributesFromFusion.Add(att.JoinNumber, new DynFusionSerialAttribute(att.ID, att.JoinNumber));
-						}
-					}
-				}
 
                 HelpRequest.GetOpenItems();
 				DeviceUsageFactory(); 

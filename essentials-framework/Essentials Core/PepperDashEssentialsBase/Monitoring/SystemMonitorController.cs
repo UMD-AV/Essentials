@@ -193,6 +193,15 @@ namespace PepperDash.Essentials.Core.Monitoring
             ControllerVersionFeedback.FireUpdate();
             SerialNumberFeedback.FireUpdate();
             ModelFeedback.FireUpdate();
+            UptimeFeedback.FireUpdate();
+            LastStartFeedback.FireUpdate();
+            UpdateEthernetStatusFeeedbacks();
+            foreach(var p in ProgramStatusFeedbackCollection)
+            {
+                p.Value.ProgramCompileTimeFeedback.FireUpdate();
+                p.Value.ProgramNameFeedback.FireUpdate();
+                p.Value.AggregatedProgramInfoFeedback.FireUpdate();
+            }
 
             OnSystemMonitorPropertiesChanged();
         }

@@ -116,6 +116,7 @@
     </Compile>
     <None Include="app.config" />
     <None Include="Properties\ControlSystem.cfg" />
+    <None Include="Resources\dynFusionCustomAttributes.json" />
     <None Include="Resources\umdBridges.json" />
   </ItemGroup>
   <ItemGroup>
@@ -134,7 +135,7 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Properties\Resources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
+      <Generator>PublicResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>

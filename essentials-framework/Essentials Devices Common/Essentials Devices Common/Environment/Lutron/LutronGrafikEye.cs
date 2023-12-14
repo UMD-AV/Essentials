@@ -40,7 +40,7 @@ namespace PepperDash.Essentials.Devices.Common.Environment.Lutron
             Communication = comm;
             _props = props;
 
-            ControlUnit = (props.ControlUnit != null) ? props.ControlUnit : 1;
+            ControlUnit = (props.ControlUnit != 0) ? props.ControlUnit : 1;
             if (props.Scenes != null)
             {
                 LightingScenes = props.Scenes;

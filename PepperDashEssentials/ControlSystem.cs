@@ -379,9 +379,21 @@ namespace PepperDash.Essentials
                     if (newDev == null)
                         newDev = PepperDash.Essentials.Core.DeviceFactory.GetDevice(devConf);
 
-					if (newDev != null)
-						DeviceManager.AddDevice(newDev);
-					else
+                    if (newDev != null)
+                    {
+                        if (devConf.Type.ToLower() == "dynfusion")
+                        {
+                            Debug.Console(0, "Found fusion device, trying to get embedded resource file");
+                            var fusionDev = newDev as DynFusion.DynFusionDevice;
+                            if (fusionDev != null)
+                            {
+                                fusionDev.customResourceConfig = Encoding.GetEncoding(28591).GetString(PepperDashEssentials.Properties.Resources.dynFusionCustomAttributes, 0, PepperDashEssentials.Properties.Resources.dynFusionCustomAttributes.Length);
+                                Debug.Console(0, "Got fusion embedded resource file");
+                            }
+                        }
+                        DeviceManager.AddDevice(newDev);
+                    }
+                    else
                         Debug.Console(0, Debug.ErrorLogLevel.Error, "ERROR: Cannot load unknown device type '{0}', key '{1}'.", devConf.Type, devConf.Key);
                 }
                 catch (Exception e)
