@@ -95,23 +95,23 @@ namespace PepperDash.Essentials.Devices.Common.ShureSbc
         public StringFeedback ErrorFeedback { get; private set; }
 
         // battery check ran field
-        private bool _batteryCheckRan2AM;
+        private bool _batteryCheckRan5AM;
         /// <summary>
         /// battery check ran property
         /// </summary>
-        public bool BatteryCheckRan2AM
+        public bool BatteryCheckRan5AM
         {
-            get { return _batteryCheckRan2AM; }
+            get { return _batteryCheckRan5AM; }
             set
             {
-                _batteryCheckRan2AM = value;
-                BatteryCheckRan2AMFeedback.FireUpdate();
+                _batteryCheckRan5AM = value;
+                BatteryCheckRan5AMFeedback.FireUpdate();
             }
         }
         /// <summary>
         /// Battery check ran feedback
         /// </summary>
-        public BoolFeedback BatteryCheckRan2AMFeedback { get; private set; }
+        public BoolFeedback BatteryCheckRan5AMFeedback { get; private set; }
         #endregion
         
         /// <summary>
@@ -131,7 +131,7 @@ namespace PepperDash.Essentials.Devices.Common.ShureSbc
             DeviceModelFeedback = new StringFeedback(() => DeviceModel);
             DeviceFirmwareVersionFeedback = new StringFeedback(() => DeviceFirmwareVersion);
             ErrorFeedback = new StringFeedback(() => DeviceError);
-            BatteryCheckRan2AMFeedback = new BoolFeedback(() => BatteryCheckRan2AM);
+            BatteryCheckRan5AMFeedback = new BoolFeedback(() => BatteryCheckRan5AM);
 
             SbcSize = config.size <= 8 ? config.size : 8;
             Batteries = new ShureSbcBattery[8];
@@ -172,28 +172,47 @@ namespace PepperDash.Essentials.Devices.Common.ShureSbc
 
         private void armBatteryCheckTimer()
         {
+            //Try to arm check for 5 AM
+            //This will typically run at 4 AM then adjust to 5 AM
+            //The purpose of running at 4 AM is to check in case of DST that we didn't jump forward 1 hour
             DateTime now = DateTime.Now;
-            DateTime twoAM = DateTime.Today.AddHours(2);
+            DateTime fiveAM = DateTime.Today.AddHours(5);
 
-            //runs twice for dst fallback, doesn't matter much
-            if (now >= twoAM)
+            if (now >= fiveAM)
             {
-                twoAM = twoAM.AddDays(1);
+                fiveAM = fiveAM.AddHours(23);
             }
 
-            int timeUntilTwoAM = (int)(twoAM - now).TotalMilliseconds;
-            batteryCheckTimer.Reset(timeUntilTwoAM);
+            int timeUntilFiveAM = (int)(fiveAM - now).TotalMilliseconds;
+            batteryCheckTimer.Reset(timeUntilFiveAM);
         }
 
         private void batteryCheckTimerCallback(object o)
         {
             armBatteryCheckTimer();
-            BatteryCheckRan2AM = false;
-            foreach (ShureSbcBattery b in Batteries)
+
+            if (DateTime.Now > DateTime.Today.AddHours(5) && isWeekday(DateTime.Today.DayOfWeek))
             {
-                b.BatteryPresent2AM = b.BatteryPresent;
+                BatteryCheckRan5AM = false;
+                foreach (ShureSbcBattery b in Batteries)
+                {
+                    b.BatteryPresent5AM = b.BatteryPresent;
+                }
+                BatteryCheckRan5AM = true;
             }
-            BatteryCheckRan2AM = true;
+        }
+
+        private bool isWeekday(DayOfWeek day)
+        {
+            if (day == DayOfWeek.Monday ||
+                day == DayOfWeek.Tuesday ||
+                day == DayOfWeek.Wednesday ||
+                day == DayOfWeek.Thursday ||
+                day == DayOfWeek.Friday)
+            {
+                return true;
+            }
+            return false;
         }
 
         // socket connection change event handler
@@ -453,7 +472,7 @@ namespace PepperDash.Essentials.Devices.Common.ShureSbc
                 _commsMonitor.IsOnlineFeedback.LinkInputSig(trilist.BooleanInput[joinMap.IsOnline.JoinNumber]);
                 SocketStatusFeedback.LinkInputSig(trilist.UShortInput[joinMap.SocketStatus.JoinNumber]);
                 MonitorStatusFeedback.LinkInputSig(trilist.UShortInput[joinMap.MonitorStatus.JoinNumber]);
-                BatteryCheckRan2AMFeedback.LinkInputSig(trilist.BooleanInput[joinMap.Battery2AMCheckRan.JoinNumber]);
+                BatteryCheckRan5AMFeedback.LinkInputSig(trilist.BooleanInput[joinMap.Battery5AMCheckRan.JoinNumber]);
 
                 // battery info **feedback only**
                 for (ushort i = 0; i < 8; i++)
@@ -461,7 +480,7 @@ namespace PepperDash.Essentials.Devices.Common.ShureSbc
                     ushort index = i;
                     Batteries[index].BatteryEnabledFeedback.LinkInputSig(trilist.BooleanInput[joinMap.BatteryEnabled.JoinNumber + index]);
                     Batteries[index].BatteryPresentFeedback.LinkInputSig(trilist.BooleanInput[joinMap.BatteryPresent.JoinNumber + index]);
-                    Batteries[index].BatteryPresent2AMFeedback.LinkInputSig(trilist.BooleanInput[joinMap.BatteryPresent2AM.JoinNumber + index]);
+                    Batteries[index].BatteryPresent5AMFeedback.LinkInputSig(trilist.BooleanInput[joinMap.BatteryPresent5AM.JoinNumber + index]);
                     Batteries[index].PercentChargeFeedback.LinkInputSig(trilist.UShortInput[joinMap.PercentCharge.JoinNumber + index]);
                     Batteries[index].PercentHealthFeedback.LinkInputSig(trilist.UShortInput[joinMap.PercentHealth.JoinNumber + index]);
                     Batteries[index].TemperatureFFeedback.LinkInputSig(trilist.UShortInput[joinMap.TemperatureF.JoinNumber + index]);
@@ -500,7 +519,7 @@ namespace PepperDash.Essentials.Devices.Common.ShureSbc
             {
                 Batteries[i].BatteryEnabledFeedback.FireUpdate();
                 Batteries[i].BatteryPresentFeedback.FireUpdate();
-                Batteries[i].BatteryPresent2AMFeedback.FireUpdate();
+                Batteries[i].BatteryPresent5AMFeedback.FireUpdate();
                 Batteries[i].PercentChargeFeedback.FireUpdate();
                 Batteries[i].PercentHealthFeedback.FireUpdate();
                 Batteries[i].TemperatureFFeedback.FireUpdate();
@@ -509,7 +528,7 @@ namespace PepperDash.Essentials.Devices.Common.ShureSbc
                 Batteries[i].BatteryStateFeedback.FireUpdate();
             }
 
-            BatteryCheckRan2AMFeedback.FireUpdate();
+            BatteryCheckRan5AMFeedback.FireUpdate();
         }
 
         #endregion Overrides of EssentialsBridgeableDevice
@@ -566,21 +585,21 @@ namespace PepperDash.Essentials.Devices.Common.ShureSbc
         public BoolFeedback BatteryPresentFeedback { get; private set; }
         #endregion
 
-        #region Battery Present 2AM
-        private bool _batteryPresent2AM = false;
-        public bool BatteryPresent2AM
+        #region Battery Present 5AM
+        private bool _batteryPresent5AM = false;
+        public bool BatteryPresent5AM
         {
-            get { return _batteryPresent2AM; }
+            get { return _batteryPresent5AM; }
             set
             {
-                _batteryPresent2AM = value;
-                BatteryPresent2AMFeedback.FireUpdate();
+                _batteryPresent5AM = value;
+                BatteryPresent5AMFeedback.FireUpdate();
             }
         }
         /// <summary>
-        /// Battery present 2AM feedback
+        /// Battery present 5AM feedback
         /// </summary>
-        public BoolFeedback BatteryPresent2AMFeedback { get; private set; }
+        public BoolFeedback BatteryPresent5AMFeedback { get; private set; }
         #endregion
 
         #region Percent Charge (BATT_CHARGE)
@@ -693,7 +712,7 @@ namespace PepperDash.Essentials.Devices.Common.ShureSbc
         {
             BatteryEnabledFeedback = new BoolFeedback(() => BatteryEnabled);
             BatteryPresentFeedback = new BoolFeedback(() => BatteryPresent);
-            BatteryPresent2AMFeedback = new BoolFeedback(() => BatteryPresent2AM);
+            BatteryPresent5AMFeedback = new BoolFeedback(() => BatteryPresent5AM);
             PercentChargeFeedback = new IntFeedback(() => PercentCharge);
             PercentHealthFeedback = new IntFeedback(() => PercentHealth);
             TemperatureFFeedback = new IntFeedback(() => TemperatureF);
@@ -776,10 +795,10 @@ namespace PepperDash.Essentials.Devices.Common.ShureSbc
             });
 
         /// <summary>
-        /// Get present feedback for a battery at 2AM
+        /// Get present feedback for a battery at 5AM
         /// </summary>
-        [JoinName("BatteryPresent2AM")]
-        public JoinDataComplete BatteryPresent2AM = new JoinDataComplete(
+        [JoinName("BatteryPresent5AM")]
+        public JoinDataComplete BatteryPresent5AM = new JoinDataComplete(
             new JoinData
             {
                 JoinNumber = 31,
@@ -787,16 +806,16 @@ namespace PepperDash.Essentials.Devices.Common.ShureSbc
             },
             new JoinMetadata
             {
-                Description = "Present feedback at 2AM for a battery",
+                Description = "Present feedback at 5AM for a battery",
                 JoinCapabilities = eJoinCapabilities.ToSIMPL,
                 JoinType = eJoinType.Digital
             });
 
         /// <summary>
-        /// Report battery check ran at 2AM
+        /// Report battery check ran at 5AM
         /// </summary>
-        [JoinName("Battery2AMCheckRan")]
-        public JoinDataComplete Battery2AMCheckRan = new JoinDataComplete(
+        [JoinName("Battery5AMCheckRan")]
+        public JoinDataComplete Battery5AMCheckRan = new JoinDataComplete(
             new JoinData
             {
                 JoinNumber = 40,
@@ -804,7 +823,7 @@ namespace PepperDash.Essentials.Devices.Common.ShureSbc
             },
             new JoinMetadata
             {
-                Description = "Report if battery check at 2AM ran already",
+                Description = "Report if battery check at 5AM ran already",
                 JoinCapabilities = eJoinCapabilities.ToSIMPL,
                 JoinType = eJoinType.Digital
             });
