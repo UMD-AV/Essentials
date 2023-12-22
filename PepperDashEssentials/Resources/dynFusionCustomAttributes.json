@@ -37,6 +37,16 @@
         "name": "TP04 - SIP Enabled"
       },
       {
+        "joinNumber": 61,
+        "rwType": "R",
+        "name": "Schedule - Current Meeting Active"
+      },
+      {
+        "joinNumber": 62,
+        "rwType": "R",
+        "name": "Schedule - Online"
+      },
+      {
         "joinNumber": 121,
         "rwType": "R",
         "name": "Dali01 Loop1 Lamp Failure"

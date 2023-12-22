@@ -593,9 +593,9 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
                 try
                 {
                     SpaceResponse response = JsonConvert.DeserializeObject<SpaceResponse>(content);
-                    SpaceFeatures = response.Spaces.Space.Features;
-                    SpaceName = response.Spaces.Space.SpaceName;
-                    Instructions = response.Spaces.Space.Instructions;
+                    SpaceFeatures = response.Spaces.Space[0].Features;
+                    SpaceName = response.Spaces.Space[0].SpaceName;
+                    Instructions = response.Spaces.Space[0].Instructions;
                     if (SpaceInfoUpdated != null)
                     {
                         SpaceInfoUpdated(this, new EventArgs());
@@ -611,14 +611,34 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
                 try
                 {
                     SpaceResponse response = JsonConvert.DeserializeObject<SpaceResponse>(content);
-                    spaceId = response.Spaces.Space.SpaceId;
+                    if (response.Spaces.Space.Count == 1)
+                    {
+                        spaceId = response.Spaces.Space[0].SpaceId;
+                    }
+                    else if (response.Spaces.Space.Count > 1)
+                    {
+                        if (response.Spaces.Space.Exists(s => s.SpaceName == roomName))
+                        {
+                            var resultSpace = response.Spaces.Space.Find(s => s.SpaceName == roomName);
+                            spaceId = resultSpace.SpaceId;
+                        }
+                        else
+                        {
+                            spaceId = response.Spaces.Space[0].SpaceId;
+                            Debug.ConsoleWithLog(0, this, "SpacesName no exact match found for: {0}, using id {1}", roomName, spaceId);
+                        }
+                    }
+                    else
+                    {
+                        Debug.ConsoleWithLog(0, this, "SpacesName no results found for: {0}", roomName);
+                    }
                     GetTodaysReservations();
                     CrestronEnvironment.Sleep(5000);
                     GetSpaceInfo();
                 }
                 catch (Exception ex)
                 {
-                    Debug.ConsoleWithLog(0, this, "SpacesName processing exception - possible multiple results for that name: {0}", ex.Message);
+                    Debug.ConsoleWithLog(0, this, "SpacesName processing exception for name: {0}", ex.Message);
                 }
             }
         }
@@ -843,7 +863,8 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
     public class Spaces
     {
         [JsonProperty("space")]
-        public Space Space { get; set; }
+        [JsonConverter(typeof(SingleOrArrayConverter<Space>))]
+        public List<Space> Space { get; set; }
     }
 
     public class Space

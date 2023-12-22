@@ -50,6 +50,7 @@ namespace DynFusion
 		public FusionRoom FusionSymbol;
 		private CTimer ErrorLogTimer;
         private CTimer EiscOfflineTimer;
+        private CTimer OnlineEventTimer;
 		private string ErrorLogLastMessageSent;
         private bool _isInitialized;
 
@@ -96,6 +97,7 @@ namespace DynFusion
 				FusionSymbol.OnlineStatusChange += new OnlineStatusChangeEventHandler(FusionSymbol_OnlineStatusChange);
 	
                 CrestronEnvironment.EthernetEventHandler +=new EthernetEventHandler(CrestronEnvironment_EthernetEventHandler);
+                OnlineEventTimer = new CTimer(OnlineTimerExpired, Timeout.Infinite); //30 second timer
 
 				// Attribute State Changes 
 				FusionSymbol.FusionStateChange += new FusionStateEventHandler(FusionSymbol_FusionStateChange);
@@ -621,25 +623,35 @@ namespace DynFusion
             if (args.DeviceOnLine)
             {
                 Debug.ConsoleWithLog(0, this, "DynFusion Symbol Online");
-                CrestronInvoke.BeginInvoke((o) =>
-                {
-                    CrestronEnvironment.Sleep(5000);
-                    GetRoomConfig();
-                    HelpRequest.GetOpenItems();
-                    CrestronEnvironment.Sleep(60000);
-                    while (RoomInformation == null || RoomInformation.Name.Length < 1)
-                    {
-                        Debug.ConsoleWithLog(0, this, "Room config not populated, retrying now");
-                        GetRoomConfig();
-                        CrestronEnvironment.Sleep(600000);
-                    }
-                });
+                OnlineEventTimer.Reset(5000);
             }
             else
             {
                 Debug.ConsoleWithLog(0, this, "DynFusion Symbol Offline");
+                OnlineEventTimer.Stop();
             }
 		}
+
+        private void OnlineTimerExpired(object o)
+        {
+            if (FusionSymbol.IsOnline)
+            {
+                GetRoomConfig();
+                HelpRequest.GetOpenItems();
+                CrestronEnvironment.Sleep(60000);
+                int count = 0;
+                while (RoomInformation == null || RoomInformation.Name.Length < 1)
+                {
+                    Debug.ConsoleWithLog(0, this, "Room config not populated, retrying now");
+                    GetRoomConfig();
+                    CrestronEnvironment.Sleep(600000);
+                    count++;
+                    if (count > 10)
+                        break;
+                }
+            }
+        }
+
 		private static eSigIoMask GetIOMask(eReadWrite mask)
 		{
 			var type = eSigIoMask.NA;
