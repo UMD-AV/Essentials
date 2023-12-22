@@ -620,17 +620,24 @@ namespace DynFusion
             FusionOnlineFeedback.FireUpdate();
             if (args.DeviceOnLine)
             {
-                Debug.Console(0, this, "DynFusion Symbol Online");
+                Debug.ConsoleWithLog(0, this, "DynFusion Symbol Online");
                 CrestronInvoke.BeginInvoke((o) =>
                 {
-                    CrestronEnvironment.Sleep(200);
+                    CrestronEnvironment.Sleep(5000);
                     GetRoomConfig();
                     HelpRequest.GetOpenItems();
+                    CrestronEnvironment.Sleep(60000);
+                    while (RoomInformation == null || RoomInformation.Name.Length < 1)
+                    {
+                        Debug.ConsoleWithLog(0, this, "Room config not populated, retrying now");
+                        GetRoomConfig();
+                        CrestronEnvironment.Sleep(600000);
+                    }
                 });
             }
             else
             {
-                Debug.Console(0, this, "DynFusion Symbol Offline");
+                Debug.ConsoleWithLog(0, this, "DynFusion Symbol Offline");
             }
 		}
 		private static eSigIoMask GetIOMask(eReadWrite mask)
@@ -697,10 +704,9 @@ namespace DynFusion
 			{
 				if (FusionSymbol.IsOnline)
 				{
-
 					string fusionRoomConfigRequest = String.Format("<RequestRoomConfiguration><RequestID>RoomConfigurationRequest</RequestID><CustomProperties><Property></Property></CustomProperties></RequestRoomConfiguration>");
 
-					Debug.Console(2, this, "Room Request: {0}", fusionRoomConfigRequest);
+					Debug.Console(1, this, "Room Request: {0}", fusionRoomConfigRequest);
                     FusionSymbol.ExtenderFusionRoomDataReservedSigs.RoomConfigQuery.StringValue = fusionRoomConfigRequest;
 				}
 			}
@@ -781,7 +787,9 @@ namespace DynFusion
                                 RoomInformation = CrestronXMLSerialization.DeSerializeObject<RoomInformation>(roomInfo);
                                 var attirbute = SerialAttributesFromFusion.SingleOrDefault(x => x.Value.Name == "Name");
 
-                                if (attirbute.Value != null)
+                                Debug.ConsoleWithLog(0,"Got fusion room name: {0}", RoomInformation.Name);
+
+                                if (attirbute.Value != null && RoomInformation.Name.Length > 0)
                                 {
                                     attirbute.Value.StringValue = RoomInformation.Name;
                                 }
@@ -943,7 +951,6 @@ namespace DynFusion
 						var trilistLocal = o as BasicTriList;
 						trilistLocal.StringInput[attLocal.JoinNumber].StringValue = attLocal.StringValue;
 					}
-
 	            }
 	        };
 

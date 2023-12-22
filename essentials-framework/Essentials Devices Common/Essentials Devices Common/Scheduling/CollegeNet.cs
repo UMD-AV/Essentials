@@ -249,7 +249,9 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
                     UserAgent = "crestron",
                     KeepAlive = false,
                     Accept = "application/json",
-                    AllowAutoRedirect = false
+                    AllowAutoRedirect = true,
+                    PeerVerification = false,
+                    HostVerification = false,
                 };
             }
             catch
@@ -338,6 +340,7 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
         {
             if (roomName != null)
             {
+                scheduleTimeout.Reset(10000);
                 Debug.Console(0, this, "Getting space id for room with name: {0}", roomName);
                 GetData(string.Format("spaces.json?name={0}", roomName), "SpacesName");
             }
@@ -462,14 +465,14 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
             {
                 if (error != HTTPS_CALLBACK_ERROR.COMPLETED || response == null)
                 {
-                    Debug.Console(0, this, "Https client callback error: {0}", error);
+                    Debug.ConsoleWithLog(0, this, "Https client callback error: {0}", error);
                     return;
                 }
                 
                 Debug.Console(1, this, "Https client response code:{0}", response.Code.ToString());
                 if (response.Code < 200 || response.Code >= 300)
                 {
-                    Debug.Console(0, this, "Https client callback code error: {0}", response.Code);
+                    Debug.ConsoleWithLog(0, this, "Https client callback code error: {0}", response.Code);
                     return;
                 }
                 else
@@ -479,7 +482,7 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
             }
             catch (Exception ex)
             {
-                Debug.Console(0, this, "Https client callback exception: {0}", ex.Message);
+                Debug.ConsoleWithLog(0, this, "Https client callback exception: {0}", ex.Message);
             }
         }
 
@@ -497,32 +500,35 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
                     scheduleTimeout.Stop();
                     ScheduleOnline = true;
                     scheduleFailCount = 0;
-                    foreach (Reservation reservation in response.reservations.reservation)
+                    if (response.reservations != null && response.reservations.reservation != null)
                     {
-                        try
+                        foreach (Reservation reservation in response.reservations.reservation)
                         {
-                            bool matchExists = false;
-                            var matchesStart = Meetings.FindAll(m => m.Start == reservation.reservation_start_dt);
-                            if (matchesStart.Count > 0)
+                            try
                             {
-                                matchExists = matchesStart.Exists(m => m.End == reservation.reservation_end_dt);
-                            }
-                            if (!matchExists)
-                            {
-                                Meetings.Add(new Meeting()
+                                bool matchExists = false;
+                                var matchesStart = Meetings.FindAll(m => m.Start == reservation.reservation_start_dt);
+                                if (matchesStart.Count > 0)
                                 {
-                                    Id = reservation.event_id = reservation.event_id,
-                                    Name = reservation.event_name != null ? reservation.event_name : "",
-                                    Title = reservation.event_title != null ? reservation.event_title : "",
-                                    Start = reservation.reservation_start_dt = reservation.reservation_start_dt,
-                                    End = reservation.reservation_end_dt = reservation.reservation_end_dt,
-                                    Type = reservation.event_type_name != null ? reservation.event_type_name : ""
-                                });
+                                    matchExists = matchesStart.Exists(m => m.End == reservation.reservation_end_dt);
+                                }
+                                if (!matchExists)
+                                {
+                                    Meetings.Add(new Meeting()
+                                    {
+                                        Id = reservation.event_id = reservation.event_id,
+                                        Name = reservation.event_name != null ? reservation.event_name : "",
+                                        Title = reservation.event_title != null ? reservation.event_title : "",
+                                        Start = reservation.reservation_start_dt = reservation.reservation_start_dt,
+                                        End = reservation.reservation_end_dt = reservation.reservation_end_dt,
+                                        Type = reservation.event_type_name != null ? reservation.event_type_name : ""
+                                    });
+                                }
                             }
-                        }
-                        catch (Exception ex)
-                        {
-                            Debug.ConsoleWithLog(0, this, "Reservations processing exception: {0}", ex.Message);
+                            catch (Exception ex)
+                            {
+                                Debug.ConsoleWithLog(0, this, "Reservations processing exception: {0}", ex.Message);
+                            }
                         }
                     }
                 }
@@ -575,7 +581,7 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
                 }
                 catch (Exception ex)
                 {
-                    Debug.Console(0, this, "Reservations processing exception: {0}", ex.Message);
+                    Debug.ConsoleWithLog(0, this, "Reservations processing exception: {0}", ex.Message);
                 }
                 finally
                 {
@@ -597,7 +603,7 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
                 }
                 catch (Exception ex)
                 {
-                    Debug.Console(0, this, "Spaces processing exception: {0}", ex.Message);
+                    Debug.ConsoleWithLog(0, this, "Spaces processing exception: {0}", ex.Message);
                 }
             }
             else if (requestName == "SpacesName")
@@ -612,7 +618,7 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
                 }
                 catch (Exception ex)
                 {
-                    Debug.Console(0, this, "SpacesName processing exception - possible multiple results for that name: {0}", ex.Message);
+                    Debug.ConsoleWithLog(0, this, "SpacesName processing exception - possible multiple results for that name: {0}", ex.Message);
                 }
             }
         }
