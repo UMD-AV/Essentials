@@ -67,6 +67,7 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
         private string roomName;
         private HttpsClient secureClient;
         private CMutex meetingMutex;
+        private JsonSerializerSettings jsonSettings;
         
 		public CollegeNet(string key, string name, CollegeNetPropertiesConfig props) :
             base(key, name)
@@ -78,6 +79,9 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
 			this.username = props.username;
 			this.password = props.password;
             meetingMutex = new CMutex();
+            jsonSettings = new JsonSerializerSettings();
+            jsonSettings.MissingMemberHandling = MissingMemberHandling.Ignore;
+            jsonSettings.NullValueHandling = NullValueHandling.Ignore;
             CrestronEnvironment.ProgramStatusEventHandler += CrestronEnvironmentOnProgramStatusEventHandler;
         }
 
@@ -488,7 +492,8 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
                 {
                     meetingMutex.WaitForMutex();
                     Meetings = new List<Meeting>();
-                    ReservationsResponse response = JsonConvert.DeserializeObject<ReservationsResponse>(content);
+
+                    ReservationsResponse response = JsonConvert.DeserializeObject<ReservationsResponse>(content, jsonSettings);
                     scheduleTimeout.Stop();
                     ScheduleOnline = true;
                     scheduleFailCount = 0;
@@ -506,24 +511,24 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
                             {
                                 Meetings.Add(new Meeting()
                                 {
-                                    Id = reservation.event_id,
-                                    Name = reservation.event_name,
-                                    Title = reservation.event_title,
-                                    Start = reservation.reservation_start_dt,
-                                    End = reservation.reservation_end_dt,
-                                    Type = reservation.event_type_name
+                                    Id = reservation.event_id = reservation.event_id,
+                                    Name = reservation.event_name != null ? reservation.event_name : "",
+                                    Title = reservation.event_title != null ? reservation.event_title : "",
+                                    Start = reservation.reservation_start_dt = reservation.reservation_start_dt,
+                                    End = reservation.reservation_end_dt = reservation.reservation_end_dt,
+                                    Type = reservation.event_type_name != null ? reservation.event_type_name : ""
                                 });
                             }
                         }
                         catch (Exception ex)
                         {
-                            Debug.Console(0, this, "Reservations processing exception: {0}", ex.Message);
+                            Debug.ConsoleWithLog(0, this, "Reservations processing exception: {0}", ex.Message);
                         }
                     }
                 }
                 catch (Exception ex)
                 {
-                    Debug.Console(0, this, "Reservations processing exception: {0}", ex.Message);
+                    Debug.ConsoleWithLog(0, this, "Reservations processing exception: {0}", ex.Message);
                 }
                 finally
                 {
@@ -629,6 +634,35 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
         }
     }
 
+    public class SingleOrArrayConverter<T> : JsonConverter
+    {
+        public override bool CanConvert(Type objecType)
+        {
+            return (objecType == typeof(List<T>));
+        }
+
+        public override object ReadJson(JsonReader reader, Type objecType, object existingValue,
+            JsonSerializer serializer)
+        {
+            JToken token = JToken.Load(reader);
+            if (token.Type == JTokenType.Array)
+            {
+                return token.ToObject<List<T>>();
+            }
+            return new List<T> { token.ToObject<T>() };
+        }
+
+        public override bool CanWrite
+        {
+            get { return false; }
+        }
+
+        public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
     public class ReservationsResponse
     {
         public Reservations reservations { get; set; }
@@ -636,6 +670,8 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
 
     public class Reservations
     {
+        [JsonProperty("reservation")]
+        [JsonConverter(typeof(SingleOrArrayConverter<Reservation>))]
         public List<Reservation> reservation { get; set; }
     }
 
@@ -813,6 +849,7 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
         [JsonProperty("space_id")]
         public int SpaceId { get; set; }
         [JsonProperty("feature")]
+        [JsonConverter(typeof(SingleOrArrayConverter<Feature>))]
         public List<Feature> Features { get; set; }
     }
 
