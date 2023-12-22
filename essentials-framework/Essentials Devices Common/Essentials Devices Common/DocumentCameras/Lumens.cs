@@ -21,6 +21,7 @@ namespace PepperDash.Essentials.Devices.Common.Lumens
             : base(key, name)
         {
             PowerIsOnFeedback = new BoolFeedback(() => _PowerIsOn);
+            LampIsOnFeedback = new BoolFeedback(() => _LampIsOn);
             Communication = comm;
             Communication.BytesReceived += Communication_BytesReceived;
 
@@ -125,6 +126,19 @@ namespace PepperDash.Essentials.Devices.Common.Lumens
                     PowerIsOn = true;
                 }
             }
+
+            //Lamp response
+            else if (response[0] == 0xC1)
+            {
+                if (response[1] == 0x00)
+                {
+                    LampIsOn = false;
+                }
+                else if (response[1] == 0x01 || response[1] == 0x02 || response[1] == 0x03)
+                {
+                    LampIsOn = true;
+                }
+            }
         }
 
         #region IBridge Members
@@ -138,8 +152,18 @@ namespace PepperDash.Essentials.Devices.Common.Lumens
             }
 
             CommunicationMonitor.IsOnlineFeedback.LinkInputSig(trilist.BooleanInput[joinMap.IsOnline.JoinNumber]);
+
+            //Power
             trilist.SetSigTrueAction(joinMap.PowerOn.JoinNumber, () => PowerOn());
             trilist.SetSigTrueAction(joinMap.PowerOff.JoinNumber, () => PowerOff());
+            PowerIsOnFeedback.LinkInputSig(trilist.BooleanInput[joinMap.PowerOn.JoinNumber]);
+            PowerIsOnFeedback.LinkComplementInputSig(trilist.BooleanInput[joinMap.PowerOff.JoinNumber]);
+
+            //Lamp
+            trilist.SetSigTrueAction(joinMap.LampOn.JoinNumber, () => LampOn());
+            trilist.SetSigTrueAction(joinMap.LampOff.JoinNumber, () => LampOff());
+            LampIsOnFeedback.LinkInputSig(trilist.BooleanInput[joinMap.LampOn.JoinNumber]);
+            LampIsOnFeedback.LinkComplementInputSig(trilist.BooleanInput[joinMap.LampOff.JoinNumber]);
         }
 
         #endregion
@@ -194,12 +218,64 @@ namespace PepperDash.Essentials.Devices.Common.Lumens
 
         #endregion
 
+        public void LampOn()
+        {
+            var cmd = new byte[]
+			{
+				0xA0, 0xC1, 0x01, 0x00, 0x00, 0xAF
+			};
+            Communication.SendBytes(cmd);
+        }
+
+        public void LampOff()
+        {
+            var cmd = new byte[]
+			{
+				0xA0, 0xC1, 0x00, 0x00, 0x00, 0xAF
+			};
+            Communication.SendBytes(cmd);
+        }
+
+        public void LampToggle()
+        {
+            if (_LampIsOn)
+            {
+                LampOn();
+            }
+            else
+            {
+                LampOff();
+            }
+        }
+
+        public BoolFeedback LampIsOnFeedback { get; set; }
+        bool _LampIsOn;
+        public bool LampIsOn
+        {
+            get
+            {
+                return _LampIsOn;
+            }
+            set
+            {
+                _LampIsOn = value;
+                LampIsOnFeedback.FireUpdate();
+            }
+        }
+
         #region Poll
         public void Poll()
         {
             var cmd = new byte[]
 			{
 				0xA0, 0xB7, 0x00, 0x00, 0x00, 0xAF
+			};
+            Communication.SendBytes(cmd);
+
+            CrestronEnvironment.Sleep(1000);
+            cmd = new byte[]
+			{
+				0xA0, 0x50, 0x00, 0x00, 0x00, 0xAF
 			};
             Communication.SendBytes(cmd);
         }
@@ -231,6 +307,14 @@ namespace PepperDash.Essentials.Devices.Common.Lumens
         [JoinName("PowerOff")]
         public JoinDataComplete PowerOff = new JoinDataComplete(new JoinData { JoinNumber = 2, JoinSpan = 1 },
             new JoinMetadata { Description = "Power Off", JoinCapabilities = eJoinCapabilities.FromSIMPL, JoinType = eJoinType.Digital });
+
+        [JoinName("LampOn")]
+        public JoinDataComplete LampOn = new JoinDataComplete(new JoinData { JoinNumber = 5, JoinSpan = 1 },
+            new JoinMetadata { Description = "Lamp On", JoinCapabilities = eJoinCapabilities.ToFromSIMPL, JoinType = eJoinType.Digital });
+
+        [JoinName("LampOff")]
+        public JoinDataComplete LampOff = new JoinDataComplete(new JoinData { JoinNumber = 6, JoinSpan = 1 },
+            new JoinMetadata { Description = "Lamp Off", JoinCapabilities = eJoinCapabilities.FromSIMPL, JoinType = eJoinType.Digital });
 
 
         public LumensDocumentCameraJoinMap(uint joinStart)
