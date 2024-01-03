@@ -19,14 +19,29 @@ namespace PepperDash.Essentials.Devices.Common.Environment
     public class GenericPartitionInput : EssentialsBridgeableDevice
     {
         IDigitalInput digitalInput;
-
         public GenericPartitionInput(string key, string name, IOPortConfig props)
             : base(key, name)
         {
-            digitalInput = new GenericVersiportDigitalInputDevice(key + "-port", name + " port", GenericVersiportDigitalInputDevice.GetVersiportDigitalInput, props);
-            if (digitalInput == null)
+            Versiport versiportTest = GenericVersiportDigitalInputDevice.GetVersiportDigitalInput(props);
+            DigitalInput digitalInputTest = null;
+            if (versiportTest == null)
+            {
+                digitalInputTest = GenericDigitalInputDevice.GetDigitalInput(props);
+            }
+
+            if (versiportTest != null)
+            {
+                digitalInput = new GenericVersiportDigitalInputDevice(key + "-port", name + " port", GenericVersiportDigitalInputDevice.GetVersiportDigitalInput, props);
+                DeviceManager.AddDevice((GenericVersiportDigitalInputDevice)digitalInput);
+            }
+            else if (digitalInputTest != null)
             {
                 digitalInput = new GenericDigitalInputDevice(key + "-port", name + " port", GenericDigitalInputDevice.GetDigitalInput, props);
+                DeviceManager.AddDevice((GenericDigitalInputDevice)digitalInput);
+            }
+            else
+            {
+                Debug.ConsoleWithLog(0, "Error creating generic digital input device. No proper input device found");
             }
         }
 
