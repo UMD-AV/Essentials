@@ -195,6 +195,7 @@
     <Compile Include="DynFusion\DynFusionHelpRequest.cs" />
     <Compile Include="CameraControllers\AutomateVx.cs" />
     <Compile Include="Environment\Crestron Lighting\CrestronLighting.cs" />
+    <Compile Include="Environment\Generic\GenericPartitionInput.cs" />
     <Compile Include="Environment\Generic\RelayControlledLighting.cs" />
     <Compile Include="Environment\Lutron\LutronQuantumDevice.cs" />
     <Compile Include="Environment\Lutron\LutronGrafikEye.cs" />

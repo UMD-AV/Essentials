@@ -57,7 +57,7 @@ namespace PepperDash.Essentials.Core.CrestronIO
 
         #region PreActivate
 
-        private static DigitalInput GetDigitalInput(IOPortConfig dc)
+        public static DigitalInput GetDigitalInput(IOPortConfig dc)
         {
             IDigitalInputPorts ioPortDevice;
 

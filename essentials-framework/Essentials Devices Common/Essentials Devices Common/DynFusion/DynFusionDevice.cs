@@ -698,10 +698,10 @@ namespace DynFusion
 					slotNum = item.Number + 1;
 				}
 			}
-            //Skip slot num 15 (offset by 3) in rvi as 15 has been causing issues in Fusion
-            if (slotNum == 12)
+            //Skip odd slots as these seem to be causing issues
+            if (slotNum % 2 == 0)
             {
-                slotNum = 13;
+                slotNum++;
             }
 
 			Debug.Console(1, string.Format("Next available fusion asset number is: {0}", slotNum));
