@@ -913,6 +913,14 @@
                         "joinStart": 511
                     },
                     {
+                        "deviceKey": "shades03",
+                        "joinStart": 521
+                    },
+                    {
+                        "deviceKey": "shades04",
+                        "joinStart": 531
+                    },
+                    {
                       "deviceKey": "overflow01",
                       "joinStart": 601
                     }
