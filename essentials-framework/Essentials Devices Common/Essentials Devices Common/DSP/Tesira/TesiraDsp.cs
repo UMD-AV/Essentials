@@ -85,6 +85,7 @@ namespace Tesira_DSP_EPI
         public bool InitialStart = true;
         public bool OkayToSend = false;
         public bool ControlsAdded = false;
+        private bool SubscriptionFinished = false;
 
         private TesiraDspDeviceInfo DevInfo { get; set; }
         private Dictionary<string, TesiraDspFaderControl> Faders { get; set; }
@@ -611,16 +612,17 @@ namespace Tesira_DSP_EPI
                     return;
                 }
                 Debug.Console(1, this, "The Watchdog is on the hunt!");
+                if (!SubscriptionFinished)
+                {
+                    Resubscribe();
+                }
                 if (!WatchDogSniffer)
                 {
-                    Debug.Console(1, this, "The Watchdog is picking up a scent!");
-
-
                     var random = new Random(DateTime.Now.Millisecond + DateTime.Now.Second + DateTime.Now.Minute
                         + DateTime.Now.Hour + DateTime.Now.Day + DateTime.Now.Month + DateTime.Now.Year);
 
                     var watchDogSubject = ControlPointList[random.Next(0, ControlPointList.Count)];
-                    if (!watchDogSubject.IsSubscribed)
+                    if (!watchDogSubject.Enabled)
                     {
                         Debug.Console(1, this, "The Watchdog was wrong - that's just an old shoe.  Nothing is subscribed.");
                         return;
@@ -628,7 +630,6 @@ namespace Tesira_DSP_EPI
                     Debug.Console(1, this, "The Watchdog is sniffing \"{0}\".", watchDogSubject.Key);
 
                     WatchDogSniffer = true;
-
                     watchDogSubject.Subscribe();
                 }
                 else
@@ -636,7 +637,6 @@ namespace Tesira_DSP_EPI
                     Debug.Console(1, this, "The WatchDog smells something foul....let's resubscribe!");
                     Resubscribe();
                 }
-
             }
             catch (Exception ex)
             {
@@ -703,10 +703,8 @@ namespace Tesira_DSP_EPI
                         CommunicationMonitor.Start();
                     }
                     CrestronInvoke.BeginInvoke(o => StartSubsciptionThread());
-
                 }
 
-                //else if (args.Text.IndexOf(ResubsriptionString, StringComparison.Ordinal) > -1)
                 else if (args.Text.Equals(ResubsriptionString, StringComparison.OrdinalIgnoreCase))
                 {
                     if (!String.IsNullOrEmpty(ResubsriptionString))
@@ -1043,12 +1041,8 @@ namespace Tesira_DSP_EPI
             {
                 control.DoPoll();
             }
-
+            SubscriptionFinished = true;
         }
-
-
-
-
         #endregion
 
         /// <summary>
@@ -1056,7 +1050,7 @@ namespace Tesira_DSP_EPI
         /// </summary>
         public void Resubscribe()
         {
-            Debug.Console(0, this, "Issue Detected with device subscriptions - resubscribing to all controls");
+            Debug.ConsoleWithLog(0, this, "Issue Detected with device subscriptions - resubscribing to all controls");
             StopWatchDog();
             StartSubsciptionThread();
         }
