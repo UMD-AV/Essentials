@@ -43,18 +43,30 @@ namespace PepperDash.Essentials.Devices.Common.Environment
             //Create ISwitchedOutput objects based on props
             foreach (string x in Config.OpenRelay)
             {
-                OpenShadesRelays.Add(DeviceManager.GetDeviceForKey(x) as GenericRelayDevice);
+                GenericRelayDevice relay = DeviceManager.GetDeviceForKey(x) as GenericRelayDevice;
+                if (relay != null)
+                {
+                    OpenShadesRelays.Add(relay);
+                }
             }
             if (Config.StopRelay != null)
             {
                 foreach (string x in Config.StopRelay)
                 {
-                    StopShadesRelays.Add(DeviceManager.GetDeviceForKey(x) as GenericRelayDevice);
+                    GenericRelayDevice relay = DeviceManager.GetDeviceForKey(x) as GenericRelayDevice;
+                    if(relay != null)
+                    {
+                        StopShadesRelays.Add(relay);
+                    }
                 }
             }
             foreach (string x in Config.CloseRelay)
             {
-                CloseShadesRelays.Add(DeviceManager.GetDeviceForKey(x) as GenericRelayDevice);
+                GenericRelayDevice relay = DeviceManager.GetDeviceForKey(x) as GenericRelayDevice;
+                if (relay != null)
+                {
+                    CloseShadesRelays.Add(relay);
+                }
             }
 
             return base.CustomActivate();
@@ -83,9 +95,22 @@ namespace PepperDash.Essentials.Devices.Common.Environment
         public void Open()
         {
             Debug.Console(1, this, "Opening Shade: '{0}'", this.Name);
+            //Stop close
+            foreach (var relay in CloseShadesRelays)
+            {
+                relay.StopPulse();
+            }
+            //Stop stop
+            if (StopShadesRelays.Count > 0)
+            {
+                foreach (var relay in StopShadesRelays)
+                {
+                    relay.StopPulse();
+                }
+            }
             foreach (var relay in OpenShadesRelays)
             {
-                PulseOutput(relay, relay.RelayHoldTimeSeconds * 1000);
+                relay.PulseRelay();
             }
         }
 
@@ -94,14 +119,31 @@ namespace PepperDash.Essentials.Devices.Common.Environment
             Debug.Console(1, this, "Stopping Shade: '{0}'", this.Name);
             if (Config.UseOpenCloseForStop)
             {
-                Open();
-                Close();
-            }
-            else if (StopShadesRelays.Count > 0)
-            {
-                foreach (var relay in StopShadesRelays)
+                foreach (var relay in OpenShadesRelays)
                 {
-                    PulseOutput(relay, relay.RelayHoldTimeSeconds * 1000);
+                    relay.PulseRelay();
+                }
+                foreach (var relay in CloseShadesRelays)
+                {
+                    relay.PulseRelay();
+                }
+            }
+            else
+            {
+                foreach (var relay in OpenShadesRelays)
+                {
+                    relay.StopPulse();
+                }
+                foreach (var relay in CloseShadesRelays)
+                {
+                    relay.StopPulse();
+                }
+                if (StopShadesRelays.Count > 0)
+                {
+                    foreach (var relay in StopShadesRelays)
+                    {
+                        relay.PulseRelay();
+                    }
                 }
             }
         }
@@ -109,16 +151,23 @@ namespace PepperDash.Essentials.Devices.Common.Environment
         public void Close()
         {
             Debug.Console(1, this, "Closing Shade: '{0}'", this.Name);
+            //Stop open
+            foreach (var relay in OpenShadesRelays)
+            {
+                relay.StopPulse();
+            }
+            //Stop stop
+            if (StopShadesRelays.Count > 0)
+            {
+                foreach (var relay in StopShadesRelays)
+                {
+                    relay.StopPulse();
+                }
+            }
             foreach (var relay in CloseShadesRelays)
             {
-                PulseOutput(relay, relay.RelayHoldTimeSeconds * 1000);
+                relay.PulseRelay();
             }
-        }
-
-        void PulseOutput(ISwitchedOutput output, int pulseTime)
-        {
-            output.On();
-            CTimer pulseTimer = new CTimer(new CTimerCallbackFunction((o) => output.Off()), pulseTime);
         }
     }
 

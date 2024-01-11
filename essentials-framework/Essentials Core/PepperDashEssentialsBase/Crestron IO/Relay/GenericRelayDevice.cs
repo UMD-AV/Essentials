@@ -20,6 +20,7 @@ namespace PepperDash.Essentials.Core.CrestronIO
     {
         public Relay RelayOutput { get; private set; }
         public ushort RelayHoldTimeSeconds { get; private set; }
+        private CTimer RelayHoldTimer;
 
         public BoolFeedback OutputIsOnFeedback { get; private set; }
 
@@ -30,6 +31,7 @@ namespace PepperDash.Essentials.Core.CrestronIO
             OutputIsOnFeedback = new BoolFeedback(new Func<bool>(() => RelayOutput.State));
 
             RelayOutput = relay;
+            RelayHoldTimer = new CTimer(RelayTimerCallback, Timeout.Infinite);
             RelayOutput.Register();
 
             RelayOutput.StateChange += RelayOutput_StateChange;
@@ -59,6 +61,7 @@ namespace PepperDash.Essentials.Core.CrestronIO
                     return;
                 }
 
+                RelayHoldTimer = new CTimer(RelayTimerCallback, Timeout.Infinite);
                 RelayOutput.Register();
 
                 RelayOutput.StateChange += RelayOutput_StateChange;
@@ -116,12 +119,29 @@ namespace PepperDash.Essentials.Core.CrestronIO
             OutputIsOnFeedback.FireUpdate();
         }
 
+        void RelayTimerCallback(object o)
+        {
+            RelayOutput.State = false;
+        }
+
         #endregion
 
         #region Methods
 
+        public void PulseRelay()
+        {
+            RelayHoldTimer.Reset(RelayHoldTimeSeconds * 1000);
+            RelayOutput.State = true;
+        }
+
+        public void StopPulse()
+        {
+            OpenRelay();
+        }
+
         public void OpenRelay()
         {
+            RelayHoldTimer.Reset(Timeout.Infinite);
             RelayOutput.State = false;
         }
 
@@ -142,12 +162,12 @@ namespace PepperDash.Essentials.Core.CrestronIO
 
         #region ISwitchedOutput Members
 
-        void ISwitchedOutput.On()
+        public void On()
         {
             CloseRelay();
         }
 
-        void ISwitchedOutput.Off()
+        public void Off()
         {
             OpenRelay();
         }
