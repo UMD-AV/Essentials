@@ -15,7 +15,7 @@ using Newtonsoft.Json.Linq;
 
 namespace PepperDash.Essentials.Devices.Common.Environment.Lutron
 {
-    public class LutronGrafikEye : LightingBase, ICommunicationMonitor
+    public class LutronGRX : LightingBase, ICommunicationMonitor
     {
         public IBasicCommunication Communication { get; private set; }
         public CommunicationGather PortGather { get; private set; }
@@ -34,7 +34,7 @@ namespace PepperDash.Essentials.Devices.Common.Environment.Lutron
             }
         }
 
-        public LutronGrafikEye(string key, string name, IBasicCommunication comm, LutronGrafikEyePropertiesConfig props)
+        public LutronGRX(string key, string name, IBasicCommunication comm, LutronGrafikEyePropertiesConfig props)
             : base(key, name)
         {
             Communication = comm;
@@ -174,21 +174,21 @@ namespace PepperDash.Essentials.Devices.Common.Environment.Lutron
         public List<LightingScene> Scenes { get; set; }
     }
 
-    public class LutronGrafikEyeFactory : EssentialsDeviceFactory<LutronGrafikEye>
+    public class LutronGrafikEyeFactory : EssentialsDeviceFactory<LutronGRX>
     {
         public LutronGrafikEyeFactory()
         {
-            TypeNames = new List<string>() { "lutrongrafikeye" };
+            TypeNames = new List<string>() { "lutrongrafikeye, lutrongrx" };
         }
 
         public override EssentialsDevice BuildDevice(DeviceConfig dc)
         {
-            Debug.Console(1, "Factory Attempting to create new LutronGrafikEye Device");
+            Debug.Console(1, "Factory Attempting to create new Lutron GRX Device");
             var comm = CommFactory.CreateCommForDevice(dc);
 
             var props = Newtonsoft.Json.JsonConvert.DeserializeObject<Environment.Lutron.LutronGrafikEyePropertiesConfig>(dc.Properties.ToString());
 
-            return new LutronGrafikEye(dc.Key, dc.Name, comm, props);
+            return new LutronGRX(dc.Key, dc.Name, comm, props);
         }
     }
 

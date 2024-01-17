@@ -1110,7 +1110,7 @@ namespace ViscaCameraPlugin
         {
             if (this._autoTrackingCapable)
             {
-                var cmd = new byte[] { _address, 0x01, 0x04, 0x7D, 0x02, 0xFF };
+                var cmd = new byte[] { _address, 0x01, 0x04, 0x7D, 0x02, 0x00, 0xFF };
                 QueueCommand(eViscaCameraCommand.AutoTrackOnCmd, cmd);            
             }
         }
@@ -1122,7 +1122,7 @@ namespace ViscaCameraPlugin
         {
             if (this._autoTrackingCapable)
             {
-                var cmd = new byte[] { _address, 0x01, 0x04, 0x7D, 0x03, 0xFF };
+                var cmd = new byte[] { _address, 0x01, 0x04, 0x7D, 0x03, 0x00, 0xFF };
                 QueueCommand(eViscaCameraCommand.AutoTrackOffCmd, cmd);
             }
         }

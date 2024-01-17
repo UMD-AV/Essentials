@@ -21,6 +21,14 @@ namespace PepperDash.Essentials.Core.Bridges
         public JoinDataComplete VacantFb = new JoinDataComplete(new JoinData { JoinNumber = 3, JoinSpan = 1 },
             new JoinMetadata { Description = "Room Vacant Feedback", JoinCapabilities = eJoinCapabilities.ToSIMPL, JoinType = eJoinType.Digital });
 
+        [JoinName("QueryDevices")]
+        public JoinDataComplete QueryDevices = new JoinDataComplete(new JoinData { JoinNumber = 4, JoinSpan = 1 },
+            new JoinMetadata { Description = "Query Lutron Devices", JoinCapabilities = eJoinCapabilities.FromSIMPL, JoinType = eJoinType.Digital });
+
+        [JoinName("QueryIDs")]
+        public JoinDataComplete QueryIDs = new JoinDataComplete(new JoinData { JoinNumber = 5, JoinSpan = 1 },
+            new JoinMetadata { Description = "Query Lutron IDs", JoinCapabilities = eJoinCapabilities.FromSIMPL, JoinType = eJoinType.Digital });
+
         [JoinName("SelectButtonDirect")]
         public JoinDataComplete SelectButtonDirect = new JoinDataComplete(new JoinData { JoinNumber = 11, JoinSpan = 10 },
             new JoinMetadata { Description = "Lighting Controller Select Button and Feedback", JoinCapabilities = eJoinCapabilities.ToFromSIMPL, JoinType = eJoinType.DigitalSerial });
