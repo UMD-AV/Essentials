@@ -16,32 +16,16 @@ using PepperDash.Essentials.Core.Bridges.JoinMaps;
 
 namespace PepperDash.Essentials.Devices.Common.Environment
 {
-    public class GenericPartitionInput : EssentialsBridgeableDevice
+    public class GenericPartitionInput : GenericVersiportDigitalInputDevice
     {
-        IDigitalInput digitalInput;
-        public GenericPartitionInput(string key, string name, IOPortConfig props)
-            : base(key, name)
-        {
-            Versiport versiportTest = GenericVersiportDigitalInputDevice.GetVersiportDigitalInput(props);
-            DigitalInput digitalInputTest = null;
-            if (versiportTest == null)
-            {
-                digitalInputTest = GenericDigitalInputDevice.GetDigitalInput(props);
-            }
+        private bool invertInput;
 
-            if (versiportTest != null)
+        public GenericPartitionInput(string key, string name, GenericPartitionInputConfig props)
+            : base(key, name, props)
+        {
+            if (props.InvertInput != null)
             {
-                digitalInput = new GenericVersiportDigitalInputDevice(key + "-port", name + " port", GenericVersiportDigitalInputDevice.GetVersiportDigitalInput, props);
-                DeviceManager.AddDevice((GenericVersiportDigitalInputDevice)digitalInput);
-            }
-            else if (digitalInputTest != null)
-            {
-                digitalInput = new GenericDigitalInputDevice(key + "-port", name + " port", GenericDigitalInputDevice.GetDigitalInput, props);
-                DeviceManager.AddDevice((GenericDigitalInputDevice)digitalInput);
-            }
-            else
-            {
-                Debug.ConsoleWithLog(0, "Error creating generic digital input device. No proper input device found");
+                invertInput = props.InvertInput;
             }
         }
 
@@ -51,9 +35,25 @@ namespace PepperDash.Essentials.Devices.Common.Environment
             trilist.BooleanInput[joinMap.IsOnline.JoinNumber].BoolValue = true;
             trilist.StringInput[joinMap.Name.JoinNumber].StringValue = this.Name;
 
-            digitalInput.InputStateFeedback.LinkInputSig(trilist.BooleanInput[joinMap.PartitionSensed.JoinNumber]);
-            digitalInput.InputStateFeedback.LinkComplementInputSig(trilist.BooleanInput[joinMap.PartitionNotSensed.JoinNumber]);
+            if (!invertInput)
+            {
+                this.InputStateFeedback.LinkInputSig(trilist.BooleanInput[joinMap.PartitionSensed.JoinNumber]);
+                this.InputStateFeedback.LinkComplementInputSig(trilist.BooleanInput[joinMap.PartitionNotSensed.JoinNumber]);
+            }
+            else
+            {
+                this.InputStateFeedback.LinkComplementInputSig(trilist.BooleanInput[joinMap.PartitionSensed.JoinNumber]);
+                this.InputStateFeedback.LinkInputSig(trilist.BooleanInput[joinMap.PartitionNotSensed.JoinNumber]);
+            }
+
+            InputStateFeedback.FireUpdate();
         }
+    }
+
+    public class GenericPartitionInputConfig : IOPortConfig
+    {
+        [JsonProperty("invertInput")]
+        public bool InvertInput { get; set; }
     }
 
     public class GenericPartitionInputFactory : EssentialsDeviceFactory<GenericPartitionInput>
@@ -66,9 +66,14 @@ namespace PepperDash.Essentials.Devices.Common.Environment
         public override EssentialsDevice BuildDevice(DeviceConfig dc)
         {
             Debug.Console(1, "Factory Attempting to create new Generic Partition Input Device");
-            var props = Newtonsoft.Json.JsonConvert.DeserializeObject<IOPortConfig>(dc.Properties.ToString());
 
-            return new GenericPartitionInput(dc.Key, dc.Name, props);
+            var props = JsonConvert.DeserializeObject<GenericPartitionInputConfig>(dc.Properties.ToString());
+
+            if (props == null) return null;
+
+            var portDevice = new GenericPartitionInput(dc.Key, dc.Name, props);
+
+            return portDevice;
         }
     }
 }
