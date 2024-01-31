@@ -799,7 +799,7 @@ namespace DynFusion
                                 RoomInformation = CrestronXMLSerialization.DeSerializeObject<RoomInformation>(roomInfo);
                                 var attirbute = SerialAttributesFromFusion.SingleOrDefault(x => x.Value.Name == "Name");
 
-                                Debug.ConsoleWithLog(0,"Got fusion room name: {0}", RoomInformation.Name);
+                                Debug.Console(1,"Got fusion room name: {0}", RoomInformation.Name);
 
                                 if (attirbute.Value != null && RoomInformation.Name.Length > 0)
                                 {

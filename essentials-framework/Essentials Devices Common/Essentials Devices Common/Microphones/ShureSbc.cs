@@ -183,21 +183,29 @@ namespace PepperDash.Essentials.Devices.Common.ShureSbc
                 fiveAM = fiveAM.AddHours(23);
             }
 
-            int timeUntilFiveAM = (int)(fiveAM - now).TotalMilliseconds;
-            batteryCheckTimer.Reset(timeUntilFiveAM);
+            int timeUntilFourAM = (int)(fiveAM - now).TotalMilliseconds + 10000;
+            batteryCheckTimer.Reset(timeUntilFourAM);
         }
 
         private void batteryCheckTimerCallback(object o)
         {
             armBatteryCheckTimer();
+            BatteryCheckRan5AM = false;
 
-            if (DateTime.Now > DateTime.Today.AddHours(5) && isWeekday(DateTime.Today.DayOfWeek))
+            if ((DateTime.Now > DateTime.Today.AddHours(5)) && isWeekday(DateTime.Today.DayOfWeek))
             {
-                BatteryCheckRan5AM = false;
+                
+                int count = 0;
                 foreach (ShureSbcBattery b in Batteries)
                 {
                     b.BatteryPresent5AM = b.BatteryPresent;
+                    if (b.BatteryPresent)
+                    {
+                        count++;
+                    }
                 }
+                Debug.ConsoleWithLog(0, "5 AM battery check found {0} batteries", count);
+                CrestronEnvironment.Sleep(1000);
                 BatteryCheckRan5AM = true;
             }
         }

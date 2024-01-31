@@ -272,6 +272,11 @@ namespace PepperDash.Essentials.Devices.Common.ImageProcessors
             PostData("", "LayoutStatus");
         }
 
+        public void GetRoomConfigStatus()
+        {
+            PostData("", "RoomConfigStatus");
+        }
+
         void UpdateLayoutFeedback(string layout)
         {
             if (LayoutNames != null)
@@ -466,7 +471,7 @@ namespace PepperDash.Essentials.Devices.Common.ImageProcessors
 
                 case "startautoswitch":
                     message = (string)obj["message"];
-                    if (message == "AutoSwitching Started Successfully")
+                    if (message.ToLower() == "autoswitching started successfully" || message.ToLower() == "received startautoswitch command")
                     {
                         autoSwitchOn = true;
                         AutoSwitchFeedback.FireUpdate();
@@ -486,13 +491,19 @@ namespace PepperDash.Essentials.Devices.Common.ImageProcessors
                     message = (string)obj["message"];
                     if (message == "AutoSwitching in Progress")
                     {
-                        autoSwitchOn = true;
-                        AutoSwitchFeedback.FireUpdate();
+                        if (!autoSwitchOn)
+                        {
+                            autoSwitchOn = true;
+                            AutoSwitchFeedback.FireUpdate();
+                        }
                     }
                     else if (message == "No AutoSwitching in Progress")
                     {
-                        autoSwitchOn = false;
-                        AutoSwitchFeedback.FireUpdate();
+                        if (autoSwitchOn)
+                        {
+                            autoSwitchOn = false;
+                            AutoSwitchFeedback.FireUpdate();
+                        }
                     }
                     break;
 

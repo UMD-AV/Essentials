@@ -665,7 +665,7 @@ namespace ViscaCameraPlugin
             if (_lastInquiry == eViscaCameraCommand.PowerInquiry && !_offlineIFClearSent)
             {
                 _offlineIFClearSent = true;
-                Debug.ConsoleWithLog(0, this, "Power inquiry never received response, possible camera issue. Sending IF Clear.");
+                Debug.Console(0, this, "Power inquiry never received response, possible camera issue. Sending IF Clear.");
                 IFClear();
             }
             _commandReady = true;
@@ -870,7 +870,7 @@ namespace ViscaCameraPlugin
                 }
                 else if (_lastInquiry == eViscaCameraCommand.PowerInquiry)
                 {
-                    Debug.ConsoleWithLog(0, this, "Power inquiry received command not executable, possible camera issue. Sending IF Clear.");
+                    Debug.Console(0, this, "Power inquiry received command not executable, possible camera issue. Sending IF Clear.");
                     IFClear();
                 }
 
@@ -1032,7 +1032,7 @@ namespace ViscaCameraPlugin
 		/// <summary>
 		/// Initialize the camera by sending Address Set Broadcast and IF Clear Broadcasst
 		/// </summary>
-		public void InitializeCamera()
+		public virtual void InitializeCamera()
 		{
 			// send address set broadcast
 			var cmd = new byte[] { 0x88, 0x30, 0x01, 0xFF };

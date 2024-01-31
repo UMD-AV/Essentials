@@ -23,12 +23,7 @@ namespace CrestronCameraPlugin
 
         public override void PollAutoTrack()
         {
-            if (this._autoTrackingCapable)
-            {
-                //Send preset 200 (C8) to set auto track heartbeat on
-                var cmd = new byte[] { _address, 0x01, 0x04, 0x3F, 0x02, 0xC8, 0xFF };
-                QueueCommand(eViscaCameraCommand.AutoTrackInquiry, cmd);
-            }
+            //Camera sends status via heartbeat, no longer needed
         }
 
         /// <summary>
@@ -54,6 +49,21 @@ namespace CrestronCameraPlugin
                 QueueCommand(eViscaCameraCommand.AutoTrackOffPresetCmd, cmd);
             }
 
+        }
+
+        /// <summary>
+        /// Initialize the camera by sending Address Set Broadcast and IF Clear Broadcasst
+        /// </summary>
+        public override void InitializeCamera()
+        {
+            // send address set broadcast
+            QueueCommand(new byte[] { 0x88, 0x30, 0x01, 0xFF });
+
+            // send IF clear on connection
+            QueueCommand(new byte[] { 0x88, 0x01, 0x00, 0x01, 0xFF });
+
+            //Send preset 200 (C8) to set auto track heartbeat on
+            QueueCommand(eViscaCameraCommand.AutoTrackInquiry, new byte[] { _address, 0x01, 0x04, 0x3F, 0x02, 0xC8, 0xFF });
         }
 
         protected override void ParseAdditionalFeedback(byte[] message)
@@ -83,6 +93,17 @@ namespace CrestronCameraPlugin
                     AutoTrackingOn = true;
                 }
                 else if (message[message.Length - 2] == 0x00)
+                {
+                    AutoTrackingOn = false;
+                }
+            }
+            else if (message[0] == 0x30 && message[1] == 0x30 && message[2] == 0x30 && message[3] == 0x30 && message[4] == 0x01 && message[6] == 0x00)
+            {
+                if (message[5] == 0x01)
+                {
+                    AutoTrackingOn = true;
+                }
+                else if (message[5] == 0x00)
                 {
                     AutoTrackingOn = false;
                 }

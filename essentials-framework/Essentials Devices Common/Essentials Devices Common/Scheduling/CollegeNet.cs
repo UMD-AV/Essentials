@@ -30,6 +30,7 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
         private CTimer scheduleUpdateTimer;
         private CTimer scheduleTimeout;
         private uint scheduleFailCount;
+        private Random randomGenerator;
 
         public bool ScheduleOnline { get; private set; }
 
@@ -79,6 +80,7 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
 			this.username = props.username;
 			this.password = props.password;
             meetingMutex = new CMutex();
+            randomGenerator = new Random();
             jsonSettings = new JsonSerializerSettings();
             jsonSettings.MissingMemberHandling = MissingMemberHandling.Ignore;
             jsonSettings.NullValueHandling = NullValueHandling.Ignore;
@@ -292,7 +294,7 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
             Debug.Console(0, this, "Getting reservations for spaceId {0}", spaceId);
             if (spaceId != 0)
             {
-                scheduleTimeout.Reset(10000);
+                scheduleTimeout.Reset(20000);
                 GetData(string.Format("reservations.json?space_id={0}", spaceId), "Reservations");
             }
             else
@@ -340,7 +342,7 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
         {
             if (roomName != null)
             {
-                scheduleTimeout.Reset(10000);
+                scheduleTimeout.Reset(20000);
                 Debug.Console(0, this, "Getting space id for room with name: {0}", roomName);
                 GetData(string.Format("spaces.json?name={0}", roomName), "SpacesName");
             }
@@ -355,7 +357,8 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
             if (scheduleFailCount < 5)
             {
                 scheduleFailCount++;
-                Debug.Console(0, this, "CollegeNet Schedule Timeout. Attempt {0}", scheduleFailCount);
+                Debug.ConsoleWithLog(0, this, "CollegeNet Schedule Timeout. Attempt {0}", scheduleFailCount);
+                CrestronEnvironment.Sleep(60000);
                 GetTodaysReservations();
             }
             else
@@ -381,7 +384,8 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
             }
 
             int timeUntilOneAM = (int)(oneAM - now).TotalMilliseconds;
-            scheduleUpdateTimer.Reset(timeUntilOneAM + 60000);
+            int randomOffset = randomGenerator.Next(0, 3600000); //Choose random offset within one hour
+            scheduleUpdateTimer.Reset(timeUntilOneAM + 60000 + randomOffset);
         }
 
         private void scheduleUpdateTimerCallback(object o)
@@ -390,11 +394,6 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
             scheduleFailCount = 0;
             Meetings = new List<Meeting>();
             GetTodaysReservations();
-            if (SpaceFeatures == null || SpaceFeatures.Count == 0)
-            {
-                CrestronEnvironment.Sleep(5000);
-                GetSpaceInfo();
-            }
         }
 
         private void UpdateCurrentMeetingCallback(object unused)
@@ -531,6 +530,14 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
                             }
                         }
                     }
+                    if (SpaceFeatures == null || SpaceFeatures.Count == 0)
+                    {
+                        CrestronInvoke.BeginInvoke((o) =>
+                        {
+                            CrestronEnvironment.Sleep(10000);
+                            GetSpaceInfo();
+                        });
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -633,8 +640,6 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
                         Debug.ConsoleWithLog(0, this, "SpacesName no results found for: {0}", roomName);
                     }
                     GetTodaysReservations();
-                    CrestronEnvironment.Sleep(5000);
-                    GetSpaceInfo();
                 }
                 catch (Exception ex)
                 {
@@ -724,6 +729,7 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
 
     public class Event
     {
+        [JsonConverter(typeof(SingleOrArrayConverter<Role>))]
         public List<Role> role { get; set; }
         public int event_id { get; set; }
     }
