@@ -390,7 +390,7 @@ namespace ViscaCameraPlugin
             if (_config.Control.Method.ToString().ToLower().StartsWith("udp"))
 				_useHeader = true;
 
-            if (_config.TrackingCmdType.ToLower() == "aver")
+            if (_config.TrackingCmdType != null && _config.TrackingCmdType == "aver")
             {
                 _autoTrackingOnBytes = new byte[] { _address, 0x01, 0x04, 0x7D, 0x02, 0x00, 0xFF };
                 _autoTrackingOffBytes = new byte[] { _address, 0x01, 0x04, 0x7D, 0x03, 0x00, 0xFF };
