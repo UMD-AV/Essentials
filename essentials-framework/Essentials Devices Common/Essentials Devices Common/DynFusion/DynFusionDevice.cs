@@ -602,7 +602,7 @@ namespace DynFusion
 
         void CrestronEnvironment_EthernetEventHandler(EthernetEventArgs args)
         {
-            if (_isInitialized)
+            if (_isInitialized && args.EthernetAdapter == EthernetAdapterType.EthernetLANAdapter)
             {
                 if (args.EthernetEventType == eEthernetEventType.LinkUp)
                 {

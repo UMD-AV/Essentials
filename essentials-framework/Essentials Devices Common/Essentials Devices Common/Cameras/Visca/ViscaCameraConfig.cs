@@ -53,6 +53,9 @@ namespace ViscaCameraPlugin
 
 		[JsonProperty("presets")]
 		public List<ViscaCameraPresetConfig> Presets { get; set; }
+
+        [JsonProperty("trackingCmdType")]
+        public string TrackingCmdType { get; set; }
 	}
 
 	public class ViscaCameraPresetConfig

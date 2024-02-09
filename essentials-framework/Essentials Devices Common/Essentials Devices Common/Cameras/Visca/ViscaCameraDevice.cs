@@ -44,6 +44,12 @@ namespace ViscaCameraPlugin
 		private uint? _privacyOnPreset;
 		private uint? _privacyOffPreset;
 
+        private byte[] _autoTrackingOnBytes;
+        private byte[] _autoTrackingOffBytes;
+        private byte[] _autoTrackingOnFbBytes;
+        private byte[] _autoTrackingOffFbBytes;
+        private byte[] _autoTrackingInquiryBytes;
+
 
 		private bool _power;
 		/// <summary>
@@ -383,6 +389,23 @@ namespace ViscaCameraPlugin
 
             if (_config.Control.Method.ToString().ToLower().StartsWith("udp"))
 				_useHeader = true;
+
+            if (_config.TrackingCmdType.ToLower() == "aver")
+            {
+                _autoTrackingOnBytes = new byte[] { _address, 0x01, 0x04, 0x7D, 0x02, 0x00, 0xFF };
+                _autoTrackingOffBytes = new byte[] { _address, 0x01, 0x04, 0x7D, 0x03, 0x00, 0xFF };
+                _autoTrackingOnFbBytes = new byte[] { 0x50, 0x02, 0xFF };
+                _autoTrackingOffFbBytes = new byte[] { 0x50, 0x03, 0xFF };
+                _autoTrackingInquiryBytes = new byte[] { _address, 0x09, 0x36, 0x69, 0x02, 0xFF };
+            }
+            else
+            {
+                _autoTrackingOnBytes = new byte[] { _address, 0x01, 0x04, 0x3F, 0x02, 0x50, 0xFF };
+                _autoTrackingOffBytes = new byte[] { _address, 0x01, 0x04, 0x3F, 0x02, 0x51, 0xFF };
+                _autoTrackingOnFbBytes = new byte[] { 0x50, 0x02, 0xFF };
+                _autoTrackingOffFbBytes = new byte[] { 0x50, 0x03, 0xFF };
+                _autoTrackingInquiryBytes = new byte[] { _address, 0x09, 0x08, 0x01, 0xFF };
+            }
 
 			_comms = comms;
 			_comms.BytesReceived += Handle_BytesRecieved;
@@ -849,7 +872,7 @@ namespace ViscaCameraPlugin
         private void ParseMessage(byte[] message)
         {
             Debug.Console(1, this, "Parsing: {0}, last inquiry: {1}", ComTextHelper.GetEscapedText(message), _lastInquiry.ToString());
-            if (message.Length > 2 && message[message.Length - 2] == 0x41 && message[message.Length - 3] == _feedbackAddress)
+            if (message.Length > 2 && (message[message.Length - 2] >> 4) == 4 && message[message.Length - 3] == _feedbackAddress)
             {
                 Debug.Console(1, this, "Received ack");                
                 if (_lastInquiry == eViscaCameraCommand.PresetRecallCmd)
@@ -858,7 +881,7 @@ namespace ViscaCameraPlugin
                 }
                 return;
             }
-            else if (message.Length > 3 && message[message.Length - 2] == 0x41 && message[message.Length - 3] == 0x61 && message[message.Length - 4] == _feedbackAddress)
+            else if (message.Length > 3 && (message[message.Length - 2] >> 4) == 4 && (message[message.Length - 3] >> 4) == 6 && message[message.Length - 4] == _feedbackAddress)
             {
                 if(_lastInquiry == eViscaCameraCommand.AutoTrackOnPresetCmd)
                 {
@@ -879,7 +902,7 @@ namespace ViscaCameraPlugin
                 readyForNextCommand();
                 return;
             }
-            else if (message.Length > 2 && message[message.Length - 2] == 0x51 && message[message.Length - 3] == _feedbackAddress)
+            else if (message.Length > 2 && (message[message.Length - 2] >> 4) == 5 && message[message.Length - 3] == _feedbackAddress)
             {
                 Debug.Console(1, this, "Received execution confirmation, last inquiry: {0}", _lastInquiry.ToString());
                 switch (_lastInquiry)
@@ -911,6 +934,7 @@ namespace ViscaCameraPlugin
                         AutoTrackingOn = false;
                         break;
                     case eViscaCameraCommand.AutoTrackOnCmd:
+                        AutoTrackingOn = true;
                         CrestronInvoke.BeginInvoke((o) =>
                         {
                             CrestronEnvironment.Sleep(2000);
@@ -918,6 +942,7 @@ namespace ViscaCameraPlugin
                         });
                         break;
                     case eViscaCameraCommand.AutoTrackOffCmd:
+                        AutoTrackingOn = false;
                         CrestronInvoke.BeginInvoke((o) =>
                         {
                             CrestronEnvironment.Sleep(2000);
@@ -1014,19 +1039,18 @@ namespace ViscaCameraPlugin
 
         protected virtual void ParseAutoTrackFeedback(byte[] message)
         {
-            if (message[message.Length - 3] == 0x50)
+            if (message[message.Length - 3] == _autoTrackingOnFbBytes[_autoTrackingOnFbBytes.Length -3]
+                && message[message.Length - 2] == _autoTrackingOnFbBytes[_autoTrackingOnFbBytes.Length - 2])
             {
-                if (message[message.Length - 2] == 0x01)
-                {
-                    AutoTrackingOn = true;
-                }
-                else if (message[message.Length - 2] == 0x00)
-                {
-                    AutoTrackingOn = false;
-                }
-                _lastInquiry = eViscaCameraCommand.NoFeedback;
-                readyForNextCommand();
+                AutoTrackingOn = true;
             }
+            else if (message[message.Length - 3] == _autoTrackingOffFbBytes[_autoTrackingOffFbBytes.Length -3]
+                && message[message.Length - 2] == _autoTrackingOffFbBytes[_autoTrackingOffFbBytes.Length - 2])
+            {
+                AutoTrackingOn = false;
+            }
+            _lastInquiry = eViscaCameraCommand.NoFeedback;
+            readyForNextCommand();
         }
 
 		/// <summary>
@@ -1076,8 +1100,7 @@ namespace ViscaCameraPlugin
 
         public virtual void PollAutoTrack()
         {
-            var cmd = new byte[] { _address, 0x09, 0x36, 0x69, 0x02, 0xFF };
-            QueueCommand(eViscaCameraCommand.AutoTrackInquiry, cmd);
+            QueueCommand(eViscaCameraCommand.AutoTrackInquiry, _autoTrackingInquiryBytes);
         }
 
         public void PollFocus()
@@ -1110,8 +1133,7 @@ namespace ViscaCameraPlugin
         {
             if (this._autoTrackingCapable)
             {
-                var cmd = new byte[] { _address, 0x01, 0x04, 0x7D, 0x02, 0x00, 0xFF };
-                QueueCommand(eViscaCameraCommand.AutoTrackOnCmd, cmd);            
+                QueueCommand(eViscaCameraCommand.AutoTrackOnCmd, _autoTrackingOnBytes);            
             }
         }
 
@@ -1122,12 +1144,11 @@ namespace ViscaCameraPlugin
         {
             if (this._autoTrackingCapable)
             {
-                var cmd = new byte[] { _address, 0x01, 0x04, 0x7D, 0x03, 0x00, 0xFF };
-                QueueCommand(eViscaCameraCommand.AutoTrackOffCmd, cmd);
+                QueueCommand(eViscaCameraCommand.AutoTrackOffCmd, _autoTrackingOffBytes);
             }
         }
 
-        public bool OverrideAutoTacking()
+        public bool OverrideAutoTracking()
         {
             if (_autoTrackingCapable && AutoTrackingOn)
             {
@@ -1150,7 +1171,7 @@ namespace ViscaCameraPlugin
         /// <param name="direction">EMoveDirection direction</param>
         public void Move(bool state, EDirection direction)
         {
-            if (!OverrideAutoTacking())
+            if (!OverrideAutoTracking())
                 return;
             if (state && _moveInProgress == EDirection.Stop)
             {
@@ -1298,7 +1319,7 @@ namespace ViscaCameraPlugin
         /// </summary>
         public void RecallHomePosition()
         {
-            if (!OverrideAutoTacking())
+            if (!OverrideAutoTracking())
                 return;
             _lastCalledPreset = 0;
             QueueCommand(eViscaCameraCommand.PresetRecallCmd, new byte[] { _address, 0x01, 0x06, 0x04, 0xFF });
@@ -1321,7 +1342,7 @@ namespace ViscaCameraPlugin
 			if (preset <= 0)
 				return;
 
-            if (!OverrideAutoTacking())
+            if (!OverrideAutoTracking())
                 return;
 
             _lastCalledPreset = preset;

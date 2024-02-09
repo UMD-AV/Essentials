@@ -129,7 +129,7 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
                         trilist.StringInput[joinMap.MeetingTitle.JoinNumber + count].StringValue = meeting.Title;
                         trilist.StringInput[joinMap.MeetingName.JoinNumber + count].StringValue = meeting.Name;
                         trilist.StringInput[joinMap.MeetingType.JoinNumber + count].StringValue = meeting.Type;
-                        trilist.StringInput[joinMap.MeetingTime.JoinNumber + count].StringValue = meeting.Start.ToShortTimeString() + " - " + meeting.End.ToShortTimeString();
+                        trilist.StringInput[joinMap.MeetingTime.JoinNumber + count].StringValue = meeting.Start.ToString("h:mm tt") + " - " + meeting.End.ToString("h:mm tt");
                         count++;
                         if (count > 50)
                             break;
@@ -168,8 +168,8 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
                     trilist.StringInput[joinMap.CurrentMeetingOrganizerEmail.JoinNumber].StringValue = CurrentMeeting.OrganizerEmail;
                     trilist.StringInput[joinMap.CurrentMeetingType.JoinNumber].StringValue = CurrentMeeting.Type;
                     trilist.BooleanInput[joinMap.CurrentMeetingActive.JoinNumber].BoolValue = CurrentMeeting.MeetingActive;
-                    trilist.StringInput[joinMap.CurrentMeetingStartTime.JoinNumber].StringValue = CurrentMeeting.Start.ToShortTimeString();
-                    trilist.StringInput[joinMap.CurrentMeetingEndTime.JoinNumber].StringValue = CurrentMeeting.End.ToShortTimeString();
+                    trilist.StringInput[joinMap.CurrentMeetingStartTime.JoinNumber].StringValue = CurrentMeeting.Start.ToString("h:mm tt");
+                    trilist.StringInput[joinMap.CurrentMeetingEndTime.JoinNumber].StringValue = CurrentMeeting.End.ToString("h:mm tt");
                     trilist.UShortInput[joinMap.CurrentMeetingTimeRemaining.JoinNumber].UShortValue = CurrentMeeting.TimeRemainingInMin;
                     trilist.StringInput[joinMap.CurrentMeetingTimeRemainingString.JoinNumber].StringValue = CurrentMeeting.TimeRemainingString;
                 }
@@ -207,8 +207,8 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
                     trilist.StringInput[joinMap.NextMeetingTitle.JoinNumber].StringValue = NextMeeting.Title;
                     trilist.StringInput[joinMap.NextMeetingName.JoinNumber].StringValue = NextMeeting.Name;
                     trilist.StringInput[joinMap.NextMeetingType.JoinNumber].StringValue = NextMeeting.Type;
-                    trilist.StringInput[joinMap.NextMeetingStartTime.JoinNumber].StringValue = NextMeeting.Start.ToShortTimeString();
-                    trilist.StringInput[joinMap.NextMeetingEndTime.JoinNumber].StringValue = NextMeeting.End.ToShortTimeString();
+                    trilist.StringInput[joinMap.NextMeetingStartTime.JoinNumber].StringValue = NextMeeting.Start.ToString("h:mm tt");
+                    trilist.StringInput[joinMap.NextMeetingEndTime.JoinNumber].StringValue = NextMeeting.End.ToString("h:mm tt");
                 }
             };
 
