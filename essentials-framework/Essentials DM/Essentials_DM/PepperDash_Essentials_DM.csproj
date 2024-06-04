@@ -61,7 +61,8 @@
     <Reference Include="mscorlib" />
     <Reference Include="PepperDash_Core, Version=1.1.1.32703, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\packages\PepperDashCore\lib\net35\PepperDash_Core.dll</HintPath>
+      <HintPath>..\..\..\Pepperdash Core\Pepperdash Core\bin\PepperDash_Core.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="SimplSharpCustomAttributesInterface, Version=1.0.0.0, Culture=neutral, PublicKeyToken=1099c178b3b54c3b, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -157,6 +158,7 @@
     <ProjectReference Include="..\..\Essentials Core\PepperDashEssentialsBase\PepperDash_Essentials_Core.csproj">
       <Project>{A49AD6C8-FC0A-4CC0-9089-DFB4CF92D2B5}</Project>
       <Name>PepperDash_Essentials_Core</Name>
+      <Private>True</Private>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CompactFramework.CSharp.targets" />

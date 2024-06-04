@@ -220,7 +220,7 @@ namespace PepperDash.Essentials.Devices.Common.Environment.Lutron
     {
         public LutronQSKeypadDeviceFactory()
         {
-            TypeNames = new List<string>() { "lutronqs, lutronqskeypad" };
+            TypeNames = new List<string>() { "lutronqs", "lutronqskeypad" };
         }
 
         public override EssentialsDevice BuildDevice(DeviceConfig dc)

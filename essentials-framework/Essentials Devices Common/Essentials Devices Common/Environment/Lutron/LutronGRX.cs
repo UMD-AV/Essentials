@@ -23,8 +23,8 @@ namespace PepperDash.Essentials.Devices.Common.Environment.Lutron
         private const string ResponseHeader = ":ss";
 
         LutronGrafikEyePropertiesConfig _props;
-        private int _controlUnit;
-        public int ControlUnit
+        private uint _controlUnit = 0;
+        public uint ControlUnit
         {
             get { return _controlUnit; }
             set
@@ -41,6 +41,7 @@ namespace PepperDash.Essentials.Devices.Common.Environment.Lutron
             _props = props;
 
             ControlUnit = (props.ControlUnit != 0) ? props.ControlUnit : 1;
+            Debug.Console(0, this, "Lutron GRX Control Unit {0}", ControlUnit);
             if (props.Scenes != null)
             {
                 LightingScenes = props.Scenes;
@@ -67,19 +68,6 @@ namespace PepperDash.Essentials.Devices.Common.Environment.Lutron
             CommunicationMonitor.IsOnlineFeedback.LinkInputSig(trilist.BooleanInput[joinMap.IsOnline.JoinNumber]);
         }
 
-        private bool IsNumeric(string s)
-        {
-            bool isNumeric = true;
-            foreach (char c in s)
-            {
-                if (!Char.IsNumber(c))
-                {
-                    isNumeric = false;
-                }
-            }
-            return isNumeric;
-        }
-
         /// <summary>
         /// Handles all responses that contain the delimiter
         /// </summary>
@@ -100,14 +88,14 @@ namespace PepperDash.Essentials.Devices.Common.Environment.Lutron
                     var response = args.Text.Substring(ResponseHeader.Length);
                     Debug.Console(2, this, "Response:[{0}]", response);
 
-                    if (response[ControlUnit - 1] == 'M')
+                    if (response[(int)ControlUnit - 1] == 'M')
                     {
                         Debug.Console(2, this, "Unit[{0}] is missing Scene", ControlUnit);
                         CurrentLightingScene = null;
                     }
                     else
                     {
-                        var responseScene = response[ControlUnit - 1];
+                        var responseScene = response[(int)ControlUnit - 1];
                         Debug.Console(2, this, "Unit[{0}] Setting Scene[{1}]", ControlUnit, responseScene);
                         uint scene = uint.Parse(responseScene.ToString(), System.Globalization.NumberStyles.HexNumber);
                         CurrentLightingScene = LightingScenes.FirstOrDefault(s => s.ID.Equals(scene));
@@ -170,7 +158,7 @@ namespace PepperDash.Essentials.Devices.Common.Environment.Lutron
         public CommunicationMonitorConfig CommunicationMonitorProperties { get; set; }
         public ControlPropertiesConfig Control { get; set; }
 
-        public int ControlUnit { get; set; }
+        public uint ControlUnit { get; set; }
         public List<LightingScene> Scenes { get; set; }
     }
 
@@ -178,7 +166,7 @@ namespace PepperDash.Essentials.Devices.Common.Environment.Lutron
     {
         public LutronGrafikEyeFactory()
         {
-            TypeNames = new List<string>() { "lutrongrafikeye, lutrongrx" };
+            TypeNames = new List<string>() { "lutrongrafikeye", "lutrongrx" };
         }
 
         public override EssentialsDevice BuildDevice(DeviceConfig dc)
