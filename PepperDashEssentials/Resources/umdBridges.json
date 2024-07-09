@@ -782,6 +782,70 @@
                     {
                         "deviceKey": "tx16",
                         "joinStart": 151
+                    },
+                                        {
+                        "deviceKey": "tx17",
+                        "joinStart": 161
+                    },
+                    {
+                        "deviceKey": "tx18",
+                        "joinStart": 171
+                    },
+                    {
+                        "deviceKey": "tx19",
+                        "joinStart": 181
+                    },
+                    {
+                        "deviceKey": "tx20",
+                        "joinStart": 191
+                    },
+                    {
+                        "deviceKey": "tx21",
+                        "joinStart": 201
+                    },
+                    {
+                        "deviceKey": "tx22",
+                        "joinStart": 211
+                    },
+                    {
+                        "deviceKey": "tx23",
+                        "joinStart": 221
+                    },
+                    {
+                        "deviceKey": "tx24",
+                        "joinStart": 231
+                    },
+                    {
+                        "deviceKey": "tx25",
+                        "joinStart": 241
+                    },
+                    {
+                        "deviceKey": "tx26",
+                        "joinStart": 251
+                    },
+                    {
+                        "deviceKey": "tx27",
+                        "joinStart": 261
+                    },
+                    {
+                        "deviceKey": "tx28",
+                        "joinStart": 271
+                    },
+                    {
+                        "deviceKey": "tx29",
+                        "joinStart": 281
+                    },
+                    {
+                        "deviceKey": "tx30",
+                        "joinStart": 291
+                    },
+                    {
+                        "deviceKey": "tx31",
+                        "joinStart": 301
+                    },
+                    {
+                        "deviceKey": "tx32",
+                        "joinStart": 311
                     }
                 ]
             }
@@ -863,6 +927,74 @@
                     {
                         "deviceKey": "rx16",
                         "joinStart": 151
+                    },
+                                        {
+                        "deviceKey": "rx16",
+                        "joinStart": 151
+                    },
+                                        {
+                        "deviceKey": "rx17",
+                        "joinStart": 161
+                    },
+                    {
+                        "deviceKey": "rx18",
+                        "joinStart": 171
+                    },
+                    {
+                        "deviceKey": "rx19",
+                        "joinStart": 181
+                    },
+                    {
+                        "deviceKey": "rx20",
+                        "joinStart": 191
+                    },
+                    {
+                        "deviceKey": "rx21",
+                        "joinStart": 201
+                    },
+                    {
+                        "deviceKey": "rx22",
+                        "joinStart": 211
+                    },
+                    {
+                        "deviceKey": "rx23",
+                        "joinStart": 221
+                    },
+                    {
+                        "deviceKey": "rx24",
+                        "joinStart": 231
+                    },
+                    {
+                        "deviceKey": "rx25",
+                        "joinStart": 241
+                    },
+                    {
+                        "deviceKey": "rx26",
+                        "joinStart": 251
+                    },
+                    {
+                        "deviceKey": "rx27",
+                        "joinStart": 261
+                    },
+                    {
+                        "deviceKey": "rx28",
+                        "joinStart": 271
+                    },
+                    {
+                        "deviceKey": "rx29",
+                        "joinStart": 281
+                    },
+                    {
+                        "deviceKey": "rx30",
+                        "joinStart": 291
+                    },
+                    {
+                        "deviceKey": "rx31",
+                        "joinStart": 301
+                    },
+                    {
+                        "deviceKey": "rx32",
+                        "joinStart": 311
                     }
                 ]
             }
