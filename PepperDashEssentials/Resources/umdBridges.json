@@ -674,8 +674,16 @@
                         "joinStart": 1001
                     },
                     {
+                        "deviceKey": "avBridge03",
+                        "joinStart": 1051
+                    },
+                    {
                         "deviceKey": "avBridge02",
                         "joinStart": 1101
+                    },
+                    {
+                        "deviceKey": "avBridge04",
+                        "joinStart": 1151
                     },
                     {
                         "deviceKey": "cameraController01",
@@ -1035,6 +1043,38 @@
                     {
                         "deviceKey": "digitalPartition01",
                         "joinStart": 403
+                    },
+                    {
+                        "deviceKey": "digitalInput01",
+                        "joinStart": 411
+                    },
+                    {
+                        "deviceKey": "digitalInput02",
+                        "joinStart": 412
+                    },
+                    {
+                        "deviceKey": "digitalInput03",
+                        "joinStart": 413
+                    },
+                    {
+                        "deviceKey": "digitalInput04",
+                        "joinStart": 414
+                    },
+                    {
+                        "deviceKey": "digitalInput05",
+                        "joinStart": 415
+                    },
+                    {
+                        "deviceKey": "digitalInput06",
+                        "joinStart": 416
+                    },
+                    {
+                        "deviceKey": "digitalInput07",
+                        "joinStart": 417
+                    },
+                    {
+                        "deviceKey": "digitalInput08",
+                        "joinStart": 418
                     },
                     {
                         "deviceKey": "shades01",

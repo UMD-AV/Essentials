@@ -313,6 +313,7 @@
     <Compile Include="VideoCodec\ZoomRoom\ZoomRoomCamera.cs" />
     <Compile Include="VideoCodec\ZoomRoom\ZoomRoomJoinMap.cs" />
     <Compile Include="VideoCodec\ZoomRoom\ZoomRoomPropertiesConfig.cs" />
+    <Compile Include="Video\ExtronDsc301.cs" />
     <None Include="Properties\ControlSystem.cfg" />
   </ItemGroup>
   <ItemGroup>

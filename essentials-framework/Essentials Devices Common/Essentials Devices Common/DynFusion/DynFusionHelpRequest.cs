@@ -33,6 +33,8 @@ namespace DynFusion
 
         public void CreateRequest(string message, string id)
         {
+            if (message.Length < 1)
+                return;
             requestMutex.WaitForMutex();
             try
             {

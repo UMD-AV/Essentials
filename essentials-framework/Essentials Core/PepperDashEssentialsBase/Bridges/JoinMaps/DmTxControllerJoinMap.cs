@@ -36,6 +36,22 @@ namespace PepperDash.Essentials.Core.Bridges
         public JoinDataComplete Name = new JoinDataComplete(new JoinData { JoinNumber = 2, JoinSpan = 1 },
             new JoinMetadata { Description = "DM TX Name", JoinCapabilities = eJoinCapabilities.ToSIMPL, JoinType = eJoinType.Serial });
 
+        [JoinName("Input0Name")]
+        public JoinDataComplete Input0Name = new JoinDataComplete(new JoinData { JoinNumber = 3, JoinSpan = 1 },
+            new JoinMetadata { Description = "DM TX Input 0 (Auto Switch) Name", JoinCapabilities = eJoinCapabilities.ToSIMPL, JoinType = eJoinType.Serial });
+
+        [JoinName("Input1Name")]
+        public JoinDataComplete Input1Name = new JoinDataComplete(new JoinData { JoinNumber = 4, JoinSpan = 1 },
+            new JoinMetadata { Description = "DM TX Input 1 Name", JoinCapabilities = eJoinCapabilities.ToSIMPL, JoinType = eJoinType.Serial });
+
+        [JoinName("Input2Name")]
+        public JoinDataComplete Input2Name = new JoinDataComplete(new JoinData { JoinNumber = 5, JoinSpan = 1 },
+            new JoinMetadata { Description = "DM TX Input 2 Name", JoinCapabilities = eJoinCapabilities.ToSIMPL, JoinType = eJoinType.Serial });
+
+        [JoinName("Input3Name")]
+        public JoinDataComplete Input3Name = new JoinDataComplete(new JoinData { JoinNumber = 6, JoinSpan = 1 },
+            new JoinMetadata { Description = "DM TX Input 3 Name", JoinCapabilities = eJoinCapabilities.ToSIMPL, JoinType = eJoinType.Serial });
+
         [JoinName("VideoInput")]
         public JoinDataComplete VideoInput = new JoinDataComplete(new JoinData { JoinNumber = 1, JoinSpan = 1 },
             new JoinMetadata { Description = "DM TX Video Input Set / Get", JoinCapabilities = eJoinCapabilities.ToFromSIMPL, JoinType = eJoinType.Analog });
