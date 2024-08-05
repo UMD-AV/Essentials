@@ -97,6 +97,10 @@ namespace PepperDash.Essentials.Devices.Common.ShureUlxd
             for (ushort i = 0; i < 4; i++)
             {
                 Microphones[i] = new ShureUlxdMicrophone();
+                if (i < UlxdSize)
+                {
+                    Microphones[i].MicrophoneEnabled = true;
+                }
             }
 
             _comms = comms;
@@ -296,7 +300,7 @@ namespace PepperDash.Essentials.Devices.Common.ShureUlxd
                             //unknown model
                             for (ushort i = 0; i < 4; i++)
                             {
-                                Microphones[i].MicrophoneEnabled = false;
+                                Microphones[i].MicrophoneEnabled = i < UlxdSize;
                             }
                         } 
                         break;

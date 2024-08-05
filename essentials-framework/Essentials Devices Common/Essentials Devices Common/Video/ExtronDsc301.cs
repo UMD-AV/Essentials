@@ -26,8 +26,37 @@ namespace PepperDash.Essentials.Devices.Common.ExtronDsc301
         private bool _commandReady = true;
         protected string _lastInquiry = "";
 
-        private ushort _InputFb;
+        private bool _autoSwitchFb;
+        public bool AutoSwitchFb
+        {
+            get { return _autoSwitchFb; }
+            set
+            {
+                if (_autoSwitchFb == value) return;
+                _autoSwitchFb = value;
+
+                CalculateInputFb();
+            }
+        }
+
+        private ushort _rawInputFb;
+        public ushort RawInputFb
+        {
+            get { return _rawInputFb; }
+            set
+            {
+                if (_rawInputFb == value || _rawInputFb > 3) return;
+                _rawInputFb = value;
+
+                CalculateInputFb();
+            }
+        }
+
+        private ushort _inputFb;
         public IntFeedback InputFb;
+
+        private ushort _autoModeInputFb;
+        public IntFeedback AutoModeInputFb;
 
         private bool _Input1Sync;
         public BoolFeedback Input1SyncFb;
@@ -63,7 +92,8 @@ namespace PepperDash.Essentials.Devices.Common.ExtronDsc301
             _commandTimer = new CTimer(commandTimeout, Timeout.Infinite);
             _feedbackMutex = new CMutex();
 
-            InputFb = new IntFeedback(() => _InputFb);
+            InputFb = new IntFeedback(() => _inputFb);
+            AutoModeInputFb = new IntFeedback(() => _autoModeInputFb);
             Input1SyncFb = new BoolFeedback(() => _Input1Sync);
             Input2SyncFb = new BoolFeedback(() => _Input2Sync);
             Input3SyncFb = new BoolFeedback(() => _Input3Sync);
@@ -93,19 +123,17 @@ namespace PepperDash.Essentials.Devices.Common.ExtronDsc301
             if (e.Status == MonitorStatus.IsOk)
             {
                 //Set Sync Timeout to 0s
-                QueueCommand("\x1BT0SSAV");
+                QueueCommand(0x1B + "T0SSAV");
                 //Query HDCP Notification
-                QueueCommand("\x1BNHDCP");
+                QueueCommand(0x1B + "NHDCP");
                 //Get Auto Switch State
-                QueueCommand("\x1BAUSW");
+                QueueCommand(0x1B + "AUSW");
                 //Get Current Input
                 QueueCommand("!");
-                //Get Input 1 Status
-                QueueCommand("\x1BI1HDCP");
-                //Get Input 2 Status
-                QueueCommand("\x1BI2HDCP");
-                //Get Input 3 Status
-                QueueCommand("\x1BI3HDCP");
+                //Get Video Sync
+                QueueCommand(0x1B + "0LS");
+                //Disable HDCP for HDMI
+                QueueCommand(0x1B + "E3*0HDCP");
             }
             else
             {
@@ -157,7 +185,7 @@ namespace PepperDash.Essentials.Devices.Common.ExtronDsc301
 
                                 CrestronInvoke.BeginInvoke((obj) =>
                                 {
-                                    Communication.SendText(cmd);
+                                    Communication.SendText(cmd + "\r");
                                 });
                             }
                         }
@@ -183,7 +211,7 @@ namespace PepperDash.Essentials.Devices.Common.ExtronDsc301
         {
             if (!_commandQueue.IsFull)
             {
-                Debug.Console(2, this, "Queueing command: {0}", ComTextHelper.GetEscapedText(cmd));
+                Debug.Console(2, this, "Queueing command: {0}", ComTextHelper.GetDebugText(cmd));
                 _commandQueue.TryToEnqueue(cmd);
                 ProcessQueue();
             }
@@ -209,17 +237,37 @@ namespace PepperDash.Essentials.Devices.Common.ExtronDsc301
 
         public void AutoSwitchOn()
         {
-            QueueCommand("\x1B1AUSW");
+            QueueCommand(0x1B + "1AUSW");
         }
 
         public void AutoSwitchOff()
         {
-            QueueCommand("\x1B0AUSW");
+            QueueCommand(0x1B + "0AUSW");
         }
 
         private void EnableHdcpNotification()
         {
-            QueueCommand("\x1BN1HDCP");
+            QueueCommand(0x1B + "N1HDCP");
+        }
+
+        private void CalculateInputFb()
+        {
+            if (AutoSwitchFb)
+            {
+                _inputFb = 0;
+                InputFb.FireUpdate();
+
+                _autoModeInputFb = RawInputFb;
+                AutoModeInputFb.FireUpdate();
+            }
+            else
+            {
+                _inputFb = RawInputFb;
+                InputFb.FireUpdate();
+
+                _autoModeInputFb = 0;
+                AutoModeInputFb.FireUpdate();
+            }
         }
 
         /// <summary>
@@ -276,23 +324,25 @@ namespace PepperDash.Essentials.Devices.Common.ExtronDsc301
 
         private void processResponse(byte[] response)
         {
-            string responseText = ComTextHelper.GetEscapedText(response);
-            Debug.Console(1, this, "Parsing: {0}, last inquiry: {1}", responseText, _lastInquiry);
+            string responseText = Encoding.GetEncoding(28591).GetString(response, 0, response.Length);
+            Debug.Console(0, this, "Parsing: {0}, last inquiry: {1}", ComTextHelper.GetDebugText(responseText), _lastInquiry);
             try
             {
                 if (responseText == "Reconfig")
                 {
                     //Found new signal message
+                    //Get Video Sync
+                    QueueCommand(0x1B + "0LS");
                 }
                 else if (responseText.StartsWith("HplgO"))
                 {
                     //Found hot plug message
+                    Debug.Console(0, this, "Found hotplug event on output {0}", responseText.Substring(5,1));
                 }
                 else if (responseText.StartsWith("In") && responseText.EndsWith("All"))
                 {
                     //Found route feedback message
-                    _InputFb = ushort.Parse(responseText.Substring(2, 1));
-                    InputFb.FireUpdate();
+                    RawInputFb = ushort.Parse(responseText.Substring(2, 1));
                     if(_lastInquiry.EndsWith("!"))
                     {
                         readyForNextCommand();
@@ -301,6 +351,7 @@ namespace PepperDash.Essentials.Devices.Common.ExtronDsc301
                 else if (responseText.StartsWith("SsavT"))
                 {
                     //Found sync timeout message
+                    Debug.Console(0, this, "Sync timeout set to {0}", responseText.Substring(5));
                     readyForNextCommand();
                 }
                 else
@@ -308,30 +359,71 @@ namespace PepperDash.Essentials.Devices.Common.ExtronDsc301
                     switch (_lastInquiry)
                     {
                         case "\x1BNHDCP":
+                            //Found HDCP notification response
+                            readyForNextCommand();
+                            break;
+                        case "\x1BE3*0HDCP":
+                            //Found HDCP disabled on HDMI response
                             readyForNextCommand();
                             break;
                         case "!":
                             //Found route feedback message
-                            _InputFb = ushort.Parse(responseText);
-                            InputFb.FireUpdate();
+                            if(responseText.Length == 1)
+                            {
+                                RawInputFb = ushort.Parse(responseText);
+                            }
+                            Debug.Console(0, this, "Found route feedback {0}", RawInputFb);
                             readyForNextCommand();
                             break;
                         case "\x1BAUSW":
+                            //Auto Switch Inquiry Reply
+                            if(responseText.Length == 1)
+                            {
+                                if(responseText == "1" || responseText == "2")
+                                {
+                                    AutoSwitchFb = true;
+                                }
+                                else if(responseText == "0")
+                                {
+                                    AutoSwitchFb = false;
+                                }
+                                Debug.Console(0, this, "Found auto switch feedback {0}", AutoSwitchFb);
+                            }
                             readyForNextCommand();
                             break;
-                        case "\x1BI1HDCP":
-                            readyForNextCommand();
-                            break;
-                        case "\x1BI2HDCP":
-                            readyForNextCommand();
-                            break;
-                        case "\x1BI3HDCP":
+                        case "\x1B0LS":
+                            //Video Sync Reply
+                            Debug.Console(0, this, "Found video sync feedback {0}", responseText);
+                            {
+                                if (responseText.Substring(1, 1) == "*" && responseText.Substring(3, 1) == "*" && responseText.Length == 5)
+                                {
+                                    _Input1Sync = responseText.Substring(0, 1) != "0";
+                                    _Input2Sync = responseText.Substring(2, 1) != "0";
+                                    _Input3Sync = responseText.Substring(4, 1) != "0";
+                                    Input1SyncFb.FireUpdate();
+                                    Input2SyncFb.FireUpdate();
+                                    Input3SyncFb.FireUpdate();
+                                }
+                            }
+
                             readyForNextCommand();
                             break;
                         case "\x1B0AUSW":
+                            //Auto Switch Disable Reply
+                            if (responseText == "Ausw0")
+                            {
+                                AutoSwitchFb = false;
+                                Debug.Console(0, this, "Found auto switch feedback {0}", AutoSwitchFb);
+                            }
                             readyForNextCommand();
                             break;
                         case "\x1B1AUSW":
+                            //Auto Switch Enable Reply
+                            if (responseText == "Ausw1")
+                            {
+                                AutoSwitchFb = true;
+                                Debug.Console(0, this, "Found auto switch feedback {0}", AutoSwitchFb);
+                            }
                             readyForNextCommand();
                             break;
                     }
@@ -371,6 +463,7 @@ namespace PepperDash.Essentials.Devices.Common.ExtronDsc301
             //Routing
             trilist.SetUShortSigAction(joinMap.VideoInput.JoinNumber, RouteInput);
             InputFb.LinkInputSig(trilist.UShortInput[joinMap.VideoInput.JoinNumber]);
+            AutoModeInputFb.LinkInputSig(trilist.UShortInput[joinMap.AutoModeInput.JoinNumber]);
         }
 
         #endregion

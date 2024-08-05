@@ -196,6 +196,7 @@
     <Compile Include="CameraControllers\AutomateVx.cs" />
     <Compile Include="Environment\Crestron Lighting\CrestronLighting.cs" />
     <Compile Include="Environment\Generic\GenericPartitionInput.cs" />
+    <Compile Include="Environment\Generic\SerialControlledLighting.cs" />
     <Compile Include="Environment\Generic\RelayControlledLighting.cs" />
     <Compile Include="Environment\Lutron\LutronQSGrafikEye.cs" />
     <Compile Include="Environment\Lutron\LutronGRX.cs" />

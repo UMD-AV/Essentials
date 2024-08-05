@@ -27,6 +27,14 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PepperDash_Essentials_DM", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PepperDash_Core", "Pepperdash Core\Pepperdash Core\PepperDash_Core.csproj", "{87E29B4C-569B-4368-A4ED-984AC1440C96}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NvxEpi", "NvxEpi\NvxEpi.csproj", "{C6706558-3482-422B-936D-0AB38A3D239D}"
+	ProjectSection(ProjectDependencies) = postProject
+		{892B761C-E479-44CE-BD74-243E9214AF13} = {892B761C-E479-44CE-BD74-243E9214AF13}
+		{87E29B4C-569B-4368-A4ED-984AC1440C96} = {87E29B4C-569B-4368-A4ED-984AC1440C96}
+		{9199CE8A-0C9F-4952-8672-3EED798B284F} = {9199CE8A-0C9F-4952-8672-3EED798B284F}
+		{A49AD6C8-FC0A-4CC0-9089-DFB4CF92D2B5} = {A49AD6C8-FC0A-4CC0-9089-DFB4CF92D2B5}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -53,6 +61,10 @@ Global
 		{87E29B4C-569B-4368-A4ED-984AC1440C96}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{87E29B4C-569B-4368-A4ED-984AC1440C96}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{87E29B4C-569B-4368-A4ED-984AC1440C96}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C6706558-3482-422B-936D-0AB38A3D239D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C6706558-3482-422B-936D-0AB38A3D239D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C6706558-3482-422B-936D-0AB38A3D239D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C6706558-3482-422B-936D-0AB38A3D239D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

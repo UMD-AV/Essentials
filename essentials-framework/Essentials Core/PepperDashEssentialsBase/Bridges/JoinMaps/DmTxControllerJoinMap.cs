@@ -60,6 +60,10 @@ namespace PepperDash.Essentials.Core.Bridges
         public JoinDataComplete AudioInput = new JoinDataComplete(new JoinData { JoinNumber = 2, JoinSpan = 1 },
             new JoinMetadata { Description = "DM TX Audio Input Set / Get", JoinCapabilities = eJoinCapabilities.ToFromSIMPL, JoinType = eJoinType.Analog });
 
+        [JoinName("AutoModeInput")]
+        public JoinDataComplete AutoModeInput = new JoinDataComplete(new JoinData { JoinNumber = 3, JoinSpan = 1 },
+            new JoinMetadata { Description = "DM TX Auto Mode Input Get", JoinCapabilities = eJoinCapabilities.ToSIMPL, JoinType = eJoinType.Analog });
+
         [JoinName("HdcpSupportCapability")]
         public JoinDataComplete HdcpSupportCapability = new JoinDataComplete(new JoinData { JoinNumber = 3, JoinSpan = 1 },
             new JoinMetadata { Description = "DM TX HDCP Support Capability", JoinCapabilities = eJoinCapabilities.ToSIMPL, JoinType = eJoinType.Analog });

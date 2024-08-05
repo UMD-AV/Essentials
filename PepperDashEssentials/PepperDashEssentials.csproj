@@ -133,6 +133,10 @@
       <Project>{9199CE8A-0C9F-4952-8672-3EED798B284F}</Project>
       <Name>PepperDash_Essentials_DM</Name>
     </ProjectReference>
+    <ProjectReference Include="..\NvxEpi\NvxEpi.csproj">
+      <Project>{C6706558-3482-422B-936D-0AB38A3D239D}</Project>
+      <Name>NvxEpi</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Properties\Resources.resx">
