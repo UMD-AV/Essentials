@@ -123,7 +123,7 @@ namespace PepperDash.Essentials.Core
 				return;
 
             if (StreamDebugging.TxStreamDebuggingIsEnabled)
-                Debug.Console(0, this, "Sending {0} characters of text: '{1}'", text.Length, text);
+                Debug.Console(0, this, "Sending {0} characters of text: '{1}'", text.Length, ComTextHelper.GetDebugText(text));
             Port.Send(text);
 		}
 
