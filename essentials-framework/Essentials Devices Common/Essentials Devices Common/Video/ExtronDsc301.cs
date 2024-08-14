@@ -345,7 +345,7 @@ namespace PepperDash.Essentials.Devices.Common.ExtronDsc301
             if (response.Length < 1)
                 return;
             string responseText = Encoding.GetEncoding(28591).GetString(response, 0, response.Length);
-            Debug.Console(1, this, "Parsing: {0}, last inquiry: {1}", ComTextHelper.GetDebugText(responseText), _lastInquiry);
+            Debug.Console(2, this, "Parsing: {0}, last inquiry: {1}", ComTextHelper.GetDebugText(responseText), _lastInquiry);
             try
             {
                 if (responseText == "Reconfig")
@@ -398,7 +398,7 @@ namespace PepperDash.Essentials.Devices.Common.ExtronDsc301
                             {
                                 RawInputFb = ushort.Parse(responseText);
                             }
-                            Debug.Console(1, this, "Found route feedback {0}", RawInputFb);
+                            Debug.Console(2, this, "Found route feedback {0}", RawInputFb);
                             readyForNextCommand();
                             break;
                         case eDsc301Command.GetAutoSwitch:
@@ -413,7 +413,7 @@ namespace PepperDash.Essentials.Devices.Common.ExtronDsc301
                                 {
                                     AutoSwitchFb = false;
                                 }
-                                Debug.Console(1, this, "Found auto switch feedback {0}", AutoSwitchFb);
+                                Debug.Console(2, this, "Found auto switch feedback {0}", AutoSwitchFb);
                             }
                             readyForNextCommand();
                             break;
@@ -439,7 +439,7 @@ namespace PepperDash.Essentials.Devices.Common.ExtronDsc301
                             if (responseText == "Ausw0")
                             {
                                 AutoSwitchFb = false;
-                                Debug.Console(1, this, "Found auto switch feedback {0}", AutoSwitchFb);
+                                Debug.Console(2, this, "Found auto switch feedback {0}", AutoSwitchFb);
                             }
                             readyForNextCommand();
                             break;
@@ -448,7 +448,7 @@ namespace PepperDash.Essentials.Devices.Common.ExtronDsc301
                             if (responseText == "Ausw1")
                             {
                                 AutoSwitchFb = true;
-                                Debug.Console(1, this, "Found auto switch feedback {0}", AutoSwitchFb);
+                                Debug.Console(2, this, "Found auto switch feedback {0}", AutoSwitchFb);
                             }
                             readyForNextCommand();
                             break;
