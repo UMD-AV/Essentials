@@ -518,6 +518,11 @@ namespace PepperDash.Essentials.Devices.Displays
 
         private void PowerOffGo()
         {
+            if (_scaler != null)
+            {
+                _scaler.UnblankOutput();
+            }
+
             SendCommand(eCommandType.Power, PowerOffCmd, true);
             CrestronInvoke.BeginInvoke((o) => CooldownStart());
         }

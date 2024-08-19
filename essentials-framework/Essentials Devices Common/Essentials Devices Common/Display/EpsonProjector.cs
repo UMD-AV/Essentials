@@ -34,6 +34,8 @@ namespace PepperDash.Essentials.Devices.Displays
         public BoolFeedback Input4Feedback { get; private set; }
         public StringFeedback ErrorFeedback { get; private set; }
 
+        string videoMuteKey;
+        private DM.DmRmcControllerBase _scaler;
         byte[] _tcpHandshake = new byte[] { 0x45, 0x53, 0x43, 0x2F, 0x56, 0x50, 0x2E, 0x6E, 0x65, 0x74, 0x10, 0x03, 0x00, 0x00, 0x00, 0x00 };
         byte[] _tcpHeader = new byte[] { 0x45, 0x53, 0x43, 0x2F, 0x56, 0x50, 0x2E, 0x6E, 0x65, 0x74, 0x10, 0x03, 0x00, 0x00 };
         bool _readyForCommands;
@@ -142,6 +144,11 @@ namespace PepperDash.Essentials.Devices.Displays
                 _tcpComm = false;
             }
 
+            if (config.VideoMuteKey != null)
+            {
+                videoMuteKey = config.VideoMuteKey;
+            }
+
             _cmdQueue = new EpsonQueue();
             _priorityQueue = new EpsonQueue();
             _volumeQueue = new EpsonQueue();
@@ -202,6 +209,16 @@ namespace PepperDash.Essentials.Devices.Displays
 
         public override bool CustomActivate()
         {
+            if (videoMuteKey != null)
+            {
+                var dev = DeviceManager.GetDeviceForKey(videoMuteKey);
+                if (dev is DM.DmRmcControllerBase)
+                {
+                    Debug.Console(0, this, "Using scaler {0} for video mute", videoMuteKey);
+                    _scaler = dev as DM.DmRmcControllerBase;
+                }
+            }
+
             Communication.Connect();
             if (!_tcpComm)
             {
@@ -218,14 +235,24 @@ namespace PepperDash.Essentials.Devices.Displays
             LinkDisplayToApi(this, trilist, joinStart, joinMapKey, bridge);
             var joinMap = new EpsonProjectorJoinMap(joinStart);
 
+            //Video Mute
             trilist.SetSigTrueAction(joinMap.VideoMuteOn.JoinNumber, VideoMuteOn);
             trilist.SetSigTrueAction(joinMap.VideoMuteOff.JoinNumber, VideoMuteOff);
+
+            if (_scaler != null)
+            {
+                _scaler.HdmiOutputBlankedFeedback.LinkInputSig(trilist.BooleanInput[joinMap.VideoMuteOn.JoinNumber]);
+            }
+            else
+            {
+                VideoMuteIsOnFeedback.LinkInputSig(trilist.BooleanInput[joinMap.VideoMuteOn.JoinNumber]);
+            }
+
             trilist.BooleanInput[joinMap.LampHoursSupported.JoinNumber].BoolValue = true;
             trilist.BooleanInput[joinMap.VideoMuteSupported.JoinNumber].BoolValue = true;
-
             IsWarmingUpFeedback.LinkInputSig(trilist.BooleanInput[joinMap.Warming.JoinNumber]);
             IsCoolingDownFeedback.LinkInputSig(trilist.BooleanInput[joinMap.Cooling.JoinNumber]);
-            VideoMuteIsOnFeedback.LinkInputSig(trilist.BooleanInput[joinMap.VideoMuteOn.JoinNumber]);
+
             LampHoursFeedback.LinkInputSig(trilist.UShortInput[joinMap.LampHours.JoinNumber]);
             Input1Feedback.LinkInputSig(trilist.BooleanInput[joinMap.InputSelectOffset.JoinNumber + 0]);
             Input2Feedback.LinkInputSig(trilist.BooleanInput[joinMap.InputSelectOffset.JoinNumber + 1]);
@@ -759,7 +786,10 @@ namespace PepperDash.Essentials.Devices.Displays
                 if (_PowerIsOn && !_IsWarmingUp)
                 {
                     //Only poll these while projector is warmed up and on, otherwise it responds "ERR"
-                    VideoMuteGet();
+                    if (_scaler == null)
+                    {
+                        VideoMuteGet();
+                    }
                     InputGet();
                     VolumeGet();
                 }
@@ -837,7 +867,10 @@ namespace PepperDash.Essentials.Devices.Displays
             IsWarmingUpFeedback.FireUpdate();
             IsCoolingDownFeedback.FireUpdate();
 
-            VideoMuteGet();
+            if (_scaler == null)
+            {
+                VideoMuteGet();
+            }
             InputGet();
             VolumeGet();
 
@@ -935,6 +968,12 @@ namespace PepperDash.Essentials.Devices.Displays
 
         private void PowerOffGo()
         {
+            if (_scaler != null)
+            {
+                _RequestedVideoMuteState = 0;
+                _scaler.UnblankOutput();
+            }
+
             SendCommand(eCommandType.Power, "PWR OFF", true);
             CrestronInvoke.BeginInvoke((o) => CooldownStart());
         }
@@ -973,7 +1012,12 @@ namespace PepperDash.Essentials.Devices.Displays
 
         public void VideoMuteOn()
         {
-            if (_RequestedPowerState == 1 || _PowerIsOn)
+            if (_scaler != null)
+            {
+                _RequestedVideoMuteState = 0;
+                _scaler.BlankOutput();
+            }
+            else if (_RequestedPowerState == 1 || _PowerIsOn)
             {
                 Debug.Console(0, "Video Mute Requested");
                 _RequestedVideoMuteState = 1;
@@ -986,32 +1030,57 @@ namespace PepperDash.Essentials.Devices.Displays
 
         private void VideoMuteOnGo()
         {
-            SendCommand(eCommandType.VideoMute, "MUTE ON", false);
-            VideoMuteGet();
-            CrestronInvoke.BeginInvoke((o) => {
-                Thread.Sleep(1000);
+            if (_scaler != null)
+            {
+                _RequestedVideoMuteState = 0;
+                _scaler.BlankOutput();
+            }
+            else
+            {
+                SendCommand(eCommandType.VideoMute, "MUTE ON", false);
                 VideoMuteGet();
-            });
+                CrestronInvoke.BeginInvoke((o) =>
+                {
+                    Thread.Sleep(1000);
+                    VideoMuteGet();
+                });
+            }
         }
 
         public void VideoMuteOff()
         {
-            _RequestedVideoMuteState = 2;
-            if (_PowerIsOn && !_IsWarmingUp)
+            if (_scaler != null)
             {
-                VideoMuteOffGo();
+                _scaler.UnblankOutput();
+            }
+            else
+            {
+                _RequestedVideoMuteState = 2;
+                if (_PowerIsOn && !_IsWarmingUp)
+                {
+                    VideoMuteOffGo();
+                }
             }
         }
 
         private void VideoMuteOffGo()
         {
-            SendCommand(eCommandType.VideoMute, "MUTE OFF", false);
-            VideoMuteGet();
-            CrestronInvoke.BeginInvoke((o) =>
+            if (_scaler != null)
             {
-                Thread.Sleep(1000);
+                _RequestedVideoMuteState = 0;
+                _scaler.UnblankOutput();
+            }
+
+            else
+            {
+                SendCommand(eCommandType.VideoMute, "MUTE OFF", false);
                 VideoMuteGet();
-            });
+                CrestronInvoke.BeginInvoke((o) =>
+                {
+                    Thread.Sleep(1000);
+                    VideoMuteGet();
+                });
+            }
         }
 
         public void VideoMuteGet()
@@ -1150,7 +1219,10 @@ namespace PepperDash.Essentials.Devices.Displays
                 _CurrentInputIndex = 0;
                 SendCommand(eCommandType.Input, "SOURCE 30", false);
                 InputGet();
-                VideoMuteGet();
+                if (_scaler == null)
+                {
+                    VideoMuteGet();
+                }
             }
         }
 
@@ -1161,7 +1233,10 @@ namespace PepperDash.Essentials.Devices.Displays
                 _CurrentInputIndex = 0;
                 SendCommand(eCommandType.Input, "SOURCE A0", false);
                 InputGet();
-                VideoMuteGet();
+                if (_scaler == null)
+                {
+                    VideoMuteGet();
+                }
             }
         }
 
@@ -1172,7 +1247,10 @@ namespace PepperDash.Essentials.Devices.Displays
                 _CurrentInputIndex = 0;
                 SendCommand(eCommandType.Input, "SOURCE 80", false);
                 InputGet();
-                VideoMuteGet();
+                if (_scaler == null)
+                {
+                    VideoMuteGet();
+                }
             }
         }
 
@@ -1183,7 +1261,10 @@ namespace PepperDash.Essentials.Devices.Displays
                 _CurrentInputIndex = 0;
                 SendCommand(eCommandType.Input, "SOURCE 11", false);
                 InputGet();
-                VideoMuteGet();
+                if (_scaler == null)
+                {
+                    VideoMuteGet();
+                }
             }
         }
 
@@ -1654,6 +1735,9 @@ namespace PepperDash.Essentials.Devices.Displays
 
         [JsonProperty("defaultVolume")]
         public int? defaultVolume { get; set; }
+
+        [JsonProperty("videoMuteKey")]
+        public string VideoMuteKey { get; set; }
 
         public EpsonProjectorPropertiesConfig()
         {
