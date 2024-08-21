@@ -140,6 +140,8 @@ namespace PepperDash.Essentials.Core.Lighting
         public string ID { get; set; }
         [JsonProperty("command", NullValueHandling = NullValueHandling.Ignore)]
         public string Command { get; set; }
+        [JsonProperty("command2", NullValueHandling = NullValueHandling.Ignore)]
+        public string Command2 { get; set; }
         [JsonProperty("levels", NullValueHandling = NullValueHandling.Ignore)]
         public SceneLevel[] Levels { get; set; }
         [JsonProperty("portDeviceKey", NullValueHandling = NullValueHandling.Ignore)]

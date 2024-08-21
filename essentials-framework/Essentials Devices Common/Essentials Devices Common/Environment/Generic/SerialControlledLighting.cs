@@ -80,6 +80,11 @@ namespace PepperDash.Essentials.Devices.Common.Environment.Generic
                     {
                         Communication.SendText(LightingScenes[scene].Command);
                     }
+                    CrestronEnvironment.Sleep(1000);
+                    if (LightingScenes[scene].Command2 != null)
+                    {
+                        Communication.SendText(LightingScenes[scene].Command2);
+                    }
                 }
             }
         }
