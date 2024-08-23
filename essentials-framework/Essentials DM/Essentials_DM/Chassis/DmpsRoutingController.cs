@@ -1004,7 +1004,7 @@ namespace PepperDash.Essentials.DM
                         }
                     case (DMInputEventIds.VideoDetectedEventId):
                         {
-                            Debug.Console(2, this, "DM Input {0} VideoDetectedEventId", args.Number);
+                            Debug.Console(1, this, "DM Input {0} VideoDetectedEventId, state: {1}", args.Number, (Dmps.SwitcherInputs[args.Number] as DMInput).VideoDetectedFeedback.BoolValue);
                             VideoInputSyncFeedbacks[args.Number].FireUpdate();
                             break;
                         }
