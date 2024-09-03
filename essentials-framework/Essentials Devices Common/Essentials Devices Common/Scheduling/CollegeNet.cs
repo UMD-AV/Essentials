@@ -578,7 +578,7 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
                         if (c != null)
                         {
                             CurrentMeeting.OrganizerName = c.contact_first_name + " " + c.contact_last_name;
-                            CurrentMeeting.OrganizerEmail = c.email;
+                            CurrentMeeting.OrganizerEmail = c.email.Replace("@g.umd.edu", "@umd.edu");
                             if (CurrentMeetingUpdated != null)
                             {
                                 CurrentMeetingUpdated(this, new EventArgs());

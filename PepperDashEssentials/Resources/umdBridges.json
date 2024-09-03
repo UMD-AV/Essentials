@@ -220,6 +220,14 @@
                     {
                         "deviceKey": "micrx04",
                         "joinStart": 3251
+                    },
+                    {
+                        "deviceKey": "micdock03",
+                        "joinStart": 3301
+                    },
+                    {
+                        "deviceKey": "micdock04",
+                        "joinStart": 3351
                     }
                 ]
             }
