@@ -108,12 +108,12 @@ namespace PepperDash.Essentials.Devices.Common.Environment.Generic
                                 int count = 0;
                                 while (!_commandReady && (count < 50))
                                 {
-                                    Thread.Sleep(100);
+                                    Thread.Sleep(200);
                                     count++;
                                 }
                                 string cmd = _commandQueue.TryToDequeue();
                                 _commandReady = false;
-                                _commandTimer.Reset(200); //Wait maximum 200 ms for response
+                                _commandTimer.Reset(1000); //Wait maximum 1s for response
 
                                 CrestronInvoke.BeginInvoke((obj) =>
                                 {
@@ -176,6 +176,7 @@ namespace PepperDash.Essentials.Devices.Common.Environment.Generic
         {
             if(e.Text.Contains("\r\n"))
             {
+                Thread.Sleep(500);
                 readyForNextCommand();
             }
         }

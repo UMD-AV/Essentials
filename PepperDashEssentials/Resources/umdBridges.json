@@ -6,46 +6,46 @@
             "group": "api",
             "type": "eiscApiAdvanced",
             "properties": {
-              "control": {
-                "tcpSshProperties": {
-                  "address": "127.0.0.2",
-                  "port": 0
+                "control": {
+                    "tcpSshProperties": {
+                        "address": "127.0.0.2",
+                        "port": 0
+                    },
+                    "ipId": "A0"
                 },
-                "ipId": "A0"
-              },
-              "devices": [
-                {
-                  "deviceKey": "switcher01",
-                  "joinStart": 1
-                }
-              ]
+                "devices": [
+                    {
+                        "deviceKey": "switcher01",
+                        "joinStart": 1
+                    }
+                ]
             }
-          },
-          {
+        },
+        {
             "key": "bridge-switcher02",
             "name": "AV Routing Bridge 2/3",
             "group": "api",
             "type": "eiscApiAdvanced",
             "properties": {
-              "control": {
-                "tcpSshProperties": {
-                  "address": "127.0.0.2",
-                  "port": 0
+                "control": {
+                    "tcpSshProperties": {
+                        "address": "127.0.0.2",
+                        "port": 0
+                    },
+                    "ipId": "AB"
                 },
-                "ipId": "AB"
-              },
-              "devices": [
-                {
-                  "deviceKey": "switcher02",
-                  "joinStart": 1
-                },
-                {
-                  "deviceKey": "switcher03",
-                  "joinStart": 2001
-                }
-              ]
+                "devices": [
+                    {
+                        "deviceKey": "switcher02",
+                        "joinStart": 1
+                    },
+                    {
+                        "deviceKey": "switcher03",
+                        "joinStart": 2001
+                    }
+                ]
             }
-          },
+        },
         {
             "key": "bridge-dmpsAudio",
             "name": "DMPS Audio Bridge",
@@ -799,7 +799,7 @@
                         "deviceKey": "tx16",
                         "joinStart": 151
                     },
-                                        {
+                    {
                         "deviceKey": "tx17",
                         "joinStart": 161
                     },
@@ -944,11 +944,11 @@
                         "deviceKey": "rx16",
                         "joinStart": 151
                     },
-                                        {
+                    {
                         "deviceKey": "rx16",
                         "joinStart": 151
                     },
-                                        {
+                    {
                         "deviceKey": "rx17",
                         "joinStart": 161
                     },
@@ -1101,8 +1101,8 @@
                         "joinStart": 531
                     },
                     {
-                      "deviceKey": "overflow01",
-                      "joinStart": 601
+                        "deviceKey": "overflow01",
+                        "joinStart": 601
                     }
                 ]
             },

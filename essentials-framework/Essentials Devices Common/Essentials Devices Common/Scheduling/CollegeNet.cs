@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using Crestron.SimplSharp;
 using Crestron.SimplSharpPro.DeviceSupport;
+using System.Text.RegularExpressions;
 using Crestron.SimplSharp.Net.Http;
 using Crestron.SimplSharp.Net.Https;
 using Crestron.SimplSharpPro.CrestronThread;
@@ -31,6 +32,7 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
         private CTimer scheduleTimeout;
         private uint scheduleFailCount;
         private Random randomGenerator;
+        private ushort nextMeetingIndex;
 
         public bool ScheduleOnline { get; private set; }
 
@@ -201,6 +203,7 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
                     trilist.StringInput[joinMap.NextMeetingType.JoinNumber].StringValue = "";
                     trilist.StringInput[joinMap.NextMeetingStartTime.JoinNumber].StringValue = "";
                     trilist.StringInput[joinMap.NextMeetingEndTime.JoinNumber].StringValue = "";
+                    trilist.UShortInput[joinMap.NextMeetingIndex.JoinNumber].UShortValue = 0;
                 }
                 else
                 {
@@ -209,6 +212,7 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
                     trilist.StringInput[joinMap.NextMeetingType.JoinNumber].StringValue = NextMeeting.Type;
                     trilist.StringInput[joinMap.NextMeetingStartTime.JoinNumber].StringValue = NextMeeting.Start.ToString("h:mm tt");
                     trilist.StringInput[joinMap.NextMeetingEndTime.JoinNumber].StringValue = NextMeeting.End.ToString("h:mm tt");
+                    trilist.UShortInput[joinMap.NextMeetingIndex.JoinNumber].UShortValue = (ushort)(nextMeetingIndex + 1);
                 }
             };
 
@@ -406,19 +410,22 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
                 //Recheck every minute for current meeting
                 updateCurrentMeeting.Reset(60000);
 
+                ushort count = 0;
                 foreach (Meeting m in Meetings)
                 {
                     //Check for current meeting
                     //Current meeting is valid if meeting starts in 20 minutes or is currently active
-                    if (m.Type != "Maintenance" && DateTime.Now >= (m.Start - TimeSpan.FromMinutes(20)) && DateTime.Now <= m.End && (_currentMeetingTemp == null || _currentMeetingTemp.Start > m.Start))
+                    if (DateTime.Now >= (m.Start - TimeSpan.FromMinutes(20)) && DateTime.Now <= m.End && (_currentMeetingTemp == null || _currentMeetingTemp.Start > m.Start))
                     {
                         _currentMeetingTemp = m;
                     }
                     //If not the current meeting, make the next meeting if it occurs in the future and isn't later than the current "next meeting"
-                    else if (m.Type != "Maintenance" && DateTime.Now < m.Start && (_nextMeetingTemp == null || _nextMeetingTemp.Start > m.Start))
+                    else if (DateTime.Now < m.Start && (_nextMeetingTemp == null || _nextMeetingTemp.Start > m.Start))
                     {
                         _nextMeetingTemp = m;
+                        nextMeetingIndex = count;
                     }
+                    count++;
                 }
             }
 
@@ -516,12 +523,23 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
                                     Meetings.Add(new Meeting()
                                     {
                                         Id = reservation.event_id = reservation.event_id,
-                                        Name = reservation.event_name != null ? reservation.event_name : "",
+                                        Name = reservation.event_name != null ? SimplifyClassName(reservation.event_name) : "",
                                         Title = reservation.event_title != null ? reservation.event_title : "",
                                         Start = reservation.reservation_start_dt = reservation.reservation_start_dt,
                                         End = reservation.reservation_end_dt = reservation.reservation_end_dt,
                                         Type = reservation.event_type_name != null ? reservation.event_type_name : ""
                                     });
+                                }
+                                else
+                                {
+                                    
+                                    string newName = SimplifyClassName(reservation.event_name);
+                                    Meeting meeting = matchesStart.First(m => m.End == reservation.reservation_end_dt);
+                                    Debug.Console(0, this, "New overlapping meeting: {0}, newName: {1}, length: {2}", meeting.Name, newName, meeting.Name.Length + newName.Length);
+                                    if ((meeting.Name.Length + newName.Length < 50) && !meeting.Name.Contains(newName))
+                                    {
+                                        meeting.Name = meeting.Name + "/" + newName;
+                                    }
                                 }
                             }
                             catch (Exception ex)
@@ -646,6 +664,15 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
                     Debug.ConsoleWithLog(0, this, "SpacesName processing exception for name: {0}", ex.Message);
                 }
             }
+        }
+
+        private string SimplifyClassName(string name)
+        {
+            //Look for a string formatted like "ITAL 436 01011 XL 202408" and remove the last three groups
+            string pattern = @" ([0-9]{5}) ([A-Z]{2} )?([0-9]{6})";
+
+            string result = Regex.Replace(name, pattern, "");
+            return result.Trim();
         }
     }
 
@@ -794,10 +821,9 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
         {
             get
             {
-                bool testStart = Start - TimeSpan.FromMinutes(10) <= DateTime.Now;
+                bool testStart = Start <= DateTime.Now;
                 bool testEnd = End >= DateTime.Now;
-                bool isMaintenance = Type.ToLower() == "maintenance";
-                return testStart && testEnd && !isMaintenance;
+                return testStart && testEnd;
             }
         }
 
@@ -1003,6 +1029,9 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
                 JoinCapabilities = eJoinCapabilities.ToSIMPL,
                 JoinType = eJoinType.Analog
             });
+
+        [JoinName("NextMeetingIndex")]
+        public JoinDataComplete NextMeetingIndex = new JoinDataComplete(new JoinData { JoinNumber = 3, JoinSpan = 1 }, new JoinMetadata { Label = "NextMeetingIndex", JoinCapabilities = eJoinCapabilities.ToSIMPL, JoinType = eJoinType.Analog });
         #endregion
 
 

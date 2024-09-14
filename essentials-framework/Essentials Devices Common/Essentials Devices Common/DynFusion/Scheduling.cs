@@ -28,10 +28,11 @@ namespace DynFusion
 
 		DynFusionDevice _DynFusion;
 		CTimer getScheduleTimeOut;
-        CTimer getScheduleDaily;
+        CTimer getScheduleTimer;
         CTimer updateCurrentMeeting;
 		SchedulingConfig _Config;
         ScheduleResponse _scheduleResponse;
+        ushort nextMeetingIndex;
 
         private uint scheduleFailCount;
 
@@ -114,7 +115,7 @@ namespace DynFusion
 
             ScheduleOnline.value = false;
             getScheduleTimeOut = new CTimer(getScheduleTimeOutCallback, Crestron.SimplSharp.Timeout.Infinite);
-            getScheduleDaily = new CTimer(GetRoomSchedule, Crestron.SimplSharp.Timeout.Infinite);
+            getScheduleTimer = new CTimer(GetRoomSchedule, Crestron.SimplSharp.Timeout.Infinite);
             updateCurrentMeeting = new CTimer(UpdateCurrentMeetingCallback, Crestron.SimplSharp.Timeout.Infinite);
 			return true;
 		}
@@ -194,6 +195,7 @@ namespace DynFusion
                 //Recheck every minute for current meeting
                 updateCurrentMeeting.Reset(60000);
 
+                ushort meetingIndex = 0;
                 foreach (Event e in _scheduleResponse.Events)
                 {
                     //Check for current meeting
@@ -206,7 +208,9 @@ namespace DynFusion
                     else if (DateTime.Now < e.dtStart && (_nextMeetingTemp == null || _nextMeetingTemp.dtStart > e.dtStart))
                     {
                         _nextMeetingTemp = e;
+                        nextMeetingIndex = meetingIndex;
                     }
+                    meetingIndex++;
                 }
 
                 if (_currentMeetingTemp == null)
@@ -238,17 +242,26 @@ namespace DynFusion
 
 		void GetRoomSchedule(object unused)
 		{
-            DateTime now = DateTime.Now;
-            DateTime oneAM = DateTime.Today.AddHours(1);
-
-            if (now >= oneAM)
+            //If using push model, only update once a day
+            if (RegisteredForPush.value)
             {
-                oneAM = oneAM.AddDays(1);
+                DateTime now = DateTime.Now;
+                DateTime oneAM = DateTime.Today.AddHours(1);
+
+                if (now >= oneAM)
+                {
+                    oneAM = oneAM.AddDays(1);
+                }
+
+                int timeUntilOneAM = (int)(oneAM - now).TotalMilliseconds;
+                getScheduleTimer.Reset(timeUntilOneAM + 60000);
+                
             }
-
-            int timeUntilOneAM = (int)(oneAM - now).TotalMilliseconds;
-            getScheduleDaily.Reset(timeUntilOneAM + 60000);
-
+            //If not using push, check every 30 minutes
+            else
+            {
+                getScheduleTimer.Reset(30 * 60000);
+            }
             scheduleFailCount = 0;
             GetRoomSchedule();
 		}
@@ -676,6 +689,7 @@ namespace DynFusion
                             trilist.StringInput[joinMap.NextMeetingEndTime.JoinNumber].StringValue = NextMeeting.EndTime;
                             trilist.StringInput[joinMap.NextMeetingEndDate.JoinNumber].StringValue = NextMeeting.EndDate;
                             trilist.StringInput[joinMap.NextMeetingDuration.JoinNumber].StringValue = NextMeeting.DurationInMinutes;
+                            trilist.UShortInput[joinMap.NextMeetingIndex.JoinNumber].UShortValue = (ushort)(nextMeetingIndex + 1);
                         }
                         else
                         {
@@ -687,6 +701,7 @@ namespace DynFusion
                             trilist.StringInput[joinMap.NextMeetingEndTime.JoinNumber].StringValue = "";
                             trilist.StringInput[joinMap.NextMeetingEndDate.JoinNumber].StringValue = "";
                             trilist.StringInput[joinMap.NextMeetingDuration.JoinNumber].StringValue = "";
+                            trilist.UShortInput[joinMap.NextMeetingIndex.JoinNumber].UShortValue = 0;
                         }
                     }
                     catch (Exception ex)
