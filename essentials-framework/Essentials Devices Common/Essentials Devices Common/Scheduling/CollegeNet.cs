@@ -669,7 +669,7 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
         private string SimplifyClassName(string name)
         {
             //Look for a string formatted like "ITAL 436 01011 XL 202408" and remove the last three groups
-            string pattern = @" ([0-9]{5}) ([A-Z]{2} )?([0-9]{6})";
+            string pattern = @" ([0-9|A-Z]{5}) ([A-Z]{2} )?([0-9]{6})";
 
             string result = Regex.Replace(name, pattern, "");
             return result.Trim();
