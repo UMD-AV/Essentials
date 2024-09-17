@@ -601,11 +601,6 @@ namespace DynFusion
 
                 MeetingInProgressChanged += ((s, e) =>
                 {
-                    if(CurrentMeeting != null)
-                        trilist.BooleanInput[joinMap.CurrentMeetingInProgress.JoinNumber].BoolValue = true;
-                    else
-                        trilist.BooleanInput[joinMap.CurrentMeetingInProgress.JoinNumber].BoolValue = false;
-
                     ushort meetingCount = 0;
                     if (_scheduleResponse != null)
                     {
@@ -643,7 +638,7 @@ namespace DynFusion
                             trilist.StringInput[joinMap.CurrentMeetingEndTime.JoinNumber].StringValue = CurrentMeeting.EndTime;
                             trilist.StringInput[joinMap.CurrentMeetingEndDate.JoinNumber].StringValue = CurrentMeeting.EndDate;
                             trilist.StringInput[joinMap.CurrentMeetingDuration.JoinNumber].StringValue = CurrentMeeting.DurationInMinutes;
-                            trilist.BooleanInput[joinMap.CurrentMeetingInProgress.JoinNumber].BoolValue = true;
+                            trilist.BooleanInput[joinMap.CurrentMeetingInProgress.JoinNumber].BoolValue = CurrentMeeting.isInProgress;
                             trilist.StringInput[joinMap.CurrentMeetingOrganizerSMTP.JoinNumber].StringValue = CurrentMeeting.OrganizerSMTP;
                         }
                         else
