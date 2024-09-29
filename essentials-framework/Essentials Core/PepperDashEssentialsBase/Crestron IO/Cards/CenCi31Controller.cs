@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Crestron.SimplSharpPro.ThreeSeriesCards;
 using Newtonsoft.Json;
 using PepperDash.Core;
+using PepperDash.Core.Logging;
 using PepperDash.Essentials.Core.Config;
 
 namespace PepperDash.Essentials.Core.CrestronIO.Cards

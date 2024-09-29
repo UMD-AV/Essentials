@@ -1,11 +1,11 @@
 using System;
-using System.Linq;
 using System.Collections.Generic;
+using System.Linq;
 using Crestron.SimplSharp.CrestronIO;
-using PepperDash.Core.Intersystem.Serialization;
-using PepperDash.Core.Intersystem.Tokens;
+using PepperDash.Core.XSigUtility.Serialization;
+using PepperDash.Core.XSigUtility.Tokens;
 
-namespace PepperDash.Core.Intersystem
+namespace PepperDash.Core.XSigUtility
 {
     /// <summary>
     /// XSigToken stream writer.

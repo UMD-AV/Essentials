@@ -10,6 +10,7 @@ using Crestron.SimplSharp.Net.Http;
 using Crestron.SimplSharpPro.Diagnostics;
 
 using PepperDash.Core;
+using PepperDash.Core.Logging;
 
 namespace PepperDash.Essentials.Core.Config
 {

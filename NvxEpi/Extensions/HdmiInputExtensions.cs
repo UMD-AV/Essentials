@@ -4,6 +4,7 @@ using Crestron.SimplSharpPro.DM.Endpoints;
 using Crestron.SimplSharpPro.DM.Streaming;
 using NvxEpi.Abstractions.HdmiInput;
 using PepperDash.Core;
+using PepperDash.Core.Logging;
 
 namespace NvxEpi.Extensions
 {

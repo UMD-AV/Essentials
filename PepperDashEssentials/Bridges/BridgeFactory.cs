@@ -13,6 +13,7 @@ using PepperDash.Essentials.Core.Routing;
 using PepperDash.Essentials.Bridges;
 using Crestron.SimplSharpPro;
 using Crestron.SimplSharpPro.EthernetCommunication;
+using PepperDash.Core.Logging;
 
 namespace PepperDash.Essentials
 {

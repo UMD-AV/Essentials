@@ -1,7 +1,7 @@
 using System;
 using System.Text;
 
-namespace PepperDash.Core.Intersystem.Tokens
+namespace PepperDash.Core.XSigUtility.Tokens
 {
     public sealed class XSigSerialToken : XSigToken
     {

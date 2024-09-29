@@ -6,6 +6,7 @@ using NvxEpi.Abstractions;
 using NvxEpi.Abstractions.SecondaryAudio;
 using NvxEpi.Features.Routing;
 using PepperDash.Core;
+using PepperDash.Core.Logging;
 using PepperDash.Essentials.Core;
 
 namespace NvxEpi.Features.Streams.Audio

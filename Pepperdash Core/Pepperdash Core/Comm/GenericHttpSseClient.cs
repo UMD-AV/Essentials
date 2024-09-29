@@ -1,12 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using Crestron.SimplSharp;
 using Crestron.SimplSharp.CrestronIO;
 using Crestron.SimplSharp.Net.Http;
+using PepperDash.Core.Logging;
 
-namespace PepperDash.Core
+namespace PepperDash.Core.Comm
 {
     public class GenericHttpSseClient : ICommunicationReceiver 
     {

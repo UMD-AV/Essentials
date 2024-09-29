@@ -12,6 +12,7 @@ using PepperDash.Essentials.Core.Bridges;
 using PepperDash.Essentials.Core.Config;
 using PepperDash.Essentials.Core.Devices;
 using Crestron.SimplSharpPro;
+using PepperDash.Core.Logging;
 
 namespace ExtronMlsDsp
 {

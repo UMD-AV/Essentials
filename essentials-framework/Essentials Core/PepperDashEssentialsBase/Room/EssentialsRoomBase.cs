@@ -12,6 +12,7 @@ using PepperDash.Essentials.Core.Devices;
 using PepperDash.Essentials.Core.DeviceTypeInterfaces;
 
 using Newtonsoft.Json;
+using PepperDash.Core.Logging;
 
 namespace PepperDash.Essentials.Core
 {

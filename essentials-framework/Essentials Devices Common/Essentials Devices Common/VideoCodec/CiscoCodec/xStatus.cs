@@ -8,6 +8,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 using PepperDash.Core;
+using PepperDash.Core.Logging;
 using PepperDash.Essentials.Devices.Common.VideoCodec.CiscoCodec;
 using PepperDash.Essentials.Core.Presets;
 

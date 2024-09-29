@@ -1,12 +1,12 @@
 ﻿using System;
-using System.Linq;
 using System.Text;
 using Crestron.SimplSharp;
 using Crestron.SimplSharp.CrestronSockets;
 using Crestron.SimplSharp.Ssh;
 using Crestron.SimplSharp.Ssh.Common;
+using PepperDash.Core.Logging;
 
-namespace PepperDash.Core
+namespace PepperDash.Core.Comm
 {
 	/// <summary>
 	/// 

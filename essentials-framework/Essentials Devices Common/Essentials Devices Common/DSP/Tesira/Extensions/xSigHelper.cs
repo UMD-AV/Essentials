@@ -14,6 +14,7 @@ using System;
 using System.Linq;
 using System.Text;
 using PepperDash.Core;
+using PepperDash.Core.Logging;
 
 namespace Tesira_DSP_EPI.Extensions
 {

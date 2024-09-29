@@ -15,6 +15,7 @@ using PepperDash.Essentials.License;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Schema;
+using PepperDash.Core.Logging;
 
 
 namespace PepperDash.Essentials.Core

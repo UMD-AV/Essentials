@@ -14,6 +14,7 @@ using Crestron.SimplSharp.Reflection;
 using Crestron.SimplSharp.Onvif;
 
 using Newtonsoft.Json;
+using PepperDash.Core.Logging;
 
 namespace PepperDash.Essentials.Devices.Common.Cameras
 {

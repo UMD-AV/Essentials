@@ -7,6 +7,7 @@ using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Config;
 using PepperDash.Essentials.Core.Routing;
 using PepperDash.Core;
+using PepperDash.Core.Logging;
 
 namespace PepperDash.Essentials.Core.Devices
 {

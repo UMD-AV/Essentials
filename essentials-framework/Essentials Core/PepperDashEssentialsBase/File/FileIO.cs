@@ -6,6 +6,7 @@ using Crestron.SimplSharp;
 using Crestron.SimplSharp.CrestronIO;
 using PepperDash.Core;
 using Crestron.SimplSharpPro.CrestronThread;
+using PepperDash.Core.Logging;
 
 namespace PepperDash.Essentials.Core
 {

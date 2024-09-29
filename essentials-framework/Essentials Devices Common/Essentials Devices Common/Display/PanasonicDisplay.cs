@@ -15,6 +15,7 @@ using Feedback = PepperDash.Essentials.Core.Feedback;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
 using Crestron.SimplSharpPro.DM.Endpoints.Receivers;
+using PepperDash.Core.Logging;
 
 namespace PepperDash.Essentials.Devices.Displays
 {

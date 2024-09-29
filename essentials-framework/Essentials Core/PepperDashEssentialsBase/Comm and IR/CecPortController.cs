@@ -8,6 +8,7 @@ using Crestron.SimplSharpPro;
 using Crestron.SimplSharpPro.DM;
 
 using PepperDash.Core;
+using PepperDash.Core.Logging;
 
 namespace PepperDash.Essentials.Core
 {

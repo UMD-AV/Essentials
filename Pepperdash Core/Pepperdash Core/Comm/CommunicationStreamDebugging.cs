@@ -1,11 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using Crestron.SimplSharp;
-using PepperDash.Core;
+using PepperDash.Core.Logging;
 
-namespace PepperDash.Core
+namespace PepperDash.Core.Comm
 {
     /// <summary>
     /// Controls the ability to disable/enable debugging of TX/RX data sent to/from a device with a built in timer to disable

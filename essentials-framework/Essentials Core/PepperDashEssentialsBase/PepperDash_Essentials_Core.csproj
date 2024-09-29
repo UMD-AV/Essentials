@@ -1,4 +1,5 @@
-﻿<Project ToolsVersion="3.5" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="3.5" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\..\..\packages\Crestron.SimplSharp.SDK.SandboxLibrary.2.19.16-beta1\build\Crestron.SimplSharp.SDK.SandboxLibrary.props" Condition="Exists('..\..\..\packages\Crestron.SimplSharp.SDK.SandboxLibrary.2.19.16-beta1\build\Crestron.SimplSharp.SDK.SandboxLibrary.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Release</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
@@ -32,6 +33,7 @@
     <NoStdLib>true</NoStdLib>
     <NoConfig>true</NoConfig>
     <GenerateSerializationAssemblies>off</GenerateSerializationAssemblies>
+    <Prefer32bit>true</Prefer32bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <AllowedReferenceRelatedFileExtensions>.allowedReferenceRelatedFileExtensions</AllowedReferenceRelatedFileExtensions>
@@ -44,8 +46,11 @@
     <NoStdLib>true</NoStdLib>
     <NoConfig>true</NoConfig>
     <GenerateSerializationAssemblies>off</GenerateSerializationAssemblies>
+    <Prefer32bit>true</Prefer32bit>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Crestron.SimplSharpPro.AudioDistribution" />
+    <Reference Include="Crestron.SimplSharpPro.CrestronConnected" />
     <Reference Include="Crestron.SimplSharpPro.DeviceSupport, Version=1.0.0.0, Culture=neutral, PublicKeyToken=1099c178b3b54c3b, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\..\..\..\..\..\ProgramData\Crestron\SDK\SSPDevices\Crestron.SimplSharpPro.DeviceSupport.dll</HintPath>
@@ -70,29 +75,34 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\..\..\..\..\..\ProgramData\Crestron\SDK\SSPDevices\Crestron.SimplSharpPro.GeneralIO.dll</HintPath>
     </Reference>
+    <Reference Include="Crestron.SimplSharpPro.Keypads" />
+    <Reference Include="Crestron.SimplSharpPro.Lighting" />
+    <Reference Include="Crestron.SimplSharpPro.Media" />
     <Reference Include="Crestron.SimplSharpPro.Remotes, Version=1.0.0.0, Culture=neutral, PublicKeyToken=1099c178b3b54c3b, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\..\..\..\..\..\ProgramData\Crestron\SDK\SSPDevices\Crestron.SimplSharpPro.Remotes.dll</HintPath>
     </Reference>
+    <Reference Include="Crestron.SimplSharpPro.Shades" />
+    <Reference Include="Crestron.SimplSharpPro.Thermostats" />
     <Reference Include="Crestron.SimplSharpPro.ThreeSeriesCards, Version=1.0.0.0, Culture=neutral, PublicKeyToken=1099c178b3b54c3b, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\..\..\..\..\..\ProgramData\Crestron\SDK\SSPDevices\Crestron.SimplSharpPro.ThreeSeriesCards.dll</HintPath>
     </Reference>
+    <Reference Include="Crestron.SimplSharpPro.UC" />
     <Reference Include="Crestron.SimplSharpPro.UI, Version=1.0.0.0, Culture=neutral, PublicKeyToken=1099c178b3b54c3b, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\..\..\..\..\..\ProgramData\Crestron\SDK\SSPDevices\Crestron.SimplSharpPro.UI.dll</HintPath>
     </Reference>
     <Reference Include="mscorlib" />
-    <Reference Include="PepperDash_Core, Version=1.1.1.32703, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\Pepperdash Core\Pepperdash Core\bin\PepperDash_Core.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
+    <Reference Include="SimplSharpAutoUpdateInterface" />
+    <Reference Include="SimplSharpCryptographyInterface" />
     <Reference Include="SimplSharpCustomAttributesInterface, Version=1.0.0.0, Culture=neutral, PublicKeyToken=1099c178b3b54c3b, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\..\..\..\..\..\ProgramData\Crestron\SDK\SimplSharpCustomAttributesInterface.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="SimplSharpCWSHelperInterface" />
+    <Reference Include="SimplSharpExchangeWebServices.dll" />
     <Reference Include="SimplSharpHelperInterface, Version=1.0.0.0, Culture=neutral, PublicKeyToken=1099c178b3b54c3b, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\..\..\..\..\..\ProgramData\Crestron\SDK\SimplSharpHelperInterface.dll</HintPath>
@@ -102,6 +112,7 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\..\..\..\..\..\ProgramData\Crestron\SDK\SimplSharpNewtonsoft.dll</HintPath>
     </Reference>
+    <Reference Include="SimplSharpOnvifInterface.dll" />
     <Reference Include="SimplSharpPro, Version=1.5.3.17, Culture=neutral, PublicKeyToken=1099c178b3b54c3b, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\..\..\..\..\..\ProgramData\Crestron\SDK\SimplSharpPro.exe</HintPath>
@@ -111,6 +122,7 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\..\..\..\..\..\ProgramData\Crestron\SDK\SimplSharpReflectionInterface.dll</HintPath>
     </Reference>
+    <Reference Include="SimplSharpSQLHelperInterface.dll" />
     <Reference Include="SimplSharpTimerEventInterface, Version=1.0.6197.20052, Culture=neutral, PublicKeyToken=1099c178b3b54c3b, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\..\..\..\..\..\ProgramData\Crestron\SDK\SimplSharpTimerEventInterface.dll</HintPath>
@@ -165,7 +177,9 @@
     <Compile Include="Config\Essentials\ConfigWriter.cs" />
     <Compile Include="Config\Essentials\EssentialsConfig.cs" />
     <Compile Include="Config\SourceDevicePropertiesConfigBase.cs" />
+    <Compile Include="ControlSystem.cs" />
     <Compile Include="Crestron IO\C2nIo\C2nIoController.cs" />
+    <Compile Include="Crestron IO\CenIo\CenIoComController.cs" />
     <Compile Include="Crestron IO\C2nRts\C2nRthsController.cs" />
     <Compile Include="Crestron IO\Cards\C3CardControllerBase.cs" />
     <Compile Include="Crestron IO\Cards\C3Com3Controller.cs" />
@@ -182,6 +196,7 @@
     <Compile Include="Crestron IO\DinCenCn\IHasCresnetBranches.cs" />
     <Compile Include="Crestron IO\Inputs\CenIoDigIn104Controller.cs" />
     <Compile Include="Crestron IO\Inputs\GenericDigitalInputDevice.cs" />
+    <Compile Include="Crestron IO\Inputs\GenericVersiportOutputDevice.cs" />
     <Compile Include="Crestron IO\Inputs\GenericVersiportInputDevice.cs" />
     <Compile Include="Crestron IO\Inputs\IDigitalInput.cs" />
     <Compile Include="Crestron IO\IOPortConfig.cs" />
@@ -389,7 +404,14 @@
     <Compile Include="SmartObjects\SubpageReferencList\SubpageReferenceList.cs" />
     <Compile Include="SmartObjects\SubpageReferencList\SubpageReferenceListItem.cs" />
     <None Include="app.config" />
+    <None Include="packages.config" />
     <None Include="Properties\ControlSystem.cfg" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Pepperdash Core\Pepperdash Core\PepperDash_Core.csproj">
+      <Project>{87e29b4c-569b-4368-a4ed-984ac1440c96}</Project>
+      <Name>PepperDash_Core</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CompactFramework.CSharp.targets" />
   <ProjectExtensions>
@@ -399,4 +421,18 @@
   <PropertyGroup>
     <PostBuildEvent>rem S# Pro preparation will execute after these operations</PostBuildEvent>
   </PropertyGroup>
+  <Import Project="..\..\..\packages\Crestron.SimplSharp.SDK.Library.2.19.16\build\Crestron.SimplSharp.SDK.Library.targets" Condition="Exists('..\..\..\packages\Crestron.SimplSharp.SDK.Library.2.19.16\build\Crestron.SimplSharp.SDK.Library.targets')" />
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105.The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\..\..\packages\Crestron.SimplSharp.SDK.Library.2.19.16\build\Crestron.SimplSharp.SDK.Library.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\..\packages\Crestron.SimplSharp.SDK.Library.2.19.16\build\Crestron.SimplSharp.SDK.Library.targets'))" />
+    <Error Condition="!Exists('..\..\..\packages\Crestron.SimplSharp.SDK.ProgramLibrary.2.19.16\build\Crestron.SimplSharp.SDK.ProgramLibrary.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\..\packages\Crestron.SimplSharp.SDK.ProgramLibrary.2.19.16\build\Crestron.SimplSharp.SDK.ProgramLibrary.targets'))" />
+    <Error Condition="!Exists('..\..\..\packages\Crestron.SimplSharp.SDK.Program.2.19.16\build\Crestron.SimplSharp.SDK.Program.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\..\packages\Crestron.SimplSharp.SDK.Program.2.19.16\build\Crestron.SimplSharp.SDK.Program.targets'))" />
+    <Error Condition="!Exists('..\..\..\packages\Crestron.SimplSharp.SDK.SandboxLibrary.2.19.16-beta1\build\Crestron.SimplSharp.SDK.SandboxLibrary.props')" Text="$([System.String]::Format('$(ErrorText)', '..\..\..\packages\Crestron.SimplSharp.SDK.SandboxLibrary.2.19.16-beta1\build\Crestron.SimplSharp.SDK.SandboxLibrary.props'))" />
+    <Error Condition="!Exists('..\..\..\packages\Crestron.SimplSharp.SDK.SandboxLibrary.2.19.16-beta1\build\Crestron.SimplSharp.SDK.SandboxLibrary.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\..\packages\Crestron.SimplSharp.SDK.SandboxLibrary.2.19.16-beta1\build\Crestron.SimplSharp.SDK.SandboxLibrary.targets'))" />
+  </Target>
+  <Import Project="..\..\..\packages\Crestron.SimplSharp.SDK.ProgramLibrary.2.19.16\build\Crestron.SimplSharp.SDK.ProgramLibrary.targets" Condition="Exists('..\..\..\packages\Crestron.SimplSharp.SDK.ProgramLibrary.2.19.16\build\Crestron.SimplSharp.SDK.ProgramLibrary.targets')" />
+  <Import Project="..\..\..\packages\Crestron.SimplSharp.SDK.Program.2.19.16\build\Crestron.SimplSharp.SDK.Program.targets" Condition="Exists('..\..\..\packages\Crestron.SimplSharp.SDK.Program.2.19.16\build\Crestron.SimplSharp.SDK.Program.targets')" />
+  <Import Project="..\..\..\packages\Crestron.SimplSharp.SDK.SandboxLibrary.2.19.16-beta1\build\Crestron.SimplSharp.SDK.SandboxLibrary.targets" Condition="Exists('..\..\..\packages\Crestron.SimplSharp.SDK.SandboxLibrary.2.19.16-beta1\build\Crestron.SimplSharp.SDK.SandboxLibrary.targets')" />
 </Project>

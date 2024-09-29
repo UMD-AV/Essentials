@@ -9,6 +9,7 @@ using System.Text.RegularExpressions;
 using Newtonsoft.Json;
 using PepperDash.Essentials.Core.Config;
 using Crestron.SimplSharpPro.DeviceSupport;
+using PepperDash.Core.Logging;
 using Tesira_DSP_EPI.Bridge.JoinMaps;
 using PepperDash.Essentials.Core.Bridges;
 using Tesira_DSP_EPI.Interfaces;

@@ -2,6 +2,7 @@
 using System.Linq;
 using NvxEpi.Abstractions;
 using PepperDash.Core;
+using PepperDash.Core.Logging;
 using PepperDash.Essentials.Core;
 
 namespace NvxEpi.Services.Utilities

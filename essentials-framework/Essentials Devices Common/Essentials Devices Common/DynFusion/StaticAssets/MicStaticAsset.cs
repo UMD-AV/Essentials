@@ -11,6 +11,7 @@ using Newtonsoft.Json.Linq;
 using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Bridges;
 using PepperDash.Core;
+using PepperDash.Core.Logging;
 using PepperDash.Essentials.Devices.Common.ShureUlxd;
 
 namespace DynFusion.Assets

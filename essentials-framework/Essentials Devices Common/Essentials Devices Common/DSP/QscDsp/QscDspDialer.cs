@@ -3,6 +3,7 @@ using System.Linq;
 using Crestron.SimplSharp.Reflection;
 using Crestron.SimplSharpPro.CrestronThread;
 using PepperDash.Core;
+using PepperDash.Core.Logging;
 using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Devices.Common.Codec;
 

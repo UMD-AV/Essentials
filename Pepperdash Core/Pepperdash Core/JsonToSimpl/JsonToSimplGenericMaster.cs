@@ -1,14 +1,10 @@
 ﻿using System;
-//using System.IO;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using Crestron.SimplSharp;
-using Crestron.SimplSharp.CrestronIO;
-using Crestron.SimplSharp.Net.Http;
-using Crestron.SimplSharp.Net.Https;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using PepperDash.Core.Logging;
+
+//using System.IO;
 
 namespace PepperDash.Core.JsonToSimpl
 {

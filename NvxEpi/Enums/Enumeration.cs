@@ -5,6 +5,7 @@ using System.Linq;
 using Crestron.SimplSharp;
 using Crestron.SimplSharp.Reflection;
 using PepperDash.Core;
+using PepperDash.Core.Logging;
 
 namespace NvxEpi.Enums
 {

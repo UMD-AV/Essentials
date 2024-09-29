@@ -1,8 +1,8 @@
 using System;
 using System.Linq;
 using Crestron.SimplSharp.CrestronIO;
-using PepperDash.Core.Intersystem.Serialization;
-using PepperDash.Core.Intersystem.Tokens;
+using PepperDash.Core.XSigUtility.Serialization;
+using PepperDash.Core.XSigUtility.Tokens;
 
 /*
     Digital (2 bytes)
@@ -18,7 +18,7 @@ using PepperDash.Core.Intersystem.Tokens;
         11111111 <- denotes end of data
 */
 
-namespace PepperDash.Core.Intersystem
+namespace PepperDash.Core.XSigUtility
 {
     /// <summary>
     /// Helper methods for creating XSig byte sequences compatible with the Intersystem Communications (ISC) symbol.

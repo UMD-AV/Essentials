@@ -2,6 +2,7 @@ using System;
 using Crestron.SimplSharpPro.DM.Streaming;
 using NvxEpi.Abstractions.Stream;
 using PepperDash.Core;
+using PepperDash.Core.Logging;
 
 namespace NvxEpi.Extensions
 {

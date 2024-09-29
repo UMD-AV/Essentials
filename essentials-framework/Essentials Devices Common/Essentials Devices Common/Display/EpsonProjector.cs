@@ -15,6 +15,7 @@ using Newtonsoft.Json;
 using Feedback = PepperDash.Essentials.Core.Feedback;
 
 using Newtonsoft.Json.Linq;
+using PepperDash.Core.Logging;
 
 namespace PepperDash.Essentials.Devices.Displays
 {

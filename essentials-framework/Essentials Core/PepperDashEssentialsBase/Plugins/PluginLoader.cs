@@ -7,6 +7,7 @@ using Crestron.SimplSharp.CrestronIO;
 using Crestron.SimplSharp.Reflection;
 
 using PepperDash.Core;
+using PepperDash.Core.Logging;
 using PepperDash.Essentials.Core;
 
 namespace PepperDash.Essentials
@@ -87,7 +88,7 @@ namespace PepperDash.Essentials
                         }
                     case ("PepperDash_Core.dll"):
                         {
-                            version = PepperDash.Core.Debug.PepperDashCoreVersion;
+                            version = Debug.PepperDashCoreVersion;
                             break;
                         }
                 }

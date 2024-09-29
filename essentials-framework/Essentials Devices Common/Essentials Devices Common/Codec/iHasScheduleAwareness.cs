@@ -7,6 +7,7 @@ using Crestron.SimplSharp;
 using PepperDash.Core;
 
 using Newtonsoft.Json;
+using PepperDash.Core.Logging;
 
 namespace PepperDash.Essentials.Devices.Common.Codec
 {

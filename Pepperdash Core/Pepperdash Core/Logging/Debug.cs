@@ -2,14 +2,12 @@
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using Crestron.SimplSharp;
-using Crestron.SimplSharp.Reflection;
-using Crestron.SimplSharp.CrestronLogger;
 using Crestron.SimplSharp.CrestronIO;
+using Crestron.SimplSharp.CrestronLogger;
+using Crestron.SimplSharp.Reflection;
 using Newtonsoft.Json;
-using PepperDash.Core.DebugThings;
 
-
-namespace PepperDash.Core
+namespace PepperDash.Core.Logging
 {
     /// <summary>
     /// Contains debug commands for use in various situations

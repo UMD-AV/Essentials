@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace PepperDash.Core
+namespace PepperDash.Core.Comm
 {
     /// <summary>
     /// Client config object for TCP client with server that inherits from TcpSshPropertiesConfig and adds properties for shared key and heartbeat

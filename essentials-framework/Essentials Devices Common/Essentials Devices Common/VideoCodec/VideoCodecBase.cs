@@ -10,6 +10,7 @@ using Crestron.SimplSharp;
 using PepperDash.Core;
 using PepperDash.Core.Intersystem;
 using PepperDash.Core.Intersystem.Tokens;
+using PepperDash.Core.Logging;
 using PepperDash.Core.WebApi.Presets;
 using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Bridges;

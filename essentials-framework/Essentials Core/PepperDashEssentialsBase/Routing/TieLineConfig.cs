@@ -7,6 +7,7 @@ using Crestron.SimplSharpPro;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using PepperDash.Core;
+using PepperDash.Core.Logging;
 using PepperDash.Essentials.Core;
 
 namespace PepperDash.Essentials.Core.Config

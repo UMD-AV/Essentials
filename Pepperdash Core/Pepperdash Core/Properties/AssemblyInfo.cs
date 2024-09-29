@@ -1,4 +1,4 @@
-﻿[assembly: System.Reflection.AssemblyTitle("Pepperdash_Core")]
+[assembly: System.Reflection.AssemblyTitle("Pepperdash_Core")]
 [assembly: System.Reflection.AssemblyCompany("PepperDash Technology Corp")]
 [assembly: System.Reflection.AssemblyProduct("Pepperdash_Core")]
 [assembly: System.Reflection.AssemblyCopyright("Copyright © PepperDash 2019")]

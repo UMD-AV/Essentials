@@ -2,15 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Text.RegularExpressions;
-
 using Crestron.SimplSharp;
 using Crestron.SimplSharp.CrestronSockets;
+using PepperDash.Core.Logging;
 
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-
-namespace PepperDash.Core
+namespace PepperDash.Core.Comm
 {
     public static class UdpManager
     {

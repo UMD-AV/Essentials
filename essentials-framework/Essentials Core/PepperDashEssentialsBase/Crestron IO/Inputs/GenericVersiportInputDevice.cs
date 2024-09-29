@@ -12,6 +12,7 @@ using PepperDash.Essentials.Core.Bridges;
 
 
 using Newtonsoft.Json;
+using PepperDash.Core.Logging;
 
 namespace PepperDash.Essentials.Core.CrestronIO
 {

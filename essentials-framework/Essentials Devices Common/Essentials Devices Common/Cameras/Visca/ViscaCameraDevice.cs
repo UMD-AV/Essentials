@@ -6,6 +6,7 @@ using Crestron.SimplSharpPro.CrestronThread;
 using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Bridges;
 using PepperDash.Core;
+using PepperDash.Core.Logging;
 
 namespace ViscaCameraPlugin
 {

@@ -11,14 +11,13 @@ PepperDash Technology Corporation reserves all rights under applicable laws.
 ------------------------------------ */
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Text.RegularExpressions;
 using Crestron.SimplSharp;
 using Crestron.SimplSharp.CrestronSockets;
+using PepperDash.Core.Logging;
 
-namespace PepperDash.Core
+namespace PepperDash.Core.Comm
 {
     public class GenericTcpIpClient_ForServer : Device, IAutoReconnect
     {

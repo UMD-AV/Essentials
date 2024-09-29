@@ -14,6 +14,7 @@ using PepperDash.Essentials.Core.Routing;
 using Feedback = PepperDash.Essentials.Core.Feedback;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
+using PepperDash.Core.Logging;
 
 namespace PepperDash.Essentials.Devices.Displays
 {

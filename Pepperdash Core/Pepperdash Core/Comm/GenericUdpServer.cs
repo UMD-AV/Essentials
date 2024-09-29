@@ -1,19 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Text.RegularExpressions;
-
 using Crestron.SimplSharp;
 using Crestron.SimplSharp.CrestronSockets;
-
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
+using PepperDash.Core.Logging;
 
-
-
-
-namespace PepperDash.Core
+namespace PepperDash.Core.Comm
 {
     public class GenericUdpServer : Device, ISocketStatusWithStreamDebugging
     {

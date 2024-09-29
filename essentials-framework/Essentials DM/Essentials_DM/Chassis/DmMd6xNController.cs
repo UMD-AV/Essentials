@@ -11,6 +11,7 @@ using PepperDash.Core;
 using PepperDash.Essentials.Core;
 using PepperDash.Essentials.DM.Config;
 using Crestron.SimplSharpPro.DM.Cards;
+using PepperDash.Core.Logging;
 using PepperDash.Essentials.Core.Bridges;
 using PepperDash.Essentials.Core.Config;
 

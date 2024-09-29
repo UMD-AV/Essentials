@@ -13,6 +13,7 @@ using PepperDash.Core;
 using PepperDash.Essentials.Core.Config;
 
 using Newtonsoft.Json;
+using PepperDash.Core.Logging;
 
 namespace PepperDash.Essentials.Core
 {

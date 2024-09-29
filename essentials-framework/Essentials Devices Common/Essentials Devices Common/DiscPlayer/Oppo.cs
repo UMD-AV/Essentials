@@ -6,6 +6,7 @@ using PepperDash.Essentials.Core.Bridges;
 using Newtonsoft.Json;
 using PepperDash.Essentials.Core.Config;
 using Crestron.SimplSharpPro.DeviceSupport;
+using PepperDash.Core.Logging;
 
 namespace PepperDash.Essentials.Devices.Common.Oppo
 {

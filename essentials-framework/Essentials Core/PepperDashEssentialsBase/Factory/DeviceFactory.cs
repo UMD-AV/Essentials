@@ -9,6 +9,7 @@ using Crestron.SimplSharp.Reflection;
 using PepperDash.Core;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
+using PepperDash.Core.Logging;
 using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Config;
 using PepperDash.Essentials.Core.CrestronIO;

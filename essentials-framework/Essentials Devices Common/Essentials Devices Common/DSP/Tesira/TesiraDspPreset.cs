@@ -4,6 +4,7 @@ using Newtonsoft.Json;
 using PepperDash.Core;
 using PepperDash.Essentials.Core;
 using Crestron.SimplSharpPro.DeviceSupport;
+using PepperDash.Core.Logging;
 using Tesira_DSP_EPI.Bridge.JoinMaps;
 using PepperDash.Essentials.Core.Bridges;
 

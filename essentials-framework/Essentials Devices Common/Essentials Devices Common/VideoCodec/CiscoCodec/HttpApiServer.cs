@@ -6,6 +6,7 @@ using Crestron.SimplSharp;
 using Crestron.SimplSharp.Net.Http;
 
 using PepperDash.Core;
+using PepperDash.Core.Logging;
 
 
 namespace PepperDash.Essentials.Devices.Common.VideoCodec.Cisco

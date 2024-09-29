@@ -7,6 +7,7 @@ using Crestron.SimplSharpPro.DM;
 using Crestron.SimplSharpPro.DM.Cards;
 
 using PepperDash.Core;
+using PepperDash.Core.Logging;
 using PepperDash.Essentials.Core;
 
 

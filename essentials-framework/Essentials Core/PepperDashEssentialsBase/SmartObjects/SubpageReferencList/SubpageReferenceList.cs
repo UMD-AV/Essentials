@@ -9,6 +9,7 @@ using Crestron.SimplSharpPro.DeviceSupport;
 using Crestron.SimplSharpPro.UI;
 
 using PepperDash.Core;
+using PepperDash.Core.Logging;
 
 
 namespace PepperDash.Essentials.Core

@@ -1,6 +1,6 @@
 using System;
 
-namespace PepperDash.Core.Intersystem.Tokens
+namespace PepperDash.Core.XSigUtility.Tokens
 {
     public sealed class XSigAnalogToken : XSigToken, IFormattable
     {

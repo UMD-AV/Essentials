@@ -7,6 +7,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using PepperDash.Core;
 using PepperDash.Core.Config;
+using PepperDash.Core.Logging;
 
 namespace PepperDash.Essentials.Core.Config
 {

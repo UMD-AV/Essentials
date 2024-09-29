@@ -9,6 +9,7 @@ using PepperDash.Essentials.Core.Config;
 
 
 using PepperDash.Core;
+using PepperDash.Core.Logging;
 
 namespace PepperDash.Essentials.Core
 {

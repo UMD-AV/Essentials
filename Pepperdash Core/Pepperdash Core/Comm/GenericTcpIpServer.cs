@@ -9,16 +9,16 @@ and in all parts thereof, regardless of the use to which it is being put.  Any u
 of this material by another party without the express written permission of PepperDash Technology Corporation is prohibited.  
 PepperDash Technology Corporation reserves all rights under applicable laws.
 ------------------------------------ */
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Crestron.SimplSharp;
 using Crestron.SimplSharp.CrestronSockets;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
+using PepperDash.Core.Logging;
 
-namespace PepperDash.Core
+namespace PepperDash.Core.Comm
 {
     public class GenericTcpIpServer : Device
     {

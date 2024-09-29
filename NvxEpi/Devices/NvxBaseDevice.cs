@@ -25,6 +25,7 @@ using NvxEpi.Abstractions.HdmiInput;
 using PepperDash.Essentials.Core.DeviceTypeInterfaces;
 using PepperDash.Core;
 using NvxEpi.Abstractions.HdmiOutput;
+using PepperDash.Core.Logging;
 
 
 #if SERIES4

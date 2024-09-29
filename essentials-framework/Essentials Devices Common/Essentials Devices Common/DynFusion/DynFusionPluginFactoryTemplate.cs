@@ -8,6 +8,7 @@ using PepperDash.Core;
 using PepperDash.Essentials.Core;
 
 using Newtonsoft.Json;
+using PepperDash.Core.Logging;
 
 namespace DynFusion
 {

@@ -10,6 +10,7 @@ using PepperDash.Core;
 using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Routing;
 using Crestron.SimplSharpPro.DM.Streaming;
+using PepperDash.Core.Logging;
 
 namespace NvxEpi.Application.Entities
 {

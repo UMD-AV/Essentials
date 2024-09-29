@@ -5,6 +5,7 @@ using PepperDash.Essentials.Core.Bridges;
 using PepperDash.Essentials.Core;
 using PepperDash.Core;
 using Newtonsoft.Json;
+using PepperDash.Core.Logging;
 
 namespace PepperDash.Essentials.DM
 {

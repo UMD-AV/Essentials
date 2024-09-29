@@ -2,6 +2,7 @@
 using Crestron.SimplSharpPro.DM.Streaming;
 using NvxEpi.Features.Config;
 using PepperDash.Core;
+using PepperDash.Core.Logging;
 
 namespace NvxEpi.Services.Utilities
 {

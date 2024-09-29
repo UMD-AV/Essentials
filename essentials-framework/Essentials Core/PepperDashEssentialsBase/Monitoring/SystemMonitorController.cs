@@ -7,6 +7,7 @@ using Crestron.SimplSharpPro.Diagnostics;
 using PepperDash.Core;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
+using PepperDash.Core.Logging;
 using PepperDash.Essentials.Core.Bridges;
 
 namespace PepperDash.Essentials.Core.Monitoring

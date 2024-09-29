@@ -1,6 +1,7 @@
 ﻿using Crestron.SimplSharp;
 using Crestron.SimplSharpPro.DM.Streaming;
 using PepperDash.Core;
+using PepperDash.Core.Logging;
 using PepperDash.Essentials.Core;
 
 namespace NvxEpi.Features.Audio
