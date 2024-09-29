@@ -7,6 +7,7 @@ using Crestron.SimplSharpPro.DM;
 using Crestron.SimplSharpPro.DM.Streaming;
 using NvxEpi.Abstractions.HdmiInput;
 using NvxEpi.Abstractions.HdmiOutput;
+using NvxEpi.Abstractions.InputSwitching;
 using NvxEpi.Abstractions.Usb;
 using NvxEpi.Features.Audio;
 using NvxEpi.Features.AutomaticRouting;
@@ -14,11 +15,13 @@ using NvxEpi.Features.Config;
 using NvxEpi.Features.Hdmi.Input;
 using NvxEpi.Features.Hdmi.Output;
 using NvxEpi.Features.Streams.Usb;
+using NvxEpi.Features.InputSwitching;
 
 using NvxEpi.Services.Bridge;
 using NvxEpi.Services.InputPorts;
 using NvxEpi.Services.InputSwitching;
 using PepperDash.Core;
+using PepperDash.Core.Logging;
 using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Bridges;
 using PepperDash.Essentials.Core.Config;
@@ -48,6 +51,7 @@ namespace NvxEpi.Devices
         private IHdmiInput _hdmiInputs;
         private IVideowallMode _hdmiOutput;
         private IUsbStreamWithHardware _usbStream;
+        private ICurrentDanteInput _danteSwitcher;
         private readonly NvxDeviceProperties _config;
 
         public Nvx36X(DeviceConfig config, Func<DmNvxBaseClass> getHardware, bool isTransmitter)
@@ -67,6 +71,7 @@ namespace NvxEpi.Devices
                 _usbStream = UsbStream.GetUsbStream(this, _config.Usb);
                 _hdmiInputs = new HdmiInput(this);
                 _hdmiOutput = new VideowallModeOutput(this);
+                _danteSwitcher = new DanteInputSwitcher(this);
 
                 Feedbacks.AddRange(new [] { (Feedback)_audio.MuteFeedback, _audio.VolumeLevelFeedback });
 

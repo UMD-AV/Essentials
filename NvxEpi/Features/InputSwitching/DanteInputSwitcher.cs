@@ -14,8 +14,8 @@ namespace NvxEpi.Features.InputSwitching
         {
             _device = device;
 
-            CurrentDanteInput = AudioInputFeedback.GetFeedback(Hardware);
-            CurrentDanteInputValue = AudioInputValueFeedback.GetFeedback(Hardware);
+            CurrentDanteInput = DanteInputFeedback.GetFeedback(Hardware);
+            CurrentDanteInputValue = DanteInputValueFeedback.GetFeedback(Hardware);
 
             _device.Feedbacks.Add(CurrentDanteInput);
             _device.Feedbacks.Add(CurrentDanteInputValue);

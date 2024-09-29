@@ -1109,6 +1109,31 @@
             "type": "eiscApiAdvanced"
         },
         {
+            "key": "bridge-recorder",
+            "name": "Recorder Bridge",
+            "group": "api",
+            "type": "eiscApiAdvanced",
+            "properties": {
+                "control": {
+                    "tcpSshProperties": {
+                        "address": "127.0.0.2",
+                        "port": 0
+                    },
+                    "ipId": "AC"
+                },
+                "devices": [
+                    {
+                        "deviceKey": "recorder01",
+                        "joinStart": 1
+                    },
+                    {
+                        "deviceKey": "recorder02",
+                        "joinStart": 101
+                    }
+                ]
+            }
+        },
+        {
             "key": "bridge-sysInfo",
             "group": "api",
             "name": "eisc-Bridge",

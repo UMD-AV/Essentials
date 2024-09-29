@@ -12,6 +12,7 @@ using NvxEpi.Application.JoinMap;
 using NvxEpi.Application.Services;
 using NvxEpi.Extensions;
 using PepperDash.Core;
+using PepperDash.Core.Logging;
 using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Bridges;
 
@@ -78,6 +79,9 @@ namespace NvxEpi.Application
             var joinMap = new NvxApplicationJoinMap(joinStart);
             if (bridge != null)
                 bridge.AddJoinMap(Key, joinMap);
+
+            trilist.StringInput[joinMap.DeviceName.JoinNumber].StringValue = "NVX App";
+            trilist.BooleanInput[joinMap.OnlineFb.JoinNumber].BoolValue = true;
 
             _enableAudioBreakawayFeedback.LinkInputSig(trilist.BooleanInput[joinMap.EnableAudioBreakaway.JoinNumber]);
             trilist.SetBoolSigAction(joinMap.EnableAudioBreakaway.JoinNumber,

@@ -4,6 +4,26 @@ namespace NvxEpi.Application.JoinMap
 {
     public class NvxApplicationJoinMap : JoinMapBaseAdvanced
     {
+        [JoinName("DeviceName")]
+        public JoinDataComplete DeviceName =
+            new JoinDataComplete(new JoinData { JoinNumber = 1, JoinSpan = 1 },
+            new JoinMetadata
+            {
+                Description = "NVX App Name",
+                JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                JoinType = eJoinType.Serial
+            });
+
+        [JoinName("OnlineFb")]
+        public JoinDataComplete OnlineFb =
+            new JoinDataComplete(new JoinData { JoinNumber = 11, JoinSpan = 1 },
+            new JoinMetadata
+            {
+                Description = "NVX App Online Fb",
+                JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                JoinType = eJoinType.Digital
+            });
+
         [JoinName("EnableAudioBreakaway")] public JoinDataComplete EnableAudioBreakaway = new JoinDataComplete(
             new JoinData {JoinNumber = 4, JoinSpan = 1},
             new JoinMetadata

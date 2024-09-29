@@ -13,9 +13,23 @@ namespace NvxEpi.JoinMaps
             new JoinMetadata
                 {
                     JoinCapabilities = eJoinCapabilities.ToFromSIMPL,
-                    JoinType = eJoinType.AnalogSerial,
+                    JoinType = eJoinType.Analog,
                     Description = "Audio Input Source"
                 });
+
+        [JoinName("AudioInputString")]
+        public JoinDataComplete AudioInputString = new JoinDataComplete(
+            new JoinData
+            {
+                JoinNumber = 7,
+                JoinSpan = 1
+            },
+            new JoinMetadata
+            {
+                JoinCapabilities = eJoinCapabilities.ToFromSIMPL,
+                JoinType = eJoinType.Serial,
+                Description = "Audio Input Source"
+            });
 
         [JoinName("DeviceName")] public JoinDataComplete DeviceName = new JoinDataComplete(
             new JoinData

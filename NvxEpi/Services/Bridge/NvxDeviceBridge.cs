@@ -15,6 +15,7 @@ using NvxEpi.Features.Streams.Video;
 using NvxEpi.JoinMaps;
 using NvxEpi.Services.Feedback;
 using PepperDash.Core;
+using PepperDash.Core.Logging;
 using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Bridges;
 
@@ -86,7 +87,7 @@ namespace NvxEpi.Services.Bridge
                     joinNumber = joinMap.VideoInput.JoinNumber;
 
                 if (feedback.Key == AudioInputFeedback.Key)
-                    joinNumber = joinMap.AudioInput.JoinNumber;
+                    joinNumber = joinMap.AudioInputString.JoinNumber;
 
                 if (feedback.Key == AudioInputValueFeedback.Key)
                     joinNumber = joinMap.AudioInput.JoinNumber;
