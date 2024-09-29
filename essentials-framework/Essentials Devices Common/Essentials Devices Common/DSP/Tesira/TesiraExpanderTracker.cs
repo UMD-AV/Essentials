@@ -10,7 +10,7 @@ using PepperDash.Essentials.Core.DeviceInfo;
 using Tesira_DSP_EPI.Bridge.JoinMaps;
 using PepperDash.Essentials.Core.Bridges;
 using System.Text.RegularExpressions;
-using PepperDash.Core.Logging;
+using PepperDash.Core;
 
 namespace Tesira_DSP_EPI
 {

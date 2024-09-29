@@ -1,11 +1,8 @@
 ﻿using System;
-using Crestron.SimplSharp;
 using Crestron.SimplSharpPro;
 using Crestron.SimplSharpPro.DM;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using PepperDash.Core;
-using PepperDash.Core.Logging;
 using PepperDash.Essentials.Core.Config;
 
 namespace PepperDash.Essentials.Core

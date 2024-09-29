@@ -13,7 +13,7 @@ using PepperDash.Essentials.Core.Lighting;
 using LightingBase = PepperDash.Essentials.Core.Lighting.LightingBase;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using PepperDash.Core.Logging;
+using PepperDash.Core;
 
 namespace PepperDash.Essentials.Devices.Common.Environment
 {

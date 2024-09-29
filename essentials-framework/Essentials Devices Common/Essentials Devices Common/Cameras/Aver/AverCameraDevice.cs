@@ -9,7 +9,7 @@ using PepperDash.Essentials.Core.Bridges;
 using Crestron.SimplSharp.Net.Http;
 using Crestron.SimplSharp.Net.Https;
 using PepperDash.Core;
-using PepperDash.Core.Logging;
+using PepperDash.Core;
 using PepperDash.Essentials.Core.Config;
 using ViscaCameraPlugin;
 

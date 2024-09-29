@@ -2,7 +2,7 @@
 using PepperDash.Essentials.Core.Config;
 using PepperDash.Core;
 using System.Collections.Generic;
-using PepperDash.Core.Logging;
+using PepperDash.Core;
 
 namespace Tesira_DSP_EPI
 {

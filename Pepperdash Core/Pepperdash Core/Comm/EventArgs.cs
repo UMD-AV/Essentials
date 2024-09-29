@@ -12,7 +12,7 @@ PepperDash Technology Corporation reserves all rights under applicable laws.
 using System;
 using Crestron.SimplSharp.CrestronSockets;
 
-namespace PepperDash.Core.Comm
+namespace PepperDash.Core
 {
     public delegate void GenericSocketStatusChangeEventDelegate(ISocketStatus client);
 	public class GenericSocketStatusChageEventArgs : EventArgs

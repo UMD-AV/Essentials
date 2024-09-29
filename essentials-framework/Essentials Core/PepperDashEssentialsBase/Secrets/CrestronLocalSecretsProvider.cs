@@ -2,8 +2,6 @@
 using Crestron.SimplSharp;
 using Crestron.SimplSharp.CrestronDataStore;
 using PepperDash.Core;
-using Crestron.SimplSharpPro;
-using PepperDash.Core.Logging;
 
 
 namespace PepperDash.Essentials.Core

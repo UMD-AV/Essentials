@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Linq;
 using Newtonsoft.Json.Linq;
-using PepperDash.Core.Logging;
 
 namespace PepperDash.Core.JsonToSimpl
 {

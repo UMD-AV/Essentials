@@ -1,6 +1,4 @@
-using System.Reflection;
 using System.Runtime.CompilerServices;
-using Crestron.SimplSharp.Reflection;
 
 [assembly: System.Reflection.AssemblyTitle("PepperDashEssentialsBase")]
 [assembly: System.Reflection.AssemblyCompany("PepperDash Technology Corp")]

@@ -1,26 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using Crestron.SimplSharp;
 using Crestron.SimplSharp.CrestronIO;
 using Crestron.SimplSharpPro;
 using Crestron.SimplSharpPro.CrestronThread;
 using Crestron.SimplSharpPro.Diagnostics;
 using Crestron.SimplSharp.Reflection;
-
 using PepperDash.Core;
 using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Bridges;
 using PepperDash.Essentials.Core.Config;
-using PepperDash.Essentials.Core.Fusion;
-using PepperDash.Essentials.Devices.Common;
 using PepperDash.Essentials.DM;
-using PepperDash.Essentials.Room.Config;
-
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using PepperDash.Core.Config;
-using PepperDash.Essentials.Core.DeviceTypeInterfaces;
 using System.Text;
 
 namespace PepperDash.Essentials
@@ -103,17 +95,6 @@ namespace PepperDash.Essentials
                 CrestronConsole.ConsoleCommandResponse(Newtonsoft.Json.JsonConvert.SerializeObject
                     (ConfigReader.ConfigObject, Newtonsoft.Json.Formatting.Indented));
             }, "showconfig", "Shows the current running merged config", ConsoleAccessLevelEnum.AccessOperator);
-
-            CrestronConsole.AddNewConsoleCommand(s => 
-                CrestronConsole.ConsoleCommandResponse(
-                "This system can be found at the following URLs:\r\n" +
-                "System URL:   {0}\r\n" +
-                "Template URL: {1}", 
-                ConfigReader.ConfigObject.SystemUrl, 
-                ConfigReader.ConfigObject.TemplateUrl), 
-                "portalinfo", 
-                "Shows portal URLS from configuration", 
-                ConsoleAccessLevelEnum.AccessOperator);
 
 
             CrestronConsole.AddNewConsoleCommand(DeviceManager.GetRoutingPorts,

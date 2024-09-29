@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using Crestron.SimplSharp;
-using PepperDash.Core.Logging;
 
 namespace PepperDash.Core.PasswordManagement
 {

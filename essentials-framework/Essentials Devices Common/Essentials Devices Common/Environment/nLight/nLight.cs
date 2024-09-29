@@ -13,7 +13,7 @@ using LightingBase = PepperDash.Essentials.Core.Lighting.LightingBase;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Crestron.SimplSharpPro.CrestronThread;
-using PepperDash.Core.Logging;
+using PepperDash.Core;
 
 namespace PepperDash.Essentials.Devices.Common.Environment.NLight
 {

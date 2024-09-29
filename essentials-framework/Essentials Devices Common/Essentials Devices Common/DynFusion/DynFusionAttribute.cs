@@ -9,7 +9,7 @@ using Newtonsoft.Json.Converters;
 using Crestron.SimplSharpPro;
 using PepperDash.Core;
 using Crestron.SimplSharp.Reflection;
-using PepperDash.Core.Logging;
+using PepperDash.Core;
 
 namespace DynFusion
 {

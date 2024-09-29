@@ -15,7 +15,7 @@ using NvxEpi.Features.Streams.Video;
 using NvxEpi.JoinMaps;
 using NvxEpi.Services.Feedback;
 using PepperDash.Core;
-using PepperDash.Core.Logging;
+using PepperDash.Core;
 using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Bridges;
 

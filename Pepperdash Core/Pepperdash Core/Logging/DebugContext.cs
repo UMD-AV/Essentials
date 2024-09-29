@@ -5,7 +5,7 @@ using Crestron.SimplSharp;
 using Crestron.SimplSharp.CrestronIO;
 using Newtonsoft.Json;
 
-namespace PepperDash.Core.Logging
+namespace PepperDash.Core
 {
     public class DebugContext
     {

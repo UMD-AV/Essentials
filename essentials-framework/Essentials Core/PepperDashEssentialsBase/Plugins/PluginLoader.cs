@@ -1,13 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using Crestron.SimplSharp;
 using Crestron.SimplSharp.CrestronIO;
 using Crestron.SimplSharp.Reflection;
 
 using PepperDash.Core;
-using PepperDash.Core.Logging;
 using PepperDash.Essentials.Core;
 
 namespace PepperDash.Essentials

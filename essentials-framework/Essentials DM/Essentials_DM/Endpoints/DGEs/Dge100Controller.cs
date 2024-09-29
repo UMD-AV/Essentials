@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Sockets;
-using System.Text;
-using Crestron.SimplSharp;
 using Crestron.SimplSharpPro;
 using Crestron.SimplSharpPro.UI;
 
@@ -16,7 +13,7 @@ using PepperDash.Core;
 using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Config;
 using Crestron.SimplSharpPro.DeviceSupport;
-using PepperDash.Core.Logging;
+
 using PepperDash.Essentials.Core.DeviceInfo;
 
 namespace PepperDash.Essentials.DM.Endpoints.DGEs

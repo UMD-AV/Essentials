@@ -3,7 +3,6 @@ using System.Linq;
 using Crestron.SimplSharp.CrestronIO;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using PepperDash.Core.Logging;
 
 namespace PepperDash.Core.Config
 {

@@ -2,7 +2,7 @@
 using System.Linq;
 using Crestron.SimplSharp;
 
-namespace PepperDash.Core.Comm
+namespace PepperDash.Core
 {
     /// <summary>
     /// Background class that manages debug features for sockets

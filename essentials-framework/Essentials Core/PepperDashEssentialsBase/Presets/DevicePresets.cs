@@ -5,10 +5,8 @@ using Crestron.SimplSharp;
 using Crestron.SimplSharp.CrestronIO;
 using Newtonsoft.Json;
 using PepperDash.Core;
-using PepperDash.Core.Logging;
 
 //using SSMono.IO;
-using PepperDash.Core.WebApi.Presets;
 
 namespace PepperDash.Essentials.Core.Presets
 {

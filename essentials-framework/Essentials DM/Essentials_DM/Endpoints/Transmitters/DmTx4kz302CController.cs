@@ -8,14 +8,13 @@ using Crestron.SimplSharpPro.DM.Endpoints;
 using Crestron.SimplSharpPro.DM.Endpoints.Transmitters;
 
 using PepperDash.Core;
-using PepperDash.Core.Logging;
+
 using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Bridges;
 
 namespace PepperDash.Essentials.DM
 {
     using eVst = eX02VideoSourceType;
-    using eAst = eX02AudioSourceType;
 
 
     [Description("Wrapper class for DM-TX-4K-Z-302-C")]

@@ -1,4 +1,4 @@
-﻿namespace PepperDash.Core.Comm
+﻿namespace PepperDash.Core
 {
     /// <summary>
     /// Tcp Server Config object with properties for a tcp server with shared key and heartbeat capabilities

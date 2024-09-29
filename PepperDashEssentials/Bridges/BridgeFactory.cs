@@ -1,19 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Crestron.SimplSharp;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using PepperDash.Core;
 using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Bridges;
-using PepperDash.Essentials.Core.Config;
-using PepperDash.Core;
-using PepperDash.Essentials.Core.Routing;
-using PepperDash.Essentials.Bridges;
-using Crestron.SimplSharpPro;
 using Crestron.SimplSharpPro.EthernetCommunication;
-using PepperDash.Core.Logging;
+
 
 namespace PepperDash.Essentials
 {

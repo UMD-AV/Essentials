@@ -7,7 +7,7 @@ using Crestron.SimplSharp.CrestronLogger;
 using Crestron.SimplSharp.Reflection;
 using Newtonsoft.Json;
 
-namespace PepperDash.Core.Logging
+namespace PepperDash.Core
 {
     /// <summary>
     /// Contains debug commands for use in various situations

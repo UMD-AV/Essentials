@@ -2,7 +2,6 @@
 using Crestron.SimplSharp;
 using Crestron.SimplSharpPro.CrestronThread;
 using PepperDash.Core;
-using PepperDash.Core.Logging;
 
 namespace PepperDash.Essentials.Core.Queues
 {

@@ -16,9 +16,8 @@ using System.Linq;
 using System.Text;
 using Crestron.SimplSharp;
 using Crestron.SimplSharp.CrestronSockets;
-using PepperDash.Core.Logging;
 
-namespace PepperDash.Core.Comm
+namespace PepperDash.Core
 {
     public class GenericTcpIpServer : Device
     {

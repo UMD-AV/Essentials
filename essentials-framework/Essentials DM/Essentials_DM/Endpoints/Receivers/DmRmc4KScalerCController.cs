@@ -4,7 +4,7 @@ using Crestron.SimplSharpPro.DM;
 using Crestron.SimplSharpPro.DM.Endpoints;
 using Crestron.SimplSharpPro.DM.Endpoints.Receivers;
 using PepperDash.Core;
-using PepperDash.Core.Logging;
+
 using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Bridges;
 

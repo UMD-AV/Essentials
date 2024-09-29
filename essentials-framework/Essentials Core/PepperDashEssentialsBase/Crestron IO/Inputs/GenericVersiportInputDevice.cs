@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Crestron.SimplSharp;
 using Crestron.SimplSharpPro;
 using Crestron.SimplSharpPro.DeviceSupport;
 
@@ -12,7 +9,6 @@ using PepperDash.Essentials.Core.Bridges;
 
 
 using Newtonsoft.Json;
-using PepperDash.Core.Logging;
 
 namespace PepperDash.Essentials.Core.CrestronIO
 {

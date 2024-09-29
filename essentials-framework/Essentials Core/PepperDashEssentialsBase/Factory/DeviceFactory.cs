@@ -1,19 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using Crestron.SimplSharp;
-using Crestron.SimplSharpPro;
-using Crestron.SimplSharpPro.GeneralIO;
 using Crestron.SimplSharp.Reflection;
 using PepperDash.Core;
 using Newtonsoft.Json.Linq;
-using Newtonsoft.Json;
-using PepperDash.Core.Logging;
-using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Config;
-using PepperDash.Essentials.Core.CrestronIO;
-using PepperDash.Essentials.Core.Touchpanels;
 
 namespace PepperDash.Essentials.Core
 {

@@ -1,6 +1,5 @@
 ﻿using Crestron.SimplSharp;
 using Newtonsoft.Json;
-using PepperDash.Core.Logging;
 
 namespace PepperDash.Core
 {

@@ -1,7 +1,4 @@
-﻿using System.Reflection;
-using Crestron.SimplSharp.Reflection;
-
-[assembly: System.Reflection.AssemblyTitle("PepperDashEssentials")]
+﻿[assembly: System.Reflection.AssemblyTitle("PepperDashEssentials")]
 [assembly: System.Reflection.AssemblyCompany("PepperDash")]
 [assembly: System.Reflection.AssemblyProduct("PepperDashEssentials")]
 [assembly: System.Reflection.AssemblyCopyright("")]

@@ -14,7 +14,7 @@ using PepperDash.Essentials.Devices.Common.Cameras;
 
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using PepperDash.Core.Logging;
+using PepperDash.Core;
 
 namespace PepperDash.Essentials.Devices.Common.VideoCodec
 {

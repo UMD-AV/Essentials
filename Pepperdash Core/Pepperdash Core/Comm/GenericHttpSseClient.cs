@@ -3,9 +3,8 @@ using System.Text;
 using Crestron.SimplSharp;
 using Crestron.SimplSharp.CrestronIO;
 using Crestron.SimplSharp.Net.Http;
-using PepperDash.Core.Logging;
 
-namespace PepperDash.Core.Comm
+namespace PepperDash.Core
 {
     public class GenericHttpSseClient : ICommunicationReceiver 
     {

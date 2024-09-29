@@ -6,7 +6,7 @@ using PepperDash.Core;
 using PepperDash.Essentials.EpiphanPearl.Interfaces;
 using PepperDash.Essentials.EpiphanPearl.Utilities;
 using System.Text;
-using PepperDash.Core.Logging;
+using PepperDash.Core;
 
 namespace PepperDash.Essentials.EpiphanPearl
 {

@@ -7,7 +7,7 @@ using Crestron.SimplSharpPro.DM.Endpoints.Transmitters;
 using System.Linq;
 
 using PepperDash.Core;
-using PepperDash.Core.Logging;
+
 using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Bridges;
 

@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using Crestron.SimplSharpPro.DeviceSupport;
 using Crestron.SimplSharpPro.DM;
-using Crestron.SimplSharpPro.DM.Cards;
 using Crestron.SimplSharpPro.DM.Endpoints.Receivers;
 using Newtonsoft.Json;
 using PepperDash.Core;
@@ -12,7 +11,7 @@ using PepperDash.Essentials.Core.DeviceInfo;
 using PepperDash.Essentials.DM.Config;
 using PepperDash.Essentials.Core.Config;
 using Crestron.SimplSharpPro.DM.Endpoints;
-using PepperDash.Core.Logging;
+
 
 namespace PepperDash.Essentials.DM
 {

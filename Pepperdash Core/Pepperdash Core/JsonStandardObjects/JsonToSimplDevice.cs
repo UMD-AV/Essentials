@@ -2,7 +2,6 @@
 using System.Linq;
 using Crestron.SimplSharp;
 using PepperDash.Core.JsonToSimpl;
-using PepperDash.Core.Logging;
 
 namespace PepperDash.Core.JsonStandardObjects
 {

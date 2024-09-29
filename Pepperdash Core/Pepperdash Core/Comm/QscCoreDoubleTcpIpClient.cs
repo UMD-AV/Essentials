@@ -1,8 +1,7 @@
 ﻿using System;
 using Crestron.SimplSharp;
-using PepperDash.Core.Logging;
 
-namespace PepperDash.Core.Comm
+namespace PepperDash.Core
 {
     public class QscCoreDoubleTcpIpClient : IKeyed
     {

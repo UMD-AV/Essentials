@@ -4,7 +4,7 @@ using Crestron.SimplSharp.Net.Https;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using PepperDash.Core;
-using PepperDash.Core.Logging;
+using PepperDash.Core;
 using PepperDash.Essentials.EpiphanPearl.Interfaces;
 using PepperDash.Essentials.EpiphanPearl.Utilities;
 

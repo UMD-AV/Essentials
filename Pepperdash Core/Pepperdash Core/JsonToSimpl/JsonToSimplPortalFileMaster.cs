@@ -5,7 +5,6 @@ using Crestron.SimplSharp;
 using Crestron.SimplSharp.CrestronIO;
 using Newtonsoft.Json.Linq;
 using PepperDash.Core.Config;
-using PepperDash.Core.Logging;
 
 //using System.IO;
 

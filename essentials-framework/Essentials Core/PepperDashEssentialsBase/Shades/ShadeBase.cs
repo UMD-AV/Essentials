@@ -1,13 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Crestron.SimplSharp;
-
-using PepperDash.Core;
-using PepperDash.Essentials.Core.CrestronIO;
-
-namespace PepperDash.Essentials.Core.Shades
+﻿namespace PepperDash.Essentials.Core.Shades
 {
     /// <summary>
     /// Base class for a shade device

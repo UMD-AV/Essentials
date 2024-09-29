@@ -88,23 +88,11 @@
     <Reference Include="Crestron.SimplSharpPro.UC" />
     <Reference Include="Crestron.SimplSharpPro.UI" />
     <Reference Include="mscorlib" />
-    <Reference Include="PepperDash_Core, Version=1.1.1.32703, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\Pepperdash Core\Pepperdash Core\bin\PepperDash_Core.dll</HintPath>
-    </Reference>
-    <Reference Include="PepperDash_Essentials_DM, Version=0.0.0.22545, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\Essentials DM\Essentials_DM\obj\Debug\PepperDash_Essentials_DM.dll</HintPath>
-    </Reference>
-    <Reference Include="SimplSharpAutoUpdateInterface" />
-    <Reference Include="SimplSharpCryptographyInterface" />
     <Reference Include="SimplSharpCustomAttributesInterface, Version=1.0.0.0, Culture=neutral, PublicKeyToken=1099c178b3b54c3b, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\..\..\..\..\..\ProgramData\Crestron\SDK\SimplSharpCustomAttributesInterface.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="SimplSharpCWSHelperInterface" />
-    <Reference Include="SimplSharpExchangeWebServices.dll" />
     <Reference Include="SimplSharpHelperInterface, Version=1.0.0.0, Culture=neutral, PublicKeyToken=1099c178b3b54c3b, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\..\..\..\..\..\ProgramData\Crestron\SDK\SimplSharpHelperInterface.dll</HintPath>
@@ -127,13 +115,10 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\..\..\..\..\..\ProgramData\Crestron\SDK\SimplSharpReflectionInterface.dll</HintPath>
     </Reference>
-    <Reference Include="SimplSharpSQLHelperInterface.dll" />
     <Reference Include="SimplSharpTimerEventInterface.dll" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Data" />
-    <Reference Include="System.Data.SqlClient" />
-    <Reference Include="System.Drawing" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AudioCodec\AudioCodecBase.cs" />
@@ -163,7 +148,6 @@
     <Compile Include="Codec\eCodecCallStatus.cs" />
     <Compile Include="Codec\eMeetingPrivacy.cs" />
     <Compile Include="Codec\iCodecAudio.cs" />
-    <Compile Include="ControlSystem.cs" />
     <Compile Include="DiscPlayer\Denon.cs" />
     <Compile Include="DiscPlayer\Oppo.cs" />
     <Compile Include="Display\LgDisplay\LgDisplayControllerFactory.cs" />
@@ -348,7 +332,6 @@
     <Compile Include="VideoCodec\ZoomRoom\ZoomRoomJoinMap.cs" />
     <Compile Include="VideoCodec\ZoomRoom\ZoomRoomPropertiesConfig.cs" />
     <Compile Include="Video\ExtronDsc301.cs" />
-    <None Include="packages.config" />
     <None Include="Properties\ControlSystem.cfg" />
   </ItemGroup>
   <ItemGroup>
@@ -356,10 +339,18 @@
       <Project>{C6706558-3482-422B-936D-0AB38A3D239D}</Project>
       <Name>NvxEpi</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\..\Pepperdash Core\Pepperdash Core\PepperDash_Core.csproj">
+      <Project>{87e29b4c-569b-4368-a4ed-984ac1440c96}</Project>
+      <Name>PepperDash_Core</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\Essentials Core\PepperDashEssentialsBase\PepperDash_Essentials_Core.csproj">
       <Project>{A49AD6C8-FC0A-4CC0-9089-DFB4CF92D2B5}</Project>
       <Name>PepperDash_Essentials_Core</Name>
       <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Essentials DM\Essentials_DM\PepperDash_Essentials_DM.csproj">
+      <Project>{9199ce8a-0c9f-4952-8672-3eed798b284f}</Project>
+      <Name>PepperDash_Essentials_DM</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CompactFramework.CSharp.targets" />
@@ -370,18 +361,4 @@
   <PropertyGroup>
     <PostBuildEvent>rem S# Pro preparation will execute after these operations</PostBuildEvent>
   </PropertyGroup>
-  <Import Project="..\..\..\packages\Crestron.SimplSharp.SDK.Library.2.19.16\build\Crestron.SimplSharp.SDK.Library.targets" Condition="Exists('..\..\..\packages\Crestron.SimplSharp.SDK.Library.2.19.16\build\Crestron.SimplSharp.SDK.Library.targets')" />
-  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
-    <PropertyGroup>
-      <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105.The missing file is {0}.</ErrorText>
-    </PropertyGroup>
-    <Error Condition="!Exists('..\..\..\packages\Crestron.SimplSharp.SDK.Library.2.19.16\build\Crestron.SimplSharp.SDK.Library.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\..\packages\Crestron.SimplSharp.SDK.Library.2.19.16\build\Crestron.SimplSharp.SDK.Library.targets'))" />
-    <Error Condition="!Exists('..\..\..\packages\Crestron.SimplSharp.SDK.ProgramLibrary.2.19.16\build\Crestron.SimplSharp.SDK.ProgramLibrary.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\..\packages\Crestron.SimplSharp.SDK.ProgramLibrary.2.19.16\build\Crestron.SimplSharp.SDK.ProgramLibrary.targets'))" />
-    <Error Condition="!Exists('..\..\..\packages\Crestron.SimplSharp.SDK.Program.2.19.16\build\Crestron.SimplSharp.SDK.Program.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\..\packages\Crestron.SimplSharp.SDK.Program.2.19.16\build\Crestron.SimplSharp.SDK.Program.targets'))" />
-    <Error Condition="!Exists('..\..\..\packages\Crestron.SimplSharp.SDK.SandboxLibrary.2.19.16-beta1\build\Crestron.SimplSharp.SDK.SandboxLibrary.props')" Text="$([System.String]::Format('$(ErrorText)', '..\..\..\packages\Crestron.SimplSharp.SDK.SandboxLibrary.2.19.16-beta1\build\Crestron.SimplSharp.SDK.SandboxLibrary.props'))" />
-    <Error Condition="!Exists('..\..\..\packages\Crestron.SimplSharp.SDK.SandboxLibrary.2.19.16-beta1\build\Crestron.SimplSharp.SDK.SandboxLibrary.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\..\packages\Crestron.SimplSharp.SDK.SandboxLibrary.2.19.16-beta1\build\Crestron.SimplSharp.SDK.SandboxLibrary.targets'))" />
-  </Target>
-  <Import Project="..\..\..\packages\Crestron.SimplSharp.SDK.ProgramLibrary.2.19.16\build\Crestron.SimplSharp.SDK.ProgramLibrary.targets" Condition="Exists('..\..\..\packages\Crestron.SimplSharp.SDK.ProgramLibrary.2.19.16\build\Crestron.SimplSharp.SDK.ProgramLibrary.targets')" />
-  <Import Project="..\..\..\packages\Crestron.SimplSharp.SDK.Program.2.19.16\build\Crestron.SimplSharp.SDK.Program.targets" Condition="Exists('..\..\..\packages\Crestron.SimplSharp.SDK.Program.2.19.16\build\Crestron.SimplSharp.SDK.Program.targets')" />
-  <Import Project="..\..\..\packages\Crestron.SimplSharp.SDK.SandboxLibrary.2.19.16-beta1\build\Crestron.SimplSharp.SDK.SandboxLibrary.targets" Condition="Exists('..\..\..\packages\Crestron.SimplSharp.SDK.SandboxLibrary.2.19.16-beta1\build\Crestron.SimplSharp.SDK.SandboxLibrary.targets')" />
 </Project>

@@ -1,7 +1,7 @@
 ﻿using System;
 using Crestron.SimplSharp;
 using PepperDash.Core;
-using PepperDash.Core.Logging;
+using PepperDash.Core;
 using PepperDash.Essentials.Core;
 
 namespace QscQsysDspPlugin

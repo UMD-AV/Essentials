@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
-using PepperDash.Core;
+﻿using Newtonsoft.Json;
 
 namespace PepperDash.Essentials.Core
 {

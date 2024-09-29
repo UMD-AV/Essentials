@@ -2,7 +2,7 @@
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace PepperDash.Core.Comm
+namespace PepperDash.Core
 {
 	/// <summary>
 	/// Defines the string event handler for line events on the gather

@@ -2,7 +2,7 @@
 using Crestron.SimplSharpPro.DM;
 using NvxEpi.Abstractions.HdmiOutput;
 using PepperDash.Core;
-using PepperDash.Core.Logging;
+using PepperDash.Core;
 
 namespace NvxEpi.Extensions
 {

@@ -4,9 +4,8 @@ using System.Text;
 using Crestron.SimplSharp;
 using Crestron.SimplSharp.CrestronSockets;
 using Newtonsoft.Json;
-using PepperDash.Core.Logging;
 
-namespace PepperDash.Core.Comm
+namespace PepperDash.Core
 {
     public class GenericUdpServer : Device, ISocketStatusWithStreamDebugging
     {

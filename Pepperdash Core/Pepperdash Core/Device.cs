@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using PepperDash.Core.Logging;
 
 namespace PepperDash.Core
 {
@@ -16,7 +15,7 @@ namespace PepperDash.Core
         /// </summary>
 		public string Key { get; protected set; }
 		/// <summary>
-		/// Name of the devie
+		/// Name of the device
 		/// </summary>
         public string Name { get; protected set; }
         /// <summary>

@@ -1,4 +1,4 @@
-<Project ToolsVersion="3.5" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+﻿<Project ToolsVersion="3.5" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Release</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
@@ -50,7 +50,6 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Crestron.SimplSharpPro.AudioDistribution" />
-    <Reference Include="Crestron.SimplSharpPro.CrestronConnected" />
     <Reference Include="Crestron.SimplSharpPro.DeviceSupport" />
     <Reference Include="Crestron.SimplSharpPro.DM" />
     <Reference Include="Crestron.SimplSharpPro.EthernetCommunications" />
@@ -67,14 +66,10 @@
     <Reference Include="Crestron.SimplSharpPro.UC" />
     <Reference Include="Crestron.SimplSharpPro.UI" />
     <Reference Include="mscorlib" />
-    <Reference Include="SimplSharpAutoUpdateInterface" />
-    <Reference Include="SimplSharpCryptographyInterface" />
     <Reference Include="SimplSharpCustomAttributesInterface, Version=1.0.0.0, Culture=neutral, PublicKeyToken=1099c178b3b54c3b, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\..\..\..\..\ProgramData\Crestron\SDK\SimplSharpCustomAttributesInterface.dll</HintPath>
     </Reference>
-    <Reference Include="SimplSharpCWSHelperInterface" />
-    <Reference Include="SimplSharpExchangeWebServices.dll" />
     <Reference Include="SimplSharpHelperInterface, Version=1.0.0.0, Culture=neutral, PublicKeyToken=1099c178b3b54c3b, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\..\..\..\..\ProgramData\Crestron\SDK\SimplSharpHelperInterface.dll</HintPath>
@@ -83,14 +78,11 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\..\..\..\..\ProgramData\Crestron\SDK\SimplSharpNewtonsoft.dll</HintPath>
     </Reference>
-    <Reference Include="SimplSharpOnvifInterface.dll" />
     <Reference Include="SimplSharpPro" />
     <Reference Include="SimplSharpReflectionInterface, Version=1.0.5583.25238, Culture=neutral, PublicKeyToken=1099c178b3b54c3b, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\..\..\..\..\ProgramData\Crestron\SDK\SimplSharpReflectionInterface.dll</HintPath>
     </Reference>
-    <Reference Include="SimplSharpSQLHelperInterface.dll" />
-    <Reference Include="SimplSharpTimerEventInterface.dll" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Data" />
@@ -171,8 +163,7 @@
     </VisualStudio>
   </ProjectExtensions>
   <PropertyGroup>
-    <PostBuildEvent>rem  S# preparation will execute after these operations</PostBuildEvent>
-    <PreBuildEvent>del "$(TargetDir)PepperDash_Core.*" /q
-</PreBuildEvent>
+    <PostBuildEvent>rem S# Pro preparation will execute after these operations</PostBuildEvent>
+    <PreBuildEvent>del "$(TargetDir)PepperDash_Core.*" /q</PreBuildEvent>
   </PropertyGroup>
 </Project>

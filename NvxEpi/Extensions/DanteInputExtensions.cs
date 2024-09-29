@@ -4,7 +4,7 @@ using Crestron.SimplSharpPro.DM.Streaming;
 using NvxEpi.Abstractions.Dante;
 using NvxEpi.Abstractions.InputSwitching;
 using PepperDash.Core;
-using PepperDash.Core.Logging;
+using PepperDash.Core;
 
 namespace NvxEpi.Extensions
 {

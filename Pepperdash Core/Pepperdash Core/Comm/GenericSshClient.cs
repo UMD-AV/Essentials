@@ -4,9 +4,8 @@ using Crestron.SimplSharp;
 using Crestron.SimplSharp.CrestronSockets;
 using Crestron.SimplSharp.Ssh;
 using Crestron.SimplSharp.Ssh.Common;
-using PepperDash.Core.Logging;
 
-namespace PepperDash.Core.Comm
+namespace PepperDash.Core
 {
 	/// <summary>
 	/// 

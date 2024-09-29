@@ -3,7 +3,6 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using Crestron.SimplSharp.CrestronSockets;
-using PepperDash.Core.Comm;
 
 namespace PepperDash.Core
 {

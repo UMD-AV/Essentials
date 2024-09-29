@@ -1,4 +1,4 @@
-﻿namespace PepperDash.Core.Comm
+﻿namespace PepperDash.Core
 {
     /// <summary>
     /// Crestron Control Methods for a comm object

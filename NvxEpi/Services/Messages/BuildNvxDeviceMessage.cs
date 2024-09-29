@@ -7,7 +7,7 @@ using PepperDash.Core;
 using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Devices;
 using Crestron.SimplSharpPro;
-using PepperDash.Core.Logging;
+using PepperDash.Core;
 using PepperDash.Essentials.Core.Queues;
 
 namespace NvxEpi.Services.Messages

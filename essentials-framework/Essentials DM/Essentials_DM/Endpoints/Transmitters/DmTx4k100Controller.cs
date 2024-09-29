@@ -7,12 +7,11 @@ using PepperDash.Core;
 using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Bridges;
 using Newtonsoft.Json;
-using PepperDash.Core.Logging;
+
 
 namespace PepperDash.Essentials.DM
 {
     using eVst = eX02VideoSourceType;
-    using eAst = eX02AudioSourceType;
 
     public class DmTx4k100Controller : BasicDmTxControllerBase, IRoutingInputsOutputs,
         IIROutputPorts, IComPorts, ICec

@@ -1,6 +1,3 @@
-﻿using System.Reflection;
-using Crestron.SimplSharp.Reflection;
-
 [assembly: System.Reflection.AssemblyTitle("PepperDash_Essentials_DM")]
 [assembly: System.Reflection.AssemblyCompany("PepperDash Technology Corp")]
 [assembly: System.Reflection.AssemblyProduct("PepperDashEssentials")]

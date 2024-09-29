@@ -6,7 +6,7 @@ using NvxEpi.Abstractions;
 using NvxEpi.Abstractions.Stream;
 using NvxEpi.Features.Routing;
 using PepperDash.Core;
-using PepperDash.Core.Logging;
+using PepperDash.Core;
 using PepperDash.Essentials.Core;
 
 namespace NvxEpi.Features.Streams.Video

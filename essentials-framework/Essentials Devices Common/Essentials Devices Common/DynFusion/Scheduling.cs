@@ -14,7 +14,7 @@ using System.Threading;
 using Crestron.SimplSharpPro.CrestronThread;
 using Crestron.SimplSharp.Net;
 using PepperDash.Core;
-using PepperDash.Core.Logging;
+using PepperDash.Core;
 using PepperDash.Essentials.Core;
 
 namespace DynFusion

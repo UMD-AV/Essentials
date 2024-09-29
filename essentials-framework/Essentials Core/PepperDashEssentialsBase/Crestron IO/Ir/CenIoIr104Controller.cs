@@ -1,15 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Crestron.SimplSharp;
+﻿using System.Collections.Generic;
 using Crestron.SimplSharpPro;
 using Crestron.SimplSharpPro.GeneralIO;
 using PepperDash.Essentials.Core.Config;
 
 
 using PepperDash.Core;
-using PepperDash.Core.Logging;
 
 namespace PepperDash.Essentials.Core
 {

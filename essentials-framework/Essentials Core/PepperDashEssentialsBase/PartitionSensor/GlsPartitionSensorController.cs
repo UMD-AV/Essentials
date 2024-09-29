@@ -11,7 +11,6 @@ using System;
 using System.Collections.Generic;
 using PepperDash.Essentials.Core.Config;
 using PepperDash_Essentials_Core.PartitionSensor;
-using PepperDash.Core.Logging;
 
 namespace PepperDash.Essentials.Core
 {

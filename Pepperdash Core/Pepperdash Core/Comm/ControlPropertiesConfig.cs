@@ -2,7 +2,7 @@
 using Crestron.SimplSharp;
 using Newtonsoft.Json;
 
-namespace PepperDash.Core.Comm
+namespace PepperDash.Core
 {
     /// <summary>
     /// 

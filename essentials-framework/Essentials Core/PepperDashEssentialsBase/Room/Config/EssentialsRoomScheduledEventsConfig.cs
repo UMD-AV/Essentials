@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using Crestron.SimplSharp.Scheduler;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
 using PepperDash.Essentials.Core;
 
 namespace PepperDash.Essentials.Room.Config

@@ -6,7 +6,7 @@ using Crestron.SimplSharp.CrestronXml;
 using Crestron.SimplSharp;
 using Crestron.SimplSharpPro.Fusion;
 using PepperDash.Core;
-using PepperDash.Core.Logging;
+using PepperDash.Core;
 
 namespace DynFusion
 {

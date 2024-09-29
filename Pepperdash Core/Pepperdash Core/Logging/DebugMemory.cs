@@ -2,7 +2,7 @@
 using Crestron.SimplSharp;
 using Newtonsoft.Json;
 
-namespace PepperDash.Core.Logging
+namespace PepperDash.Core
 {
     /// <summary>
     /// Class to persist current Debug settings across program restarts

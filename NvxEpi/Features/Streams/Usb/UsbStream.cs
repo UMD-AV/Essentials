@@ -11,7 +11,7 @@ using NvxEpi.Extensions;
 using NvxEpi.Features.Config;
 using NvxEpi.Services.Feedback;
 using PepperDash.Core;
-using PepperDash.Core.Logging;
+using PepperDash.Core;
 using PepperDash.Essentials.Core;
 
 namespace NvxEpi.Features.Streams.Usb

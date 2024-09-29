@@ -8,7 +8,7 @@ using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Bridges;
 using PepperDash.Core;
 using Crestron.SimplSharp;
-using PepperDash.Core.Logging;
+using PepperDash.Core;
 
 namespace VaddioBridgePlugin
 {
