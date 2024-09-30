@@ -1,4 +1,4 @@
-﻿using System.Reflection;
+using System.Reflection;
 using Crestron.SimplSharp.Reflection;
 
 [assembly: System.Reflection.AssemblyTitle("Essentials_Devices_Common")]
