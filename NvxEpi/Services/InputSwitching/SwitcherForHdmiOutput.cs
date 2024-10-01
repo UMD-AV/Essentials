@@ -24,17 +24,18 @@ namespace NvxEpi.Services.InputSwitching
             if (_device.IsTransmitter)
                 throw new NotSupportedException("transmitter");
 
-            var routingInput = input as DeviceInputEnum;
+            DeviceInputEnum routingInput = input as DeviceInputEnum;
             if (routingInput == null)
                 throw new InvalidCastException("routing input");
 
-            Debug.Console(1, _device, "Switching input on HdmiOutput: '{0}' : '{1}", routingInput.Name, type.ToString());
+            Debug.Console(1, _device, "Switching input on HdmiOutput: '{0}' : '{1}", routingInput.Name,
+                type.ToString());
 
             if (type.Is(eRoutingSignalType.AudioVideo))
             {
                 SwitchVideo(routingInput);
 
-                var deviceWithAudioSwitching = _device as ICurrentAudioInput;
+                ICurrentAudioInput deviceWithAudioSwitching = _device as ICurrentAudioInput;
                 if (deviceWithAudioSwitching != null)
                     deviceWithAudioSwitching.SetAudioToInputAutomatic();
 
@@ -62,7 +63,7 @@ namespace NvxEpi.Services.InputSwitching
 
         private void SwitchAudio(Enumeration<DeviceInputEnum> input)
         {
-            var deviceWithAudioSwitching = _device as ICurrentAudioInput;
+            ICurrentAudioInput deviceWithAudioSwitching = _device as ICurrentAudioInput;
             if (deviceWithAudioSwitching == null) return;
 
             if (input == DeviceInputEnum.Stream)

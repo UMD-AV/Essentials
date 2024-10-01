@@ -29,7 +29,7 @@ namespace PepperDash.Essentials.Core.Bridges
 
         public override void OffsetJoinNumbers(uint joinStart)
         {
-            var joinOffset = joinStart - 1;
+            uint joinOffset = joinStart - 1;
 
             IsOnline = IsOnline + joinOffset;
             CircuitNames = CircuitNames + joinOffset;

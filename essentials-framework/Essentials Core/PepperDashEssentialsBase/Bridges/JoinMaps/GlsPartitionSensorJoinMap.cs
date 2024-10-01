@@ -5,11 +5,9 @@ namespace PepperDash.Essentials.Core.Bridges.JoinMaps
 {
     public class GlsPartitionSensorJoinMap : JoinMapBaseAdvanced
     {
-
         #region Digital
 
-        [JoinName("IsOnline")]
-        public JoinDataComplete IsOnline = new JoinDataComplete(
+        [JoinName("IsOnline")] public JoinDataComplete IsOnline = new JoinDataComplete(
             new JoinData
             {
                 JoinNumber = 1,
@@ -22,9 +20,8 @@ namespace PepperDash.Essentials.Core.Bridges.JoinMaps
                 JoinType = eJoinType.Digital
             });
 
-        
-        [JoinName("Enable")]
-        public JoinDataComplete Enable = new JoinDataComplete(
+
+        [JoinName("Enable")] public JoinDataComplete Enable = new JoinDataComplete(
             new JoinData
             {
                 JoinNumber = 2,
@@ -37,8 +34,7 @@ namespace PepperDash.Essentials.Core.Bridges.JoinMaps
                 JoinType = eJoinType.Digital
             });
 
-        [JoinName("PartitionSensed")]
-        public JoinDataComplete PartitionSensed = new JoinDataComplete(
+        [JoinName("PartitionSensed")] public JoinDataComplete PartitionSensed = new JoinDataComplete(
             new JoinData
             {
                 JoinNumber = 3,
@@ -51,8 +47,7 @@ namespace PepperDash.Essentials.Core.Bridges.JoinMaps
                 JoinType = eJoinType.Digital
             });
 
-        [JoinName("PartitionNotSensed")]
-        public JoinDataComplete PartitionNotSensed = new JoinDataComplete(
+        [JoinName("PartitionNotSensed")] public JoinDataComplete PartitionNotSensed = new JoinDataComplete(
             new JoinData
             {
                 JoinNumber = 4,
@@ -65,8 +60,7 @@ namespace PepperDash.Essentials.Core.Bridges.JoinMaps
                 JoinType = eJoinType.Digital
             });
 
-        [JoinName("IncreaseSensitivity")]
-        public JoinDataComplete IncreaseSensitivity = new JoinDataComplete(
+        [JoinName("IncreaseSensitivity")] public JoinDataComplete IncreaseSensitivity = new JoinDataComplete(
             new JoinData
             {
                 JoinNumber = 6,
@@ -79,8 +73,7 @@ namespace PepperDash.Essentials.Core.Bridges.JoinMaps
                 JoinType = eJoinType.Digital
             });
 
-        [JoinName("DecreaseSensitivity")]
-        public JoinDataComplete DecreaseSensitivity = new JoinDataComplete(
+        [JoinName("DecreaseSensitivity")] public JoinDataComplete DecreaseSensitivity = new JoinDataComplete(
             new JoinData
             {
                 JoinNumber = 7,
@@ -91,14 +84,13 @@ namespace PepperDash.Essentials.Core.Bridges.JoinMaps
                 Description = "Sensor Decrease Sensitivity",
                 JoinCapabilities = eJoinCapabilities.FromSIMPL,
                 JoinType = eJoinType.Digital
-            });        
+            });
 
         #endregion
 
         #region Analog
 
-        [JoinName("Sensitivity")]
-        public JoinDataComplete Sensitivity = new JoinDataComplete(
+        [JoinName("Sensitivity")] public JoinDataComplete Sensitivity = new JoinDataComplete(
             new JoinData
             {
                 JoinNumber = 2,
@@ -116,8 +108,7 @@ namespace PepperDash.Essentials.Core.Bridges.JoinMaps
 
         #region Serial
 
-        [JoinName("Name")]
-        public JoinDataComplete Name = new JoinDataComplete(
+        [JoinName("Name")] public JoinDataComplete Name = new JoinDataComplete(
             new JoinData
             {
                 JoinNumber = 1,
@@ -140,7 +131,6 @@ namespace PepperDash.Essentials.Core.Bridges.JoinMaps
         public GlsPartitionSensorJoinMap(uint joinStart)
             : this(joinStart, typeof(GlsPartitionSensorJoinMap))
         {
-
         }
 
         /// <summary>
@@ -151,7 +141,6 @@ namespace PepperDash.Essentials.Core.Bridges.JoinMaps
         protected GlsPartitionSensorJoinMap(uint joinStart, Type type)
             : base(joinStart, type)
         {
-
         }
     }
 }
@@ -162,10 +151,9 @@ namespace PepperDash_Essentials_Core.Bridges.JoinMaps
     /// 
     /// </summary>
     [Obsolete("use PepperDash.Essentials.Core.Bridges.JoinMaps version")]
-	public class GlsPartitionSensorJoinMap:JoinMapBaseAdvanced
-	{
-        [JoinName("IsOnline")]
-        public JoinDataComplete IsOnline = new JoinDataComplete(
+    public class GlsPartitionSensorJoinMap : JoinMapBaseAdvanced
+    {
+        [JoinName("IsOnline")] public JoinDataComplete IsOnline = new JoinDataComplete(
             new JoinData
             {
                 JoinNumber = 1,
@@ -178,8 +166,7 @@ namespace PepperDash_Essentials_Core.Bridges.JoinMaps
                 JoinType = eJoinType.Digital
             });
 
-        [JoinName("Name")]
-        public JoinDataComplete Name = new JoinDataComplete(
+        [JoinName("Name")] public JoinDataComplete Name = new JoinDataComplete(
             new JoinData
             {
                 JoinNumber = 1,
@@ -192,8 +179,7 @@ namespace PepperDash_Essentials_Core.Bridges.JoinMaps
                 JoinType = eJoinType.Serial
             });
 
-        [JoinName("Enable")]
-        public JoinDataComplete Enable = new JoinDataComplete(
+        [JoinName("Enable")] public JoinDataComplete Enable = new JoinDataComplete(
             new JoinData
             {
                 JoinNumber = 2,
@@ -206,8 +192,7 @@ namespace PepperDash_Essentials_Core.Bridges.JoinMaps
                 JoinType = eJoinType.Digital
             });
 
-        [JoinName("PartitionSensed")]
-        public JoinDataComplete PartitionSensed = new JoinDataComplete(
+        [JoinName("PartitionSensed")] public JoinDataComplete PartitionSensed = new JoinDataComplete(
             new JoinData
             {
                 JoinNumber = 3,
@@ -220,8 +205,7 @@ namespace PepperDash_Essentials_Core.Bridges.JoinMaps
                 JoinType = eJoinType.Digital
             });
 
-        [JoinName("PartitionNotSensed")]
-        public JoinDataComplete PartitionNotSensed = new JoinDataComplete(
+        [JoinName("PartitionNotSensed")] public JoinDataComplete PartitionNotSensed = new JoinDataComplete(
             new JoinData
             {
                 JoinNumber = 4,
@@ -234,8 +218,7 @@ namespace PepperDash_Essentials_Core.Bridges.JoinMaps
                 JoinType = eJoinType.Digital
             });
 
-        [JoinName("IncreaseSensitivity")]
-        public JoinDataComplete IncreaseSensitivity = new JoinDataComplete(
+        [JoinName("IncreaseSensitivity")] public JoinDataComplete IncreaseSensitivity = new JoinDataComplete(
             new JoinData
             {
                 JoinNumber = 6,
@@ -248,8 +231,7 @@ namespace PepperDash_Essentials_Core.Bridges.JoinMaps
                 JoinType = eJoinType.Digital
             });
 
-        [JoinName("DecreaseSensitivity")]
-        public JoinDataComplete DecreaseSensitivity = new JoinDataComplete(
+        [JoinName("DecreaseSensitivity")] public JoinDataComplete DecreaseSensitivity = new JoinDataComplete(
             new JoinData
             {
                 JoinNumber = 7,
@@ -262,8 +244,7 @@ namespace PepperDash_Essentials_Core.Bridges.JoinMaps
                 JoinType = eJoinType.Digital
             });
 
-        [JoinName("Sensitivity")]
-        public JoinDataComplete Sensitivity = new JoinDataComplete(
+        [JoinName("Sensitivity")] public JoinDataComplete Sensitivity = new JoinDataComplete(
             new JoinData
             {
                 JoinNumber = 2,
@@ -283,7 +264,6 @@ namespace PepperDash_Essentials_Core.Bridges.JoinMaps
         public GlsPartitionSensorJoinMap(uint joinStart)
             : this(joinStart, typeof(GlsPartitionSensorJoinMap))
         {
-
         }
 
         /// <summary>
@@ -294,7 +274,6 @@ namespace PepperDash_Essentials_Core.Bridges.JoinMaps
         protected GlsPartitionSensorJoinMap(uint joinStart, Type type)
             : base(joinStart, type)
         {
-
         }
-	}
+    }
 }

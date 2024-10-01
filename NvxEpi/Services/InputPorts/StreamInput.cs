@@ -12,7 +12,7 @@ namespace NvxEpi.Services.InputPorts
             if (device.IsTransmitter)
                 throw new NotSupportedException("stream");
 
-            var port = new RoutingInputPort(
+            RoutingInputPort port = new RoutingInputPort(
                 DeviceInputEnum.Stream.Name,
                 eRoutingSignalType.AudioVideo,
                 eRoutingPortConnectionType.Streaming,

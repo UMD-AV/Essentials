@@ -1,26 +1,29 @@
 ﻿namespace PepperDash.Essentials.Core
 {
-	public class SubpageReferenceListItem
-	{
-		/// <summary>
-		/// The list that this lives in
-		/// </summary>
-		protected SubpageReferenceList Owner;
-		protected uint Index;
+    public class SubpageReferenceListItem
+    {
+        /// <summary>
+        /// The list that this lives in
+        /// </summary>
+        protected SubpageReferenceList Owner;
 
-		public SubpageReferenceListItem(uint index, SubpageReferenceList owner)
-		{
-			Index = index;
-			Owner = owner;
-		}
+        protected uint Index;
 
-		/// <summary>
-		/// Called by SRL to release all referenced objects
-		/// </summary>
-		public virtual void Clear()
-		{
-		}
+        public SubpageReferenceListItem(uint index, SubpageReferenceList owner)
+        {
+            Index = index;
+            Owner = owner;
+        }
 
-		public virtual void Refresh() { }
-	}
+        /// <summary>
+        /// Called by SRL to release all referenced objects
+        /// </summary>
+        public virtual void Clear()
+        {
+        }
+
+        public virtual void Refresh()
+        {
+        }
+    }
 }

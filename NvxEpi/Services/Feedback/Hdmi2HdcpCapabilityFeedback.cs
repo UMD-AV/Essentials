@@ -11,9 +11,9 @@ namespace NvxEpi.Services.Feedback
         public static StringFeedback GetFeedback(DmNvxBaseClass device)
         {
             if (device.HdmiIn == null || device.HdmiIn[2] == null)
-                return new StringFeedback(() => String.Empty);
+                return new StringFeedback(() => string.Empty);
 
-            var feedback = new StringFeedback(Key,
+            StringFeedback feedback = new StringFeedback(Key,
                 () => device.HdmiIn[2].HdcpCapabilityFeedback.ToString());
 
             device.HdmiIn[2].StreamChange += (stream, args) => feedback.FireUpdate();

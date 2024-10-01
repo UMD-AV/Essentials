@@ -33,15 +33,15 @@ namespace PepperDash.Essentials.Core
         public UsageTracking(Device parent)
         {
             Parent = parent;
-   
+
             InUseTracker = new InUseTracking();
 
             InUseTracker.InUseFeedback.OutputChange += InUseFeedback_OutputChange; //new EventHandler<EventArgs>();
         }
 
-        void  InUseFeedback_OutputChange(object sender, EventArgs e)
+        void InUseFeedback_OutputChange(object sender, EventArgs e)
         {
- 	        if(InUseTracker.InUseFeedback.BoolValue)
+            if (InUseTracker.InUseFeedback.BoolValue)
             {
                 StartDeviceUsage();
             }
@@ -74,14 +74,16 @@ namespace PepperDash.Essentials.Core
 
                 if (UsageStartTime != null)
                 {
-                    var timeUsed = UsageEndTime - UsageStartTime;
+                    TimeSpan timeUsed = UsageEndTime - UsageStartTime;
 
-                    var handler = DeviceUsageEnded;
+                    EventHandler<DeviceUsageEventArgs> handler = DeviceUsageEnded;
 
                     if (handler != null)
                     {
-                        Debug.Console(1, "Device Usage Ended for: {0} at {1}.  In use for {2} minutes.", Parent.Name, UsageEndTime, timeUsed.Minutes);
-                        handler(this, new DeviceUsageEventArgs() { UsageEndTime = UsageEndTime, MinutesUsed = timeUsed.Minutes });
+                        Debug.Console(1, "Device Usage Ended for: {0} at {1}.  In use for {2} minutes.", Parent.Name,
+                            UsageEndTime, timeUsed.Minutes);
+                        handler(this,
+                            new DeviceUsageEventArgs() { UsageEndTime = UsageEndTime, MinutesUsed = timeUsed.Minutes });
                     }
                 }
             }

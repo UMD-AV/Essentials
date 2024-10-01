@@ -15,16 +15,16 @@ namespace NvxEpi.Services.TieLines
     {
         public static void AddTieLinesForTransmitters(IEnumerable<INvxDevice> transmitters)
         {
-            foreach (var item in transmitters)
+            foreach (INvxDevice item in transmitters)
             {
-                var tx = item;
-                var outputPort = tx.OutputPorts[SwitcherForStreamOutput.Key];
+                INvxDevice tx = item;
+                RoutingOutputPort outputPort = tx.OutputPorts[SwitcherForStreamOutput.Key];
                 if (outputPort == null)
                     throw new NullReferenceException("outputPort");
 
-                var stream = tx as IStream;
+                IStream stream = tx as IStream;
 
-                var streamInput = NvxGlobalRouter
+                RoutingInputPort streamInput = NvxGlobalRouter
                     .Instance
                     .PrimaryStreamRouter
                     .InputPorts[PrimaryStreamRouter.GetInputPortKeyForTx(stream)];
@@ -38,16 +38,16 @@ namespace NvxEpi.Services.TieLines
 
         public static void AddTieLinesForReceivers(IEnumerable<INvxDevice> receivers)
         {
-            foreach (var item in receivers)
+            foreach (INvxDevice item in receivers)
             {
-                var rx = item;
-                var inputPort = rx.InputPorts[DeviceInputEnum.Stream.Name];
+                INvxDevice rx = item;
+                RoutingInputPort inputPort = rx.InputPorts[DeviceInputEnum.Stream.Name];
                 if (inputPort == null)
                     throw new NullReferenceException("inputPort");
 
-                var stream = rx as IStream;
+                IStream stream = rx as IStream;
 
-                var streamOutput = NvxGlobalRouter
+                RoutingOutputPort streamOutput = NvxGlobalRouter
                     .Instance
                     .PrimaryStreamRouter
                     .OutputPorts[PrimaryStreamRouter.GetOutputPortKeyForRx(stream)];
@@ -61,13 +61,13 @@ namespace NvxEpi.Services.TieLines
 
         public static void AddTieLinesForAudioTransmitters(IEnumerable<INvxDevice> transmitters)
         {
-            foreach (var secondaryAudio in transmitters.OfType<ISecondaryAudioStream>())
+            foreach (ISecondaryAudioStream secondaryAudio in transmitters.OfType<ISecondaryAudioStream>())
             {
-                var secondaryAudioPort = secondaryAudio.OutputPorts[SwitcherForSecondaryAudioOutput.Key];
+                RoutingOutputPort secondaryAudioPort = secondaryAudio.OutputPorts[SwitcherForSecondaryAudioOutput.Key];
                 if (secondaryAudioPort == null)
                     throw new NullReferenceException("secondaryAudioInput");
 
-                var secondaryAudioInput = NvxGlobalRouter
+                RoutingInputPort secondaryAudioInput = NvxGlobalRouter
                     .Instance
                     .SecondaryAudioRouter
                     .InputPorts[SecondaryAudioRouter.GetInputPortKeyForTx(secondaryAudio)];
@@ -75,19 +75,20 @@ namespace NvxEpi.Services.TieLines
                 if (secondaryAudioInput == null)
                     throw new NullReferenceException("SecondaryAudioStreamInput");
 
-                TieLineCollection.Default.Add(new TieLine(secondaryAudioPort, secondaryAudioInput, eRoutingSignalType.Audio));
+                TieLineCollection.Default.Add(new TieLine(secondaryAudioPort, secondaryAudioInput,
+                    eRoutingSignalType.Audio));
             }
         }
 
         public static void AddTieLinesForAudioReceivers(IEnumerable<INvxDevice> receivers)
         {
-            foreach (var secondaryAudio in receivers.OfType<ISecondaryAudioStream>())
+            foreach (ISecondaryAudioStream secondaryAudio in receivers.OfType<ISecondaryAudioStream>())
             {
-                var secondaryAudioPort = secondaryAudio.InputPorts[DeviceInputEnum.SecondaryAudio.Name];
+                RoutingInputPort secondaryAudioPort = secondaryAudio.InputPorts[DeviceInputEnum.SecondaryAudio.Name];
                 if (secondaryAudioPort == null)
                     throw new NullReferenceException("SecondaryRouterInput");
 
-                var secondaryAudioStreamOutput = NvxGlobalRouter
+                RoutingOutputPort secondaryAudioStreamOutput = NvxGlobalRouter
                     .Instance
                     .SecondaryAudioRouter
                     .OutputPorts[SecondaryAudioRouter.GetOutputPortKeyForRx(secondaryAudio)];
@@ -95,7 +96,8 @@ namespace NvxEpi.Services.TieLines
                 if (secondaryAudioStreamOutput == null)
                     throw new NullReferenceException("SecondaryRouterStreamInput");
 
-                TieLineCollection.Default.Add(new TieLine(secondaryAudioStreamOutput, secondaryAudioPort, eRoutingSignalType.Audio));
+                TieLineCollection.Default.Add(new TieLine(secondaryAudioStreamOutput, secondaryAudioPort,
+                    eRoutingSignalType.Audio));
             }
         }
     }

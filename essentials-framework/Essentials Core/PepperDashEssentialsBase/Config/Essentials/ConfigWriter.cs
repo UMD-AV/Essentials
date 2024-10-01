@@ -18,7 +18,7 @@ namespace PepperDash.Essentials.Core.Config
         public const long WriteTimeout = 30000;
 
         public static CTimer WriteTimer;
-		static CCriticalSection fileLock = new CCriticalSection();
+        static CCriticalSection fileLock = new CCriticalSection();
 
         /// <summary>
         /// Updates the config properties of a device
@@ -31,7 +31,7 @@ namespace PepperDash.Essentials.Core.Config
             bool success = false;
 
             // Get the current device config
-            var deviceConfig = ConfigReader.ConfigObject.Devices.FirstOrDefault(d => d.Key.Equals(deviceKey));
+            DeviceConfig deviceConfig = ConfigReader.ConfigObject.Devices.FirstOrDefault(d => d.Key.Equals(deviceKey));
 
             if (deviceConfig != null)
             {
@@ -52,7 +52,7 @@ namespace PepperDash.Essentials.Core.Config
         {
             bool success = false;
 
-            var deviceConfigIndex = ConfigReader.ConfigObject.Devices.FindIndex(d => d.Key.Equals(config.Key));
+            int deviceConfigIndex = ConfigReader.ConfigObject.Devices.FindIndex(d => d.Key.Equals(config.Key));
 
             if (deviceConfigIndex >= 0)
             {
@@ -72,9 +72,9 @@ namespace PepperDash.Essentials.Core.Config
         {
             bool success = false;
 
-			var roomConfigIndex = ConfigReader.ConfigObject.Rooms.FindIndex(d => d.Key.Equals(config.Key));
+            int roomConfigIndex = ConfigReader.ConfigObject.Rooms.FindIndex(d => d.Key.Equals(config.Key));
 
-			if (roomConfigIndex >= 0)
+            if (roomConfigIndex >= 0)
             {
                 ConfigReader.ConfigObject.Rooms[roomConfigIndex] = config;
 
@@ -107,9 +107,10 @@ namespace PepperDash.Essentials.Core.Config
         /// <returns></returns>
         private static void WriteConfigFile(object o)
         {
-            var filePath = Global.FilePathPrefix + LocalConfigFolder + Global.DirectorySeparator + "configurationFile.json";
+            string filePath = Global.FilePathPrefix + LocalConfigFolder + Global.DirectorySeparator +
+                              "configurationFile.json";
 
-            var configData = JsonConvert.SerializeObject(ConfigReader.ConfigObject);
+            string configData = JsonConvert.SerializeObject(ConfigReader.ConfigObject);
 
             WriteFile(filePath, configData);
         }
@@ -151,10 +152,7 @@ namespace PepperDash.Essentials.Core.Config
             {
                 if (fileLock != null && !fileLock.Disposed)
                     fileLock.Leave();
-
             }
         }
-
-
     }
 }

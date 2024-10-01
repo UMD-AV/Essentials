@@ -34,7 +34,7 @@ namespace PepperDash.Essentials.Core.Devices
 
             CustomSetConfig(config);
 
-            var handler = ConfigChanged;
+            EventHandler<EventArgs> handler = ConfigChanged;
             if (handler != null)
             {
                 handler(this, new EventArgs());
@@ -46,7 +46,6 @@ namespace PepperDash.Essentials.Core.Devices
             if (!string.IsNullOrEmpty(config.Name))
                 Name = config.Name;
         }
-
 
 
         /// <summary>

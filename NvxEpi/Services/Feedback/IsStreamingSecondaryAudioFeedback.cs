@@ -10,10 +10,11 @@ namespace NvxEpi.Services.Feedback
 
         public static BoolFeedback GetFeedbackForTransmitter(DmNvxBaseClass device)
         {
-            var feedback = new BoolFeedback(Key,
+            BoolFeedback feedback = new BoolFeedback(Key,
                 () =>
-                    device.DmNaxRouting.DmNaxTransmit.StreamStatusFeedback == DmNvxBaseClass.DmNvx35xDmNaxTransmitReceiveBase.eStreamStatus.StreamStarted);
-            
+                    device.DmNaxRouting.DmNaxTransmit.StreamStatusFeedback ==
+                    DmNvxBaseClass.DmNvx35xDmNaxTransmitReceiveBase.eStreamStatus.StreamStarted);
+
             device.BaseEvent += (@base, args) => feedback.FireUpdate();
             if (device.SecondaryAudio != null)
                 device.SecondaryAudio.SecondaryAudioChange += (sender, args) => feedback.FireUpdate();
@@ -33,10 +34,11 @@ namespace NvxEpi.Services.Feedback
 
         public static BoolFeedback GetFeedbackForReceiver(DmNvxBaseClass device)
         {
-            var feedback = new BoolFeedback(Key,
+            BoolFeedback feedback = new BoolFeedback(Key,
                 () =>
-                    device.DmNaxRouting.DmNaxReceive.StreamStatusFeedback == DmNvxBaseClass.DmNvx35xDmNaxTransmitReceiveBase.eStreamStatus.StreamStarted);
-            
+                    device.DmNaxRouting.DmNaxReceive.StreamStatusFeedback ==
+                    DmNvxBaseClass.DmNvx35xDmNaxTransmitReceiveBase.eStreamStatus.StreamStarted);
+
             device.BaseEvent += (@base, args) => feedback.FireUpdate();
             if (device.SecondaryAudio != null)
                 device.SecondaryAudio.SecondaryAudioChange += (sender, args) => feedback.FireUpdate();

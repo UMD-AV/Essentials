@@ -10,7 +10,7 @@ namespace NvxEpi.Services.Feedback
 
         public static StringFeedback GetFeedbackForTransmitter(DmNvxBaseClass device)
         {
-            var feedback = new StringFeedback(Key,
+            StringFeedback feedback = new StringFeedback(Key,
                 () => device.DmNaxRouting.DmNaxTransmit.MulticastAddressFeedback.StringValue);
 
             device.DmNaxRouting.DmNaxTransmit.DmNaxStreamChange += (@base, args) => feedback.FireUpdate();
@@ -20,7 +20,7 @@ namespace NvxEpi.Services.Feedback
 
         public static StringFeedback GetFeedbackForReceiver(DmNvxBaseClass device)
         {
-            var feedback = new StringFeedback(Key,
+            StringFeedback feedback = new StringFeedback(Key,
                 () => device.DmNaxRouting.DmNaxReceive.MulticastAddressFeedback.StringValue);
 
             device.DmNaxRouting.DmNaxReceive.DmNaxStreamChange += (@base, args) => feedback.FireUpdate();

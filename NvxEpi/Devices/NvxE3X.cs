@@ -19,10 +19,10 @@ using HdmiInput = NvxEpi.Features.Hdmi.Input.HdmiInput;
 
 namespace NvxEpi.Devices
 {
-    public class NvxE3X : 
-        NvxBaseDevice, 
-        INvxE3XDeviceWithHardware, 
-        IComPorts, 
+    public class NvxE3X :
+        NvxBaseDevice,
+        INvxE3XDeviceWithHardware,
+        IComPorts,
         IIROutputPorts,
         IHdmiInput,
         IRouting
@@ -38,7 +38,7 @@ namespace NvxEpi.Devices
 
         public override bool CustomActivate()
         {
-            var hardware = base.Hardware as DmNvxE3x;
+            DmNvxE3x hardware = base.Hardware as DmNvxE3x;
             if (hardware == null)
                 throw new Exception("hardware built doesn't match");
 
@@ -91,43 +91,41 @@ namespace NvxEpi.Devices
             get { return _hdmiInputs.CurrentResolution; }
         }
 
-        public ReadOnlyDictionary<uint, IntFeedback> AudioChannels {
-            get
-            {
-                return _hdmiInputs.AudioChannels;
-            }
+        public ReadOnlyDictionary<uint, IntFeedback> AudioChannels
+        {
+            get { return _hdmiInputs.AudioChannels; }
         }
 
-        public ReadOnlyDictionary<uint, StringFeedback> AudioFormat {
-            get
-            {
-                return _hdmiInputs.AudioFormat;
-            }
+        public ReadOnlyDictionary<uint, StringFeedback> AudioFormat
+        {
+            get { return _hdmiInputs.AudioFormat; }
         }
 
-        public ReadOnlyDictionary<uint, StringFeedback> ColorSpace {
-            get
-            {
-                return _hdmiInputs.ColorSpace;
-            }
+        public ReadOnlyDictionary<uint, StringFeedback> ColorSpace
+        {
+            get { return _hdmiInputs.ColorSpace; }
         }
 
-        public ReadOnlyDictionary<uint, StringFeedback> HdrType {
-            get
-            {
-                return _hdmiInputs.HdrType;
-            }
+        public ReadOnlyDictionary<uint, StringFeedback> HdrType
+        {
+            get { return _hdmiInputs.HdrType; }
         }
 
-        public ReadOnlyDictionary<uint, StringFeedback> HdcpCapabilityString { get { return _hdmiInputs.HdcpCapabilityString; } }
+        public ReadOnlyDictionary<uint, StringFeedback> HdcpCapabilityString
+        {
+            get { return _hdmiInputs.HdcpCapabilityString; }
+        }
 
-        public ReadOnlyDictionary<uint, StringFeedback> HdcpSupport { get { return _hdmiInputs.HdcpSupport; } }
+        public ReadOnlyDictionary<uint, StringFeedback> HdcpSupport
+        {
+            get { return _hdmiInputs.HdcpSupport; }
+        }
 
         public void ExecuteSwitch(object inputSelector, object outputSelector, eRoutingSignalType signalType)
         {
             try
             {
-                var switcher = outputSelector as IHandleInputSwitch;
+                IHandleInputSwitch switcher = outputSelector as IHandleInputSwitch;
                 if (switcher == null)
                     throw new NullReferenceException("outputSelector");
 
@@ -148,7 +146,7 @@ namespace NvxEpi.Devices
 
         public override void LinkToApi(BasicTriList trilist, uint joinStart, string joinMapKey, EiscApiAdvanced bridge)
         {
-            var deviceBridge = new NvxDeviceBridge(this);
+            NvxDeviceBridge deviceBridge = new NvxDeviceBridge(this);
             deviceBridge.LinkToApi(trilist, joinStart, joinMapKey, bridge);
         }
 

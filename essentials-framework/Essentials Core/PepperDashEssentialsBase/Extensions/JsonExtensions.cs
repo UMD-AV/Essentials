@@ -22,6 +22,7 @@ namespace PepperDash.Essentials.Core
                     {
                         matches.Add(child.Value);
                     }
+
                     FindTokens(child.Value, name, matches);
                 }
             }

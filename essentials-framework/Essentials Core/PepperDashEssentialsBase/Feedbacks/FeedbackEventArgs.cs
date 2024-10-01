@@ -6,13 +6,12 @@ namespace PepperDash.Essentials.Core
     {
         public bool BoolValue { get; private set; }
         public int IntValue { get; private set; }
+
         public ushort UShortValue
         {
-            get
-            {
-                return (ushort)IntValue;
-            }
+            get { return (ushort)IntValue; }
         }
+
         public string StringValue { get; private set; }
         public eFeedbackEventType Type { get; private set; }
 

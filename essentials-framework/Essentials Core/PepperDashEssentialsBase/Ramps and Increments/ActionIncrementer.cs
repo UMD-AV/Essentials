@@ -31,7 +31,8 @@ namespace PepperDash.Essentials.Core
         /// <param name="repeatTime"></param>
         /// <param name="setAction">Action that will be called when this needs to set the destination value</param>
         /// <param name="getFunc">Func that is called to get the current value</param>
-        public ActionIncrementer(int changeAmount, int minValue, int maxValue, uint repeatDelay, uint repeatTime, Action<int> setAction, Func<int> getFunc)
+        public ActionIncrementer(int changeAmount, int minValue, int maxValue, uint repeatDelay, uint repeatTime,
+            Action<int> setAction, Func<int> getFunc)
         {
             SetAction = setAction;
             GetFunc = getFunc;
@@ -58,6 +59,7 @@ namespace PepperDash.Essentials.Core
             {
                 TimerMutex.ReleaseMutex();
             }
+
             Go(ChangeAmount);
         }
 
@@ -75,6 +77,7 @@ namespace PepperDash.Essentials.Core
             {
                 TimerMutex.ReleaseMutex();
             }
+
             Go(-ChangeAmount);
         }
 
@@ -113,7 +116,7 @@ namespace PepperDash.Essentials.Core
                 Stop();
                 return;
             }
-            
+
             TimerMutex.WaitForMutex();
             try
             {
@@ -150,6 +153,7 @@ namespace PepperDash.Essentials.Core
             }
             else
                 levelOut = levelIn;
+
             return isAtLimit;
         }
     }

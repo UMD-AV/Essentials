@@ -23,7 +23,6 @@ namespace PepperDash.Essentials.Core.CrestronIO
             DeviceConfig config)
             : base(key, config.Name)
         {
-
             AddPreActivationAction(() =>
             {
                 _device = preActivationFunc(config);
@@ -58,9 +57,9 @@ namespace PepperDash.Essentials.Core.CrestronIO
 
         public override void LinkToApi(BasicTriList trilist, uint joinStart, string joinMapKey, EiscApiAdvanced bridge)
         {
-            var joinMap = new C2nRthsControllerJoinMap(joinStart);
+            C2nRthsControllerJoinMap joinMap = new C2nRthsControllerJoinMap(joinStart);
 
-            var joinMapSerialized = JoinMapHelper.GetSerializedJoinMapForDevice(joinMapKey);
+            string joinMapSerialized = JoinMapHelper.GetSerializedJoinMapForDevice(joinMapKey);
 
             if (!string.IsNullOrEmpty(joinMapSerialized))
                 joinMap = JsonConvert.DeserializeObject<C2nRthsControllerJoinMap>(joinMapSerialized);
@@ -71,14 +70,14 @@ namespace PepperDash.Essentials.Core.CrestronIO
             }
             else
             {
-                Debug.Console(0, this, "Please update config to use 'eiscapiadvanced' to get all join map features for this device.");
+                Debug.Console(0, this,
+                    "Please update config to use 'eiscapiadvanced' to get all join map features for this device.");
             }
 
             Debug.Console(1, this, "Linking to Trilist '{0}'", trilist.ID.ToString("X"));
 
 
             trilist.SetBoolSigAction(joinMap.TemperatureFormat.JoinNumber, SetTemperatureFormat);
-
 
 
             IsOnline.LinkInputSig(trilist.BooleanInput[joinMap.IsOnline.JoinNumber]);
@@ -108,26 +107,29 @@ namespace PepperDash.Essentials.Core.CrestronIO
 
         private static C2nRths GetC2nRthsDevice(DeviceConfig dc)
         {
-            var control = CommFactory.GetControlPropertiesConfig(dc);
-            var cresnetId = control.CresnetIdInt;
-            var branchId = control.ControlPortNumber;
-            var parentKey = string.IsNullOrEmpty(control.ControlPortDevKey) ? "processor" : control.ControlPortDevKey;
+            EssentialsControlPropertiesConfig control = CommFactory.GetControlPropertiesConfig(dc);
+            uint cresnetId = control.CresnetIdInt;
+            uint branchId = control.ControlPortNumber;
+            string parentKey = string.IsNullOrEmpty(control.ControlPortDevKey) ? "processor" : control.ControlPortDevKey;
 
             if (parentKey.Equals("processor", StringComparison.CurrentCultureIgnoreCase))
             {
                 Debug.Console(0, "Device {0} is a valid cresnet master - creating new C2nRths", parentKey);
                 return new C2nRths(cresnetId, Global.ControlSystem);
             }
-            var cresnetBridge = DeviceManager.GetDeviceForKey(parentKey) as IHasCresnetBranches;
+
+            IHasCresnetBranches cresnetBridge = DeviceManager.GetDeviceForKey(parentKey) as IHasCresnetBranches;
 
             if (cresnetBridge != null)
             {
                 Debug.Console(0, "Device {0} is a valid cresnet master - creating new C2nRths", parentKey);
                 return new C2nRths(cresnetId, cresnetBridge.CresnetBranches[branchId]);
             }
+
             Debug.Console(0, "Device {0} is not a valid cresnet master", parentKey);
             return null;
         }
+
         #endregion
 
         public class C2nRthsControllerFactory : EssentialsDeviceFactory<C2nRthsController>

@@ -19,27 +19,31 @@ namespace NvxEpi.Application.Services
 
         public void SetAudioFollowsVideoTrue()
         {
-            foreach (var transmitter in _transmitters)
+            foreach (KeyValuePair<int, INvxDevice> transmitter in _transmitters)
             {
-                var tx = transmitter.Value;
+                INvxDevice tx = transmitter.Value;
 
-                foreach (var tieLine in TieLineCollection
-                    .Default
-                    .Where(tieLine => tieLine.DestinationPort.ParentDevice.Key.Equals(NvxGlobalRouter.Instance.PrimaryStreamRouter.Key))
-                    .Where(tieLine => tieLine.SourcePort.ParentDevice.Key.Equals(tx.Key)))
+                foreach (TieLine tieLine in TieLineCollection
+                             .Default
+                             .Where(tieLine =>
+                                 tieLine.DestinationPort.ParentDevice.Key.Equals(NvxGlobalRouter.Instance
+                                     .PrimaryStreamRouter.Key))
+                             .Where(tieLine => tieLine.SourcePort.ParentDevice.Key.Equals(tx.Key)))
                 {
                     tieLine.OverrideType = eRoutingSignalType.AudioVideo;
                 }
             }
 
-            foreach (var receiver in _receivers)
+            foreach (KeyValuePair<int, INvxDevice> receiver in _receivers)
             {
-                var rx = receiver.Value;
+                INvxDevice rx = receiver.Value;
 
-                foreach (var tieLine in TieLineCollection
-                    .Default
-                    .Where(tieLine => tieLine.SourcePort.ParentDevice.Key.Equals(NvxGlobalRouter.Instance.PrimaryStreamRouter.Key))
-                    .Where(tieLine => tieLine.DestinationPort.ParentDevice.Key.Equals(rx.Key)))
+                foreach (TieLine tieLine in TieLineCollection
+                             .Default
+                             .Where(tieLine =>
+                                 tieLine.SourcePort.ParentDevice.Key.Equals(NvxGlobalRouter.Instance.PrimaryStreamRouter
+                                     .Key))
+                             .Where(tieLine => tieLine.DestinationPort.ParentDevice.Key.Equals(rx.Key)))
                 {
                     tieLine.OverrideType = eRoutingSignalType.AudioVideo;
                 }
@@ -48,27 +52,31 @@ namespace NvxEpi.Application.Services
 
         public void SetAudioFollowsVideoFalse()
         {
-            foreach (var transmitter in _transmitters)
+            foreach (KeyValuePair<int, INvxDevice> transmitter in _transmitters)
             {
-                var tx = transmitter.Value;
+                INvxDevice tx = transmitter.Value;
 
-                foreach (var tieLine in TieLineCollection
-                    .Default
-                    .Where(tieLine => tieLine.DestinationPort.ParentDevice.Key.Equals(NvxGlobalRouter.Instance.PrimaryStreamRouter.Key))
-                    .Where(tieLine => tieLine.SourcePort.ParentDevice.Key.Equals(tx.Key)))
+                foreach (TieLine tieLine in TieLineCollection
+                             .Default
+                             .Where(tieLine =>
+                                 tieLine.DestinationPort.ParentDevice.Key.Equals(NvxGlobalRouter.Instance
+                                     .PrimaryStreamRouter.Key))
+                             .Where(tieLine => tieLine.SourcePort.ParentDevice.Key.Equals(tx.Key)))
                 {
                     tieLine.OverrideType = eRoutingSignalType.Video;
                 }
             }
 
-            foreach (var receiver in _receivers)
+            foreach (KeyValuePair<int, INvxDevice> receiver in _receivers)
             {
-                var rx = receiver.Value;
+                INvxDevice rx = receiver.Value;
 
-                foreach (var tieLine in TieLineCollection
-                    .Default
-                    .Where(tieLine => tieLine.SourcePort.ParentDevice.Key.Equals(NvxGlobalRouter.Instance.PrimaryStreamRouter.Key))
-                    .Where(tieLine => tieLine.DestinationPort.ParentDevice.Key.Equals(rx.Key)))
+                foreach (TieLine tieLine in TieLineCollection
+                             .Default
+                             .Where(tieLine =>
+                                 tieLine.SourcePort.ParentDevice.Key.Equals(NvxGlobalRouter.Instance.PrimaryStreamRouter
+                                     .Key))
+                             .Where(tieLine => tieLine.DestinationPort.ParentDevice.Key.Equals(rx.Key)))
                 {
                     tieLine.OverrideType = eRoutingSignalType.Video;
                 }

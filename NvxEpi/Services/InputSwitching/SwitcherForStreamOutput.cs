@@ -25,20 +25,21 @@ namespace NvxEpi.Services.InputSwitching
             if (!_device.IsTransmitter)
                 throw new NotSupportedException("receiver");
 
-            var routingInput = input as DeviceInputEnum;
+            DeviceInputEnum routingInput = input as DeviceInputEnum;
             if (routingInput == null)
                 throw new InvalidCastException("routing input");
 
             if (routingInput == DeviceInputEnum.NoSwitch)
                 return;
 
-            Debug.Console(1, _device, "Switching input on Stream Output: '{0}' : '{1}'", routingInput.Name, type.ToString());
+            Debug.Console(1, _device, "Switching input on Stream Output: '{0}' : '{1}'", routingInput.Name,
+                type.ToString());
             if (type.Is(eRoutingSignalType.AudioVideo))
             {
                 SwitchVideo(routingInput);
 
-                var deviceWithAudioSwitching = _device as ICurrentAudioInput;
-                if (deviceWithAudioSwitching != null) 
+                ICurrentAudioInput deviceWithAudioSwitching = _device as ICurrentAudioInput;
+                if (deviceWithAudioSwitching != null)
                     deviceWithAudioSwitching.SetAudioToInputAutomatic();
 
                 return;
@@ -65,7 +66,7 @@ namespace NvxEpi.Services.InputSwitching
 
         private void SwitchAudio(Enumeration<DeviceInputEnum> input)
         {
-            var deviceWithAudioSwitching = _device as ICurrentAudioInput;
+            ICurrentAudioInput deviceWithAudioSwitching = _device as ICurrentAudioInput;
             if (deviceWithAudioSwitching == null) return;
 
             if (input == DeviceInputEnum.PrimaryAudio)
@@ -88,10 +89,10 @@ namespace NvxEpi.Services.InputSwitching
         public static void AddRoutingPort(ICurrentVideoInput parent)
         {
             parent.OutputPorts.Add(new RoutingOutputPort(
-                Key, 
-                eRoutingSignalType.AudioVideo, 
+                Key,
+                eRoutingSignalType.AudioVideo,
                 eRoutingPortConnectionType.Streaming,
-                new SwitcherForStreamOutput(parent), 
+                new SwitcherForStreamOutput(parent),
                 parent));
         }
     }

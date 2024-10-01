@@ -20,8 +20,8 @@ namespace NvxEpi.Features.Audio
 
             VolumeLevelFeedback = new IntFeedback("Volume", () =>
             {
-                var volume = _device.Control.AnalogAudioOutputVolumeFeedback.ShortValue;
-                var result = MapVolume(volume);
+                short volume = _device.Control.AnalogAudioOutputVolumeFeedback.ShortValue;
+                int result = MapVolume(volume);
                 return result;
             });
 
@@ -40,8 +40,8 @@ namespace NvxEpi.Features.Audio
             const float outputMin = 0;
             const float outputMax = ushort.MaxValue;
 
-            var normalized = (level - inputMin) / (inputMax - inputMin);
-            var mappedValue = (int)(normalized * (outputMax - outputMin) + outputMin);
+            float normalized = (level - inputMin) / (inputMax - inputMin);
+            int mappedValue = (int)(normalized * (outputMax - outputMin) + outputMin);
 
             return mappedValue;
         }
@@ -70,8 +70,8 @@ namespace NvxEpi.Features.Audio
 
         public void SetVolume(ushort level)
         {
-            var volume = CrestronEnvironment.ScaleWithLimits(level, ushort.MaxValue, ushort.MinValue, 240, -800);
-            _device.Control.AnalogAudioOutputVolume.ShortValue = (short) volume;
+            int volume = CrestronEnvironment.ScaleWithLimits(level, ushort.MaxValue, ushort.MinValue, 240, -800);
+            _device.Control.AnalogAudioOutputVolume.ShortValue = (short)volume;
         }
 
         public void MuteOn()

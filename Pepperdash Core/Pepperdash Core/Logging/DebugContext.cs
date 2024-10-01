@@ -36,19 +36,22 @@ namespace PepperDash.Core
         /// <returns></returns>
         public static DebugContext GetDebugContext(string key)
         {
-            var context = Contexts.FirstOrDefault(c => c.Key.Equals(key, StringComparison.OrdinalIgnoreCase));
+            DebugContext context = Contexts.FirstOrDefault(c => c.Key.Equals(key, StringComparison.OrdinalIgnoreCase));
             if (context == null)
             {
                 context = new DebugContext(key);
                 Contexts.Add(context);
             }
+
             return context;
         }
 
         /// <summary>
         /// Do not use.  For S+ access.
         /// </summary>
-        public DebugContext() { }
+        public DebugContext()
+        {
+        }
 
         DebugContext(string key)
         {
@@ -79,6 +82,7 @@ namespace PepperDash.Core
                     SaveTimer.Stop();
                     SaveTimer = null;
                 }
+
                 Console(0, "Saving debug settings");
                 SaveMemory();
             }
@@ -150,7 +154,7 @@ namespace PepperDash.Core
         {
             if (SaveData.Level >= level)
             {
-                var str = string.Format("[{0}] {1}", dev.Key, string.Format(format, items));
+                string str = string.Format("[{0}] {1}", dev.Key, string.Format(format, items));
                 Console(level, str);
                 LogError(errorLogLevel, str);
             }
@@ -161,7 +165,7 @@ namespace PepperDash.Core
         {
             if (SaveData.Level >= level)
             {
-                var str = string.Format(format, items);
+                string str = string.Format(format, items);
                 Console(level, str);
                 LogError(errorLogLevel, str);
             }
@@ -206,7 +210,7 @@ namespace PepperDash.Core
         {
             using (StreamWriter sw = new StreamWriter(GetMemoryFileName()))
             {
-                var json = JsonConvert.SerializeObject(SaveData);
+                string json = JsonConvert.SerializeObject(SaveData);
                 sw.Write(json);
                 sw.Flush();
             }
@@ -217,12 +221,12 @@ namespace PepperDash.Core
         /// </summary>
         void LoadMemory()
         {
-            var file = GetMemoryFileName();
+            string file = GetMemoryFileName();
             if (File.Exists(file))
             {
                 using (StreamReader sr = new StreamReader(file))
                 {
-                    var data = JsonConvert.DeserializeObject<DebugContextSaveData>(sr.ReadToEnd());
+                    DebugContextSaveData data = JsonConvert.DeserializeObject<DebugContextSaveData>(sr.ReadToEnd());
                     if (data != null)
                     {
                         SaveData = data;

@@ -34,7 +34,8 @@ namespace PepperDash.Essentials.Core.Devices
                 {
                     for (uint i = 1; i <= Processor.NumberOfRelayPorts; i++)
                     {
-                        var relay = new GenericRelayDevice(string.Format("{0}-relay-{1}", this.Key, i), Processor.RelayPorts[i]);
+                        GenericRelayDevice relay = new GenericRelayDevice(string.Format("{0}-relay-{1}", this.Key, i),
+                            Processor.RelayPorts[i]);
                         SwitchedOutputs.Add(i, relay);
                     }
                 }

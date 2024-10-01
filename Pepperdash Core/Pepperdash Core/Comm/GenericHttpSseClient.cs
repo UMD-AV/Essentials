@@ -6,28 +6,16 @@ using Crestron.SimplSharp.Net.Http;
 
 namespace PepperDash.Core
 {
-    public class GenericHttpSseClient : ICommunicationReceiver 
+    public class GenericHttpSseClient : ICommunicationReceiver
     {
         public event EventHandler<GenericCommMethodReceiveBytesArgs> BytesReceived;
         public event EventHandler<GenericCommMethodReceiveTextArgs> TextReceived;
 
-        public bool IsConnected
-        {
-            get;
-            private set;
-        }
+        public bool IsConnected { get; private set; }
 
-        public string Key
-        {
-            get;
-            private set;
-        }
+        public string Key { get; private set; }
 
-        public string Name
-        {
-            get;
-            private set;
-        }
+        public string Name { get; private set; }
 
         public string Url { get; set; }
 
@@ -52,11 +40,11 @@ namespace PepperDash.Core
 
         public void InitiateConnection(string url)
         {
-            CrestronInvoke.BeginInvoke(o => 
+            CrestronInvoke.BeginInvoke(o =>
             {
                 try
                 {
-                    if(string.IsNullOrEmpty(url))
+                    if (string.IsNullOrEmpty(url))
                     {
                         Debug.Console(0, this, "Error connecting to Server.  No URL specified");
                         return;
@@ -95,7 +83,6 @@ namespace PepperDash.Core
 
         private void GetRequestStreamCallback(HttpClientRequest request, HTTP_CALLBACK_ERROR error, object status)
         {
-
             try
             {
                 // End the the async request operation and return the data stream
@@ -125,7 +112,7 @@ namespace PepperDash.Core
             try
             {
                 // This closes up the GetResponseStream async
-                var response = request.ThisClient.EndGetResponseStream(request);
+                HttpClientResponse response = request.ThisClient.EndGetResponseStream(request);
 
                 response.DataConnection.OnBytesReceived += new EventHandler(DataConnection_OnBytesReceived);
 
@@ -145,10 +132,9 @@ namespace PepperDash.Core
                 Crestron.SimplSharp.CrestronIO.IAsyncResult asyncResult = null;
                 do
                 {
-                    asyncResult = streamResponse.BeginRead(asyncState.BufferRead, 0, RequestState.BUFFER_SIZE, 
+                    asyncResult = streamResponse.BeginRead(asyncState.BufferRead, 0, RequestState.BUFFER_SIZE,
                         new Crestron.SimplSharp.CrestronIO.AsyncCallback(ReadCallBack), asyncState);
-                }
-                while (asyncResult.CompletedSynchronously && !asyncState.Done);
+                } while (asyncResult.CompletedSynchronously && !asyncState.Done);
 
                 //Console.WriteLine("\r\nExit Response Callback\r\n");
             }
@@ -177,18 +163,18 @@ namespace PepperDash.Core
             // Read the HTML page and then print it to the console. 
             if (read > 0)
             {
-                var bytes = requestState.BufferRead;
+                byte[] bytes = requestState.BufferRead;
 
-                var bytesHandler = BytesReceived;
+                EventHandler<GenericCommMethodReceiveBytesArgs> bytesHandler = BytesReceived;
                 if (bytesHandler != null)
                     bytesHandler(this, new GenericCommMethodReceiveBytesArgs(bytes));
-                var textHandler = TextReceived;
+                EventHandler<GenericCommMethodReceiveTextArgs> textHandler = TextReceived;
                 if (textHandler != null)
                 {
-                    var str = Encoding.GetEncoding(28591).GetString(bytes, 0, bytes.Length);
+                    string str = Encoding.GetEncoding(28591).GetString(bytes, 0, bytes.Length);
                     textHandler(this, new GenericCommMethodReceiveTextArgs(str));
                 }
-                           
+
                 //requestState.RequestData.Append(Encoding.ASCII.GetString(requestState.BufferRead, 0, read));
                 //CrestronConsole.PrintLine(requestState.RequestData.ToString());
 
@@ -203,10 +189,9 @@ namespace PepperDash.Core
                 Crestron.SimplSharp.CrestronIO.IAsyncResult asynchronousResult;
                 do
                 {
-                    asynchronousResult = responseStream.BeginRead(requestState.BufferRead, 0, RequestState.BUFFER_SIZE, 
+                    asynchronousResult = responseStream.BeginRead(requestState.BufferRead, 0, RequestState.BUFFER_SIZE,
                         new Crestron.SimplSharp.CrestronIO.AsyncCallback(ReadCallBack), requestState);
-                }
-                while (asynchronousResult.CompletedSynchronously && !requestState.Done);
+                } while (asynchronousResult.CompletedSynchronously && !requestState.Done);
             }
             else
             {

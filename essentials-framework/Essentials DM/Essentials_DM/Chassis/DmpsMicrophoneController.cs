@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using Crestron.SimplSharpPro;
 using Crestron.SimplSharpPro.DeviceSupport;
 using PepperDash.Core;
-
 using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Bridges;
 
@@ -20,12 +19,12 @@ namespace PepperDash.Essentials.DM
         public DmpsMicrophoneController(CrestronControlSystem dmps)
         {
             Debug.Console(2, "Creating Dmps Microphone Controller");
-            Mics = new Dictionary<uint,DmpsMicrophone>();
+            Mics = new Dictionary<uint, DmpsMicrophone>();
 
-            foreach (var mic in dmps.Microphones)
+            foreach (MicrophoneBase mic in dmps.Microphones)
             {
                 Debug.Console(0, "Dmps Microphone Controller Adding Mic: {0} Name: {1}", mic.ID, mic.Name);
-                var dmpsMic = new DmpsMicrophone("processor-microphone" + mic.ID, mic.Name, mic);
+                DmpsMicrophone dmpsMic = new DmpsMicrophone("processor-microphone" + mic.ID, mic.Name, mic);
 
                 DeviceManager.AddDevice(dmpsMic);
                 Mics.Add(mic.ID, dmpsMic);
@@ -41,7 +40,7 @@ namespace PepperDash.Essentials.DM
 
             Debug.Console(2, "Dmps Microphone Controller Index: {0} EventId: {1}", mic.ID, args.EventId.ToString());
 
-            if(Mics.ContainsKey(mic.ID))
+            if (Mics.ContainsKey(mic.ID))
             {
                 Mics[mic.ID].Event(args.EventId);
             }
@@ -72,10 +71,11 @@ namespace PepperDash.Essentials.DM
             EnableVolumeSend = false;
             MinLevel = 0;
             MaxLevel = 600;
-           
+
             MuteFeedback = new BoolFeedback(new Func<bool>(() => Mic.MuteOnFeedBack.BoolValue));
             VolumeLevelFeedback = new IntFeedback(new Func<int>(() => Mic.GainFeedBack.UShortValue));
-            VolumeLevelScaledFeedback = new IntFeedback(new Func<int>(() => ScaleVolumeFeedback(VolumeLevelFeedback.UShortValue)));
+            VolumeLevelScaledFeedback =
+                new IntFeedback(new Func<int>(() => ScaleVolumeFeedback(VolumeLevelFeedback.UShortValue)));
             NameFeedback = new StringFeedback(new Func<string>(() => "Microphone " + Mic.ID));
             MuteOnAction = new Action(Mic.MuteOn);
             MuteOffAction = new Action(Mic.MuteOff);
@@ -88,7 +88,7 @@ namespace PepperDash.Essentials.DM
 
         public override void LinkToApi(BasicTriList trilist, uint joinStart, string joinMapKey, EiscApiAdvanced bridge)
         {
-            var joinMap = new DmpsMicrophoneControllerJoinMap(joinStart);
+            DmpsMicrophoneControllerJoinMap joinMap = new DmpsMicrophoneControllerJoinMap(joinStart);
 
             if (bridge != null)
             {
@@ -96,13 +96,14 @@ namespace PepperDash.Essentials.DM
             }
             else
             {
-                Debug.Console(0, this, "Please update config to use 'eiscapiadvanced' to get all join map features for this device.");
+                Debug.Console(0, this,
+                    "Please update config to use 'eiscapiadvanced' to get all join map features for this device.");
             }
 
             Debug.Console(1, this, "Linking to Trilist '{0}'", trilist.ID.ToString("X"));
- 
+
             VolumeLevelFeedback.LinkInputSig(trilist.UShortInput[joinMap.MicGain.JoinNumber]);
-            VolumeLevelScaledFeedback.LinkInputSig(trilist.UShortInput[joinMap.MicGainScaled.JoinNumber ]);
+            VolumeLevelScaledFeedback.LinkInputSig(trilist.UShortInput[joinMap.MicGainScaled.JoinNumber]);
             MuteFeedback.LinkInputSig(trilist.BooleanInput[joinMap.MicMuteOn.JoinNumber]);
             MuteFeedback.LinkComplementInputSig(trilist.BooleanInput[joinMap.MicMuteOff.JoinNumber]);
             NameFeedback.LinkInputSig(trilist.StringInput[joinMap.MicName.JoinNumber]);

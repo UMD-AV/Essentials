@@ -11,7 +11,8 @@ namespace NvxEpi.Services.Feedback
 
         public static StringFeedback GetFeedback(DmNvxBaseClass device)
         {
-            var feedback = new StringFeedback(Key, () => device.DmNaxRouting.DmNaxReceive.MulticastAddressFeedback.StringValue);
+            StringFeedback feedback = new StringFeedback(Key,
+                () => device.DmNaxRouting.DmNaxReceive.MulticastAddressFeedback.StringValue);
 
             device.BaseEvent += (@base, args) => feedback.FireUpdate();
 

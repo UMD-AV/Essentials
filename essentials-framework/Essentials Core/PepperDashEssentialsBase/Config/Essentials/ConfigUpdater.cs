@@ -16,7 +16,7 @@ namespace PepperDash.Essentials.Core.Config
             Debug.Console(0, Debug.ErrorLogLevel.Notice, "Attempting to get new config from '{0}'", url);
 
             // HTTP GET 
-            var req = new HttpClientRequest();
+            HttpClientRequest req = new HttpClientRequest();
 
             try
             {
@@ -24,45 +24,45 @@ namespace PepperDash.Essentials.Core.Config
                 req.Url.Parse(url);
 
                 new HttpClient().DispatchAsync(req, (r, e) =>
+                {
+                    if (e == HTTP_CALLBACK_ERROR.COMPLETED)
                     {
-                        if (e == HTTP_CALLBACK_ERROR.COMPLETED)
+                        if (r.Code == 200)
                         {
-                            if (r.Code == 200)
-                            {
-                                var newConfig = r.ContentString;
+                            string newConfig = r.ContentString;
 
-                                OnStatusUpdate(eUpdateStatus.ConfigFileReceived);
+                            OnStatusUpdate(eUpdateStatus.ConfigFileReceived);
 
-                                ArchiveExistingPortalConfigs();
+                            ArchiveExistingPortalConfigs();
 
-                                CheckForLocalConfigAndDelete();
+                            CheckForLocalConfigAndDelete();
 
-                                WriteConfigToFile(newConfig);
+                            WriteConfigToFile(newConfig);
 
-                                RestartProgram();
-                            }
-                            else
-                            {
-                                Debug.Console(0, Debug.ErrorLogLevel.Error, "Config Update Process Stopped. Failed to get config file from server: {0}", r.Code);
-                                OnStatusUpdate(eUpdateStatus.UpdateFailed);
-                            }
+                            RestartProgram();
                         }
                         else
-                            Debug.Console(0, Debug.ErrorLogLevel.Error, "Request for config from Server Failed: {0}", e);
-                    });
+                        {
+                            Debug.Console(0, Debug.ErrorLogLevel.Error,
+                                "Config Update Process Stopped. Failed to get config file from server: {0}", r.Code);
+                            OnStatusUpdate(eUpdateStatus.UpdateFailed);
+                        }
+                    }
+                    else
+                        Debug.Console(0, Debug.ErrorLogLevel.Error, "Request for config from Server Failed: {0}", e);
+                });
             }
             catch (Exception e)
             {
                 Debug.Console(1, "Error Getting Config from Server: {0}", e);
             }
-
         }
 
         static void OnStatusUpdate(eUpdateStatus status)
         {
-            var handler = ConfigStatusChanged;
+            EventHandler<ConfigStatusEventArgs> handler = ConfigStatusChanged;
 
-            if(handler != null)
+            if (handler != null)
             {
                 handler(typeof(ConfigUpdater), new ConfigStatusEventArgs(status));
             }
@@ -70,11 +70,11 @@ namespace PepperDash.Essentials.Core.Config
 
         static void WriteConfigToFile(string configData)
         {
-            var filePath = Global.FilePathPrefix+ "configurationFile-updated.json";
+            string filePath = Global.FilePathPrefix + "configurationFile-updated.json";
 
             try
             {
-                var config = JObject.Parse(configData).ToObject<EssentialsConfig>();
+                EssentialsConfig config = JObject.Parse(configData).ToObject<EssentialsConfig>();
 
                 ConfigWriter.WriteFile(filePath, configData);
 
@@ -85,7 +85,7 @@ namespace PepperDash.Essentials.Core.Config
                 Debug.Console(1, "Error parsing new config: {0}", e);
 
                 OnStatusUpdate(eUpdateStatus.UpdateFailed);
-            }           
+            }
         }
 
         /// <summary>
@@ -93,9 +93,9 @@ namespace PepperDash.Essentials.Core.Config
         /// </summary>
         static void ArchiveExistingPortalConfigs()
         {
-            var filePath = Global.FilePathPrefix + Global.ConfigFileName;
+            string filePath = Global.FilePathPrefix + Global.ConfigFileName;
 
-            var configFiles = ConfigReader.GetConfigFiles(filePath);
+            FileInfo[] configFiles = ConfigReader.GetConfigFiles(filePath);
 
             if (configFiles != null)
             {
@@ -107,7 +107,8 @@ namespace PepperDash.Essentials.Core.Config
             }
             else
             {
-                Debug.Console(0, Debug.ErrorLogLevel.Notice, "No Existing config files found in '{0}'. Nothing to archive", filePath);
+                Debug.Console(0, Debug.ErrorLogLevel.Notice,
+                    "No Existing config files found in '{0}'. Nothing to archive", filePath);
             }
         }
 
@@ -128,35 +129,39 @@ namespace PepperDash.Essentials.Core.Config
             else
             {
                 // Directory exists, first clear any contents
-                var archivedConfigFiles = ConfigReader.GetConfigFiles(archiveDirectoryPath + Global.DirectorySeparator + Global.ConfigFileName + ".bak");
+                FileInfo[] archivedConfigFiles = ConfigReader.GetConfigFiles(archiveDirectoryPath + Global.DirectorySeparator +
+                                                                             Global.ConfigFileName + ".bak");
 
-                if(archivedConfigFiles != null || archivedConfigFiles.Length > 0)
+                if (archivedConfigFiles != null || archivedConfigFiles.Length > 0)
                 {
-                    Debug.Console(0, Debug.ErrorLogLevel.Notice, "{0} Existing files found in archive folder.  Deleting.", archivedConfigFiles.Length);
+                    Debug.Console(0, Debug.ErrorLogLevel.Notice,
+                        "{0} Existing files found in archive folder.  Deleting.", archivedConfigFiles.Length);
 
-                    for (int i = 0; i < archivedConfigFiles.Length; i++ )
+                    for (int i = 0; i < archivedConfigFiles.Length; i++)
                     {
-                        var file = archivedConfigFiles[i];
+                        FileInfo file = archivedConfigFiles[i];
                         Debug.Console(0, Debug.ErrorLogLevel.Notice, "Deleting archived file: '{0}'", file.FullName);
                         file.Delete();
                     }
                 }
-
             }
 
             // Move any files from the program folder to the archive folder
-            foreach (var file in files)
+            foreach (FileInfo file in files)
             {
-                Debug.Console(0, Debug.ErrorLogLevel.Notice, "Moving config file '{0}' to archive folder", file.FullName);
+                Debug.Console(0, Debug.ErrorLogLevel.Notice, "Moving config file '{0}' to archive folder",
+                    file.FullName);
 
                 // Moves the file and appends the .bak extension
-                var fileDest = archiveDirectoryPath + "/" + file.Name + ".bak";
-                if(!File.Exists(fileDest))
+                string fileDest = archiveDirectoryPath + "/" + file.Name + ".bak";
+                if (!File.Exists(fileDest))
                 {
-                  file.MoveTo(fileDest);
+                    file.MoveTo(fileDest);
                 }
                 else
-                    Debug.Console(0, Debug.ErrorLogLevel.Warning, "Cannot move file to archive folder.  Existing file already exists with same name: '{0}'", fileDest);
+                    Debug.Console(0, Debug.ErrorLogLevel.Warning,
+                        "Cannot move file to archive folder.  Existing file already exists with same name: '{0}'",
+                        fileDest);
             }
         }
 
@@ -165,7 +170,7 @@ namespace PepperDash.Essentials.Core.Config
         /// </summary>
         static void CheckForLocalConfigAndDelete()
         {
-            var folderPath = Global.FilePathPrefix + ConfigWriter.LocalConfigFolder;
+            string folderPath = Global.FilePathPrefix + ConfigWriter.LocalConfigFolder;
 
             if (Directory.Exists(folderPath))
             {
@@ -186,14 +191,14 @@ namespace PepperDash.Essentials.Core.Config
 
             string response = string.Empty;
 
-            CrestronConsole.SendControlSystemCommand(string.Format("progreset -p:{0}", InitialParametersClass.ApplicationNumber), ref response);
+            CrestronConsole.SendControlSystemCommand(
+                string.Format("progreset -p:{0}", InitialParametersClass.ApplicationNumber), ref response);
 
-            Debug.Console(1, "Console Response: {0}", response);          
+            Debug.Console(1, "Console Response: {0}", response);
         }
-
     }
 
-        public enum eUpdateStatus
+    public enum eUpdateStatus
     {
         UpdateStarted,
         ConfigFileReceived,

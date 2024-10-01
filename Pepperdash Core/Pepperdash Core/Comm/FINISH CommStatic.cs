@@ -18,7 +18,8 @@ namespace PepperDash.Core
         {
             if (CrestronEnvironment.RuntimeEnvironment == eRuntimeEnvironment.SimplSharpPro)
             {
-                CrestronConsole.AddNewConsoleCommand(SocketCommand, "socket", "socket commands: list, send, connect, disco", 
+                CrestronConsole.AddNewConsoleCommand(SocketCommand, "socket",
+                    "socket commands: list, send, connect, disco",
                     ConsoleAccessLevelEnum.AccessOperator);
             }
         }
@@ -32,36 +33,33 @@ namespace PepperDash.Core
 
             if (string.IsNullOrEmpty(s))
                 return;
-            var tokens = s.Split(' ');
+            string[] tokens = s.Split(' ');
             if (tokens.Length == 0)
                 return;
-            var command = tokens[0].ToLower();
-            if(command == "connect")
+            string command = tokens[0].ToLower();
+            if (command == "connect")
             {
-
             }
-            else if(command == "disco")
+            else if (command == "disco")
             {
-
             }
-            else if(command =="list")
+            else if (command == "list")
             {
                 CrestronConsole.ConsoleCommandResponse("{0} sockets", Sockets.Count);
-                if(Sockets.Count == 0)
+                if (Sockets.Count == 0)
                     return;
                 // get the longest key name, for formatting
-                var longestLength = Sockets.Aggregate("", 
+                int longestLength = Sockets.Aggregate("",
                     (max, cur) => max.Length > cur.Key.Length ? max : cur.Key).Length;
-                for(int i = 0; i < Sockets.Count; i++)
+                for (int i = 0; i < Sockets.Count; i++)
                 {
-                    var sock = Sockets[i];
+                    ISocketStatus sock = Sockets[i];
                     CrestronConsole.ConsoleCommandResponse("{0} {1} {2} {3}",
                         i, sock.Key, GetSocketType(sock), sock.ClientStatus);
                 }
             }
-            else if(command == "send")
+            else if (command == "send")
             {
-
             }
         }
 
@@ -85,7 +83,7 @@ namespace PepperDash.Core
         /// <param name="socket"></param>
         public static void AddSocket(ISocketStatus socket)
         {
-            if(!Sockets.Contains(socket))
+            if (!Sockets.Contains(socket))
                 Sockets.Add(socket);
         }
 

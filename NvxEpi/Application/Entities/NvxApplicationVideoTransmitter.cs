@@ -42,42 +42,41 @@ namespace NvxEpi.Application.Entities
             _source = new DummyRoutingInputsDevice(config.DeviceKey + "--videoSource");
 
             AddPostActivationAction(() =>
-                {
-                    Device = DeviceManager.GetDeviceForKey(config.DeviceKey) as INvxDevice;
-                    if (Device == null)
-                        throw new NullReferenceException("device");
-                });
+            {
+                Device = DeviceManager.GetDeviceForKey(config.DeviceKey) as INvxDevice;
+                if (Device == null)
+                    throw new NullReferenceException("device");
+            });
 
             AddPostActivationAction(() =>
-                {
-                    Name = Device.Name;
-                    NameFeedback = new StringFeedback(() => Device.Name);
-                    VideoName =
-                        new StringFeedback(() => string.IsNullOrEmpty(config.VideoName) ? Device.Name : config.VideoName);
-                    NameFeedback.FireUpdate();
-                    VideoName.FireUpdate();
-                });
+            {
+                Name = Device.Name;
+                NameFeedback = new StringFeedback(() => Device.Name);
+                VideoName =
+                    new StringFeedback(() => string.IsNullOrEmpty(config.VideoName) ? Device.Name : config.VideoName);
+                NameFeedback.FireUpdate();
+                VideoName.FireUpdate();
+            });
 
             AddPostActivationAction(() =>
+            {
+                try
                 {
-                    try
-                    {
-
-                        LinkRoutingInputPort(config.NvxRoutingPort);
-                        LinkInputValues(config.NvxRoutingPort);
-                    }
-                    catch (Exception ex)
-                    {
-                        Debug.Console(0, this, "Caught an exception:{0}", ex);
-                    }
-                });
+                    LinkRoutingInputPort(config.NvxRoutingPort);
+                    LinkInputValues(config.NvxRoutingPort);
+                }
+                catch (Exception ex)
+                {
+                    Debug.Console(0, this, "Caught an exception:{0}", ex);
+                }
+            });
         }
 
         private void LinkRoutingInputPort(string routingPortKey)
         {
             if (string.IsNullOrEmpty(routingPortKey) || Device is DmNvxE3x)
             {
-                var routingPort = Device.InputPorts[DeviceInputEnum.NoSwitch.Name];
+                RoutingInputPort routingPort = Device.InputPorts[DeviceInputEnum.NoSwitch.Name];
                 if (routingPort == null)
                     throw new NullReferenceException(DeviceInputEnum.NoSwitch.Name);
 
@@ -85,7 +84,7 @@ namespace NvxEpi.Application.Entities
             }
             else if (routingPortKey.Equals(DeviceInputEnum.Hdmi1.Name, StringComparison.OrdinalIgnoreCase))
             {
-                var routingPort = Device.InputPorts[DeviceInputEnum.Hdmi1.Name];
+                RoutingInputPort routingPort = Device.InputPorts[DeviceInputEnum.Hdmi1.Name];
                 if (routingPort == null)
                     throw new NullReferenceException(DeviceInputEnum.Hdmi1.Name);
 
@@ -93,7 +92,7 @@ namespace NvxEpi.Application.Entities
             }
             else if (routingPortKey.Equals(DeviceInputEnum.Hdmi2.Name, StringComparison.OrdinalIgnoreCase))
             {
-                var routingPort = Device.InputPorts[DeviceInputEnum.Hdmi2.Name];
+                RoutingInputPort routingPort = Device.InputPorts[DeviceInputEnum.Hdmi2.Name];
                 if (routingPort == null)
                     throw new NullReferenceException(DeviceInputEnum.Hdmi2.Name);
 
@@ -101,7 +100,7 @@ namespace NvxEpi.Application.Entities
             }
             else if (routingPortKey.Equals(DeviceInputEnum.Automatic.Name, StringComparison.OrdinalIgnoreCase))
             {
-                var routingPort = Device.InputPorts[DeviceInputEnum.Automatic.Name];
+                RoutingInputPort routingPort = Device.InputPorts[DeviceInputEnum.Automatic.Name];
                 if (routingPort == null)
                     throw new NullReferenceException(DeviceInputEnum.Automatic.Name);
 
@@ -109,7 +108,8 @@ namespace NvxEpi.Application.Entities
             }
             else
             {
-                Debug.Console(1, this, "----- {0} is not a valid routing port key, available ports are:", routingPortKey);
+                Debug.Console(1, this, "----- {0} is not a valid routing port key, available ports are:",
+                    routingPortKey);
                 Device
                     .InputPorts
                     .ToList()
@@ -128,7 +128,7 @@ namespace NvxEpi.Application.Entities
 
             if (string.IsNullOrEmpty(routingPortKey))
             {
-                var hdmiInput = Device as IHdmiInput;
+                IHdmiInput hdmiInput = Device as IHdmiInput;
                 if (hdmiInput == null)
                     return;
 
@@ -138,7 +138,7 @@ namespace NvxEpi.Application.Entities
             }
             else if (routingPortKey.Equals(DeviceInputEnum.Hdmi1.Name, StringComparison.OrdinalIgnoreCase))
             {
-                var hdmiInput = Device as IHdmiInput;
+                IHdmiInput hdmiInput = Device as IHdmiInput;
                 if (hdmiInput == null)
                     return;
 
@@ -148,7 +148,7 @@ namespace NvxEpi.Application.Entities
             }
             else if (routingPortKey.Equals(DeviceInputEnum.Hdmi2.Name, StringComparison.OrdinalIgnoreCase))
             {
-                var hdmiInput = Device as IHdmiInput;
+                IHdmiInput hdmiInput = Device as IHdmiInput;
                 if (hdmiInput == null)
                     return;
 
@@ -159,11 +159,11 @@ namespace NvxEpi.Application.Entities
             }
             else if (routingPortKey.Equals(DeviceInputEnum.Automatic.Name, StringComparison.OrdinalIgnoreCase))
             {
-                var hdmiInput = Device as IHdmiInput;
+                IHdmiInput hdmiInput = Device as IHdmiInput;
                 if (hdmiInput == null)
                     return;
 
-                var hdmiSwitcher = Device as ICurrentVideoInput;
+                ICurrentVideoInput hdmiSwitcher = Device as ICurrentVideoInput;
                 if (hdmiSwitcher == null)
                     return;
 
@@ -186,7 +186,7 @@ namespace NvxEpi.Application.Entities
 
         public void SetHdcpState(ushort state)
         {
-            var hdmiInput = Device as IHdmiInput;
+            IHdmiInput hdmiInput = Device as IHdmiInput;
             if (hdmiInput == null)
                 return;
 

@@ -25,19 +25,19 @@ namespace PepperDash.Essentials.DM
             DmIn = new RoutingInputPort(DmPortName.DmIn, eRoutingSignalType.AudioVideo,
                 eRoutingPortConnectionType.DmCat, 0, this);
             HDBaseTSink = new RoutingOutputPort(DmPortName.HdmiOut, eRoutingSignalType.AudioVideo,
-                eRoutingPortConnectionType.Hdmi, null, this) {Port = Rmc};
+                eRoutingPortConnectionType.Hdmi, null, this) { Port = Rmc };
 
-            InputPorts = new RoutingPortCollection<RoutingInputPort> {DmIn};
-            OutputPorts = new RoutingPortCollection<RoutingOutputPort> {HDBaseTSink};
+            InputPorts = new RoutingPortCollection<RoutingInputPort> { DmIn };
+            OutputPorts = new RoutingPortCollection<RoutingOutputPort> { HDBaseTSink };
             PreventRegistration = true;
             rmc.Register();
         }
 
         public override void LinkToApi(BasicTriList trilist, uint joinStart, string joinMapKey, EiscApiAdvanced bridge)
         {
-            var joinMap = new DmRmcControllerJoinMap(joinStart);
+            DmRmcControllerJoinMap joinMap = new DmRmcControllerJoinMap(joinStart);
 
-            var joinMapSerialized = JoinMapHelper.GetSerializedJoinMapForDevice(joinMapKey);
+            string joinMapSerialized = JoinMapHelper.GetSerializedJoinMapForDevice(joinMapKey);
 
             if (!string.IsNullOrEmpty(joinMapSerialized))
                 joinMap = JsonConvert.DeserializeObject<DmRmcControllerJoinMap>(joinMapSerialized);
@@ -48,7 +48,8 @@ namespace PepperDash.Essentials.DM
             }
             else
             {
-                Debug.Console(0, this, "Please update config to use 'eiscapiadvanced' to get all join map features for this device.");
+                Debug.Console(0, this,
+                    "Please update config to use 'eiscapiadvanced' to get all join map features for this device.");
             }
 
             Debug.Console(1, this, "Linking to Trilist '{0}'", trilist.ID.ToString("X"));
@@ -58,8 +59,17 @@ namespace PepperDash.Essentials.DM
         }
 
         #region IComPorts Members
-        public CrestronCollection<ComPort> ComPorts { get { return Rmc.ComPorts; } }
-        public int NumberOfComPorts { get { return Rmc.NumberOfComPorts; } }
+
+        public CrestronCollection<ComPort> ComPorts
+        {
+            get { return Rmc.ComPorts; }
+        }
+
+        public int NumberOfComPorts
+        {
+            get { return Rmc.NumberOfComPorts; }
+        }
+
         #endregion
     }
 }

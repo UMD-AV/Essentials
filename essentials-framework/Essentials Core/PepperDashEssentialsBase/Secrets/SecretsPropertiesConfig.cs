@@ -7,9 +7,7 @@ namespace PepperDash.Essentials.Core
     /// </summary>
     public class SecretsPropertiesConfig
     {
-        [JsonProperty("provider")]
-        public string Provider { get; set; }
-        [JsonProperty("key")]
-        public string Key { get; set; }
+        [JsonProperty("provider")] public string Provider { get; set; }
+        [JsonProperty("key")] public string Key { get; set; }
     }
 }

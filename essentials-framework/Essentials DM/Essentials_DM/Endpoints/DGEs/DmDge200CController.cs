@@ -1,8 +1,6 @@
 ﻿using System.Collections.Generic;
 using Crestron.SimplSharpPro.UI;
-
 using Newtonsoft.Json;
-
 using PepperDash.Core;
 using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Config;
@@ -13,7 +11,7 @@ namespace PepperDash.Essentials.DM.Endpoints.DGEs
     /// <summary>
     /// Wrapper class for DGE-100 and DM-DGE-200-C
     /// </summary>
-    [Description("Wrapper class for DM-DGE-200-C")]    
+    [Description("Wrapper class for DM-DGE-200-C")]
     public class DmDge200CController : Dge100Controller, IRoutingInputsOutputs
     {
         private readonly DmDge200C _dge;
@@ -21,19 +19,12 @@ namespace PepperDash.Essentials.DM.Endpoints.DGEs
         public RoutingInputPort DmIn { get; private set; }
         public RoutingOutputPort HdmiOut { get; private set; }
 
-        public RoutingPortCollection<RoutingInputPort> InputPorts
-        {
-            get;
-            private set;
-        }
+        public RoutingPortCollection<RoutingInputPort> InputPorts { get; private set; }
 
-        public RoutingPortCollection<RoutingOutputPort> OutputPorts
-        {
-            get;
-            private set;
-        }
+        public RoutingPortCollection<RoutingOutputPort> OutputPorts { get; private set; }
 
-        public DmDge200CController(string key, string name, DmDge200C device, DeviceConfig dc, CrestronTouchpanelPropertiesConfig props)
+        public DmDge200CController(string key, string name, DmDge200C device, DeviceConfig dc,
+            CrestronTouchpanelPropertiesConfig props)
             : base(key, name, device, dc, props)
         {
             _dge = device;
@@ -48,8 +39,8 @@ namespace PepperDash.Essentials.DM.Endpoints.DGEs
             OutputPorts = new RoutingPortCollection<RoutingOutputPort> { HdmiOut };
 
             // Set Ports for CEC
-            HdmiOut.Port = _dge.HdmiOut; ;
-
+            HdmiOut.Port = _dge.HdmiOut;
+            ;
         }
 
         public class DmDge200CControllerFactory : EssentialsDeviceFactory<DmDge200CController>
@@ -61,9 +52,9 @@ namespace PepperDash.Essentials.DM.Endpoints.DGEs
 
             public override EssentialsDevice BuildDevice(DeviceConfig dc)
             {
-                var typeName = dc.Type.ToLower();
-                var comm = CommFactory.GetControlPropertiesConfig(dc);
-                var props = JsonConvert.DeserializeObject<CrestronTouchpanelPropertiesConfig>(dc.Properties.ToString());
+                string typeName = dc.Type.ToLower();
+                EssentialsControlPropertiesConfig comm = CommFactory.GetControlPropertiesConfig(dc);
+                CrestronTouchpanelPropertiesConfig props = JsonConvert.DeserializeObject<CrestronTouchpanelPropertiesConfig>(dc.Properties.ToString());
 
                 Debug.Console(1, "Factory Attempting to create new DgeController  Device");
 
@@ -78,7 +69,7 @@ namespace PepperDash.Essentials.DM.Endpoints.DGEs
                     return null;
                 }
 
-                var dgeController = new DmDge200CController(dc.Key , dc.Name, dgeDevice, dc, props);
+                DmDge200CController dgeController = new DmDge200CController(dc.Key, dc.Name, dgeDevice, dc, props);
 
                 return dgeController;
             }

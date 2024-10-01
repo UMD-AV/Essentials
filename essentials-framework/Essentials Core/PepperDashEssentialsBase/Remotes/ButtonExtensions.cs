@@ -24,17 +24,26 @@ namespace PepperDash.Essentials.Core
 
         public static Button SetButtonPressedAction(this CrestronCollection<Button> bc, uint sigNum, Action a)
         {
-            return bc[sigNum].SetButtonAction(b => { if (b) a(); });
+            return bc[sigNum].SetButtonAction(b =>
+            {
+                if (b) a();
+            });
         }
 
         public static Button SetButtonReleasedAction(this CrestronCollection<Button> bc, uint sigNum, Action a)
         {
-            return bc[sigNum].SetButtonAction(b => { if (!b) a(); });
+            return bc[sigNum].SetButtonAction(b =>
+            {
+                if (!b) a();
+            });
         }
 
         public static Button SetButtonFalseAction(this Button button, Action a)
         {
-            return button.SetButtonAction(b => { if (!b) a(); });
+            return button.SetButtonAction(b =>
+            {
+                if (!b) a();
+            });
         }
     }
 }

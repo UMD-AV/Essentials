@@ -31,11 +31,11 @@ namespace NvxEpi.Application.Builder
             AudioReceivers = new Dictionary<int, NvxApplicationDeviceAudioConfig>();
 
             Key = config.Key;
-            var props = JsonConvert.DeserializeObject<NvxApplicationConfig>(config.Properties.ToString());
+            NvxApplicationConfig props = JsonConvert.DeserializeObject<NvxApplicationConfig>(config.Properties.ToString());
 
             if (props.Transmitters != null)
                 Transmitters = props.Transmitters.ToDictionary(x => Convert.ToInt32(x.Key), x => x.Value);
-            
+
             if (props.Receivers != null)
                 Receivers = props.Receivers.ToDictionary(x => Convert.ToInt32(x.Key), x => x.Value);
 

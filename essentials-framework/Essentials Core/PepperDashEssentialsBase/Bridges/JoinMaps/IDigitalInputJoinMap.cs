@@ -4,10 +4,12 @@ namespace PepperDash.Essentials.Core.Bridges
 {
     public class IDigitalInputJoinMap : JoinMapBaseAdvanced
     {
-
-        [JoinName("InputState")]
-        public JoinDataComplete InputState = new JoinDataComplete(new JoinData { JoinNumber = 1, JoinSpan = 1 },
-            new JoinMetadata { Description = "Input State", JoinCapabilities = eJoinCapabilities.ToSIMPL, JoinType = eJoinType.Digital });
+        [JoinName("InputState")] public JoinDataComplete InputState = new JoinDataComplete(
+            new JoinData { JoinNumber = 1, JoinSpan = 1 },
+            new JoinMetadata
+            {
+                Description = "Input State", JoinCapabilities = eJoinCapabilities.ToSIMPL, JoinType = eJoinType.Digital
+            });
 
         /// <summary>
         /// Constructor to use when instantiating this Join Map without inheriting from it

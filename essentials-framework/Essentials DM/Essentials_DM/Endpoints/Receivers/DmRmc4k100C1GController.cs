@@ -29,9 +29,9 @@ namespace PepperDash.Essentials.DM
             DmIn = new RoutingInputPort(DmPortName.DmIn, eRoutingSignalType.AudioVideo,
                 eRoutingPortConnectionType.DmCat, 0, this);
             HdmiOut = new RoutingOutputPort(DmPortName.HdmiOut, eRoutingSignalType.AudioVideo,
-                eRoutingPortConnectionType.Hdmi, null, this) {Port = _rmc};
+                eRoutingPortConnectionType.Hdmi, null, this) { Port = _rmc };
 
-            InputPorts = new RoutingPortCollection<RoutingInputPort> {DmIn};
+            InputPorts = new RoutingPortCollection<RoutingInputPort> { DmIn };
             OutputPorts = new RoutingPortCollection<RoutingOutputPort> { HdmiOut };
             PreventRegistration = true;
             rmc.Register();
@@ -39,9 +39,9 @@ namespace PepperDash.Essentials.DM
 
         public override void LinkToApi(BasicTriList trilist, uint joinStart, string joinMapKey, EiscApiAdvanced bridge)
         {
-            var joinMap = new DmRmcControllerJoinMap(joinStart);
+            DmRmcControllerJoinMap joinMap = new DmRmcControllerJoinMap(joinStart);
 
-            var joinMapSerialized = JoinMapHelper.GetSerializedJoinMapForDevice(joinMapKey);
+            string joinMapSerialized = JoinMapHelper.GetSerializedJoinMapForDevice(joinMapKey);
 
             if (!string.IsNullOrEmpty(joinMapSerialized))
                 joinMap = JsonConvert.DeserializeObject<DmRmcControllerJoinMap>(joinMapSerialized);
@@ -52,7 +52,8 @@ namespace PepperDash.Essentials.DM
             }
             else
             {
-                Debug.Console(0, this, "Please update config to use 'eiscapiadvanced' to get all join map features for this device.");
+                Debug.Console(0, this,
+                    "Please update config to use 'eiscapiadvanced' to get all join map features for this device.");
             }
 
             Debug.Console(1, this, "Linking to Trilist '{0}'", trilist.ID.ToString("X"));
@@ -62,17 +63,40 @@ namespace PepperDash.Essentials.DM
         }
 
         #region IIROutputPorts Members
-        public CrestronCollection<IROutputPort> IROutputPorts { get { return _rmc.IROutputPorts; } }
-        public int NumberOfIROutputPorts { get { return _rmc.NumberOfIROutputPorts; } }
+
+        public CrestronCollection<IROutputPort> IROutputPorts
+        {
+            get { return _rmc.IROutputPorts; }
+        }
+
+        public int NumberOfIROutputPorts
+        {
+            get { return _rmc.NumberOfIROutputPorts; }
+        }
+
         #endregion
 
         #region IComPorts Members
-        public CrestronCollection<ComPort> ComPorts { get { return _rmc.ComPorts; } }
-        public int NumberOfComPorts { get { return _rmc.NumberOfComPorts; } }
+
+        public CrestronCollection<ComPort> ComPorts
+        {
+            get { return _rmc.ComPorts; }
+        }
+
+        public int NumberOfComPorts
+        {
+            get { return _rmc.NumberOfComPorts; }
+        }
+
         #endregion
 
         #region ICec Members
-        public Cec StreamCec { get { return _rmc.StreamCec; } }
+
+        public Cec StreamCec
+        {
+            get { return _rmc.StreamCec; }
+        }
+
         #endregion
     }
 }

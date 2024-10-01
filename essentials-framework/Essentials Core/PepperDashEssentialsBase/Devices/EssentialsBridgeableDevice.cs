@@ -3,7 +3,7 @@ using PepperDash.Essentials.Core.Bridges;
 
 namespace PepperDash.Essentials.Core
 {
-    public abstract class EssentialsBridgeableDevice:EssentialsDevice, IBridgeAdvanced
+    public abstract class EssentialsBridgeableDevice : EssentialsDevice, IBridgeAdvanced
     {
         protected EssentialsBridgeableDevice(string key) : base(key)
         {

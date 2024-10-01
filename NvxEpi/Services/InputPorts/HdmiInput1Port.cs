@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Linq;
+using Crestron.SimplSharpPro.DeviceSupport;
+using Crestron.SimplSharpPro.DM.Endpoints;
 using NvxEpi.Abstractions;
 using NvxEpi.Abstractions.InputSwitching;
 using NvxEpi.Enums;
@@ -13,8 +15,8 @@ namespace NvxEpi.Services.InputPorts
         {
             if (device.Hardware.HdmiIn != null && device.Hardware.HdmiIn[1] != null)
             {
-                var hdmi = device.Hardware.HdmiIn[1];
-                var port = new RoutingInputPortWithVideoStatuses(
+                HdmiInWithColorSpaceMode hdmi = device.Hardware.HdmiIn[1];
+                RoutingInputPortWithVideoStatuses port = new RoutingInputPortWithVideoStatuses(
                     DeviceInputEnum.Hdmi1.Name,
                     eRoutingSignalType.AudioVideo,
                     eRoutingPortConnectionType.Hdmi,
@@ -37,13 +39,13 @@ namespace NvxEpi.Services.InputPorts
 
                 device.InputPorts.Add(port);
 
-                foreach (var videoStatusOutput in port.VideoStatus.ToList().Where(x => x != null))
+                foreach (PepperDash.Essentials.Core.Feedback videoStatusOutput in port.VideoStatus.ToList().Where(x => x != null))
                     device.Feedbacks.Add(videoStatusOutput);
             }
             else if (device.Hardware.DmIn != null)
             {
-                var dm = device.Hardware.DmIn;
-                var port = new RoutingInputPortWithVideoStatuses(
+                EndpointDmInputStreamWithCec dm = device.Hardware.DmIn;
+                RoutingInputPortWithVideoStatuses port = new RoutingInputPortWithVideoStatuses(
                     DeviceInputEnum.Hdmi1.Name,
                     eRoutingSignalType.AudioVideo,
                     eRoutingPortConnectionType.Hdmi,
@@ -66,7 +68,7 @@ namespace NvxEpi.Services.InputPorts
 
                 device.InputPorts.Add(port);
 
-                foreach (var videoStatusOutput in port.VideoStatus.ToList().Where(x => x != null))
+                foreach (PepperDash.Essentials.Core.Feedback videoStatusOutput in port.VideoStatus.ToList().Where(x => x != null))
                     device.Feedbacks.Add(videoStatusOutput);
             }
             else

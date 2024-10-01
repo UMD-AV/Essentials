@@ -13,7 +13,8 @@ namespace NvxEpi.Features.Monitor
     {
         public readonly GenericBase Hardware;
 
-        public NvxCommunicationMonitor(IKeyed parent, long warningTime, long errorTime, GenericBase hardware) : base(parent, warningTime, errorTime)
+        public NvxCommunicationMonitor(IKeyed parent, long warningTime, long errorTime, GenericBase hardware) : base(
+            parent, warningTime, errorTime)
         {
             Hardware = hardware;
             hardware.OnlineStatusChange += (device, args) => CheckIfDeviceIsOnlineAndUpdate();

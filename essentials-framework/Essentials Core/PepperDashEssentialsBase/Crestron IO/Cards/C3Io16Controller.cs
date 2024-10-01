@@ -3,7 +3,7 @@ using Crestron.SimplSharpPro.ThreeSeriesCards;
 
 namespace PepperDash.Essentials.Core.CrestronIO.Cards
 {
-    public class C3Io16Controller:C3CardControllerBase,IIOPorts
+    public class C3Io16Controller : C3CardControllerBase, IIOPorts
     {
         private readonly C3io16 _card;
 

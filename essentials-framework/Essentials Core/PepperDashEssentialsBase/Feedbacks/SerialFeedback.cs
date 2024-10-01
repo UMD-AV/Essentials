@@ -10,7 +10,11 @@ namespace PepperDash.Essentials.Core
     /// </summary>
     public class SerialFeedback : Feedback
     {
-        public override string SerialValue { get { return _SerialValue; } } 
+        public override string SerialValue
+        {
+            get { return _SerialValue; }
+        }
+
         string _SerialValue;
 
         //public override eCueType Type { get { return eCueType.Serial; } }

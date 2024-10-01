@@ -4,8 +4,6 @@ using Crestron.SimplSharpPro;
 using Crestron.SimplSharpPro.Gateways;
 using Newtonsoft.Json;
 using Crestron.SimplSharpPro.DeviceSupport;
-
-
 using PepperDash.Core;
 using PepperDash.Essentials.Core.Config;
 
@@ -52,59 +50,61 @@ namespace PepperDash.Essentials.Core
                 IsReady = true;
                 RegisterCrestronGenericBase(_gateway);
                 FireIsReadyEvent(IsReady);
-
             });
         }
 
         public static GatewayBase GetNewIpRfGateway(DeviceConfig dc)
         {
-            var control = CommFactory.GetControlPropertiesConfig(dc);
-            var type = dc.Type;
-            var ipId = control.IpIdInt;
+            EssentialsControlPropertiesConfig control = CommFactory.GetControlPropertiesConfig(dc);
+            string type = dc.Type;
+            uint ipId = control.IpIdInt;
 
             if (type.Equals("cenrfgwex", StringComparison.InvariantCultureIgnoreCase))
             {
                 return new CenRfgwEx(ipId, Global.ControlSystem);
             }
+
             if (type.Equals("cenerfgwpoe", StringComparison.InvariantCultureIgnoreCase))
             {
                 return new CenErfgwPoe(ipId, Global.ControlSystem);
             }
+
             return null;
         }
 
         private void FireIsReadyEvent(bool data)
         {
-            var handler = IsReadyEvent;
+            EventHandler<IsReadyEventArgs> handler = IsReadyEvent;
             if (handler == null) return;
 
             handler(this, new IsReadyEventArgs(data));
-
         }
 
         public static GatewayBase GetNewSharedIpRfGateway(DeviceConfig dc)
         {
-            var control = CommFactory.GetControlPropertiesConfig(dc);
-            var ipId = control.IpIdInt;
+            EssentialsControlPropertiesConfig control = CommFactory.GetControlPropertiesConfig(dc);
+            uint ipId = control.IpIdInt;
 
             if (dc.Type.Equals("cenrfgwex", StringComparison.InvariantCultureIgnoreCase))
             {
                 return new CenRfgwExEthernetSharable(ipId, Global.ControlSystem);
             }
+
             if (dc.Type.Equals("cenerfgwpoe", StringComparison.InvariantCultureIgnoreCase))
             {
                 return new CenErfgwPoeEthernetSharable(ipId, Global.ControlSystem);
             }
+
             return null;
         }
 
         public static GatewayBase GetCenRfgwCresnetController(DeviceConfig dc)
         {
-            var control = CommFactory.GetControlPropertiesConfig(dc);
-            var type = dc.Type;
-            var cresnetId = control.CresnetIdInt;
-            var branchId = control.ControlPortNumber;
-            var parentKey = string.IsNullOrEmpty(control.ControlPortDevKey) ? "processor" : control.ControlPortDevKey;
+            EssentialsControlPropertiesConfig control = CommFactory.GetControlPropertiesConfig(dc);
+            string type = dc.Type;
+            uint cresnetId = control.CresnetIdInt;
+            uint branchId = control.ControlPortNumber;
+            string parentKey = string.IsNullOrEmpty(control.ControlPortDevKey) ? "processor" : control.ControlPortDevKey;
 
             if (parentKey.Equals("processor", StringComparison.CurrentCultureIgnoreCase))
             {
@@ -113,12 +113,14 @@ namespace PepperDash.Essentials.Core
                 {
                     return new CenErfgwPoeCresnet(cresnetId, Global.ControlSystem);
                 }
+
                 if (type.Equals("cenrfgwex", StringComparison.InvariantCultureIgnoreCase))
                 {
                     return new CenRfgwExCresnet(cresnetId, Global.ControlSystem);
                 }
             }
-            var cresnetBridge = DeviceManager.GetDeviceForKey(parentKey) as ICresnetBridge;
+
+            ICresnetBridge cresnetBridge = DeviceManager.GetDeviceForKey(parentKey) as ICresnetBridge;
 
             if (cresnetBridge != null)
             {
@@ -128,19 +130,16 @@ namespace PepperDash.Essentials.Core
                 {
                     return new CenErfgwPoeCresnet(cresnetId, cresnetBridge.Branches[branchId]);
                 }
+
                 if (type.Equals("cenrfgwex", StringComparison.InvariantCultureIgnoreCase))
                 {
                     return new CenRfgwExCresnet(cresnetId, cresnetBridge.Branches[branchId]);
                 }
             }
+
             Debug.Console(0, "Device {0} is not a valid cresnet master", parentKey);
             return null;
         }
-
-
-
-
-
 
 
         public enum EExGatewayType
@@ -157,18 +156,17 @@ namespace PepperDash.Essentials.Core
         {
             public CenRfgwControllerFactory()
             {
-                TypeNames = new List<string> {"cenrfgwex", "cenerfgwpoe"};
+                TypeNames = new List<string> { "cenrfgwex", "cenerfgwpoe" };
             }
 
             public override EssentialsDevice BuildDevice(DeviceConfig dc)
             {
-
                 Debug.Console(1, "Factory Attempting to create new CEN-GWEXER Device");
 
-                var props = JsonConvert.DeserializeObject<EssentialsRfGatewayConfig>(dc.Properties.ToString());
+                EssentialsRfGatewayConfig props = JsonConvert.DeserializeObject<EssentialsRfGatewayConfig>(dc.Properties.ToString());
 
                 EExGatewayType gatewayType =
-                    (EExGatewayType) Enum.Parse(typeof (EExGatewayType), props.GatewayType, true);
+                    (EExGatewayType)Enum.Parse(typeof(EExGatewayType), props.GatewayType, true);
 
                 switch (gatewayType)
                 {
@@ -179,14 +177,11 @@ namespace PepperDash.Essentials.Core
                     case (EExGatewayType.Cresnet):
                         return new CenRfgwController(dc.Key, GetCenRfgwCresnetController, dc);
                 }
+
                 return null;
             }
         }
 
         #endregion
     }
-
-    
 }
-
-

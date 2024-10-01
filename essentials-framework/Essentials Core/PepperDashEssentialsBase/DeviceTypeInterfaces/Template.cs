@@ -1,4 +1,3 @@
 ﻿namespace PepperDash.Essentials.Core
 {
-	
 }

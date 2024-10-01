@@ -1,8 +1,6 @@
 ﻿using Crestron.SimplSharpPro.DM;
 using Crestron.SimplSharpPro.DM.Cards;
-
 using PepperDash.Core;
-
 using PepperDash.Essentials.Core;
 
 
@@ -33,22 +31,19 @@ namespace PepperDash.Essentials.DM
         {
             get
             {
-                return new RoutingPortCollection<RoutingInputPort> 
-				{ 
+                return new RoutingPortCollection<RoutingInputPort>
+                {
                     None,
-					DigitalMix1,
+                    DigitalMix1,
                     DigitalMix2,
-					AudioFollowsVideo
-				};
+                    AudioFollowsVideo
+                };
             }
         }
 
         public RoutingPortCollection<RoutingOutputPort> OutputPorts
         {
-            get
-            {
-                return new RoutingPortCollection<RoutingOutputPort> { DigitalAudioOut };
-            }
+            get { return new RoutingPortCollection<RoutingOutputPort> { DigitalAudioOut }; }
         }
 
         public DmpsDigitalOutputController(string key, string name, Card.Dmps3OutputBase outputCard)
@@ -63,7 +58,8 @@ namespace PepperDash.Essentials.DM
                 {
                     return (int)(outputCard as Card.Dmps3DmOutputBackend).AudioOutSourceDeviceFeedback;
                 });
-                DigitalAudioOut = new RoutingOutputPort(DmPortName.DmOut + OutputCard.Number, eRoutingSignalType.Audio, eRoutingPortConnectionType.DmCat, null, this);
+                DigitalAudioOut = new RoutingOutputPort(DmPortName.DmOut + OutputCard.Number, eRoutingSignalType.Audio,
+                    eRoutingPortConnectionType.DmCat, null, this);
             }
 
             else if (outputCard is Card.Dmps3HdmiOutputBackend)
@@ -72,7 +68,8 @@ namespace PepperDash.Essentials.DM
                 {
                     return (int)(outputCard as Card.Dmps3HdmiOutputBackend).AudioOutSourceDeviceFeedback;
                 });
-                DigitalAudioOut = new RoutingOutputPort(DmPortName.HdmiOut + OutputCard.Number, eRoutingSignalType.Audio, eRoutingPortConnectionType.Hdmi, null, this);
+                DigitalAudioOut = new RoutingOutputPort(DmPortName.HdmiOut + OutputCard.Number,
+                    eRoutingSignalType.Audio, eRoutingPortConnectionType.Hdmi, null, this);
             }
             else
             {
@@ -81,13 +78,16 @@ namespace PepperDash.Essentials.DM
 
             None = new RoutingInputPort("None", eRoutingSignalType.Audio, eRoutingPortConnectionType.DigitalAudio,
                 eDmps34KAudioOutSourceDevice.NoRoute, this);
-            DigitalMix1 = new RoutingInputPort("DigitalMix1", eRoutingSignalType.Audio, eRoutingPortConnectionType.DigitalAudio,
+            DigitalMix1 = new RoutingInputPort("DigitalMix1", eRoutingSignalType.Audio,
+                eRoutingPortConnectionType.DigitalAudio,
                 eDmps34KAudioOutSourceDevice.DigitalMixer1, this);
-            DigitalMix2 = new RoutingInputPort("DigitalMix2", eRoutingSignalType.Audio, eRoutingPortConnectionType.DigitalAudio,
+            DigitalMix2 = new RoutingInputPort("DigitalMix2", eRoutingSignalType.Audio,
+                eRoutingPortConnectionType.DigitalAudio,
                 eDmps34KAudioOutSourceDevice.DigitalMixer2, this);
-            AudioFollowsVideo = new RoutingInputPort("AudioFollowsVideo", eRoutingSignalType.Audio, eRoutingPortConnectionType.DigitalAudio,
+            AudioFollowsVideo = new RoutingInputPort("AudioFollowsVideo", eRoutingSignalType.Audio,
+                eRoutingPortConnectionType.DigitalAudio,
                 eDmps34KAudioOutSourceDevice.AudioFollowsVideo, this);
-            
+
             AddToFeedbackList(AudioSourceNumericFeedback);
         }
 
@@ -97,7 +97,7 @@ namespace PepperDash.Essentials.DM
         /// <param name="newFbs"></param>
         public void AddToFeedbackList(params Feedback[] newFbs)
         {
-            foreach (var f in newFbs)
+            foreach (Feedback f in newFbs)
             {
                 if (f != null)
                 {
@@ -116,27 +116,26 @@ namespace PepperDash.Essentials.DM
             switch (input)
             {
                 case 0:
-                    {
-                        ExecuteSwitch(None.Selector, null, type);
-                        break;
-                    }
+                {
+                    ExecuteSwitch(None.Selector, null, type);
+                    break;
+                }
                 case 1:
-                    {
-                        ExecuteSwitch(DigitalMix1.Selector, null, type);
-                        break;
-                    }
+                {
+                    ExecuteSwitch(DigitalMix1.Selector, null, type);
+                    break;
+                }
                 case 2:
-                    {
-                        ExecuteSwitch(DigitalMix2.Selector, null, type);
-                        break;
-                    }
+                {
+                    ExecuteSwitch(DigitalMix2.Selector, null, type);
+                    break;
+                }
                 case 3:
-                    {
-                        ExecuteSwitch(AudioFollowsVideo.Selector, null, type);
-                        break;
-                    }
+                {
+                    ExecuteSwitch(AudioFollowsVideo.Selector, null, type);
+                    break;
+                }
             }
-
         }
 
         #region IRouting Members
@@ -147,11 +146,13 @@ namespace PepperDash.Essentials.DM
             {
                 if (OutputCard is Card.Dmps3DmOutputBackend)
                 {
-                    (OutputCard as Card.Dmps3DmOutputBackend).AudioOutSourceDevice = (eDmps34KAudioOutSourceDevice)inputSelector;
+                    (OutputCard as Card.Dmps3DmOutputBackend).AudioOutSourceDevice =
+                        (eDmps34KAudioOutSourceDevice)inputSelector;
                 }
                 else if (OutputCard is Card.Dmps3HdmiOutputBackend)
                 {
-                    (OutputCard as Card.Dmps3HdmiOutputBackend).AudioOutSourceDevice = (eDmps34KAudioOutSourceDevice)inputSelector;
+                    (OutputCard as Card.Dmps3HdmiOutputBackend).AudioOutSourceDevice =
+                        (eDmps34KAudioOutSourceDevice)inputSelector;
                 }
             }
         }

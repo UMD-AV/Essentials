@@ -32,7 +32,7 @@ namespace NvxEpi.Devices
         public NvxMockDevice(DeviceConfig dc)
             : base(dc.Key, dc.Name)
         {
-            var props = dc.Properties.ToObject<NvxMockDeviceProperties>();
+            NvxMockDeviceProperties props = dc.Properties.ToObject<NvxMockDeviceProperties>();
             if (props == null)
             {
                 Debug.Console(1, this, "************ PROPS IS NULL ************");
@@ -43,7 +43,7 @@ namespace NvxEpi.Devices
 
             DeviceId = props.DeviceId;
             IsTransmitter = true;
-            _streamUrl = !String.IsNullOrEmpty(props.StreamUrl) ? props.StreamUrl : String.Empty;
+            _streamUrl = !string.IsNullOrEmpty(props.StreamUrl) ? props.StreamUrl : string.Empty;
             BuildFeedbacks(props);
             BuildInputPorts();
         }
@@ -55,35 +55,35 @@ namespace NvxEpi.Devices
             StreamUrl = new StringFeedback("StreamUrl", () => _streamUrl);
 
             MulticastAddress = new StringFeedback("MulticastVideoAddress",
-                () => !String.IsNullOrEmpty(props.MulticastVideoAddress) ? props.MulticastVideoAddress : String.Empty);
+                () => !string.IsNullOrEmpty(props.MulticastVideoAddress) ? props.MulticastVideoAddress : string.Empty);
 
-            IsStreamingVideo = new BoolFeedback(() => !String.IsNullOrEmpty(props.StreamUrl));
+            IsStreamingVideo = new BoolFeedback(() => !string.IsNullOrEmpty(props.StreamUrl));
 
             VideoStreamStatus = new StringFeedback(
-                () => !String.IsNullOrEmpty(props.StreamUrl) ? "Streaming" : String.Empty);
+                () => !string.IsNullOrEmpty(props.StreamUrl) ? "Streaming" : string.Empty);
 
             SecondaryAudioAddress = new StringFeedback(
-                () => !String.IsNullOrEmpty(props.MulticastAudioAddress) ? props.MulticastAudioAddress : String.Empty);
+                () => !string.IsNullOrEmpty(props.MulticastAudioAddress) ? props.MulticastAudioAddress : string.Empty);
 
             TxAudioAddress = new StringFeedback("MulticastAudio",
-                () => !String.IsNullOrEmpty(props.MulticastAudioAddress) ? props.MulticastAudioAddress : String.Empty);
+                () => !string.IsNullOrEmpty(props.MulticastAudioAddress) ? props.MulticastAudioAddress : string.Empty);
 
             RxAudioAddress = new StringFeedback(() => string.Empty);
 
             IsStreamingSecondaryAudio = new BoolFeedback(
-                () => !String.IsNullOrEmpty(props.MulticastAudioAddress));
+                () => !string.IsNullOrEmpty(props.MulticastAudioAddress));
 
             SecondaryAudioStreamStatus = new StringFeedback(
-                () => !String.IsNullOrEmpty(props.MulticastAudioAddress) ? "Streaming" : String.Empty);
+                () => !string.IsNullOrEmpty(props.MulticastAudioAddress) ? "Streaming" : string.Empty);
 
             Feedbacks.AddRange(new Feedback[]
-                {
-                    DeviceNameFeedback.GetFeedback(Name),
-                    IsOnline,
-                    StreamUrl,
-                    MulticastAddress,
-                    TxAudioAddress
-                });
+            {
+                DeviceNameFeedback.GetFeedback(Name),
+                IsOnline,
+                StreamUrl,
+                MulticastAddress,
+                TxAudioAddress
+            });
         }
 
         private void BuildInputPorts()
@@ -125,7 +125,7 @@ namespace NvxEpi.Devices
         {
             Feedbacks.ToList().ForEach(x => x.FireUpdate());
 
-            
+
             return base.CustomActivate();
         }
 
@@ -181,9 +181,9 @@ namespace NvxEpi.Devices
 
         public void LinkToApi(BasicTriList trilist, uint joinStart, string joinMapKey, EiscApiAdvanced bridge)
         {
-            var joinMap = new NvxDeviceJoinMap(joinStart);
+            NvxDeviceJoinMap joinMap = new NvxDeviceJoinMap(joinStart);
 
-            var deviceBridge = new NvxDeviceBridge(this);
+            NvxDeviceBridge deviceBridge = new NvxDeviceBridge(this);
             deviceBridge.LinkToApi(trilist, joinStart, joinMapKey, bridge);
             //trilist.SetStringSigAction(joinMap.StreamUrl.JoinNumber, SetStreamUrl);
         }

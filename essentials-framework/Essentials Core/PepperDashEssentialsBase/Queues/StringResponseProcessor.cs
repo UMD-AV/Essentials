@@ -6,7 +6,7 @@ namespace PepperDash.Essentials.Core.Queues
 {
     public sealed class StringResponseProcessor : IKeyed, IDisposable
     {
-        private readonly Action<string> _processStringAction; 
+        private readonly Action<string> _processStringAction;
         private readonly IQueue<IQueueMessage> _queue;
         private readonly IBasicCommunication _coms;
         private readonly CommunicationGather _gather;

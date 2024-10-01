@@ -5,11 +5,8 @@ namespace PepperDash.Essentials.Core
 {
     public class EssentialsRfGatewayConfig
     {
-        [JsonProperty("control")]
-        public EssentialsControlPropertiesConfig Control { get; set; }
+        [JsonProperty("control")] public EssentialsControlPropertiesConfig Control { get; set; }
 
-        [JsonProperty("gatewayType")]
-        public string GatewayType { get; set; }
-
-     }
+        [JsonProperty("gatewayType")] public string GatewayType { get; set; }
+    }
 }

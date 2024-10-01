@@ -9,7 +9,7 @@ using PepperDash.Core;
 namespace NvxEpi.Extensions
 {
     public static class HdmiInputExtensions
-    {        
+    {
         public static void SetHdmi1HdcpCapability(this IHdmiInput device, ushort capability)
         {
             try
@@ -20,12 +20,12 @@ namespace NvxEpi.Extensions
                 {
                     capabilityToSet = (eHdcpCapabilityType)capability;
                     Debug.Console(1, device, "Setting Hdmi1 Capability to '{0}'", capabilityToSet.ToString());
-                    var hardware = device.Hardware as DmNvxE760x;
+                    DmNvxE760x hardware = device.Hardware as DmNvxE760x;
                     hardware.DmIn.HdcpCapability = capabilityToSet;
                 }
                 else if (device.Hardware.HdmiIn != null && device.Hardware.HdmiIn[1] != null)
                 {
-                    capabilityToSet = (eHdcpCapabilityType) capability;
+                    capabilityToSet = (eHdcpCapabilityType)capability;
                     Debug.Console(1, device, "Setting Hdmi1 Capability to '{0}'", capabilityToSet.ToString());
                     device.Hardware.HdmiIn[1].HdcpCapability = capabilityToSet;
                 }
@@ -79,7 +79,7 @@ namespace NvxEpi.Extensions
                 if (device.Hardware.HdmiIn[2] == null)
                     throw new NotSupportedException("hdmi2");
 
-                var capabilityToSet = (eHdcpCapabilityType) capability;
+                eHdcpCapabilityType capabilityToSet = (eHdcpCapabilityType)capability;
 
                 Debug.Console(1, device, "Setting Hdmi2 Capability to '{0}'", capabilityToSet.ToString());
                 device.Hardware.HdmiIn[2].HdcpCapability = capabilityToSet;

@@ -9,20 +9,20 @@ namespace PepperDash.Essentials.Core
     public class CrestronGlobalSecretsProvider : ISecretProvider
     {
         public string Key { get; set; }
+
         //Added for reference
         public string Description { get; private set; }
 
         public CrestronGlobalSecretsProvider(string key)
         {
             Key = key;
-            Description = String.Format("Default secret provider serving all local applications");
-
+            Description = string.Format("Default secret provider serving all local applications");
         }
 
         static CrestronGlobalSecretsProvider()
         {
             //Added for future encrypted reference
-            var secureSupported = CrestronSecureStorage.Supported;
+            bool secureSupported = CrestronSecureStorage.Supported;
 
             CrestronDataStoreStatic.InitCrestronDataStore();
             if (secureSupported)
@@ -38,10 +38,10 @@ namespace PepperDash.Essentials.Core
         /// <param name="value">Secret Value</param>
         public bool SetSecret(string key, object value)
         {
-            var secret = value as string;
+            string secret = value as string;
             CrestronDataStore.CDS_ERROR returnCode;
 
-            if (String.IsNullOrEmpty(secret))
+            if (string.IsNullOrEmpty(secret))
             {
                 returnCode = CrestronDataStoreStatic.clearGlobal(key);
                 if (returnCode == CrestronDataStore.CDS_ERROR.CDS_SUCCESS)
@@ -61,7 +61,8 @@ namespace PepperDash.Essentials.Core
                 }
             }
 
-            Debug.Console(0, this, Debug.ErrorLogLevel.Notice, "Unable to set secret for {0}:{1} - {2}", Key, key, returnCode.ToString());
+            Debug.Console(0, this, Debug.ErrorLogLevel.Notice, "Unable to set secret for {0}:{1} - {2}", Key, key,
+                returnCode.ToString());
             return false;
         }
 
@@ -73,7 +74,7 @@ namespace PepperDash.Essentials.Core
         public ISecret GetSecret(string key)
         {
             string mySecret;
-            var getErrorCode = CrestronDataStoreStatic.GetGlobalStringValue(key, out mySecret);
+            CrestronDataStore.CDS_ERROR getErrorCode = CrestronDataStoreStatic.GetGlobalStringValue(key, out mySecret);
 
             switch (getErrorCode)
             {
@@ -95,8 +96,8 @@ namespace PepperDash.Essentials.Core
         public bool TestSecret(string key)
         {
             string mySecret;
-            return CrestronDataStoreStatic.GetGlobalStringValue(key, out mySecret) == CrestronDataStore.CDS_ERROR.CDS_SUCCESS;
+            return CrestronDataStoreStatic.GetGlobalStringValue(key, out mySecret) ==
+                   CrestronDataStore.CDS_ERROR.CDS_SUCCESS;
         }
     }
-
 }

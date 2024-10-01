@@ -6,9 +6,17 @@ namespace PepperDash.Essentials.Core
 {
     public class IntFeedback : Feedback
     {
-        public override int IntValue { get { return _IntValue; } } // ValueFunc.Invoke(); } }
+        public override int IntValue
+        {
+            get { return _IntValue; }
+        } // ValueFunc.Invoke(); } }
+
         int _IntValue;
-        public ushort UShortValue { get { return (ushort)_IntValue; } }
+
+        public ushort UShortValue
+        {
+            get { return (ushort)_IntValue; }
+        }
 
         //public override eCueType Type { get { return eCueType.Int; } }
 
@@ -18,6 +26,7 @@ namespace PepperDash.Essentials.Core
         /// Func evaluated on FireUpdate
         /// </summary>
         Func<int> ValueFunc;
+
         List<UShortInputSig> LinkedInputSigs = new List<UShortInputSig>();
 
         /// <summary>
@@ -56,7 +65,7 @@ namespace PepperDash.Essentials.Core
 
         public override void FireUpdate()
         {
-            var newValue = InTestMode ? TestValue : ValueFunc.Invoke();
+            int newValue = InTestMode ? TestValue : ValueFunc.Invoke();
             if (newValue != _IntValue)
             {
                 _IntValue = newValue;

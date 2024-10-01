@@ -20,10 +20,7 @@ namespace PepperDash.Essentials.Core.Privacy
 
         public bool EnableLeds
         {
-            get
-            {
-                return _enableLeds;
-            }
+            get { return _enableLeds; }
             set
             {
                 _enableLeds = value;
@@ -40,6 +37,7 @@ namespace PepperDash.Essentials.Core.Privacy
                 }
             }
         }
+
         bool _enableLeds;
 
         public List<IDigitalInput> Inputs { get; private set; }
@@ -62,29 +60,30 @@ namespace PepperDash.Essentials.Core.Privacy
 
         public override bool CustomActivate()
         {
-            foreach (var i in Config.Inputs)
+            foreach (KeyedDevice i in Config.Inputs)
             {
-                var input = DeviceManager.GetDeviceForKey(i.DeviceKey) as IDigitalInput;
+                IDigitalInput input = DeviceManager.GetDeviceForKey(i.DeviceKey) as IDigitalInput;
 
-                if(input != null)
+                if (input != null)
                     AddInput(input);
             }
 
-            var greenLed = DeviceManager.GetDeviceForKey(Config.GreenLedRelay.DeviceKey) as GenericRelayDevice;
+            GenericRelayDevice greenLed = DeviceManager.GetDeviceForKey(Config.GreenLedRelay.DeviceKey) as GenericRelayDevice;
 
             if (greenLed != null)
                 GreenLedRelay = greenLed;
             else
                 Debug.Console(0, this, "Unable to add Green LED device");
 
-            var redLed = DeviceManager.GetDeviceForKey(Config.RedLedRelay.DeviceKey) as GenericRelayDevice;
+            GenericRelayDevice redLed = DeviceManager.GetDeviceForKey(Config.RedLedRelay.DeviceKey) as GenericRelayDevice;
 
             if (redLed != null)
                 RedLedRelay = redLed;
             else
                 Debug.Console(0, this, "Unable to add Red LED device");
 
-            AddPostActivationAction(() => {
+            AddPostActivationAction(() =>
+            {
                 PrivacyDevice.PrivacyModeIsOnFeedback.OutputChange -= PrivacyModeIsOnFeedback_OutputChange;
                 PrivacyDevice.PrivacyModeIsOnFeedback.OutputChange += PrivacyModeIsOnFeedback_OutputChange;
             });
@@ -110,7 +109,7 @@ namespace PepperDash.Essentials.Core.Privacy
 
         void PrivacyModeIsOnFeedback_OutputChange(object sender, EventArgs e)
         {
-			Debug.Console(1, this, "Privacy mode change: {0}", sender as BoolFeedback);
+            Debug.Console(1, this, "Privacy mode change: {0}", sender as BoolFeedback);
             CheckPrivacyMode();
         }
 
@@ -118,7 +117,7 @@ namespace PepperDash.Essentials.Core.Privacy
         {
             if (PrivacyDevice != null)
             {
-                var privacyState = PrivacyDevice.PrivacyModeIsOnFeedback.BoolValue;
+                bool privacyState = PrivacyDevice.PrivacyModeIsOnFeedback.BoolValue;
 
                 if (privacyState)
                     TurnOnRedLeds();
@@ -136,7 +135,7 @@ namespace PepperDash.Essentials.Core.Privacy
 
         void RemoveInput(IDigitalInput input)
         {
-            var tempInput = Inputs.FirstOrDefault(i => i.Equals(input));
+            IDigitalInput tempInput = Inputs.FirstOrDefault(i => i.Equals(input));
 
             if (tempInput != null)
                 tempInput.InputStateFeedback.OutputChange -= InputStateFeedback_OutputChange;
@@ -221,7 +220,7 @@ namespace PepperDash.Essentials.Core.Privacy
                     RedLedRelay.OpenRelay();
             }
 
-            if(GreenLedRelay != null)
+            if (GreenLedRelay != null)
             {
                 if (_greenLedRelayState)
                     GreenLedRelay.CloseRelay();
@@ -241,10 +240,11 @@ namespace PepperDash.Essentials.Core.Privacy
         public override EssentialsDevice BuildDevice(DeviceConfig dc)
         {
             Debug.Console(1, "Factory Attempting to create new MIcrophonePrivacyController Device");
-            var props = Newtonsoft.Json.JsonConvert.DeserializeObject<Core.Privacy.MicrophonePrivacyControllerConfig>(dc.Properties.ToString());
+            MicrophonePrivacyControllerConfig props =
+                Newtonsoft.Json.JsonConvert.DeserializeObject<Core.Privacy.MicrophonePrivacyControllerConfig>(
+                    dc.Properties.ToString());
 
             return new Core.Privacy.MicrophonePrivacyController(dc.Key, props);
         }
     }
-
 }

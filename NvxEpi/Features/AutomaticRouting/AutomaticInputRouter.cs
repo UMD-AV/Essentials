@@ -14,12 +14,12 @@ namespace NvxEpi.Features.AutomaticRouting
         public AutomaticInputRouter(IHdmiInput currentVideoInput)
         {
             _currentVideoInput = currentVideoInput;
-            foreach (var fb in currentVideoInput.SyncDetected.Values)
+            foreach (BoolFeedback fb in currentVideoInput.SyncDetected.Values)
                 _hdmiInputDetected.AddOutputIn(fb);
 
             _hdmiInputDetected.Output.OutputChange += OnSyncDetected;
 
-            var stream = _currentVideoInput as IStream;
+            IStream stream = _currentVideoInput as IStream;
             if (stream == null || _currentVideoInput.IsTransmitter)
                 return;
 
@@ -28,7 +28,7 @@ namespace NvxEpi.Features.AutomaticRouting
 
         private void OnSyncDetected(object sender, FeedbackEventArgs feedbackEventArgs)
         {
-            var currentVidoInput = _currentVideoInput as ICurrentVideoInput;
+            ICurrentVideoInput currentVidoInput = _currentVideoInput as ICurrentVideoInput;
             if (currentVidoInput == null)
                 return;
 

@@ -55,7 +55,9 @@ namespace PepperDash.Essentials.Core.CrestronIO
 
                 if (RelayOutput == null)
                 {
-                    Debug.Console(0, this, Debug.ErrorLogLevel.Error, "Unable to get parent relay device for device key {0} and port {1}", config.PortDeviceKey, config.PortNumber);
+                    Debug.Console(0, this, Debug.ErrorLogLevel.Error,
+                        "Unable to get parent relay device for device key {0} and port {1}", config.PortDeviceKey,
+                        config.PortNumber);
                     return;
                 }
 
@@ -72,30 +74,34 @@ namespace PepperDash.Essentials.Core.CrestronIO
         {
             IRelayPorts relayDevice;
 
-            if(dc.PortDeviceKey.Equals("processor"))
+            if (dc.PortDeviceKey.Equals("processor"))
             {
                 if (!Global.ControlSystem.SupportsRelay)
                 {
                     Debug.Console(0, "Processor does not support relays");
                     return null;
                 }
+
                 relayDevice = Global.ControlSystem;
 
                 return relayDevice.RelayPorts[dc.PortNumber];
             }
-            
-            var essentialsDevice = DeviceManager.GetDeviceForKey(dc.PortDeviceKey);
+
+            IKeyed essentialsDevice = DeviceManager.GetDeviceForKey(dc.PortDeviceKey);
             if (essentialsDevice == null)
             {
-                Debug.Console(0, "Device {0} was not found in Device Manager. Check configuration or for errors with device.", dc.PortDeviceKey);
+                Debug.Console(0,
+                    "Device {0} was not found in Device Manager. Check configuration or for errors with device.",
+                    dc.PortDeviceKey);
                 return null;
             }
 
             relayDevice = essentialsDevice as IRelayPorts;
-            
+
             if (relayDevice == null)
             {
-                Debug.Console(0, "Device {0} is not a valid relay parent. Please check configuration.", dc.PortDeviceKey);
+                Debug.Console(0, "Device {0} is not a valid relay parent. Please check configuration.",
+                    dc.PortDeviceKey);
                 return null;
             }
 
@@ -176,9 +182,9 @@ namespace PepperDash.Essentials.Core.CrestronIO
 
         public override void LinkToApi(BasicTriList trilist, uint joinStart, string joinMapKey, EiscApiAdvanced bridge)
         {
-            var joinMap = new GenericRelayControllerJoinMap(joinStart);
+            GenericRelayControllerJoinMap joinMap = new GenericRelayControllerJoinMap(joinStart);
 
-            var joinMapSerialized = JoinMapHelper.GetSerializedJoinMapForDevice(joinMapKey);
+            string joinMapSerialized = JoinMapHelper.GetSerializedJoinMapForDevice(joinMapKey);
 
             if (!string.IsNullOrEmpty(joinMapSerialized))
                 joinMap = JsonConvert.DeserializeObject<GenericRelayControllerJoinMap>(joinMapSerialized);
@@ -189,7 +195,8 @@ namespace PepperDash.Essentials.Core.CrestronIO
             }
             else
             {
-                Debug.Console(0, this, "Please update config to use 'eiscapiadvanced' to get all join map features for this device.");
+                Debug.Console(0, this,
+                    "Please update config to use 'eiscapiadvanced' to get all join map features for this device.");
             }
 
             if (RelayOutput == null)
@@ -231,20 +238,16 @@ namespace PepperDash.Essentials.Core.CrestronIO
             {
                 Debug.Console(1, "Factory Attempting to create new Generic Relay Device");
 
-                var props = JsonConvert.DeserializeObject<RelayPortConfig>(dc.Properties.ToString());
+                RelayPortConfig props = JsonConvert.DeserializeObject<RelayPortConfig>(dc.Properties.ToString());
 
                 if (props == null) return null;
 
-                var portDevice = new GenericRelayDevice(dc.Key, dc.Name, GetRelay, props);
+                GenericRelayDevice portDevice = new GenericRelayDevice(dc.Key, dc.Name, GetRelay, props);
 
                 return portDevice;
             }
         }
 
         #endregion
-
-
     }
-
-
 }

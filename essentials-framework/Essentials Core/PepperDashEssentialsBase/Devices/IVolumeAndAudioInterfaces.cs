@@ -3,15 +3,15 @@ using System.Collections.Generic;
 
 namespace PepperDash.Essentials.Core
 {
-	/// <summary>
-	/// Defines minimal volume and mute control methods
-	/// </summary>
-    public interface IBasicVolumeControls 
-	{
-		void VolumeUp(bool pressRelease);
-		void VolumeDown(bool pressRelease);
-		void MuteToggle();
-	}
+    /// <summary>
+    /// Defines minimal volume and mute control methods
+    /// </summary>
+    public interface IBasicVolumeControls
+    {
+        void VolumeUp(bool pressRelease);
+        void VolumeDown(bool pressRelease);
+        void MuteToggle();
+    }
 
     /// <summary>
     /// Defines basic volume control methods
@@ -49,17 +49,17 @@ namespace PepperDash.Essentials.Core
         void MuteOff();
     }
 
-	/// <summary>
-	/// Adds feedback and direct volume level set to IBasicVolumeControls
-	/// </summary>
+    /// <summary>
+    /// Adds feedback and direct volume level set to IBasicVolumeControls
+    /// </summary>
     public interface IBasicVolumeWithFeedback : IBasicVolumeControls
-	{
-		BoolFeedback MuteFeedback { get; }
+    {
+        BoolFeedback MuteFeedback { get; }
         void MuteOn();
         void MuteOff();
-		void SetVolume(ushort level);
-		IntFeedback VolumeLevelFeedback { get; }
-	}
+        void SetVolume(ushort level);
+        IntFeedback VolumeLevelFeedback { get; }
+    }
 
     /// <summary>
     /// A class that implements this contains a reference to a current IBasicVolumeControls device.
@@ -68,74 +68,74 @@ namespace PepperDash.Essentials.Core
     public interface IHasCurrentVolumeControls
     {
         IBasicVolumeControls CurrentVolumeControls { get; }
-		event EventHandler<VolumeDeviceChangeEventArgs> CurrentVolumeDeviceChange;
-	}
+        event EventHandler<VolumeDeviceChangeEventArgs> CurrentVolumeDeviceChange;
+    }
 
 
-	/// <summary>
-	/// 
-	/// </summary>
-	public interface IFullAudioSettings : IBasicVolumeWithFeedback
-	{
-		void SetBalance(ushort level);
-		void BalanceLeft(bool pressRelease);
-		void BalanceRight(bool pressRelease);
+    /// <summary>
+    /// 
+    /// </summary>
+    public interface IFullAudioSettings : IBasicVolumeWithFeedback
+    {
+        void SetBalance(ushort level);
+        void BalanceLeft(bool pressRelease);
+        void BalanceRight(bool pressRelease);
 
-		void SetBass(ushort level);
-		void BassUp(bool pressRelease);
-		void BassDown(bool pressRelease);
+        void SetBass(ushort level);
+        void BassUp(bool pressRelease);
+        void BassDown(bool pressRelease);
 
-		void SetTreble(ushort level);
-		void TrebleUp(bool pressRelease);
-		void TrebleDown(bool pressRelease);
+        void SetTreble(ushort level);
+        void TrebleUp(bool pressRelease);
+        void TrebleDown(bool pressRelease);
 
-		bool hasMaxVolume { get; }
-		void SetMaxVolume(ushort level);
-		void MaxVolumeUp(bool pressRelease);
-		void MaxVolumeDown(bool pressRelease);
+        bool hasMaxVolume { get; }
+        void SetMaxVolume(ushort level);
+        void MaxVolumeUp(bool pressRelease);
+        void MaxVolumeDown(bool pressRelease);
 
-		bool hasDefaultVolume { get; }
-		void SetDefaultVolume(ushort level);
-		void DefaultVolumeUp(bool pressRelease);
-		void DefaultVolumeDown(bool pressRelease);
+        bool hasDefaultVolume { get; }
+        void SetDefaultVolume(ushort level);
+        void DefaultVolumeUp(bool pressRelease);
+        void DefaultVolumeDown(bool pressRelease);
 
-		void LoudnessToggle();
-		void MonoToggle();
+        void LoudnessToggle();
+        void MonoToggle();
 
-		BoolFeedback LoudnessFeedback { get; }
-		BoolFeedback MonoFeedback { get; }
-		IntFeedback BalanceFeedback { get; }
-		IntFeedback BassFeedback { get; }
-		IntFeedback TrebleFeedback { get; }
-		IntFeedback MaxVolumeFeedback { get; }
-		IntFeedback DefaultVolumeFeedback { get; }
-	}
+        BoolFeedback LoudnessFeedback { get; }
+        BoolFeedback MonoFeedback { get; }
+        IntFeedback BalanceFeedback { get; }
+        IntFeedback BassFeedback { get; }
+        IntFeedback TrebleFeedback { get; }
+        IntFeedback MaxVolumeFeedback { get; }
+        IntFeedback DefaultVolumeFeedback { get; }
+    }
 
-	/// <summary>
-	/// A class that implements this, contains a reference to an IBasicVolumeControls device.
-	/// For example, speakers attached to an audio zone.  The speakers can provide reference
-	/// to their linked volume control.
-	/// </summary>
-	public interface IHasVolumeDevice
-	{
-		IBasicVolumeControls VolumeDevice { get; }
-	}
+    /// <summary>
+    /// A class that implements this, contains a reference to an IBasicVolumeControls device.
+    /// For example, speakers attached to an audio zone.  The speakers can provide reference
+    /// to their linked volume control.
+    /// </summary>
+    public interface IHasVolumeDevice
+    {
+        IBasicVolumeControls VolumeDevice { get; }
+    }
 
-	/// <summary>
-	/// Identifies a device that contains audio zones
-	/// </summary>
-	public interface IAudioZones : IRouting
-	{
-		Dictionary<uint, IAudioZone> Zone { get; }
-	}
+    /// <summary>
+    /// Identifies a device that contains audio zones
+    /// </summary>
+    public interface IAudioZones : IRouting
+    {
+        Dictionary<uint, IAudioZone> Zone { get; }
+    }
 
-	/// <summary>
-	/// Defines minimum functionality for an audio zone
-	/// </summary>
-	public interface IAudioZone : IBasicVolumeWithFeedback
-	{
-		void SelectInput(ushort input);
-	}
+    /// <summary>
+    /// Defines minimum functionality for an audio zone
+    /// </summary>
+    public interface IAudioZone : IBasicVolumeWithFeedback
+    {
+        void SelectInput(ushort input);
+    }
 
     /// <summary>
     /// Identifies a device that reports lamp hours

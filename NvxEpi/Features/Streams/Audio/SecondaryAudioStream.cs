@@ -92,10 +92,7 @@ namespace NvxEpi.Features.Streams.Audio
 
         public StringFeedback SecondaryAudioAddress
         {
-            get 
-            {
-                return _secondaryAudioAddres;
-            }
+            get { return _secondaryAudioAddres; }
         }
 
         public StringFeedback TxAudioAddress

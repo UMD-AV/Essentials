@@ -13,7 +13,11 @@ namespace PepperDash.Essentials.Core
         /// Returns the current value of the feedback, derived from the ValueFunc. The ValueFunc is 
         /// evaluated whenever FireUpdate() is called
         /// </summary>
-        public override bool BoolValue { get { return _BoolValue; } }
+        public override bool BoolValue
+        {
+            get { return _BoolValue; }
+        }
+
         bool _BoolValue;
 
         /// <summary>
@@ -29,7 +33,8 @@ namespace PepperDash.Essentials.Core
         List<BoolInputSig> LinkedInputSigs = new List<BoolInputSig>();
         List<BoolInputSig> LinkedComplementInputSigs = new List<BoolInputSig>();
 
-        List<Crestron.SimplSharpPro.DeviceSupport.Feedback> LinkedCrestronFeedbacks = new List<Crestron.SimplSharpPro.DeviceSupport.Feedback>();
+        List<Crestron.SimplSharpPro.DeviceSupport.Feedback> LinkedCrestronFeedbacks =
+            new List<Crestron.SimplSharpPro.DeviceSupport.Feedback>();
 
         /// <summary>
         /// Creates the feedback with the Func as described.
@@ -164,5 +169,4 @@ namespace PepperDash.Essentials.Core
             feedback.State = _BoolValue;
         }
     }
-
 }

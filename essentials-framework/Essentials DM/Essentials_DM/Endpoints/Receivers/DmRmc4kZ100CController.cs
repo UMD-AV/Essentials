@@ -1,7 +1,6 @@
 ﻿using Crestron.SimplSharpPro.DeviceSupport;
 using Crestron.SimplSharpPro.DM.Endpoints;
 using Crestron.SimplSharpPro.DM.Endpoints.Receivers;
-
 using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Bridges;
 
@@ -13,20 +12,23 @@ namespace PepperDash.Essentials.DM
         private readonly DmRmc4kz100C _rmc;
 
         public DmRmc4kZ100CController(string key, string name, DmRmc4kz100C rmc)
-			: base(key, name, rmc)
+            : base(key, name, rmc)
         {
             _rmc = rmc;
 
-            EdidManufacturerFeedback = new StringFeedback(() => _rmc.HdmiOutput.ConnectedDevice.Manufacturer.StringValue);
+            EdidManufacturerFeedback =
+                new StringFeedback(() => _rmc.HdmiOutput.ConnectedDevice.Manufacturer.StringValue);
             EdidNameFeedback = new StringFeedback(() => _rmc.HdmiOutput.ConnectedDevice.Name.StringValue);
-            EdidPreferredTimingFeedback = new StringFeedback(() => _rmc.HdmiOutput.ConnectedDevice.PreferredTiming.StringValue);
-            EdidSerialNumberFeedback = new StringFeedback(() => _rmc.HdmiOutput.ConnectedDevice.SerialNumber.StringValue);
+            EdidPreferredTimingFeedback =
+                new StringFeedback(() => _rmc.HdmiOutput.ConnectedDevice.PreferredTiming.StringValue);
+            EdidSerialNumberFeedback =
+                new StringFeedback(() => _rmc.HdmiOutput.ConnectedDevice.SerialNumber.StringValue);
 
             _rmc.HdmiOutput.OutputStreamChange += HdmiOutput_OutputStreamChange;
 
             //removed to prevent NullReferenceException
             //_rmc.HdmiOutput.ConnectedDevice.DeviceInformationChange += ConnectedDevice_DeviceInformationChange;
-		}
+        }
 
         void HdmiOutput_OutputStreamChange(EndpointOutputStream outputStream, EndpointOutputStreamEventArgs args)
         {

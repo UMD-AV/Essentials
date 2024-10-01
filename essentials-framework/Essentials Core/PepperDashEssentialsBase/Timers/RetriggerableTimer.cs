@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using Crestron.SimplSharp;
-
 using PepperDash.Core;
 using PepperDash.Essentials.Core.Config;
-
 using Newtonsoft.Json;
 
 
@@ -24,7 +22,7 @@ namespace PepperDash.Essentials.Core.Timers
         public RetriggerableTimer(string key, DeviceConfig config)
             : base(key, config.Name)
         {
-            var props = config.Properties.ToObject<RetriggerableTimerPropertiesConfig>();
+            RetriggerableTimerPropertiesConfig props = config.Properties.ToObject<RetriggerableTimerPropertiesConfig>();
             _propertiesConfig = props;
 
             if (_propertiesConfig != null)
@@ -56,10 +54,11 @@ namespace PepperDash.Essentials.Core.Timers
 
         public void StartTimer()
         {
-             CleanUpTimer();
-             Debug.Console(0, this, "Starting Timer");
+            CleanUpTimer();
+            Debug.Console(0, this, "Starting Timer");
 
-             _timer = new CTimer(TimerElapsedCallback, GetActionFromConfig(eRetriggerableTimerEvents.Elapsed), _timerIntervalMs, _timerIntervalMs);
+            _timer = new CTimer(TimerElapsedCallback, GetActionFromConfig(eRetriggerableTimerEvents.Elapsed),
+                _timerIntervalMs, _timerIntervalMs);
         }
 
         public void StopTimer()
@@ -72,7 +71,7 @@ namespace PepperDash.Essentials.Core.Timers
 
         private DeviceActionWrapper GetActionFromConfig(eRetriggerableTimerEvents eventType)
         {
-            var action = _propertiesConfig.Events[eRetriggerableTimerEvents.Elapsed];
+            DeviceActionWrapper action = _propertiesConfig.Events[eRetriggerableTimerEvents.Elapsed];
 
             if (action != null)
                 return action;
@@ -93,14 +92,13 @@ namespace PepperDash.Essentials.Core.Timers
                 return;
             }
 
-            var devAction = action as DeviceActionWrapper;
+            DeviceActionWrapper devAction = action as DeviceActionWrapper;
             if (devAction != null)
                 ExecuteAction(devAction);
             else
             {
                 Debug.Console(2, this, "Unable to cast action as DeviceActionWrapper. Cannot Execute");
             }
-
         }
 
         private void ExecuteAction(DeviceActionWrapper action)
@@ -131,11 +129,9 @@ namespace PepperDash.Essentials.Core.Timers
         [JsonProperty("startTimerOnActivation")]
         public bool StartTimerOnActivation { get; set; }
 
-        [JsonProperty("timerIntervalMs")]
-        public long TimerIntervalMs { get; set; }
+        [JsonProperty("timerIntervalMs")] public long TimerIntervalMs { get; set; }
 
-        [JsonProperty("events")]
-        public Dictionary<eRetriggerableTimerEvents, DeviceActionWrapper> Events { get; set; }
+        [JsonProperty("events")] public Dictionary<eRetriggerableTimerEvents, DeviceActionWrapper> Events { get; set; }
 
         public RetriggerableTimerPropertiesConfig()
         {
@@ -169,6 +165,4 @@ namespace PepperDash.Essentials.Core.Timers
             return new RetriggerableTimer(dc.Key, dc);
         }
     }
-
-
 }

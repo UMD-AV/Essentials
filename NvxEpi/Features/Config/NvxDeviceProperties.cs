@@ -39,7 +39,7 @@ namespace NvxEpi.Features.Config
         public static bool DeviceIsTransmitter(this NvxDeviceProperties props)
         {
             return !string.IsNullOrEmpty(props.Mode) &&
-                        props.Mode.Equals("tx", StringComparison.OrdinalIgnoreCase);
+                   props.Mode.Equals("tx", StringComparison.OrdinalIgnoreCase);
         }
     }
 

@@ -22,11 +22,12 @@ namespace NvxEpi.Services.InputSwitching
 
         public void HandleSwitch(object input, eRoutingSignalType type)
         {
-            var routingInput = input as DeviceInputEnum;
+            DeviceInputEnum routingInput = input as DeviceInputEnum;
             if (routingInput == null)
                 throw new InvalidCastException("routing input");
 
-            Debug.Console(1, _device, "Switching input on AnalogAudioOutput: '{0}' : '{1}'", routingInput.Name, type.ToString());
+            Debug.Console(1, _device, "Switching input on AnalogAudioOutput: '{0}' : '{1}'", routingInput.Name,
+                type.ToString());
 
             if (routingInput == DeviceInputEnum.NoSwitch)
                 return;
@@ -35,7 +36,7 @@ namespace NvxEpi.Services.InputSwitching
                 SwitchAudio(routingInput);
 
             if (type.Has(eRoutingSignalType.Video))
-                throw new NotSupportedException("video"); 
+                throw new NotSupportedException("video");
         }
 
         private void SwitchAudio(Enumeration<DeviceInputEnum> input)
@@ -64,10 +65,10 @@ namespace NvxEpi.Services.InputSwitching
         public static void AddRoutingPort(ICurrentAudioInput parent)
         {
             parent.OutputPorts.Add(new RoutingOutputPort(
-                Key, 
-                eRoutingSignalType.Audio, 
+                Key,
+                eRoutingSignalType.Audio,
                 eRoutingPortConnectionType.LineAudio,
-                new SwitcherForAnalogAudioOutput(parent), 
+                new SwitcherForAnalogAudioOutput(parent),
                 parent));
         }
     }

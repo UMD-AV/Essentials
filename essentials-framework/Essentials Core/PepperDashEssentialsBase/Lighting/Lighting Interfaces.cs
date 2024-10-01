@@ -15,7 +15,6 @@ namespace PepperDash.Essentials.Core.Lighting
         void SelectScene(LightingScene scene);
 
         LightingScene CurrentLightingScene { get; }
-
     }
 
     /// <summary>
@@ -50,5 +49,4 @@ namespace PepperDash.Essentials.Core.Lighting
             CurrentLightingScene = scene;
         }
     }
-
 }

@@ -1,7 +1,9 @@
-[assembly: System.Reflection.AssemblyTitle("PepperDashEssentials")]
-[assembly: System.Reflection.AssemblyCompany("PepperDash")]
-[assembly: System.Reflection.AssemblyProduct("PepperDashEssentials")]
-[assembly: System.Reflection.AssemblyCopyright("")]
-[assembly: System.Reflection.AssemblyVersion("1.10.1")]
-[assembly: System.Reflection.AssemblyInformationalVersion("1.10.1")]
-[assembly: Crestron.SimplSharp.Reflection.AssemblyInformationalVersion("1.10.1")]
+using System.Reflection;
+
+[assembly: AssemblyTitle("PepperDashEssentials")]
+[assembly: AssemblyCompany("UMD")]
+[assembly: AssemblyProduct("PepperDashEssentials")]
+[assembly: AssemblyCopyright("Copyright © 2024")]
+[assembly: AssemblyVersion("2.0.0.0")]
+[assembly: AssemblyInformationalVersion("2.0.0.0")]
+[assembly: Crestron.SimplSharp.Reflection.AssemblyInformationalVersion("2.0.0.0")]

@@ -12,7 +12,7 @@ namespace NvxEpi.Services.InputPorts
             if (device.IsTransmitter)
                 throw new NotSupportedException("primary audio");
 
-            var port = new RoutingInputPort(
+            RoutingInputPort port = new RoutingInputPort(
                 DeviceInputEnum.PrimaryAudio.Name,
                 eRoutingSignalType.Audio,
                 eRoutingPortConnectionType.Streaming,

@@ -17,15 +17,13 @@ namespace PepperDash.Essentials.Core.Lighting
         public List<LightingScene> LightingScenes { get; protected set; }
 
         private LightingScene _currentLightingScene;
+
         public LightingScene CurrentLightingScene
         {
-            get
-            {
-                return _currentLightingScene;
-            }
+            get { return _currentLightingScene; }
             protected set
-            {        
-                if(_currentLightingScene == value)
+            {
+                if (_currentLightingScene == value)
                     return;
                 _currentLightingScene = value;
                 OnLightingSceneChange();
@@ -56,7 +54,7 @@ namespace PepperDash.Essentials.Core.Lighting
         {
             Debug.Console(1, this, "Simulating selection of scene '{0}'", sceneName);
 
-            var scene = LightingScenes.FirstOrDefault(s => s.Name.Equals(sceneName));
+            LightingScene scene = LightingScenes.FirstOrDefault(s => s.Name.Equals(sceneName));
 
             if (scene != null)
             {
@@ -70,25 +68,25 @@ namespace PepperDash.Essentials.Core.Lighting
         /// </summary>
         private void OnLightingSceneChange()
         {
-            foreach (var scene in LightingScenes)
+            foreach (LightingScene scene in LightingScenes)
             {
                 if (scene == CurrentLightingScene)
                     scene.IsActive = true;
-					
+
                 else
                     scene.IsActive = false;
             }
 
-            var handler = LightingSceneChange;
+            EventHandler<LightingSceneChangeEventArgs> handler = LightingSceneChange;
             if (handler != null)
             {
                 handler(this, new LightingSceneChangeEventArgs(CurrentLightingScene));
             }
         }
 
-	    public void LinkLightingToApi(BasicTriList trilist, uint joinStart, string joinMapKey, EiscApiAdvanced bridge)
-	    {
-			var joinMap = new GenericLightingJoinMap(joinStart);
+        public void LinkLightingToApi(BasicTriList trilist, uint joinStart, string joinMapKey, EiscApiAdvanced bridge)
+        {
+            GenericLightingJoinMap joinMap = new GenericLightingJoinMap(joinStart);
             Debug.Console(1, "Linking to Trilist '{0}'", trilist.ID.ToString("X"));
 
             //Send this device name to SIMPL
@@ -101,13 +99,15 @@ namespace PepperDash.Essentials.Core.Lighting
             OccupiedFeedback.LinkInputSig(trilist.BooleanInput[joinMap.OccupiedFb.JoinNumber]);
             VacantFeedback.LinkInputSig(trilist.BooleanInput[joinMap.VacantFb.JoinNumber]);
 
-            var sceneIndex = 0;
-            foreach (var scene in this.LightingScenes)
+            int sceneIndex = 0;
+            foreach (LightingScene scene in this.LightingScenes)
             {
-                var index = sceneIndex;
+                int index = sceneIndex;
 
-                trilist.SetSigTrueAction((uint)(joinMap.SelectButtonDirect.JoinNumber + index), () => this.SelectScene(this.LightingScenes[index]));
-                scene.IsActiveFeedback.LinkInputSig(trilist.BooleanInput[(uint)(joinMap.SelectButtonDirect.JoinNumber + index)]);
+                trilist.SetSigTrueAction((uint)(joinMap.SelectButtonDirect.JoinNumber + index),
+                    () => this.SelectScene(this.LightingScenes[index]));
+                scene.IsActiveFeedback.LinkInputSig(
+                    trilist.BooleanInput[(uint)(joinMap.SelectButtonDirect.JoinNumber + index)]);
                 trilist.StringInput[(uint)(joinMap.SelectButtonDirect.JoinNumber + index)].StringValue = scene.Name;
                 sceneIndex++;
             }
@@ -117,42 +117,47 @@ namespace PepperDash.Essentials.Core.Lighting
                 if (!args.DeviceOnLine) return;
 
                 sceneIndex = 0;
-                foreach (var scene in this.LightingScenes)
+                foreach (LightingScene scene in this.LightingScenes)
                 {
-                    var index = sceneIndex;
+                    int index = sceneIndex;
 
                     trilist.StringInput[(uint)(joinMap.ButtonTextFb.JoinNumber + index)].StringValue = scene.Name;
                     scene.IsActiveFeedback.FireUpdate();
                     sceneIndex++;
                 }
             };
-	    }
+        }
     }
 
     public class LightingScene
     {
         [JsonProperty("name", NullValueHandling = NullValueHandling.Ignore)]
         public string Name { get; set; }
+
         [JsonProperty("id", NullValueHandling = NullValueHandling.Ignore)]
         public string ID { get; set; }
+
         [JsonProperty("command", NullValueHandling = NullValueHandling.Ignore)]
         public string Command { get; set; }
+
         [JsonProperty("command2", NullValueHandling = NullValueHandling.Ignore)]
         public string Command2 { get; set; }
+
         [JsonProperty("levels", NullValueHandling = NullValueHandling.Ignore)]
         public SceneLevel[] Levels { get; set; }
+
         [JsonProperty("portDeviceKey", NullValueHandling = NullValueHandling.Ignore)]
         public string PortDeviceKey { get; set; }
+
         [JsonProperty("portNumber", NullValueHandling = NullValueHandling.Ignore)]
         public uint PortNumber { get; set; }
+
         bool _IsActive;
+
         [JsonProperty("isActive", NullValueHandling = NullValueHandling.Ignore)]
-        public bool IsActive 
+        public bool IsActive
         {
-            get
-            {
-                return _IsActive;
-            }
+            get { return _IsActive; }
             set
             {
                 _IsActive = value;
@@ -160,8 +165,7 @@ namespace PepperDash.Essentials.Core.Lighting
             }
         }
 
-        [JsonIgnore]
-        public BoolFeedback IsActiveFeedback { get; set; }
+        [JsonIgnore] public BoolFeedback IsActiveFeedback { get; set; }
 
         public LightingScene()
         {
@@ -173,6 +177,7 @@ namespace PepperDash.Essentials.Core.Lighting
     {
         [JsonProperty("index", NullValueHandling = NullValueHandling.Ignore)]
         public ushort Index { get; set; }
+
         [JsonProperty("level", NullValueHandling = NullValueHandling.Ignore)]
         public ushort Level { get; set; }
     }

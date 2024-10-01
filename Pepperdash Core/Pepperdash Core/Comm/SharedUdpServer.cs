@@ -23,14 +23,15 @@ namespace PepperDash.Core
                 }
                 else
                 {
-                    var server = new SharedUdpServer(port, bufferSize);
+                    SharedUdpServer server = new SharedUdpServer(port, bufferSize);
                     UdpServers.Add(port, server);
                     return server;
                 }
             }
             catch (Exception ex)
             {
-                Debug.LogError(Debug.ErrorLogLevel.Error, string.Format("Exception creating UDP Server at port {0}: {1}", port, ex.Message));
+                Debug.LogError(Debug.ErrorLogLevel.Error,
+                    string.Format("Exception creating UDP Server at port {0}: {1}", port, ex.Message));
                 return null;
             }
             finally
@@ -68,10 +69,7 @@ namespace PepperDash.Core
         /// </summary>
         public SocketStatus ClientStatus
         {
-            get
-            {
-                return Server.ServerStatus;
-            }
+            get { return Server.ServerStatus; }
         }
 
         /// <summary>
@@ -79,10 +77,7 @@ namespace PepperDash.Core
         /// </summary>
         public bool IsConnected
         {
-            get
-            {
-                return Server.IsConnected;
-            }
+            get { return Server.IsConnected; }
         }
 
         /// <summary>
@@ -125,21 +120,25 @@ namespace PepperDash.Core
 
         public void ReceiveData(byte[] bytes)
         {
-            var str = Encoding.GetEncoding(28591).GetString(bytes, 0, bytes.Length);
-            var bytesHandler = BytesReceived;
+            string str = Encoding.GetEncoding(28591).GetString(bytes, 0, bytes.Length);
+            EventHandler<GenericCommMethodReceiveBytesArgs> bytesHandler = BytesReceived;
             if (bytesHandler != null)
             {
                 if (StreamDebugging.RxStreamDebuggingIsEnabled)
                 {
-                    Debug.Console(0, this, "Received {1} bytes: '{0}'", ComTextHelper.GetEscapedText(bytes), bytes.Length);
+                    Debug.Console(0, this, "Received {1} bytes: '{0}'", ComTextHelper.GetEscapedText(bytes),
+                        bytes.Length);
                 }
+
                 bytesHandler(this, new GenericCommMethodReceiveBytesArgs(bytes));
             }
-            var textHandler = TextReceived;
+
+            EventHandler<GenericCommMethodReceiveTextArgs> textHandler = TextReceived;
             if (textHandler != null)
             {
                 if (StreamDebugging.RxStreamDebuggingIsEnabled)
-                    Debug.Console(0, this, "Received {1} characters of text: '{0}'", ComTextHelper.GetDebugText(str), str.Length);
+                    Debug.Console(0, this, "Received {1} characters of text: '{0}'", ComTextHelper.GetDebugText(str),
+                        str.Length);
                 textHandler(this, new GenericCommMethodReceiveTextArgs(str));
             }
         }
@@ -151,12 +150,13 @@ namespace PepperDash.Core
         /// <param name="text"></param>
         public void SendText(string text)
         {
-            var bytes = Encoding.GetEncoding(28591).GetBytes(text);
+            byte[] bytes = Encoding.GetEncoding(28591).GetBytes(text);
 
             if (Server != null)
             {
                 if (StreamDebugging.TxStreamDebuggingIsEnabled)
-                    Debug.Console(0, this, "Sending {0} characters of text: '{1}'", text.Length, ComTextHelper.GetDebugText(text));
+                    Debug.Console(0, this, "Sending {0} characters of text: '{1}'", text.Length,
+                        ComTextHelper.GetDebugText(text));
 
                 Server.SendData(bytes, bytes.Length, _address, _port);
             }
@@ -178,17 +178,15 @@ namespace PepperDash.Core
 
     public class SharedUdpServer
     {
-        public Dictionary<string, SharedUdpServerDevice> ServerDevices = new Dictionary<string, SharedUdpServerDevice>();
-        
+        public Dictionary<string, SharedUdpServerDevice>
+            ServerDevices = new Dictionary<string, SharedUdpServerDevice>();
+
         /// <summary>
         /// 
         /// </summary>
         public SocketStatus ServerStatus
         {
-            get
-            {
-                return Server.ServerStatus;
-            }
+            get { return Server.ServerStatus; }
         }
 
         /// <summary>
@@ -197,15 +195,13 @@ namespace PepperDash.Core
         public int Port { get; set; }
 
         private bool isConnected;
+
         /// <summary>
         /// Indicates that the UDP Server is enabled
         /// </summary>
         public bool IsConnected
         {
-            get
-            {
-                return isConnected;
-            }
+            get { return isConnected; }
         }
 
         /// <summary>
@@ -214,14 +210,14 @@ namespace PepperDash.Core
         public int BufferSize { get; set; }
 
         private UDPServer Server;
-       
+
         /// <summary>
         /// 
         /// </summary>
         /// <param name="port"></param>
         /// <param name="bufferSize"></param>
         public SharedUdpServer(int port, int bufferSize)
-        {             
+        {
             Port = port;
             BufferSize = bufferSize;
 
@@ -237,8 +233,10 @@ namespace PepperDash.Core
             Server.RemotePortNumber = port;
             Server.EthernetAdapterToBindTo = EthernetAdapterType.EthernetLANAdapter;
 
-            CrestronEnvironment.ProgramStatusEventHandler += new ProgramStatusEventHandler(CrestronEnvironment_ProgramStatusEventHandler);
-            CrestronEnvironment.EthernetEventHandler += new EthernetEventHandler(CrestronEnvironment_EthernetEventHandler);
+            CrestronEnvironment.ProgramStatusEventHandler +=
+                new ProgramStatusEventHandler(CrestronEnvironment_ProgramStatusEventHandler);
+            CrestronEnvironment.EthernetEventHandler +=
+                new EthernetEventHandler(CrestronEnvironment_EthernetEventHandler);
         }
 
         /// <summary>
@@ -266,7 +264,7 @@ namespace PepperDash.Core
         /// <param name="programEventType"></param>
         void CrestronEnvironment_ProgramStatusEventHandler(eProgramStatusEventType programEventType)
         {
-            if (programEventType != eProgramStatusEventType.Stopping) 
+            if (programEventType != eProgramStatusEventType.Stopping)
                 return;
 
             Debug.Console(1, "Program stopping. Disabling UDP Server");
@@ -282,8 +280,8 @@ namespace PepperDash.Core
             {
                 return;
             }
-            
-            var status = Server.EnableUDPServer("0.0.0.0", Port, Port);
+
+            SocketErrorCodes status = Server.EnableUDPServer("0.0.0.0", Port, Port);
             Debug.Console(2, "UDP SocketErrorCode: {0}", status);
 
             if (status == SocketErrorCodes.SOCKET_OK)
@@ -315,18 +313,18 @@ namespace PepperDash.Core
         void Receive(UDPServer server, int numBytes)
         {
             try
-            {                
-                var sourceIp = Server.IPAddressLastMessageReceivedFrom;
-                var sourcePort = Server.IPPortLastMessageReceivedFrom;
+            {
+                string sourceIp = Server.IPAddressLastMessageReceivedFrom;
+                int sourcePort = Server.IPPortLastMessageReceivedFrom;
                 Debug.Console(1, "GenericUdpServer receive port: {0} address: {1}", sourcePort, sourceIp);
 
                 if (numBytes <= 0)
                     return;
-                var bytes = server.IncomingDataBuffer.Take(numBytes).ToArray();
+                byte[] bytes = server.IncomingDataBuffer.Take(numBytes).ToArray();
 
                 if (ServerDevices.ContainsKey(sourceIp))
                 {
-                    var device = ServerDevices[sourceIp];
+                    SharedUdpServerDevice device = ServerDevices[sourceIp];
                     device.ReceiveData(bytes);
                 }
             }
@@ -348,9 +346,10 @@ namespace PepperDash.Core
         /// <param name="address"></param>
         /// <param name="port"></param>
         public void SendData(byte[] bytes, int length, string address, int port)
-        {           
-            var status = Server.SendData(bytes, bytes.Length, address, port);
-            Debug.Console(1, "UDP SendData SocketErrorCode: {0}, address: {1}, port: {2}", status.ToString(), address, port.ToString());
+        {
+            SocketErrorCodes status = Server.SendData(bytes, bytes.Length, address, port);
+            Debug.Console(1, "UDP SendData SocketErrorCode: {0}, address: {1}, port: {2}", status.ToString(), address,
+                port.ToString());
         }
     }
 }

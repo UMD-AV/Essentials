@@ -5,7 +5,6 @@ using Crestron.SimplSharpPro.DeviceSupport;
 using Crestron.SimplSharpPro.DM;
 using Crestron.SimplSharpPro.DM.Endpoints;
 using Crestron.SimplSharpPro.DM.Endpoints.Receivers;
-
 using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Bridges;
 using PepperDash.Core;
@@ -41,7 +40,7 @@ namespace PepperDash.Essentials.DM
         /// <param name="e">Arguments defined as IKeyName sender, output, input, and eRoutingSignalType</param>
         private void OnSwitchChange(RoutingNumericEventArgs e)
         {
-            var newEvent = NumericSwitchChange;
+            EventHandler<RoutingNumericEventArgs> newEvent = NumericSwitchChange;
             if (newEvent != null) newEvent(this, e);
         }
 
@@ -63,15 +62,18 @@ namespace PepperDash.Essentials.DM
             HdmiOut = new RoutingOutputPort(DmPortName.HdmiOut, eRoutingSignalType.AudioVideo,
                 eRoutingPortConnectionType.Hdmi, null, this);
 
-            EdidManufacturerFeedback = new StringFeedback(() => _rmc.HdmiOutput.ConnectedDevice.Manufacturer.StringValue);
+            EdidManufacturerFeedback =
+                new StringFeedback(() => _rmc.HdmiOutput.ConnectedDevice.Manufacturer.StringValue);
             EdidNameFeedback = new StringFeedback(() => _rmc.HdmiOutput.ConnectedDevice.Name.StringValue);
-            EdidPreferredTimingFeedback = new StringFeedback(() => _rmc.HdmiOutput.ConnectedDevice.PreferredTiming.StringValue);
-            EdidSerialNumberFeedback = new StringFeedback(() => _rmc.HdmiOutput.ConnectedDevice.SerialNumber.StringValue);
+            EdidPreferredTimingFeedback =
+                new StringFeedback(() => _rmc.HdmiOutput.ConnectedDevice.PreferredTiming.StringValue);
+            EdidSerialNumberFeedback =
+                new StringFeedback(() => _rmc.HdmiOutput.ConnectedDevice.SerialNumber.StringValue);
 
             VideoOutputResolutionFeedback = new StringFeedback(() => _rmc.HdmiOutput.GetVideoResolutionString());
 
-            InputPorts = new RoutingPortCollection<RoutingInputPort> {DmIn, HdmiIn};
-            OutputPorts = new RoutingPortCollection<RoutingOutputPort> {HdmiOut};
+            InputPorts = new RoutingPortCollection<RoutingInputPort> { DmIn, HdmiIn };
+            OutputPorts = new RoutingPortCollection<RoutingOutputPort> { HdmiOut };
 
             _rmc.HdmiOutput.OutputStreamChange += HdmiOutput_OutputStreamChange;
             _rmc.HdmiOutput.ConnectedDevice.DeviceInformationChange += ConnectedDevice_DeviceInformationChange;
@@ -87,12 +89,14 @@ namespace PepperDash.Essentials.DM
         private void _rmc_OnlineStatusChange(GenericBase currentDevice, OnlineOfflineEventArgs args)
         {
             AudioVideoSourceNumericFeedback.FireUpdate();
-            OnSwitchChange(new RoutingNumericEventArgs(1, AudioVideoSourceNumericFeedback.UShortValue, eRoutingSignalType.AudioVideo));
+            OnSwitchChange(new RoutingNumericEventArgs(1, AudioVideoSourceNumericFeedback.UShortValue,
+                eRoutingSignalType.AudioVideo));
         }
 
         void HdmiOutput_OutputStreamChange(EndpointOutputStream outputStream, EndpointOutputStreamEventArgs args)
         {
-            if (args.EventId == EndpointOutputStreamEventIds.HorizontalResolutionFeedbackEventId || args.EventId == EndpointOutputStreamEventIds.VerticalResolutionFeedbackEventId ||
+            if (args.EventId == EndpointOutputStreamEventIds.HorizontalResolutionFeedbackEventId ||
+                args.EventId == EndpointOutputStreamEventIds.VerticalResolutionFeedbackEventId ||
                 args.EventId == EndpointOutputStreamEventIds.FramesPerSecondFeedbackEventId)
             {
                 VideoOutputResolutionFeedback.FireUpdate();
@@ -100,16 +104,19 @@ namespace PepperDash.Essentials.DM
 
             if (args.EventId == EndpointOutputStreamEventIds.SelectedSourceFeedbackEventId)
             {
-                var localInputPort =
-                    InputPorts.FirstOrDefault(p => (int)p.FeedbackMatchObject == AudioVideoSourceNumericFeedback.UShortValue);
+                RoutingInputPort localInputPort =
+                    InputPorts.FirstOrDefault(p =>
+                        (int)p.FeedbackMatchObject == AudioVideoSourceNumericFeedback.UShortValue);
 
 
                 AudioVideoSourceNumericFeedback.FireUpdate();
-                OnSwitchChange(new RoutingNumericEventArgs(1, AudioVideoSourceNumericFeedback.UShortValue, OutputPorts.First(), localInputPort, eRoutingSignalType.AudioVideo));
+                OnSwitchChange(new RoutingNumericEventArgs(1, AudioVideoSourceNumericFeedback.UShortValue,
+                    OutputPorts.First(), localInputPort, eRoutingSignalType.AudioVideo));
             }
         }
 
-        void ConnectedDevice_DeviceInformationChange(ConnectedDeviceInformation connectedDevice, ConnectedDeviceEventArgs args)
+        void ConnectedDevice_DeviceInformationChange(ConnectedDeviceInformation connectedDevice,
+            ConnectedDeviceEventArgs args)
         {
             switch (args.EventId)
             {
@@ -134,29 +141,53 @@ namespace PepperDash.Essentials.DM
         }
 
         #region IIROutputPorts Members
-        public CrestronCollection<IROutputPort> IROutputPorts { get { return _rmc.IROutputPorts; } }
-        public int NumberOfIROutputPorts { get { return _rmc.NumberOfIROutputPorts; } }
+
+        public CrestronCollection<IROutputPort> IROutputPorts
+        {
+            get { return _rmc.IROutputPorts; }
+        }
+
+        public int NumberOfIROutputPorts
+        {
+            get { return _rmc.NumberOfIROutputPorts; }
+        }
+
         #endregion
 
         #region IComPorts Members
-        public CrestronCollection<ComPort> ComPorts { get { return _rmc.ComPorts; } }
-        public int NumberOfComPorts { get { return _rmc.NumberOfComPorts; } }
+
+        public CrestronCollection<ComPort> ComPorts
+        {
+            get { return _rmc.ComPorts; }
+        }
+
+        public int NumberOfComPorts
+        {
+            get { return _rmc.NumberOfComPorts; }
+        }
+
         #endregion
 
         #region ICec Members
+
         /// <summary>
         /// Gets the CEC stream directly from the HDMI port.
         /// </summary>
-        public Cec StreamCec { get { return _rmc.HdmiOutput.StreamCec; } }
+        public Cec StreamCec
+        {
+            get { return _rmc.HdmiOutput.StreamCec; }
+        }
+
         #endregion
 
 
         #region IRmcRouting Members
+
         public void ExecuteSwitch(object inputSelector, object outputSelector, eRoutingSignalType signalType)
         {
             Debug.Console(2, this, "Attempting a route from input {0} to HDMI Output", inputSelector);
 
-            var number = Convert.ToUInt16(inputSelector);
+            ushort number = Convert.ToUInt16(inputSelector);
 
             _rmc.AudioVideoSource = (DmRmc4kzScalerC.eAudioVideoSource)number;
         }
@@ -167,6 +198,7 @@ namespace PepperDash.Essentials.DM
 
             _rmc.AudioVideoSource = (DmRmc4kzScalerC.eAudioVideoSource)inputSelector;
         }
+
         #endregion
 
         #region Implementation of IRelayPorts

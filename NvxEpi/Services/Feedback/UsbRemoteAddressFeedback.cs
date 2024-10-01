@@ -16,7 +16,7 @@ namespace NvxEpi.Services.Feedback
             if (device.UsbInput == null)
                 return new StringFeedback(() => string.Empty);
 
-            var feedback = new StringFeedback(Key, () => device.UsbInput.RemoteDeviceIdFeedback.StringValue);
+            StringFeedback feedback = new StringFeedback(Key, () => device.UsbInput.RemoteDeviceIdFeedback.StringValue);
 
             device.UsbInput.UsbInputChange += (sender, args) => feedback.FireUpdate();
 
@@ -25,7 +25,7 @@ namespace NvxEpi.Services.Feedback
 
         public static ReadOnlyDictionary<uint, StringFeedback> GetFeedbacks(DmNvxBaseClass device)
         {
-            var dict = new Dictionary<uint, StringFeedback>();
+            Dictionary<uint, StringFeedback> dict = new Dictionary<uint, StringFeedback>();
 
             if (device.UsbInput != null)
             {

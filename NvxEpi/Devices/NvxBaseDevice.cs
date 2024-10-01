@@ -35,12 +35,12 @@ using NvxEpi.McMessengers;
 
 namespace NvxEpi.Devices
 {
-    public abstract class NvxBaseDevice : 
-        EssentialsBridgeableDevice, 
-        ICurrentVideoInput, 
-        ICurrentAudioInput, 
+    public abstract class NvxBaseDevice :
+        EssentialsBridgeableDevice,
+        ICurrentVideoInput,
+        ICurrentAudioInput,
         ICurrentStream,
-        ICurrentSecondaryAudioStream, 
+        ICurrentSecondaryAudioStream,
         ICurrentNaxInput,
         ICommunicationMonitor,
         IDeviceInfoProvider
@@ -83,7 +83,7 @@ namespace NvxEpi.Devices
                 _queue = new GenericQueue("NvxDeviceBuildQueue", Thread.eThreadPriority.LowestPriority, 200);
 
             Feedbacks = new FeedbackCollection<Feedback>();
-            var props = NvxDeviceProperties.FromDeviceConfig(config);
+            NvxDeviceProperties props = NvxDeviceProperties.FromDeviceConfig(config);
             DeviceId = props.DeviceId;
             IsTransmitter = isTransmitter;
 
@@ -95,15 +95,16 @@ namespace NvxEpi.Devices
             SetDeviceName();
 
             AddPreActivationAction(() => Hardware = getHardware());
-            AddPreActivationAction(() => CommunicationMonitor = new NvxCommunicationMonitor(this, 10000, 30000, Hardware));
+            AddPreActivationAction(() =>
+                CommunicationMonitor = new NvxCommunicationMonitor(this, 10000, 30000, Hardware));
             AddPreActivationAction(() => RegisterForOnlineFeedback(Hardware, props));
         }
 
         private void SetDeviceName()
         {
-            var tempName = string.IsNullOrEmpty(Name) ? Key : Name;
+            string tempName = string.IsNullOrEmpty(Name) ? Key : Name;
             tempName = tempName.Replace(' ', '-');
-            var r = new Regex("[^a-zA-Z0-9-]"); //Replace all except alphanumeric and dash
+            Regex r = new Regex("[^a-zA-Z0-9-]"); //Replace all except alphanumeric and dash
             _hardwareName = r.Replace(tempName, "");
         }
 
@@ -112,18 +113,18 @@ namespace NvxEpi.Devices
             Debug.Console(1, this, "Activating...");
             DeviceMode = DeviceModeFeedback.GetFeedback(Hardware);
 
-            Feedbacks.AddRange(new Feedback[] 
-                {
-                    IsOnline,
-                    new IntFeedback("DeviceId", () => DeviceId), 
-                    DeviceNameFeedback.GetFeedback(Name),
-                    DeviceIpFeedback.GetFeedback(Hardware),
-                    DeviceHostnameFeedback.GetFeedback(Hardware),
-                    DeviceModeNameFeedback.GetFeedback(Hardware),
-                    DanteInputFeedback.GetFeedback(Hardware),
-                    DanteInputValueFeedback.GetFeedback(Hardware),
-                    DeviceMode
-                });
+            Feedbacks.AddRange(new Feedback[]
+            {
+                IsOnline,
+                new IntFeedback("DeviceId", () => DeviceId),
+                DeviceNameFeedback.GetFeedback(Name),
+                DeviceIpFeedback.GetFeedback(Hardware),
+                DeviceHostnameFeedback.GetFeedback(Hardware),
+                DeviceModeNameFeedback.GetFeedback(Hardware),
+                DanteInputFeedback.GetFeedback(Hardware),
+                DanteInputValueFeedback.GetFeedback(Hardware),
+                DeviceMode
+            });
 
             _currentVideoStream = new CurrentVideoStream(this);
             _currentSecondaryAudioStream = new CurrentSecondaryAudioStream(this);
@@ -138,8 +139,8 @@ namespace NvxEpi.Devices
             _queue.Enqueue(new BuildNvxDeviceMessage(Key, Hardware));
 
             if (IsTransmitter || Hardware == null) return base.CustomActivate();
-            if (Hardware.Control.ServerUrlFeedback.StringValue != String.Empty)
-                Hardware.Control.ServerUrl.StringValue = String.Empty;
+            if (Hardware.Control.ServerUrlFeedback.StringValue != string.Empty)
+                Hardware.Control.ServerUrl.StringValue = string.Empty;
             Hardware.Control.ServerUrl.StringValue = DefaultMulticastRoute;
 
             return base.CustomActivate();
@@ -160,7 +161,8 @@ namespace NvxEpi.Devices
 
             mc.AddDeviceMessenger(streamMessenger);
 
-            var secondaryAudioMessenger = new SecondaryAudioStatusMessenger($"{Key}-secondaryAudioStreamStatus", $"/device/{Key}", this);
+            var secondaryAudioMessenger =
+ new SecondaryAudioStatusMessenger($"{Key}-secondaryAudioStreamStatus", $"/device/{Key}", this);
 
             mc.AddDeviceMessenger(secondaryAudioMessenger);
 
@@ -177,7 +179,8 @@ namespace NvxEpi.Devices
             Debug.LogMessage(Serilog.Events.LogEventLevel.Debug, "Generating HDMI Input messenger for {key:l}", this, Key);
 
             
-            var hdmiInputMessenger = new IHdmiInputMessenger($"{Key}-hdmiInputMessenger", $"/device/{Key}", hdmiInputDevice);
+            var hdmiInputMessenger =
+ new IHdmiInputMessenger($"{Key}-hdmiInputMessenger", $"/device/{Key}", hdmiInputDevice);
 
             mc.AddDeviceMessenger(hdmiInputMessenger);
 
@@ -187,7 +190,8 @@ namespace NvxEpi.Devices
                 return;
             }
 
-            var hdmiOutputMessenger = new IHdmiOutputMessenger($"{Key}-hdmiOutputMessenger", $"/device/{Key}", hdmiOutputDevice);
+            var hdmiOutputMessenger =
+ new IHdmiOutputMessenger($"{Key}-hdmiOutputMessenger", $"/device/{Key}", hdmiOutputDevice);
 
             mc.AddDeviceMessenger(hdmiOutputMessenger);
 #endif
@@ -249,22 +253,22 @@ namespace NvxEpi.Devices
         private void RegisterForOnlineFeedback(GenericBase hardware, NvxDeviceProperties props)
         {
             hardware.OnlineStatusChange += (device, args) =>
-                {
-                    Feedbacks
-                        .Where(x => x != null)
-                        .ToList()
-                        .ForEach(f => f.FireUpdate());
+            {
+                Feedbacks
+                    .Where(x => x != null)
+                    .ToList()
+                    .ForEach(f => f.FireUpdate());
 
-                    if (!args.DeviceOnLine)
-                        return;
+                if (!args.DeviceOnLine)
+                    return;
 
-                    Hardware.Control.Name.StringValue = _hardwareName;
+                Hardware.Control.Name.StringValue = _hardwareName;
 
-                    if (IsTransmitter || hardware is DmNvxE30)
-                        Hardware.SetTxDefaults(props);
-                    else
-                        Hardware.SetRxDefaults(props);
-                };
+                if (IsTransmitter || hardware is DmNvxE30)
+                    Hardware.SetTxDefaults(props);
+                else
+                    Hardware.SetRxDefaults(props);
+            };
         }
 
         private void RegisterForFeedback()
@@ -357,7 +361,7 @@ namespace NvxEpi.Devices
                 FirmwareVersion = string.Empty
             };
 
-            var handler = DeviceInfoChanged;
+            DeviceInfoChangeHandler handler = DeviceInfoChanged;
             if (handler == null)
                 return;
 

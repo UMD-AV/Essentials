@@ -8,20 +8,15 @@ namespace PepperDash.Essentials.Core
     public class GlsOccupancySensorPropertiesConfig
     {
         // Single Technology Sensors (PIR): GlsOccupancySensorBase
-        [JsonProperty("enablePir")]
-        public bool? EnablePir { get; set; }
+        [JsonProperty("enablePir")] public bool? EnablePir { get; set; }
 
-        [JsonProperty("enableLedFlash")]
-        public bool? EnableLedFlash { get; set; }
+        [JsonProperty("enableLedFlash")] public bool? EnableLedFlash { get; set; }
 
-        [JsonProperty("shortTimeoutState")]
-        public bool? ShortTimeoutState { get; set; }
+        [JsonProperty("shortTimeoutState")] public bool? ShortTimeoutState { get; set; }
 
-        [JsonProperty("enableRawStates")]
-        public bool? EnableRawStates { get; set; }
+        [JsonProperty("enableRawStates")] public bool? EnableRawStates { get; set; }
 
-        [JsonProperty("remoteTimeout")]
-        public ushort? RemoteTimeout { get; set; }
+        [JsonProperty("remoteTimeout")] public ushort? RemoteTimeout { get; set; }
 
         [JsonProperty("internalPhotoSensorMinChange")]
         public ushort? InternalPhotoSensorMinChange { get; set; }
@@ -30,17 +25,13 @@ namespace PepperDash.Essentials.Core
         public ushort? ExternalPhotoSensorMinChange { get; set; }
 
         // Dual Technology Sensors: GlsOdtCCn
-        [JsonProperty("enableUsA")]
-        public bool? EnableUsA { get; set; }
+        [JsonProperty("enableUsA")] public bool? EnableUsA { get; set; }
 
-        [JsonProperty("enableUsB")]
-        public bool? EnableUsB { get; set; }
+        [JsonProperty("enableUsB")] public bool? EnableUsB { get; set; }
 
-        [JsonProperty("orWhenVacatedState")]
-        public bool? OrWhenVacatedState { get; set; }
+        [JsonProperty("orWhenVacatedState")] public bool? OrWhenVacatedState { get; set; }
 
-        [JsonProperty("andWhenVacatedState")]
-        public bool? AndWhenVacatedState { get; set; }
+        [JsonProperty("andWhenVacatedState")] public bool? AndWhenVacatedState { get; set; }
 
         // PoE Sensors: CenOdtCPoe
 

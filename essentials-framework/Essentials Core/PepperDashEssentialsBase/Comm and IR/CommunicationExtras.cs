@@ -3,11 +3,11 @@
 
 namespace PepperDash.Essentials.Core
 {
-	/// <summary>
-	/// 
-	/// </summary>
-	public interface IComPortsDevice
-	{
-		IComPorts Device { get; }
-	}
+    /// <summary>
+    /// 
+    /// </summary>
+    public interface IComPortsDevice
+    {
+        IComPorts Device { get; }
+    }
 }

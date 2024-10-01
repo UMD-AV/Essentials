@@ -5,8 +5,6 @@ using Crestron.SimplSharpPro;
 using Crestron.SimplSharpPro.Remotes;
 using Crestron.SimplSharpPro.DeviceSupport;
 using Newtonsoft.Json;
-
-
 using PepperDash.Core;
 using PepperDash.Essentials.Core.Config;
 using PepperDash.Essentials.Core.Bridges;
@@ -22,20 +20,23 @@ namespace PepperDash.Essentials.Core
 
         public FeedbackCollection<Feedback> Feedbacks { get; set; }
 
-        public CrestronCollection<Button> Buttons { get { return _remote.Button; } }
+        public CrestronCollection<Button> Buttons
+        {
+            get { return _remote.Button; }
+        }
 
         private DeviceConfig _config;
 
-        public Hrxx0WirelessRemoteController(string key, Func<DeviceConfig, Hr1x0WirelessRemoteBase> preActivationFunc, 
+        public Hrxx0WirelessRemoteController(string key, Func<DeviceConfig, Hr1x0WirelessRemoteBase> preActivationFunc,
             DeviceConfig config)
             : base(key, config.Name)
         {
             Feedbacks = new FeedbackCollection<Feedback>();
 
-            var props = JsonConvert.DeserializeObject<CrestronRemotePropertiesConfig>(config.Properties.ToString());
+            CrestronRemotePropertiesConfig props = JsonConvert.DeserializeObject<CrestronRemotePropertiesConfig>(config.Properties.ToString());
 
             _config = config;
-            
+
             if (props.GatewayDeviceKey == "processor")
             {
                 {
@@ -50,11 +51,12 @@ namespace PepperDash.Essentials.Core
             }
 
 
-            var gatewayDev = DeviceManager.GetDeviceForKey(props.GatewayDeviceKey) as CenRfgwController;
+            CenRfgwController gatewayDev = DeviceManager.GetDeviceForKey(props.GatewayDeviceKey) as CenRfgwController;
             if (gatewayDev == null)
             {
                 Debug.Console(0, "GetHr1x0WirelessRemote: Device '{0}' is not a valid device", props.GatewayDeviceKey);
             }
+
             if (gatewayDev != null)
             {
                 Debug.Console(0, "GetHr1x0WirelessRemote: Device '{0}' is a valid device", props.GatewayDeviceKey);
@@ -86,11 +88,11 @@ namespace PepperDash.Essentials.Core
 
         void _remote_BaseEvent(GenericBase device, BaseEventArgs args)
         {
-            if(args.EventId == Hr1x0EventIds.BatteryCriticalFeedbackEventId)
+            if (args.EventId == Hr1x0EventIds.BatteryCriticalFeedbackEventId)
                 Feedbacks["BatteryCritical"].FireUpdate();
-            if(args.EventId == Hr1x0EventIds.BatteryLowFeedbackEventId)
+            if (args.EventId == Hr1x0EventIds.BatteryLowFeedbackEventId)
                 Feedbacks["BatteryLow"].FireUpdate();
-            if(args.EventId == Hr1x0EventIds.BatteryVoltageFeedbackEventId)
+            if (args.EventId == Hr1x0EventIds.BatteryVoltageFeedbackEventId)
                 Feedbacks["BatteryVoltage"].FireUpdate();
         }
 
@@ -109,7 +111,7 @@ namespace PepperDash.Essentials.Core
         {
             try
             {
-                var handler = args.Button.UserObject;
+                object handler = args.Button.UserObject;
 
                 if (handler == null) return;
 
@@ -120,18 +122,17 @@ namespace PepperDash.Essentials.Core
                     (handler as Action<bool>)(args.Button.State == eButtonState.Pressed ? true : false);
                 }
 
-                var newHandler = ButtonStateChange;
+                ButtonEventHandler newHandler = ButtonStateChange;
                 if (ButtonStateChange != null)
                 {
                     newHandler(device, args);
                 }
 
-                var newerHandler = EssentialsButtonStateChange;
+                EssentialsButtonEventHandler newerHandler = EssentialsButtonStateChange;
                 if (EssentialsButtonStateChange != null)
                 {
                     newerHandler(this, args);
                 }
-
             }
             catch (Exception e)
             {
@@ -144,10 +145,10 @@ namespace PepperDash.Essentials.Core
 
         private static Hr1x0WirelessRemoteBase GetHr1x0WirelessRemote(DeviceConfig config)
         {
-            var props = JsonConvert.DeserializeObject<CrestronRemotePropertiesConfig>(config.Properties.ToString());
+            CrestronRemotePropertiesConfig props = JsonConvert.DeserializeObject<CrestronRemotePropertiesConfig>(config.Properties.ToString());
 
-            var type = config.Type;
-            var rfId = (uint)props.Control.InfinetIdInt;
+            string type = config.Type;
+            uint rfId = (uint)props.Control.InfinetIdInt;
 
             GatewayBase gateway;
 
@@ -157,14 +158,16 @@ namespace PepperDash.Essentials.Core
             }
             else
             {
-                var gatewayDev = DeviceManager.GetDeviceForKey(props.GatewayDeviceKey) as CenRfgwController;
+                CenRfgwController gatewayDev = DeviceManager.GetDeviceForKey(props.GatewayDeviceKey) as CenRfgwController;
                 if (gatewayDev == null)
                 {
-                    Debug.Console(0, "GetHr1x0WirelessRemote: Device '{0}' is not a valid device", props.GatewayDeviceKey);
+                    Debug.Console(0, "GetHr1x0WirelessRemote: Device '{0}' is not a valid device",
+                        props.GatewayDeviceKey);
                     return null;
                 }
+
                 Debug.Console(0, "GetHr1x0WirelessRemote: Device '{0}' is a valid device", props.GatewayDeviceKey);
-                gateway = gatewayDev.GateWay; 
+                gateway = gatewayDev.GateWay;
             }
 
             if (gateway == null)
@@ -195,12 +198,13 @@ namespace PepperDash.Essentials.Core
                 remoteBase.RegisterWithLogging(config.Key);
             }
 
-            return remoteBase;            
+            return remoteBase;
         }
 
         #endregion
 
         #region Factory
+
         public class Hrxx0WirelessRemoteControllerFactory : EssentialsDeviceFactory<Hrxx0WirelessRemoteController>
         {
             public Hrxx0WirelessRemoteControllerFactory()
@@ -215,13 +219,14 @@ namespace PepperDash.Essentials.Core
                 return new Hrxx0WirelessRemoteController(dc.Key, GetHr1x0WirelessRemote, dc);
             }
         }
+
         #endregion
 
         public override void LinkToApi(BasicTriList trilist, uint joinStart, string joinMapKey, EiscApiAdvanced bridge)
         {
-            var joinMap = new Hrxxx0WirelessRemoteControllerJoinMap(joinStart);
+            Hrxxx0WirelessRemoteControllerJoinMap joinMap = new Hrxxx0WirelessRemoteControllerJoinMap(joinStart);
 
-            var joinMapSerialized = JoinMapHelper.GetSerializedJoinMapForDevice(joinMapKey);
+            string joinMapSerialized = JoinMapHelper.GetSerializedJoinMapForDevice(joinMapKey);
 
             if (!string.IsNullOrEmpty(joinMapSerialized))
                 joinMap = JsonConvert.DeserializeObject<Hrxxx0WirelessRemoteControllerJoinMap>(joinMapSerialized);
@@ -232,42 +237,45 @@ namespace PepperDash.Essentials.Core
             }
             else
             {
-                Debug.Console(0, this, "Please update config to use 'eiscapiadvanced' to get all join map features for this device.");
+                Debug.Console(0, this,
+                    "Please update config to use 'eiscapiadvanced' to get all join map features for this device.");
             }
 
             //List<string> ExcludedKeys = new List<string>();
-            foreach (var feedback in Feedbacks)
+            foreach (Feedback feedback in Feedbacks)
             {
-                var myFeedback = feedback;
+                Feedback myFeedback = feedback;
 
-                var joinData =
+                KeyValuePair<string, JoinDataComplete> joinData =
                     joinMap.Joins.FirstOrDefault(
-                        x => 
+                        x =>
                             x.Key.Equals(myFeedback.Key, StringComparison.InvariantCultureIgnoreCase));
 
                 if (string.IsNullOrEmpty((joinData.Key))) continue;
 
-                var name = joinData.Key;
-                var join = joinData.Value;
+                string name = joinData.Key;
+                JoinDataComplete join = joinData.Value;
 
                 if (join.Metadata.JoinType == eJoinType.Digital)
                 {
                     Debug.Console(0, this, "Linking Bool Feedback '{0}' to join {1}", name, join.JoinNumber);
-                    var someFeedback = myFeedback as BoolFeedback;
-                    if(someFeedback == null) continue;
+                    BoolFeedback someFeedback = myFeedback as BoolFeedback;
+                    if (someFeedback == null) continue;
                     someFeedback.LinkInputSig(trilist.BooleanInput[join.JoinNumber]);
                 }
+
                 if (join.Metadata.JoinType == eJoinType.Analog)
                 {
                     Debug.Console(0, this, "Linking Analog Feedback '{0}' to join {1}", name, join.JoinNumber);
-                    var someFeedback = myFeedback as IntFeedback;
+                    IntFeedback someFeedback = myFeedback as IntFeedback;
                     if (someFeedback == null) continue;
                     someFeedback.LinkInputSig(trilist.UShortInput[join.JoinNumber]);
                 }
+
                 if (join.Metadata.JoinType == eJoinType.Serial)
                 {
                     Debug.Console(0, this, "Linking Serial Feedback '{0}' to join {1}", name, join.JoinNumber);
-                    var someFeedback = myFeedback as StringFeedback;
+                    StringFeedback someFeedback = myFeedback as StringFeedback;
                     if (someFeedback == null) continue;
                     someFeedback.LinkInputSig(trilist.StringInput[join.JoinNumber]);
                 }
@@ -282,8 +290,8 @@ namespace PepperDash.Essentials.Core
             for (uint i = 1; i <= _remote.Button.Count; i++)
             {
                 Debug.Console(2, this, "Attempting to link join index {0}", i);
-                var index = i;
-                var joinData =
+                uint index = i;
+                KeyValuePair<string, JoinDataComplete> joinData =
                     joinMap.Joins.FirstOrDefault(
                         o =>
                             o.Key.Equals(_remote.Button[index].Name.ToString(),
@@ -291,8 +299,8 @@ namespace PepperDash.Essentials.Core
 
                 if (string.IsNullOrEmpty((joinData.Key))) continue;
 
-                var join = joinData.Value;
-                var name = joinData.Key;
+                JoinDataComplete join = joinData.Value;
+                string name = joinData.Key;
 
                 Debug.Console(2, this, "Setting User Object for '{0}'", name);
                 if (join.Metadata.JoinType == eJoinType.Digital)
@@ -305,18 +313,17 @@ namespace PepperDash.Essentials.Core
             {
                 if (!args.DeviceOnLine) return;
 
-                foreach (var feedback in Feedbacks)
+                foreach (Feedback feedback in Feedbacks)
                 {
                     feedback.FireUpdate();
                 }
-                
             };
         }
+
         public void SetTrilistBool(BasicTriList trilist, uint join, bool b)
         {
             trilist.BooleanInput[join].BoolValue = b;
         }
-
 
 
         #region IHR52Button Members
@@ -325,7 +332,7 @@ namespace PepperDash.Essentials.Core
         {
             get
             {
-                var localRemote = (IHR52Button) _remote;
+                IHR52Button localRemote = (IHR52Button)_remote;
                 return localRemote == null ? null : localRemote.Custom9;
             }
         }
@@ -334,17 +341,17 @@ namespace PepperDash.Essentials.Core
         {
             get
             {
-                var localRemote = (IHR52Button)_remote;
+                IHR52Button localRemote = (IHR52Button)_remote;
                 return localRemote == null ? null : localRemote.Favorite;
             }
         }
-        
+
 
         public Button Home
         {
             get
             {
-                var localRemote = (IHR52Button)_remote;
+                IHR52Button localRemote = (IHR52Button)_remote;
                 return localRemote == null ? null : localRemote.Home;
             }
         }
@@ -357,7 +364,7 @@ namespace PepperDash.Essentials.Core
         {
             get
             {
-                var localRemote = (IHR49Button)_remote;
+                IHR49Button localRemote = (IHR49Button)_remote;
                 return localRemote == null ? null : localRemote.Clear;
             }
         }
@@ -366,7 +373,7 @@ namespace PepperDash.Essentials.Core
         {
             get
             {
-                var localRemote = (IHR49Button)_remote;
+                IHR49Button localRemote = (IHR49Button)_remote;
                 return localRemote == null ? null : localRemote.Custom5;
             }
         }
@@ -375,7 +382,7 @@ namespace PepperDash.Essentials.Core
         {
             get
             {
-                var localRemote = (IHR49Button)_remote;
+                IHR49Button localRemote = (IHR49Button)_remote;
                 return localRemote == null ? null : localRemote.Custom6;
             }
         }
@@ -384,7 +391,7 @@ namespace PepperDash.Essentials.Core
         {
             get
             {
-                var localRemote = (IHR49Button)_remote;
+                IHR49Button localRemote = (IHR49Button)_remote;
                 return localRemote == null ? null : localRemote.Custom7;
             }
         }
@@ -393,7 +400,7 @@ namespace PepperDash.Essentials.Core
         {
             get
             {
-                var localRemote = (IHR49Button)_remote;
+                IHR49Button localRemote = (IHR49Button)_remote;
                 return localRemote == null ? null : localRemote.Custom8;
             }
         }
@@ -402,7 +409,7 @@ namespace PepperDash.Essentials.Core
         {
             get
             {
-                var localRemote = (IHR49Button)_remote;
+                IHR49Button localRemote = (IHR49Button)_remote;
                 return localRemote == null ? null : localRemote.Enter;
             }
         }
@@ -411,7 +418,7 @@ namespace PepperDash.Essentials.Core
         {
             get
             {
-                var localRemote = (IHR49Button)_remote;
+                IHR49Button localRemote = (IHR49Button)_remote;
                 return localRemote == null ? null : localRemote.Keypad0;
             }
         }
@@ -420,7 +427,7 @@ namespace PepperDash.Essentials.Core
         {
             get
             {
-                var localRemote = (IHR49Button)_remote;
+                IHR49Button localRemote = (IHR49Button)_remote;
                 return localRemote == null ? null : localRemote.Keypad1;
             }
         }
@@ -429,7 +436,7 @@ namespace PepperDash.Essentials.Core
         {
             get
             {
-                var localRemote = (IHR49Button)_remote;
+                IHR49Button localRemote = (IHR49Button)_remote;
                 return localRemote == null ? null : localRemote.Keypad2Abc;
             }
         }
@@ -438,7 +445,7 @@ namespace PepperDash.Essentials.Core
         {
             get
             {
-                var localRemote = (IHR49Button)_remote;
+                IHR49Button localRemote = (IHR49Button)_remote;
                 return localRemote == null ? null : localRemote.Keypad3Def;
             }
         }
@@ -447,7 +454,7 @@ namespace PepperDash.Essentials.Core
         {
             get
             {
-                var localRemote = (IHR49Button)_remote;
+                IHR49Button localRemote = (IHR49Button)_remote;
                 return localRemote == null ? null : localRemote.Keypad4Ghi;
             }
         }
@@ -456,7 +463,7 @@ namespace PepperDash.Essentials.Core
         {
             get
             {
-                var localRemote = (IHR49Button)_remote;
+                IHR49Button localRemote = (IHR49Button)_remote;
                 return localRemote == null ? null : localRemote.Keypad5Jkl;
             }
         }
@@ -465,7 +472,7 @@ namespace PepperDash.Essentials.Core
         {
             get
             {
-                var localRemote = (IHR49Button)_remote;
+                IHR49Button localRemote = (IHR49Button)_remote;
                 return localRemote == null ? null : localRemote.Keypad6Mno;
             }
         }
@@ -474,7 +481,7 @@ namespace PepperDash.Essentials.Core
         {
             get
             {
-                var localRemote = (IHR49Button)_remote;
+                IHR49Button localRemote = (IHR49Button)_remote;
                 return localRemote == null ? null : localRemote.Keypad7Pqrs;
             }
         }
@@ -483,7 +490,7 @@ namespace PepperDash.Essentials.Core
         {
             get
             {
-                var localRemote = (IHR49Button)_remote;
+                IHR49Button localRemote = (IHR49Button)_remote;
                 return localRemote == null ? null : localRemote.Keypad8Tuv;
             }
         }
@@ -492,7 +499,7 @@ namespace PepperDash.Essentials.Core
         {
             get
             {
-                var localRemote = (IHR49Button)_remote;
+                IHR49Button localRemote = (IHR49Button)_remote;
                 return localRemote == null ? null : localRemote.Keypad9Wxyz;
             }
         }
@@ -505,7 +512,7 @@ namespace PepperDash.Essentials.Core
         {
             get
             {
-                var localRemote = (IHR33Button)_remote;
+                IHR33Button localRemote = (IHR33Button)_remote;
                 return localRemote == null ? null : localRemote.Blue;
             }
         }
@@ -514,7 +521,7 @@ namespace PepperDash.Essentials.Core
         {
             get
             {
-                var localRemote = (IHR33Button)_remote;
+                IHR33Button localRemote = (IHR33Button)_remote;
                 return localRemote == null ? null : localRemote.ChannelDown;
             }
         }
@@ -523,7 +530,7 @@ namespace PepperDash.Essentials.Core
         {
             get
             {
-                var localRemote = (IHR33Button)_remote;
+                IHR33Button localRemote = (IHR33Button)_remote;
                 return localRemote == null ? null : localRemote.ChannelUp;
             }
         }
@@ -532,7 +539,7 @@ namespace PepperDash.Essentials.Core
         {
             get
             {
-                var localRemote = (IHR33Button)_remote;
+                IHR33Button localRemote = (IHR33Button)_remote;
                 return localRemote == null ? null : localRemote.Custom1;
             }
         }
@@ -541,7 +548,7 @@ namespace PepperDash.Essentials.Core
         {
             get
             {
-                var localRemote = (IHR33Button)_remote;
+                IHR33Button localRemote = (IHR33Button)_remote;
                 return localRemote == null ? null : localRemote.Custom2;
             }
         }
@@ -550,7 +557,7 @@ namespace PepperDash.Essentials.Core
         {
             get
             {
-                var localRemote = (IHR33Button)_remote;
+                IHR33Button localRemote = (IHR33Button)_remote;
                 return localRemote == null ? null : localRemote.Custom3;
             }
         }
@@ -559,7 +566,7 @@ namespace PepperDash.Essentials.Core
         {
             get
             {
-                var localRemote = (IHR33Button)_remote;
+                IHR33Button localRemote = (IHR33Button)_remote;
                 return localRemote == null ? null : localRemote.Custom4;
             }
         }
@@ -568,7 +575,7 @@ namespace PepperDash.Essentials.Core
         {
             get
             {
-                var localRemote = (IHR33Button)_remote;
+                IHR33Button localRemote = (IHR33Button)_remote;
                 return localRemote == null ? null : localRemote.DialPadDown;
             }
         }
@@ -577,7 +584,7 @@ namespace PepperDash.Essentials.Core
         {
             get
             {
-                var localRemote = (IHR33Button)_remote;
+                IHR33Button localRemote = (IHR33Button)_remote;
                 return localRemote == null ? null : localRemote.DialPadEnter;
             }
         }
@@ -586,7 +593,7 @@ namespace PepperDash.Essentials.Core
         {
             get
             {
-                var localRemote = (IHR33Button)_remote;
+                IHR33Button localRemote = (IHR33Button)_remote;
                 return localRemote == null ? null : localRemote.DialPadLeft;
             }
         }
@@ -595,7 +602,7 @@ namespace PepperDash.Essentials.Core
         {
             get
             {
-                var localRemote = (IHR33Button)_remote;
+                IHR33Button localRemote = (IHR33Button)_remote;
                 return localRemote == null ? null : localRemote.DialPadRight;
             }
         }
@@ -604,7 +611,7 @@ namespace PepperDash.Essentials.Core
         {
             get
             {
-                var localRemote = (IHR33Button)_remote;
+                IHR33Button localRemote = (IHR33Button)_remote;
                 return localRemote == null ? null : localRemote.DialPadUp;
             }
         }
@@ -613,7 +620,7 @@ namespace PepperDash.Essentials.Core
         {
             get
             {
-                var localRemote = (IHR33Button)_remote;
+                IHR33Button localRemote = (IHR33Button)_remote;
                 return localRemote == null ? null : localRemote.Dvr;
             }
         }
@@ -622,7 +629,7 @@ namespace PepperDash.Essentials.Core
         {
             get
             {
-                var localRemote = (IHR33Button)_remote;
+                IHR33Button localRemote = (IHR33Button)_remote;
                 return localRemote == null ? null : localRemote.Exit;
             }
         }
@@ -631,7 +638,7 @@ namespace PepperDash.Essentials.Core
         {
             get
             {
-                var localRemote = (IHR33Button)_remote;
+                IHR33Button localRemote = (IHR33Button)_remote;
                 return localRemote == null ? null : localRemote.FastForward;
             }
         }
@@ -640,7 +647,7 @@ namespace PepperDash.Essentials.Core
         {
             get
             {
-                var localRemote = (IHR33Button)_remote;
+                IHR33Button localRemote = (IHR33Button)_remote;
                 return localRemote == null ? null : localRemote.Green;
             }
         }
@@ -649,7 +656,7 @@ namespace PepperDash.Essentials.Core
         {
             get
             {
-                var localRemote = (IHR33Button)_remote;
+                IHR33Button localRemote = (IHR33Button)_remote;
                 return localRemote == null ? null : localRemote.Blue;
             }
         }
@@ -658,7 +665,7 @@ namespace PepperDash.Essentials.Core
         {
             get
             {
-                var localRemote = (IHR33Button)_remote;
+                IHR33Button localRemote = (IHR33Button)_remote;
                 return localRemote == null ? null : localRemote.Information;
             }
         }
@@ -667,7 +674,7 @@ namespace PepperDash.Essentials.Core
         {
             get
             {
-                var localRemote = (IHR33Button)_remote;
+                IHR33Button localRemote = (IHR33Button)_remote;
                 return localRemote == null ? null : localRemote.Last;
             }
         }
@@ -676,7 +683,7 @@ namespace PepperDash.Essentials.Core
         {
             get
             {
-                var localRemote = (IHR33Button)_remote;
+                IHR33Button localRemote = (IHR33Button)_remote;
                 return localRemote == null ? null : localRemote.Menu;
             }
         }
@@ -685,7 +692,7 @@ namespace PepperDash.Essentials.Core
         {
             get
             {
-                var localRemote = (IHR33Button)_remote;
+                IHR33Button localRemote = (IHR33Button)_remote;
                 return localRemote == null ? null : localRemote.Mute;
             }
         }
@@ -694,7 +701,7 @@ namespace PepperDash.Essentials.Core
         {
             get
             {
-                var localRemote = (IHR33Button)_remote;
+                IHR33Button localRemote = (IHR33Button)_remote;
                 return localRemote == null ? null : localRemote.NextTrack;
             }
         }
@@ -703,7 +710,7 @@ namespace PepperDash.Essentials.Core
         {
             get
             {
-                var localRemote = (IHR33Button)_remote;
+                IHR33Button localRemote = (IHR33Button)_remote;
                 return localRemote == null ? null : localRemote.Pause;
             }
         }
@@ -712,7 +719,7 @@ namespace PepperDash.Essentials.Core
         {
             get
             {
-                var localRemote = (IHR33Button)_remote;
+                IHR33Button localRemote = (IHR33Button)_remote;
                 return localRemote == null ? null : localRemote.Play;
             }
         }
@@ -721,7 +728,7 @@ namespace PepperDash.Essentials.Core
         {
             get
             {
-                var localRemote = (IHR33Button)_remote;
+                IHR33Button localRemote = (IHR33Button)_remote;
                 return localRemote == null ? null : localRemote.Power;
             }
         }
@@ -730,7 +737,7 @@ namespace PepperDash.Essentials.Core
         {
             get
             {
-                var localRemote = (IHR33Button)_remote;
+                IHR33Button localRemote = (IHR33Button)_remote;
                 return localRemote == null ? null : localRemote.PreviousTrack;
             }
         }
@@ -739,7 +746,7 @@ namespace PepperDash.Essentials.Core
         {
             get
             {
-                var localRemote = (IHR33Button)_remote;
+                IHR33Button localRemote = (IHR33Button)_remote;
                 return localRemote == null ? null : localRemote.Record;
             }
         }
@@ -748,7 +755,7 @@ namespace PepperDash.Essentials.Core
         {
             get
             {
-                var localRemote = (IHR33Button)_remote;
+                IHR33Button localRemote = (IHR33Button)_remote;
                 return localRemote == null ? null : localRemote.Red;
             }
         }
@@ -757,7 +764,7 @@ namespace PepperDash.Essentials.Core
         {
             get
             {
-                var localRemote = (IHR33Button)_remote;
+                IHR33Button localRemote = (IHR33Button)_remote;
                 return localRemote == null ? null : localRemote.Rewind;
             }
         }
@@ -766,7 +773,7 @@ namespace PepperDash.Essentials.Core
         {
             get
             {
-                var localRemote = (IHR33Button)_remote;
+                IHR33Button localRemote = (IHR33Button)_remote;
                 return localRemote == null ? null : localRemote.Stop;
             }
         }
@@ -775,7 +782,7 @@ namespace PepperDash.Essentials.Core
         {
             get
             {
-                var localRemote = (IHR33Button)_remote;
+                IHR33Button localRemote = (IHR33Button)_remote;
                 return localRemote == null ? null : localRemote.VolumeDown;
             }
         }
@@ -784,7 +791,7 @@ namespace PepperDash.Essentials.Core
         {
             get
             {
-                var localRemote = (IHR33Button)_remote;
+                IHR33Button localRemote = (IHR33Button)_remote;
                 return localRemote == null ? null : localRemote.VolumeUp;
             }
         }
@@ -793,7 +800,7 @@ namespace PepperDash.Essentials.Core
         {
             get
             {
-                var localRemote = (IHR33Button)_remote;
+                IHR33Button localRemote = (IHR33Button)_remote;
                 return localRemote == null ? null : localRemote.Yellow;
             }
         }

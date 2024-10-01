@@ -7,7 +7,7 @@ using PepperDash.Essentials.Core.Config;
 
 namespace PepperDash.Essentials.Core.CrestronIO
 {
-    public class CenIoComController:CrestronGenericBaseDevice, IComPorts
+    public class CenIoComController : CrestronGenericBaseDevice, IComPorts
     {
         private CenIoCom _device;
 
@@ -53,8 +53,8 @@ namespace PepperDash.Essentials.Core.CrestronIO
 
         static CenIoCom GetCenIoComDevice(DeviceConfig dc)
         {
-            var control = CommFactory.GetControlPropertiesConfig(dc);
-            var ipid = control.IpIdInt;
+            EssentialsControlPropertiesConfig control = CommFactory.GetControlPropertiesConfig(dc);
+            uint ipid = control.IpIdInt;
 
             if (dc.Type.Contains("202"))
             {
@@ -64,7 +64,6 @@ namespace PepperDash.Essentials.Core.CrestronIO
             {
                 return new CenIoCom102(ipid, Global.ControlSystem);
             }
-
         }
     }
 }

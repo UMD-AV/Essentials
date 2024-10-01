@@ -1,5 +1,4 @@
 ﻿using Crestron.SimplSharpPro.DM;
-
 using PepperDash.Core;
 using PepperDash.Essentials.Core;
 
@@ -85,7 +84,7 @@ namespace PepperDash.Essentials.DM
         {
             if (pressRelease)
             {
-                var remainingRatio = Output.Volume.UShortValue / 65535;
+                int remainingRatio = Output.Volume.UShortValue / 65535;
                 Output.Volume.CreateRamp(0, (uint)(400 * remainingRatio));
             }
             else
@@ -99,7 +98,7 @@ namespace PepperDash.Essentials.DM
         {
             if (pressRelease)
             {
-                var remainingRatio = (65535 - Output.Volume.UShortValue) / 65535;
+                int remainingRatio = (65535 - Output.Volume.UShortValue) / 65535;
                 Output.Volume.CreateRamp(65535, 400);
             }
             else

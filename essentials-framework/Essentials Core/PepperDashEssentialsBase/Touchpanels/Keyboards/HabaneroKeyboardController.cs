@@ -29,12 +29,12 @@ namespace PepperDash.Essentials.Core.Touchpanels.Keyboards
         public bool SecondaryButtonVisible { get; set; }
 
         int ShiftMode = 0;
-        
+
         StringBuilder Output;
 
         public Action HideAction { get; set; }
 
-		CTimer BackspaceTimer;
+        CTimer BackspaceTimer;
 
         /// <summary>
         /// 
@@ -88,8 +88,8 @@ namespace PepperDash.Essentials.Core.Touchpanels.Keyboards
             TriList.SetSigTrueAction(2947, () => Press('.'));
             TriList.SetSigTrueAction(2948, () => Press('@'));
             TriList.SetSigTrueAction(2949, () => Press(' '));
-			TriList.SetSigHeldAction(2950, 500, StartBackspaceRepeat, StopBackspaceRepeat, Backspace);
-			//TriList.SetSigTrueAction(2950, Backspace);
+            TriList.SetSigHeldAction(2950, 500, StartBackspaceRepeat, StopBackspaceRepeat, Backspace);
+            //TriList.SetSigTrueAction(2950, Backspace);
             TriList.SetSigTrueAction(2951, Shift);
             TriList.SetSigTrueAction(2952, NumShift);
             TriList.SetSigTrueAction(2953, Clear);
@@ -117,7 +117,7 @@ namespace PepperDash.Essentials.Core.Touchpanels.Keyboards
                 TriList.ClearBoolSigAction(i);
 
             // run attached actions
-            if(HideAction != null)
+            if (HideAction != null)
                 HideAction();
 
             TriList.SetBool(KeyboardVisible, false);
@@ -178,55 +178,158 @@ namespace PepperDash.Essentials.Core.Touchpanels.Keyboards
             }
         }
 
-        char A(int i) { return new char[] { 'a', 'A', '?', '?' }[i]; }
-        char B(int i) { return new char[] { 'b', 'B', ':', ':' }[i]; }
-        char C(int i) { return new char[] { 'c', 'C', '>', '>' }[i]; }
-        char D(int i) { return new char[] { 'd', 'D', '_', '_' }[i]; }
-        char E(int i) { return new char[] { 'e', 'E', '3', '#' }[i]; }
-        char F(int i) { return new char[] { 'f', 'F', '=', '=' }[i]; }
-        char G(int i) { return new char[] { 'g', 'G', '+', '+' }[i]; }
-        char H(int i) { return new char[] { 'h', 'H', '[', '[' }[i]; }
-        char I(int i) { return new char[] { 'i', 'I', '8', '*' }[i]; }
-        char J(int i) { return new char[] { 'j', 'J', ']', ']' }[i]; }
-        char K(int i) { return new char[] { 'k', 'K', '/', '/' }[i]; }
-        char L(int i) { return new char[] { 'l', 'L', '\\', '\\' }[i]; }
-        char M(int i) { return new char[] { 'm', 'M', '"', '"' }[i]; }
-        char N(int i) { return new char[] { 'n', 'N', '\'', '\'' }[i]; }
-        char O(int i) { return new char[] { 'o', 'O', '9', '(' }[i]; }
-        char P(int i) { return new char[] { 'p', 'P', '0', ')' }[i]; }
-        char Q(int i) { return new char[] { 'q', 'Q', '1', '!' }[i]; }
-        char R(int i) { return new char[] { 'r', 'R', '4', '$' }[i]; }
-        char S(int i) { return new char[] { 's', 'S', '-', '-' }[i]; }
-        char T(int i) { return new char[] { 't', 'T', '5', '%' }[i]; }
-        char U(int i) { return new char[] { 'u', 'U', '7', '&' }[i]; }
-        char V(int i) { return new char[] { 'v', 'V', ';', ';' }[i]; }
-        char W(int i) { return new char[] { 'w', 'W', '2', '@' }[i]; }
-        char X(int i) { return new char[] { 'x', 'X', '<', '<' }[i]; }
-        char Y(int i) { return new char[] { 'y', 'Y', '6', '^' }[i]; }
-        char Z(int i) { return new char[] { 'z', 'Z', ',', ',' }[i]; }
+        char A(int i)
+        {
+            return new char[] { 'a', 'A', '?', '?' }[i];
+        }
 
-		/// <summary>
-		/// Does what it says
-		/// </summary>
-		void StartBackspaceRepeat()
-		{
-			if (BackspaceTimer == null)
-			{
-				BackspaceTimer = new CTimer(o => Backspace(), null, 0, 175);
-			}
-		}
+        char B(int i)
+        {
+            return new char[] { 'b', 'B', ':', ':' }[i];
+        }
 
-		/// <summary>
-		/// Does what it says
-		/// </summary>
-		void StopBackspaceRepeat()
-		{
-			if (BackspaceTimer != null)
-			{
-				BackspaceTimer.Stop();
-				BackspaceTimer = null;
-			}
-		}
+        char C(int i)
+        {
+            return new char[] { 'c', 'C', '>', '>' }[i];
+        }
+
+        char D(int i)
+        {
+            return new char[] { 'd', 'D', '_', '_' }[i];
+        }
+
+        char E(int i)
+        {
+            return new char[] { 'e', 'E', '3', '#' }[i];
+        }
+
+        char F(int i)
+        {
+            return new char[] { 'f', 'F', '=', '=' }[i];
+        }
+
+        char G(int i)
+        {
+            return new char[] { 'g', 'G', '+', '+' }[i];
+        }
+
+        char H(int i)
+        {
+            return new char[] { 'h', 'H', '[', '[' }[i];
+        }
+
+        char I(int i)
+        {
+            return new char[] { 'i', 'I', '8', '*' }[i];
+        }
+
+        char J(int i)
+        {
+            return new char[] { 'j', 'J', ']', ']' }[i];
+        }
+
+        char K(int i)
+        {
+            return new char[] { 'k', 'K', '/', '/' }[i];
+        }
+
+        char L(int i)
+        {
+            return new char[] { 'l', 'L', '\\', '\\' }[i];
+        }
+
+        char M(int i)
+        {
+            return new char[] { 'm', 'M', '"', '"' }[i];
+        }
+
+        char N(int i)
+        {
+            return new char[] { 'n', 'N', '\'', '\'' }[i];
+        }
+
+        char O(int i)
+        {
+            return new char[] { 'o', 'O', '9', '(' }[i];
+        }
+
+        char P(int i)
+        {
+            return new char[] { 'p', 'P', '0', ')' }[i];
+        }
+
+        char Q(int i)
+        {
+            return new char[] { 'q', 'Q', '1', '!' }[i];
+        }
+
+        char R(int i)
+        {
+            return new char[] { 'r', 'R', '4', '$' }[i];
+        }
+
+        char S(int i)
+        {
+            return new char[] { 's', 'S', '-', '-' }[i];
+        }
+
+        char T(int i)
+        {
+            return new char[] { 't', 'T', '5', '%' }[i];
+        }
+
+        char U(int i)
+        {
+            return new char[] { 'u', 'U', '7', '&' }[i];
+        }
+
+        char V(int i)
+        {
+            return new char[] { 'v', 'V', ';', ';' }[i];
+        }
+
+        char W(int i)
+        {
+            return new char[] { 'w', 'W', '2', '@' }[i];
+        }
+
+        char X(int i)
+        {
+            return new char[] { 'x', 'X', '<', '<' }[i];
+        }
+
+        char Y(int i)
+        {
+            return new char[] { 'y', 'Y', '6', '^' }[i];
+        }
+
+        char Z(int i)
+        {
+            return new char[] { 'z', 'Z', ',', ',' }[i];
+        }
+
+        /// <summary>
+        /// Does what it says
+        /// </summary>
+        void StartBackspaceRepeat()
+        {
+            if (BackspaceTimer == null)
+            {
+                BackspaceTimer = new CTimer(o => Backspace(), null, 0, 175);
+            }
+        }
+
+        /// <summary>
+        /// Does what it says
+        /// </summary>
+        void StopBackspaceRepeat()
+        {
+            if (BackspaceTimer != null)
+            {
+                BackspaceTimer.Stop();
+                BackspaceTimer = null;
+            }
+        }
 
         void Backspace()
         {
@@ -250,35 +353,35 @@ namespace PepperDash.Essentials.Core.Touchpanels.Keyboards
         /* When in mode 0 (lowercase):
          *      shift button: up arrow 0
          *      numShift button: 123/#$@#$ 0
-         *      
+         *
          *      - shift --> mode 1
          *      - double-tap shift --> caps lock
          *      - numShift --> mode 2
-         *      
+         *
          * mode 1 (uppercase)
          *      shift button: down arrow 1
          *      numShift button: 123/##$# 0
-         *      
+         *
          *      - shift --> mode 0
          *      - numShift --> mode 2
-         *      
+         *
          *      - Tapping any key will go back to mode 0
-         * 
+         *
          * mode 2 (numbers-sym)
          *      Shift button: #$#$#$ 2
          *      numShift: ABC 1
-         *      
+         *
          *      - shift --> mode 3
          *      - double-tap shift --> caps lock
          *      - numShift --> mode 0
-         * 
+         *
          * mode 3 (sym)
          *      Shift button: 123 3
          *      numShift: ABC 1
-         *      
+         *
          *      - shift --> mode 2
          *      - numShift --> mode 0
-         *      
+         *
          *      - Tapping any key will go back to mode 2
          */
         void Shift()
@@ -344,7 +447,7 @@ namespace PepperDash.Essentials.Core.Touchpanels.Keyboards
         /// <param name="text"></param>
         void OnKeyPress(string text)
         {
-            var handler = KeyPress;
+            EventHandler<KeyboardControllerPressEventArgs> handler = KeyPress;
             if (handler != null)
                 KeyPress(this, new KeyboardControllerPressEventArgs(text));
         }
@@ -355,7 +458,7 @@ namespace PepperDash.Essentials.Core.Touchpanels.Keyboards
         /// <param name="key"></param>
         void OnKeyPress(KeyboardSpecialKey key)
         {
-            var handler = KeyPress;
+            EventHandler<KeyboardControllerPressEventArgs> handler = KeyPress;
             if (handler != null)
                 KeyPress(this, new KeyboardControllerPressEventArgs(key));
         }
@@ -365,47 +468,56 @@ namespace PepperDash.Essentials.Core.Touchpanels.Keyboards
         /// 2901
         /// </summary>
         public const uint KeyboardVisible = 2901;
+
         /// <summary>
         /// 2902
         /// </summary>
         public const uint ClosePressJoin = 2902;
+
         /// <summary>
         /// 2903
         /// </summary>
         public const uint GoButtonPressJoin = 2903;
+
         /// <summary>
         /// 2903
         /// </summary>
         public const uint GoButtonTextJoin = 2903;
+
         /// <summary>
         /// 2904
         /// </summary>
         public const uint SecondaryButtonPressJoin = 2904;
+
         /// <summary>
         /// 2904
         /// </summary>
-        public const uint SecondaryButtonTextJoin = 2904;        
+        public const uint SecondaryButtonTextJoin = 2904;
+
         /// <summary>
         /// 2905
         /// </summary>
         public const uint GoButtonVisibleJoin = 2905;
+
         /// <summary>
         /// 2906
         /// </summary>
         public const uint SecondaryButtonVisibleJoin = 2906;
+
         /// <summary>
         /// 2907
         /// </summary>
         public const uint GoButtonEnableJoin = 2907;
+
         /// <summary>
         /// 2910
         /// </summary>
         public const uint ClearPressJoin = 2910;
+
         /// <summary>
         /// 2911
         /// </summary>
         public const uint ClearVisibleJoin = 2911;
-
     }
 
     /// <summary>
@@ -429,6 +541,10 @@ namespace PepperDash.Essentials.Core.Touchpanels.Keyboards
 
     public enum KeyboardSpecialKey
     {
-        None = 0, Backspace, Clear, GoButton, SecondaryButton
+        None = 0,
+        Backspace,
+        Clear,
+        GoButton,
+        SecondaryButton
     }
 }

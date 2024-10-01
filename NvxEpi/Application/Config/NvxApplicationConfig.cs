@@ -8,8 +8,7 @@ namespace NvxEpi.Application.Config
         [JsonProperty("transmitters")]
         public Dictionary<string, NvxApplicationDeviceVideoConfig> Transmitters { get; set; }
 
-        [JsonProperty("receivers")]
-        public Dictionary<string, NvxApplicationDeviceVideoConfig> Receivers { get; set; }
+        [JsonProperty("receivers")] public Dictionary<string, NvxApplicationDeviceVideoConfig> Receivers { get; set; }
 
         [JsonProperty("audioTransmitters")]
         public Dictionary<string, NvxApplicationDeviceAudioConfig> AudioTransmitters { get; set; }

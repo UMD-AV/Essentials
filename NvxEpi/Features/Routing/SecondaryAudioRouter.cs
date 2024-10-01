@@ -30,44 +30,44 @@ namespace NvxEpi.Features.Routing
             if (_receivers == null)
                 _receivers = GetReceiverDictionary();
 
-            new [] {_transmitters.Values, _receivers.Values}
+            new[] { _transmitters.Values, _receivers.Values }
                 .SelectMany(x => x)
                 .ToList()
                 .ForEach(device =>
+                {
+                    RoutingOutputPort streamInputPort = device.OutputPorts[SwitcherForSecondaryAudioOutput.Key];
+                    if (streamInputPort != null)
                     {
-                        var streamInputPort = device.OutputPorts[SwitcherForSecondaryAudioOutput.Key];
-                        if (streamInputPort != null)
-                        {
-                            var input = new RoutingInputPort(
-                                GetInputPortKeyForTx(device),
-                                eRoutingSignalType.Audio,
-                                eRoutingPortConnectionType.Streaming,
-                                device,
-                                this);
-
-                            InputPorts.Add(input);
-                        }
-
-                        var streamOutputPort = device.InputPorts[DeviceInputEnum.SecondaryAudio.Name];
-                        if (streamOutputPort == null)
-                            return;
-
-                        var output = new RoutingOutputPort(
-                            GetOutputPortKeyForRx(device),
+                        RoutingInputPort input = new RoutingInputPort(
+                            GetInputPortKeyForTx(device),
                             eRoutingSignalType.Audio,
                             eRoutingPortConnectionType.Streaming,
                             device,
                             this);
 
-                        OutputPorts.Add(output);
-                    });
+                        InputPorts.Add(input);
+                    }
 
-            foreach (var routingOutputPort in OutputPorts)
+                    RoutingInputPort streamOutputPort = device.InputPorts[DeviceInputEnum.SecondaryAudio.Name];
+                    if (streamOutputPort == null)
+                        return;
+
+                    RoutingOutputPort output = new RoutingOutputPort(
+                        GetOutputPortKeyForRx(device),
+                        eRoutingSignalType.Audio,
+                        eRoutingPortConnectionType.Streaming,
+                        device,
+                        this);
+
+                    OutputPorts.Add(output);
+                });
+
+            foreach (RoutingOutputPort routingOutputPort in OutputPorts)
             {
-                var port = routingOutputPort;
+                RoutingOutputPort port = routingOutputPort;
                 const int delayTime = 250;
 
-                var timer = new CTimer(o =>
+                CTimer timer = new CTimer(o =>
                 {
                     if (port.InUseTracker.InUseFeedback.BoolValue)
                         return;
@@ -94,11 +94,12 @@ namespace NvxEpi.Features.Routing
         {
             try
             {
-                Debug.Console(1, NvxGlobalRouter.Instance.SecondaryAudioRouter, "Trying execute switch secondary audio route: {0} {1}", inputSelector, outputSelector);
+                Debug.Console(1, NvxGlobalRouter.Instance.SecondaryAudioRouter,
+                    "Trying execute switch secondary audio route: {0} {1}", inputSelector, outputSelector);
                 if (!signalType.Has(eRoutingSignalType.Audio))
                     throw new ArgumentException("signal type must include audio");
 
-                var rx = outputSelector as ISecondaryAudioStream;
+                ISecondaryAudioStream rx = outputSelector as ISecondaryAudioStream;
                 if (rx == null)
                     throw new ArgumentNullException("rx");
 
@@ -123,11 +124,12 @@ namespace NvxEpi.Features.Routing
 
         public static void Route(int txId, int rxId)
         {
-            Debug.Console(1, NvxGlobalRouter.Instance.SecondaryAudioRouter, "Trying secondary audio route by txId & rxId: {0} {1}", txId, rxId);
+            Debug.Console(1, NvxGlobalRouter.Instance.SecondaryAudioRouter,
+                "Trying secondary audio route by txId & rxId: {0} {1}", txId, rxId);
             if (rxId == 0)
                 return;
 
-            var rx = _receivers.Values.FirstOrDefault(x => x.DeviceId == rxId);
+            ISecondaryAudioStream rx = _receivers.Values.FirstOrDefault(x => x.DeviceId == rxId);
             if (rx == null)
                 return;
 
@@ -142,14 +144,15 @@ namespace NvxEpi.Features.Routing
 
         public static void Route(int txId, ISecondaryAudioStream rx)
         {
-            Debug.Console(1, NvxGlobalRouter.Instance.SecondaryAudioRouter, "Trying secondary audio route by txId & address: {0} {1}", txId, rx.RxAudioAddress);
+            Debug.Console(1, NvxGlobalRouter.Instance.SecondaryAudioRouter,
+                "Trying secondary audio route by txId & address: {0} {1}", txId, rx.RxAudioAddress);
             if (txId == 0)
             {
                 rx.ClearSecondaryStream();
                 return;
             }
 
-            var tx = _transmitters.Values.FirstOrDefault(x => x.DeviceId == txId);
+            ISecondaryAudioStream tx = _transmitters.Values.FirstOrDefault(x => x.DeviceId == txId);
             if (tx == null)
                 return;
 
@@ -158,8 +161,9 @@ namespace NvxEpi.Features.Routing
 
         public static void Route(string txName, ISecondaryAudioStream rx)
         {
-            Debug.Console(1, NvxGlobalRouter.Instance.SecondaryAudioRouter, "Trying secondary audio route by txName & address: {0} {1}", txName, rx.RxAudioAddress);
-            if (String.IsNullOrEmpty(txName))
+            Debug.Console(1, NvxGlobalRouter.Instance.SecondaryAudioRouter,
+                "Trying secondary audio route by txName & address: {0} {1}", txName, rx.RxAudioAddress);
+            if (string.IsNullOrEmpty(txName))
                 return;
 
             if (txName.Equals(NvxGlobalRouter.RouteOff, StringComparison.OrdinalIgnoreCase))
@@ -175,7 +179,7 @@ namespace NvxEpi.Features.Routing
                 return;
             }
 
-            var txByKey = _transmitters
+            ISecondaryAudioStream txByKey = _transmitters
                 .Values
                 .FirstOrDefault(x => x.Key.Equals(txName, StringComparison.OrdinalIgnoreCase));
 

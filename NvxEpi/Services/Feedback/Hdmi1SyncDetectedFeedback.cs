@@ -12,7 +12,7 @@ namespace NvxEpi.Services.Feedback
             if (device.HdmiIn == null || device.HdmiIn[1] == null)
                 return new BoolFeedback(() => false);
 
-            var feedback = new BoolFeedback(Key, 
+            BoolFeedback feedback = new BoolFeedback(Key,
                 () => device.HdmiIn[1].SyncDetectedFeedback.BoolValue);
 
             device.HdmiIn[1].StreamChange += (stream, args) => feedback.FireUpdate();

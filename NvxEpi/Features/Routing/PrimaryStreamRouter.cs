@@ -32,22 +32,22 @@ namespace NvxEpi.Features.Routing
                 if (signalType.Is(eRoutingSignalType.Audio))
                     throw new ArgumentException("signal type must include video");
 
-                var rx = outputSelector as IStreamWithHardware;
+                IStreamWithHardware rx = outputSelector as IStreamWithHardware;
                 if (rx == null)
                     throw new ArgumentNullException("rx");
 
-                var tx = inputSelector as IStream;
+                IStream tx = inputSelector as IStream;
                 if (tx == null)
                 {
                     rx.ClearStream();
                     return;
                 }
-                    
+
                 rx.RouteStream(tx);
-                if (!signalType.Has(eRoutingSignalType.Audio)) 
+                if (!signalType.Has(eRoutingSignalType.Audio))
                     return;
 
-                var audioInputSwitcher = rx as ICurrentAudioInput;
+                ICurrentAudioInput audioInputSwitcher = rx as ICurrentAudioInput;
                 if (audioInputSwitcher == null)
                     return;
 
@@ -71,52 +71,52 @@ namespace NvxEpi.Features.Routing
                 .Values
                 .ToList()
                 .ForEach(tx =>
-                    {
-                        var streamRoutingPort = tx.OutputPorts[SwitcherForStreamOutput.Key];
-                        if (streamRoutingPort == null)
-                            return;
+                {
+                    RoutingOutputPort streamRoutingPort = tx.OutputPorts[SwitcherForStreamOutput.Key];
+                    if (streamRoutingPort == null)
+                        return;
 
-                        var input = new RoutingInputPort(
-                            GetInputPortKeyForTx(tx),
-                            eRoutingSignalType.AudioVideo,
-                            eRoutingPortConnectionType.Streaming,
-                            tx,
-                            this);
+                    RoutingInputPort input = new RoutingInputPort(
+                        GetInputPortKeyForTx(tx),
+                        eRoutingSignalType.AudioVideo,
+                        eRoutingPortConnectionType.Streaming,
+                        tx,
+                        this);
 
-                        InputPorts.Add(input);
-                    });
+                    InputPorts.Add(input);
+                });
 
             _receivers
                 .Values
                 .ToList()
                 .ForEach(rx =>
-                    {
-                        var streamRoutingPort = rx.InputPorts[DeviceInputEnum.Stream.Name];
-                        if (streamRoutingPort == null)
-                            return;
+                {
+                    RoutingInputPort streamRoutingPort = rx.InputPorts[DeviceInputEnum.Stream.Name];
+                    if (streamRoutingPort == null)
+                        return;
 
-                        var output = new RoutingOutputPort(
-                            GetOutputPortKeyForRx(rx),
-                            eRoutingSignalType.AudioVideo,
-                            eRoutingPortConnectionType.Streaming,
-                            rx,
-                            this);
+                    RoutingOutputPort output = new RoutingOutputPort(
+                        GetOutputPortKeyForRx(rx),
+                        eRoutingSignalType.AudioVideo,
+                        eRoutingPortConnectionType.Streaming,
+                        rx,
+                        this);
 
-                        OutputPorts.Add(output);
-                    });
+                    OutputPorts.Add(output);
+                });
 
-            foreach (var routingOutputPort in OutputPorts)
+            foreach (RoutingOutputPort routingOutputPort in OutputPorts)
             {
-                var port = routingOutputPort;
+                RoutingOutputPort port = routingOutputPort;
                 const int delayTime = 250;
 
-                var timer = new CTimer(o =>
-                    {
-                        if (port.InUseTracker.InUseFeedback.BoolValue)
-                            return;
+                CTimer timer = new CTimer(o =>
+                {
+                    if (port.InUseTracker.InUseFeedback.BoolValue)
+                        return;
 
-                        ExecuteSwitch(null, port.Selector, eRoutingSignalType.AudioVideo);
-                    }, Timeout.Infinite);
+                    ExecuteSwitch(null, port.Selector, eRoutingSignalType.AudioVideo);
+                }, Timeout.Infinite);
 
                 port.InUseTracker.InUseFeedback.OutputChange += (sender, args) =>
                 {
@@ -145,7 +145,7 @@ namespace NvxEpi.Features.Routing
             if (rxId == 0)
                 return;
 
-            var rx = GetRxById(rxId);
+            IStreamWithHardware rx = GetRxById(rxId);
             if (rx == null)
                 return;
 
@@ -173,7 +173,7 @@ namespace NvxEpi.Features.Routing
                 return;
             }
 
-            var tx = GetTxById(txId);
+            IStream tx = GetTxById(txId);
             if (tx == null)
                 return;
 
@@ -185,7 +185,7 @@ namespace NvxEpi.Features.Routing
             if (rx.IsTransmitter)
                 throw new ArgumentException("rx device is transmitter");
 
-            if (String.IsNullOrEmpty(txName))
+            if (string.IsNullOrEmpty(txName))
                 return;
 
             if (txName.Equals(NvxGlobalRouter.RouteOff, StringComparison.OrdinalIgnoreCase))
@@ -201,7 +201,7 @@ namespace NvxEpi.Features.Routing
                 return;
             }
 
-            var txByKey = _transmitters
+            IStream txByKey = _transmitters
                 .Values
                 .FirstOrDefault(x => x.Key.Equals(txName, StringComparison.OrdinalIgnoreCase));
 

@@ -9,11 +9,11 @@ namespace NvxEpi.Services.Feedback
 
         public static BoolFeedback GetFeedback(DmNvxBaseClass device)
         {
-            var dmDevice = device as DmNvxE760x;
+            DmNvxE760x dmDevice = device as DmNvxE760x;
             if (dmDevice == null)
                 return new BoolFeedback(() => false);
 
-            var feedback = new BoolFeedback(Key,
+            BoolFeedback feedback = new BoolFeedback(Key,
                 () => device.DmIn.SyncDetectedFeedback.BoolValue);
 
             device.DmIn.InputStreamChange += (stream, args) => feedback.FireUpdate();

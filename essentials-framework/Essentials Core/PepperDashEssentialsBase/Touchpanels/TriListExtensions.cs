@@ -5,58 +5,67 @@ using Crestron.SimplSharpPro.DeviceSupport;
 
 namespace PepperDash.Essentials.Core
 {
-	/// <summary>
-	/// Extensions used for more-clear attachment of Actions to user objects on sigs
-	/// </summary>
-	public static class SigAndTriListExtensions
-	{
-		/// <summary>
-		/// Attaches Action to Sig's user object and returns the same Sig. This provides no protection
+    /// <summary>
+    /// Extensions used for more-clear attachment of Actions to user objects on sigs
+    /// </summary>
+    public static class SigAndTriListExtensions
+    {
+        /// <summary>
+        /// Attaches Action to Sig's user object and returns the same Sig. This provides no protection
         /// from null sigs
-		/// </summary>
-		/// <param name="sig">The BoolOutputSig to attach the Action to</param>
-		/// <param name="a">An action to run when sig is pressed and when released</param>
-		/// <returns>The Sig, sig</returns>
-		public static BoolOutputSig SetBoolSigAction(this BoolOutputSig sig, Action<bool> a)
-		{
-			sig.UserObject = a;
-			return sig;
-		}
+        /// </summary>
+        /// <param name="sig">The BoolOutputSig to attach the Action to</param>
+        /// <param name="a">An action to run when sig is pressed and when released</param>
+        /// <returns>The Sig, sig</returns>
+        public static BoolOutputSig SetBoolSigAction(this BoolOutputSig sig, Action<bool> a)
+        {
+            sig.UserObject = a;
+            return sig;
+        }
 
-		/// <summary>
-		/// Attaches Action to Sig's user object and returns the same Sig.
-		/// </summary>
-		/// <param name="tl"></param>
-		/// <param name="sigNum"></param>
-		/// <param name="a"></param>
-		/// <returns></returns>
-		public static BoolOutputSig SetBoolSigAction(this BasicTriList tl, uint sigNum, Action<bool> a)
-		{
-			return tl.BooleanOutput[sigNum].SetBoolSigAction(a);
-		}
+        /// <summary>
+        /// Attaches Action to Sig's user object and returns the same Sig.
+        /// </summary>
+        /// <param name="tl"></param>
+        /// <param name="sigNum"></param>
+        /// <param name="a"></param>
+        /// <returns></returns>
+        public static BoolOutputSig SetBoolSigAction(this BasicTriList tl, uint sigNum, Action<bool> a)
+        {
+            return tl.BooleanOutput[sigNum].SetBoolSigAction(a);
+        }
 
-		public static BoolOutputSig SetSigTrueAction(this BasicTriList tl, uint sigNum, Action a)
-		{
-			return tl.BooleanOutput[sigNum].SetBoolSigAction(b => { if(b) a(); });
-		}
+        public static BoolOutputSig SetSigTrueAction(this BasicTriList tl, uint sigNum, Action a)
+        {
+            return tl.BooleanOutput[sigNum].SetBoolSigAction(b =>
+            {
+                if (b) a();
+            });
+        }
 
-		/// <summary>
-		/// Attaches a void Action to a TriList's output sig's UserObject, to be run on release
-		/// </summary>
-		/// <returns>The sig</returns>
-		public static BoolOutputSig SetSigFalseAction(this BasicTriList tl, uint sigNum, Action a)
-		{
-			return tl.BooleanOutput[sigNum].SetBoolSigAction(b => { if (!b) a(); });
-		}
+        /// <summary>
+        /// Attaches a void Action to a TriList's output sig's UserObject, to be run on release
+        /// </summary>
+        /// <returns>The sig</returns>
+        public static BoolOutputSig SetSigFalseAction(this BasicTriList tl, uint sigNum, Action a)
+        {
+            return tl.BooleanOutput[sigNum].SetBoolSigAction(b =>
+            {
+                if (!b) a();
+            });
+        }
 
-		/// <summary>
-		/// Attaches a void Action to an output sig's UserObject, to be run on release
-		/// </summary>
-		/// <returns>The Sig</returns>
-		public static BoolOutputSig SetSigFalseAction(this BoolOutputSig sig, Action a)
-		{
-			return sig.SetBoolSigAction(b => { if (!b) a(); });
-		}
+        /// <summary>
+        /// Attaches a void Action to an output sig's UserObject, to be run on release
+        /// </summary>
+        /// <returns>The Sig</returns>
+        public static BoolOutputSig SetSigFalseAction(this BoolOutputSig sig, Action a)
+        {
+            return sig.SetBoolSigAction(b =>
+            {
+                if (!b) a();
+            });
+        }
 
         /// <summary>
         /// Sets an action to a held sig
@@ -67,155 +76,157 @@ namespace PepperDash.Essentials.Core
             return SetSigHeldAction(tl, sigNum, heldMs, heldAction, null);
         }
 
-		/// <summary>
-		/// Sets an action to a held sig as well as a released-without-hold action
-		/// </summary>
-		/// <returns></returns>
-		public static BoolOutputSig SetSigHeldAction(this BoolOutputSig sig, uint heldMs, Action heldAction, Action holdReleasedAction, Action releaseAction)
-		{
-			CTimer heldTimer = null;
-			bool wasHeld = false;
-			return sig.SetBoolSigAction(press =>
-			{
-				if (press)
-				{
-					wasHeld = false;
-					// Could insert a pressed action here
-					heldTimer = new CTimer(o =>
-					{
-						// if still held and there's an action
-						if (sig.BoolValue && heldAction != null)
-						{
-							wasHeld = true;
-							// Hold action here
-							heldAction();
-						}
-					}, heldMs);
-				}
-				else if (!press && !wasHeld) // released, no hold
-				{
-					heldTimer.Stop();
-					if (releaseAction != null)
-						releaseAction();
-				}
-				else // !press && wasHeld // released after held
-				{
-					heldTimer.Stop();
-					if (holdReleasedAction != null)
-						holdReleasedAction();
-				}
-			});
-
-		}
+        /// <summary>
+        /// Sets an action to a held sig as well as a released-without-hold action
+        /// </summary>
+        /// <returns></returns>
+        public static BoolOutputSig SetSigHeldAction(this BoolOutputSig sig, uint heldMs, Action heldAction,
+            Action holdReleasedAction, Action releaseAction)
+        {
+            CTimer heldTimer = null;
+            bool wasHeld = false;
+            return sig.SetBoolSigAction(press =>
+            {
+                if (press)
+                {
+                    wasHeld = false;
+                    // Could insert a pressed action here
+                    heldTimer = new CTimer(o =>
+                    {
+                        // if still held and there's an action
+                        if (sig.BoolValue && heldAction != null)
+                        {
+                            wasHeld = true;
+                            // Hold action here
+                            heldAction();
+                        }
+                    }, heldMs);
+                }
+                else if (!press && !wasHeld) // released, no hold
+                {
+                    heldTimer.Stop();
+                    if (releaseAction != null)
+                        releaseAction();
+                }
+                else // !press && wasHeld // released after held
+                {
+                    heldTimer.Stop();
+                    if (holdReleasedAction != null)
+                        holdReleasedAction();
+                }
+            });
+        }
 
         /// <summary>
         /// Sets an action to a held sig as well as a released-without-hold action
         /// </summary>
         /// <returns>The sig</returns>
-        public static BoolOutputSig SetSigHeldAction(this BasicTriList tl, uint sigNum, uint heldMs, Action heldAction, Action releaseAction)
+        public static BoolOutputSig SetSigHeldAction(this BasicTriList tl, uint sigNum, uint heldMs, Action heldAction,
+            Action releaseAction)
         {
-			return tl.BooleanOutput[sigNum].SetSigHeldAction(heldMs, heldAction, null, releaseAction);
+            return tl.BooleanOutput[sigNum].SetSigHeldAction(heldMs, heldAction, null, releaseAction);
         }
 
-		/// <summary>
-		/// Sets an action to a held sig, an action for the release of hold, as well as a released-without-hold action
-		/// </summary>
-		/// <returns></returns>
-		public static BoolOutputSig SetSigHeldAction(this BasicTriList tl, uint sigNum, uint heldMs, Action heldAction,
-			Action holdReleasedAction, Action releaseAction)
-		{
-			return tl.BooleanOutput[sigNum].SetSigHeldAction(heldMs, heldAction, holdReleasedAction, releaseAction);
-		}
+        /// <summary>
+        /// Sets an action to a held sig, an action for the release of hold, as well as a released-without-hold action
+        /// </summary>
+        /// <returns></returns>
+        public static BoolOutputSig SetSigHeldAction(this BasicTriList tl, uint sigNum, uint heldMs, Action heldAction,
+            Action holdReleasedAction, Action releaseAction)
+        {
+            return tl.BooleanOutput[sigNum].SetSigHeldAction(heldMs, heldAction, holdReleasedAction, releaseAction);
+        }
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="sig"></param>
-		/// <param name="a"></param>
-		/// <returns>The Sig</returns>
-		public static UShortOutputSig SetUShortSigAction(this UShortOutputSig sig, Action<ushort> a)
-		{
-			sig.UserObject = a;
-			return sig;
-		}
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="tl"></param>
-		/// <param name="sigNum"></param>
-		/// <param name="a"></param>
-		/// <returns></returns>
-		public static UShortOutputSig SetUShortSigAction(this BasicTriList tl, uint sigNum, Action<ushort> a)
-		{
-			return tl.UShortOutput[sigNum].SetUShortSigAction(a);
-		}
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sig"></param>
+        /// <param name="a"></param>
+        /// <returns>The Sig</returns>
+        public static UShortOutputSig SetUShortSigAction(this UShortOutputSig sig, Action<ushort> a)
+        {
+            sig.UserObject = a;
+            return sig;
+        }
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="sig"></param>
-		/// <param name="a"></param>
-		/// <returns></returns>
-		public static StringOutputSig SetStringSigAction(this StringOutputSig sig, Action<string> a)
-		{
-			sig.UserObject = a;
-			return sig;
-		}
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="tl"></param>
+        /// <param name="sigNum"></param>
+        /// <param name="a"></param>
+        /// <returns></returns>
+        public static UShortOutputSig SetUShortSigAction(this BasicTriList tl, uint sigNum, Action<ushort> a)
+        {
+            return tl.UShortOutput[sigNum].SetUShortSigAction(a);
+        }
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="tl"></param>
-		/// <param name="sigNum"></param>
-		/// <param name="a"></param>
-		/// <returns></returns>
-		public static StringOutputSig SetStringSigAction(this BasicTriList tl, uint sigNum, Action<string> a)
-		{
-			return tl.StringOutput[sigNum].SetStringSigAction(a);
-		}
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sig"></param>
+        /// <param name="a"></param>
+        /// <returns></returns>
+        public static StringOutputSig SetStringSigAction(this StringOutputSig sig, Action<string> a)
+        {
+            sig.UserObject = a;
+            return sig;
+        }
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="sig"></param>
-		/// <returns></returns>
-		public static Sig ClearSigAction(this Sig sig)
-		{
-			sig.UserObject = null;
-			return sig;
-		}
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="tl"></param>
+        /// <param name="sigNum"></param>
+        /// <param name="a"></param>
+        /// <returns></returns>
+        public static StringOutputSig SetStringSigAction(this BasicTriList tl, uint sigNum, Action<string> a)
+        {
+            return tl.StringOutput[sigNum].SetStringSigAction(a);
+        }
 
-		public static BoolOutputSig ClearBoolSigAction(this BasicTriList tl, uint sigNum)
-		{
-			return ClearSigAction(tl.BooleanOutput[sigNum]) as BoolOutputSig;
-		}
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sig"></param>
+        /// <returns></returns>
+        public static Sig ClearSigAction(this Sig sig)
+        {
+            sig.UserObject = null;
+            return sig;
+        }
 
-		public static UShortOutputSig ClearUShortSigAction(this BasicTriList tl, uint sigNum)
-		{
-			return ClearSigAction(tl.UShortOutput[sigNum]) as UShortOutputSig;
-		}
+        public static BoolOutputSig ClearBoolSigAction(this BasicTriList tl, uint sigNum)
+        {
+            return ClearSigAction(tl.BooleanOutput[sigNum]) as BoolOutputSig;
+        }
 
-		public static StringOutputSig ClearStringSigAction(this BasicTriList tl, uint sigNum)
-		{
-			return ClearSigAction(tl.StringOutput[sigNum]) as StringOutputSig;
-		}
+        public static UShortOutputSig ClearUShortSigAction(this BasicTriList tl, uint sigNum)
+        {
+            return ClearSigAction(tl.UShortOutput[sigNum]) as UShortOutputSig;
+        }
+
+        public static StringOutputSig ClearStringSigAction(this BasicTriList tl, uint sigNum)
+        {
+            return ClearSigAction(tl.StringOutput[sigNum]) as StringOutputSig;
+        }
 
         /// <summary>
         /// Clears all actions on all sigs
         /// </summary>
         public static void ClearAllSigActions(this BasicTriList t1)
         {
-            foreach (var sig in t1.BooleanOutput)
+            foreach (BoolOutputSig sig in t1.BooleanOutput)
             {
                 ClearSigAction(sig);
             }
 
-            foreach (var sig in t1.UShortOutput)
+            foreach (UShortOutputSig sig in t1.UShortOutput)
             {
                 ClearSigAction(sig);
             }
 
-            foreach (var sig in t1.StringOutput)
+            foreach (StringOutputSig sig in t1.StringOutput)
             {
                 ClearSigAction(sig);
             }
@@ -229,26 +240,26 @@ namespace PepperDash.Essentials.Core
             tl.BooleanInput[sigNum].BoolValue = value;
         }
 
-		/// <summary>
-		/// Sends an true-false pulse to the sig
-		/// </summary>
-		/// <param name="tl"></param>
-		/// <param name="sigNum"></param>
-		public static void PulseBool(this BasicTriList tl, uint sigNum)
-		{
-			tl.BooleanInput[sigNum].Pulse();
-		}
+        /// <summary>
+        /// Sends an true-false pulse to the sig
+        /// </summary>
+        /// <param name="tl"></param>
+        /// <param name="sigNum"></param>
+        public static void PulseBool(this BasicTriList tl, uint sigNum)
+        {
+            tl.BooleanInput[sigNum].Pulse();
+        }
 
-		/// <summary>
-		/// Sends a timed pulse to the sig
-		/// </summary>
-		/// <param name="tl"></param>
-		/// <param name="sigNum"></param>
-		/// <param name="ms"></param>
-		public static void PulseBool(this BasicTriList tl, uint sigNum, int ms)
-		{
-			tl.BooleanInput[sigNum].Pulse(ms);
-		}
+        /// <summary>
+        /// Sends a timed pulse to the sig
+        /// </summary>
+        /// <param name="tl"></param>
+        /// <param name="sigNum"></param>
+        /// <param name="ms"></param>
+        public static void PulseBool(this BasicTriList tl, uint sigNum, int ms)
+        {
+            tl.BooleanInput[sigNum].Pulse(ms);
+        }
 
         /// <summary>
         /// Helper method to set the value of a ushort Sig on TriList
@@ -266,43 +277,43 @@ namespace PepperDash.Essentials.Core
             tl.StringInput[sigNum].StringValue = value;
         }
 
-	    public static void SetString(this BasicTriList tl, uint sigNum, string value, eStringEncoding encoding)
-	    {
-	        tl.StringInput[sigNum].StringEncoding = encoding;
-	        tl.StringInput[sigNum].StringValue = value;
-	    }
+        public static void SetString(this BasicTriList tl, uint sigNum, string value, eStringEncoding encoding)
+        {
+            tl.StringInput[sigNum].StringEncoding = encoding;
+            tl.StringInput[sigNum].StringValue = value;
+        }
 
-		/// <summary>
-		/// Returns bool value of trilist sig
-		/// </summary>
-		/// <param name="tl"></param>
-		/// <param name="sigNum"></param>
-		/// <returns></returns>
-		public static bool GetBool(this BasicTriList tl, uint sigNum)
-		{
-			return tl.BooleanOutput[sigNum].BoolValue;
-		}
+        /// <summary>
+        /// Returns bool value of trilist sig
+        /// </summary>
+        /// <param name="tl"></param>
+        /// <param name="sigNum"></param>
+        /// <returns></returns>
+        public static bool GetBool(this BasicTriList tl, uint sigNum)
+        {
+            return tl.BooleanOutput[sigNum].BoolValue;
+        }
 
-		/// <summary>
-		/// Returns ushort value of trilist sig
-		/// </summary>
-		/// <param name="tl"></param>
-		/// <param name="sigNum"></param>
-		/// <returns></returns>
-		public static ushort GetUshort(this BasicTriList tl, uint sigNum)
-		{
-			return tl.UShortOutput[sigNum].UShortValue;
-		}
+        /// <summary>
+        /// Returns ushort value of trilist sig
+        /// </summary>
+        /// <param name="tl"></param>
+        /// <param name="sigNum"></param>
+        /// <returns></returns>
+        public static ushort GetUshort(this BasicTriList tl, uint sigNum)
+        {
+            return tl.UShortOutput[sigNum].UShortValue;
+        }
 
-		/// <summary>
-		/// Returns string value of trilist sig.
-		/// </summary>
-		/// <param name="tl"></param>
-		/// <param name="sigNum"></param>
-		/// <returns></returns>
-		public static string GetString(this BasicTriList tl, uint sigNum)
-		{
-			return tl.StringOutput[sigNum].StringValue;
-		}
+        /// <summary>
+        /// Returns string value of trilist sig.
+        /// </summary>
+        /// <param name="tl"></param>
+        /// <param name="sigNum"></param>
+        /// <returns></returns>
+        public static string GetString(this BasicTriList tl, uint sigNum)
+        {
+            return tl.StringOutput[sigNum].StringValue;
+        }
     }
 }

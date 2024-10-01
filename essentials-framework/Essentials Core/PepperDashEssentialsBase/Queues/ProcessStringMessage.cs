@@ -26,7 +26,7 @@ namespace PepperDash.Essentials.Core.Queues
         /// </summary>
         public void Dispatch()
         {
-            if (_action == null || String.IsNullOrEmpty(_message))
+            if (_action == null || string.IsNullOrEmpty(_message))
                 return;
 
             _action(_message);
@@ -38,7 +38,7 @@ namespace PepperDash.Essentials.Core.Queues
         /// <returns>The current message</returns>
         public override string ToString()
         {
-            return _message ?? String.Empty;
+            return _message ?? string.Empty;
         }
     }
 }
@@ -70,7 +70,7 @@ namespace PepperDash_Essentials_Core.Queues
         /// </summary>
         public void Dispatch()
         {
-            if (_action == null || String.IsNullOrEmpty(_message))
+            if (_action == null || string.IsNullOrEmpty(_message))
                 return;
 
             _action(_message);
@@ -82,7 +82,7 @@ namespace PepperDash_Essentials_Core.Queues
         /// <returns>The current message</returns>
         public override string ToString()
         {
-            return _message ?? String.Empty;
+            return _message ?? string.Empty;
         }
     }
 }

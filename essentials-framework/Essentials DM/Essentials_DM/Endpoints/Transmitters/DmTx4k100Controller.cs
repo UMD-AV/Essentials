@@ -26,28 +26,25 @@ namespace PepperDash.Essentials.DM
         /// </summary>
         public eX02VideoSourceType ActualActiveVideoInput
         {
-            get
-                {
-                    return eVst.Hdmi1;
-                }
+            get { return eVst.Hdmi1; }
         }
+
         public RoutingPortCollection<RoutingInputPort> InputPorts
         {
             get
             {
-                return new RoutingPortCollection<RoutingInputPort> 
-				{ 
-					HdmiIn				 
-				};
+                return new RoutingPortCollection<RoutingInputPort>
+                {
+                    HdmiIn
+                };
             }
         }
+
         public RoutingPortCollection<RoutingOutputPort> OutputPorts
         {
-            get
-            {
-                return new RoutingPortCollection<RoutingOutputPort> { DmOut };
-            }
+            get { return new RoutingPortCollection<RoutingOutputPort> { DmOut }; }
         }
+
         public DmTx4k100Controller(string key, string name, DmTx4K100C1G tx)
             : base(key, name, tx)
         {
@@ -64,28 +61,29 @@ namespace PepperDash.Essentials.DM
 
             PreventRegistration = true;
 
-            var parentDev = DeviceManager.GetDeviceForKey(key);
-            var num = tx.DMInputOutput.Number;
+            IKeyed parentDev = DeviceManager.GetDeviceForKey(key);
+            uint num = tx.DMInputOutput.Number;
             if (parentDev is DmpsRoutingController)
             {
-                var dmps = parentDev as DmpsRoutingController;
+                DmpsRoutingController dmps = parentDev as DmpsRoutingController;
                 IsOnline.SetValueFunc(() => dmps.InputEndpointOnlineFeedbacks[num].BoolValue);
                 dmps.InputEndpointOnlineFeedbacks[num].OutputChange += (o, a) => IsOnline.FireUpdate();
             }
             else if (parentDev is DmChassisController)
             {
-                var controller = parentDev as DmChassisController;
+                DmChassisController controller = parentDev as DmChassisController;
                 IsOnline.SetValueFunc(() => controller.InputEndpointOnlineFeedbacks[num].BoolValue);
                 controller.InputEndpointOnlineFeedbacks[num].OutputChange += (o, a) => IsOnline.FireUpdate();
             }
+
             tx.Register();
         }
 
         public override void LinkToApi(BasicTriList trilist, uint joinStart, string joinMapKey, EiscApiAdvanced bridge)
         {
-            var joinMap = new HDBaseTTxControllerJoinMap(joinStart);
+            HDBaseTTxControllerJoinMap joinMap = new HDBaseTTxControllerJoinMap(joinStart);
 
-            var joinMapSerialized = JoinMapHelper.GetSerializedJoinMapForDevice(joinMapKey);
+            string joinMapSerialized = JoinMapHelper.GetSerializedJoinMapForDevice(joinMapKey);
 
             if (!string.IsNullOrEmpty(joinMapSerialized))
                 joinMap = JsonConvert.DeserializeObject<HDBaseTTxControllerJoinMap>(joinMapSerialized);
@@ -96,7 +94,8 @@ namespace PepperDash.Essentials.DM
             }
             else
             {
-                Debug.Console(0, this, "Please update config to use 'eiscapiadvanced' to get all join map features for this device.");
+                Debug.Console(0, this,
+                    "Please update config to use 'eiscapiadvanced' to get all join map features for this device.");
             }
 
             Debug.Console(1, this, "Linking to Trilist '{0}'", trilist.ID.ToString("X"));
@@ -107,17 +106,40 @@ namespace PepperDash.Essentials.DM
         }
 
         #region IIROutputPorts Members
-        public CrestronCollection<IROutputPort> IROutputPorts { get { return Tx.IROutputPorts; } }
-        public int NumberOfIROutputPorts { get { return Tx.NumberOfIROutputPorts; } }
+
+        public CrestronCollection<IROutputPort> IROutputPorts
+        {
+            get { return Tx.IROutputPorts; }
+        }
+
+        public int NumberOfIROutputPorts
+        {
+            get { return Tx.NumberOfIROutputPorts; }
+        }
+
         #endregion
 
         #region IComPorts Members
-        public CrestronCollection<ComPort> ComPorts { get { return Tx.ComPorts; } }
-        public int NumberOfComPorts { get { return Tx.NumberOfComPorts; } }
+
+        public CrestronCollection<ComPort> ComPorts
+        {
+            get { return Tx.ComPorts; }
+        }
+
+        public int NumberOfComPorts
+        {
+            get { return Tx.NumberOfComPorts; }
+        }
+
         #endregion
 
         #region ICec Members
-        public Cec StreamCec { get { return Tx.StreamCec; } }
+
+        public Cec StreamCec
+        {
+            get { return Tx.StreamCec; }
+        }
+
         #endregion
     }
 }

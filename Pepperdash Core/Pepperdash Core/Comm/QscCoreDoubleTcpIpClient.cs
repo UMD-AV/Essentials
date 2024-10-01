@@ -38,7 +38,6 @@ namespace PepperDash.Core
             SlaveClient = new GenericTcpIpClient("temp-slave");
             SlaveClient.AutoReconnect = true;
             SlaveClient.AutoReconnectIntervalMs = 2000;
-
         }
 
         /// <summary>
@@ -120,11 +119,13 @@ namespace PepperDash.Core
                 MasterGather.LineReceived -= MasterGather_LineReceived;
                 MasterClient.Disconnect();
             }
+
             if (SlaveClient != null)
             {
                 SlaveGather.LineReceived -= SlaveGather_LineReceived;
                 SlaveClient.Disconnect();
             }
+
             if (PollTimer != null)
             {
                 IsPolling = false;
@@ -183,7 +184,6 @@ namespace PepperDash.Core
             }
             else
                 SlaveGather.LineReceived -= SlaveGather_LineReceived;
-
         }
 
 
@@ -201,7 +201,7 @@ namespace PepperDash.Core
             {
                 // example response  "sr "MyDesign" "NIEC2bxnVZ6a" 1 1"
 
-                var split = e.Text.Trim().Split(' ');
+                string[] split = e.Text.Trim().Split(' ');
                 if (split[split.Length - 1] == "1")
                 {
                     SlaveIsActive = false;
@@ -209,6 +209,7 @@ namespace PepperDash.Core
                     OnBoolChange(true, MasterIsActiveId);
                 }
             }
+
             if (!SlaveIsActive)
                 OnStringChange(e.Text, LineReceivedId);
         }
@@ -225,7 +226,7 @@ namespace PepperDash.Core
             }
             else if (e.Text.StartsWith("sr"))
             {
-                var split = e.Text.Trim().Split(' ');
+                string[] split = e.Text.Trim().Split(' ');
                 if (split[split.Length - 1] == "1")
                 {
                     SlaveIsActive = true;
@@ -233,6 +234,7 @@ namespace PepperDash.Core
                     OnBoolChange(false, MasterIsActiveId);
                 }
             }
+
             if (SlaveIsActive)
                 OnStringChange(e.Text, LineReceivedId);
         }
@@ -257,15 +259,14 @@ namespace PepperDash.Core
             {
                 Debug.Console(2, this, "Polling Master.");
                 MasterClient.SendText("sg\x0d\x0a");
-
             }
+
             if (SlaveClient != null && SlaveClient.IsConnected)
             {
                 Debug.Console(2, this, "Polling Slave.");
                 SlaveClient.SendText("sg\x0d\x0a");
             }
         }
-
 
 
         // login NAME PIN ---> login_success, login_failed
@@ -277,21 +278,21 @@ namespace PepperDash.Core
 
         void OnBoolChange(bool state, ushort type)
         {
-            var handler = BoolChange;
+            EventHandler<BoolChangeEventArgs> handler = BoolChange;
             if (handler != null)
                 handler(this, new BoolChangeEventArgs(state, type));
         }
 
         void OnUshortChange(ushort state, ushort type)
         {
-            var handler = UshortChange;
+            EventHandler<UshrtChangeEventArgs> handler = UshortChange;
             if (handler != null)
                 handler(this, new UshrtChangeEventArgs(state, type));
         }
 
         void OnStringChange(string value, ushort type)
         {
-            var handler = StringChange;
+            EventHandler<StringChangeEventArgs> handler = StringChange;
             if (handler != null)
                 handler(this, new StringChangeEventArgs(value, type));
         }

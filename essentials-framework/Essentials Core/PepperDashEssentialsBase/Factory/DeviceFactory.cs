@@ -25,71 +25,77 @@ namespace PepperDash.Essentials.Core
     {
         public DeviceFactory()
         {
-            var assy = Assembly.GetExecutingAssembly();
+            Assembly assy = Assembly.GetExecutingAssembly();
             PluginLoader.SetEssentialsAssembly(assy.GetName().Name, assy);
 
-            var types = assy.GetTypes().Where(ct => typeof(IDeviceFactory).IsAssignableFrom(ct) && !ct.IsInterface && !ct.IsAbstract);
+            IEnumerable<CType> types = assy.GetTypes().Where(ct =>
+                typeof(IDeviceFactory).IsAssignableFrom(ct) && !ct.IsInterface && !ct.IsAbstract);
 
             if (types != null)
             {
-                foreach (var type in types)
+                foreach (CType type in types)
                 {
                     try
                     {
-                        var factory = (IDeviceFactory)Crestron.SimplSharp.Reflection.Activator.CreateInstance(type);
+                        IDeviceFactory factory = (IDeviceFactory)Crestron.SimplSharp.Reflection.Activator.CreateInstance(type);
                         factory.LoadTypeFactories();
                     }
                     catch (Exception e)
                     {
-                        Debug.Console(0, Debug.ErrorLogLevel.Error, "Unable to load type: '{1}' DeviceFactory: {0}", e, type.Name);
+                        Debug.Console(0, Debug.ErrorLogLevel.Error, "Unable to load type: '{1}' DeviceFactory: {0}", e,
+                            type.Name);
                     }
                 }
             }
         }
 
-		/// <summary>
-		/// A dictionary of factory methods, keyed by config types, added by plugins.
-		/// These methods are looked up and called by GetDevice in this class.
-		/// </summary>
-		static Dictionary<string, DeviceFactoryWrapper> FactoryMethods =
+        /// <summary>
+        /// A dictionary of factory methods, keyed by config types, added by plugins.
+        /// These methods are looked up and called by GetDevice in this class.
+        /// </summary>
+        static Dictionary<string, DeviceFactoryWrapper> FactoryMethods =
             new Dictionary<string, DeviceFactoryWrapper>(StringComparer.OrdinalIgnoreCase);
 
-		/// <summary>
-		/// Adds a plugin factory method
-		/// </summary>
-		/// <param name="dc"></param>
-		/// <returns></returns>
-		public static void AddFactoryForType(string typeName, Func<DeviceConfig, IKeyed> method) 
-		{
+        /// <summary>
+        /// Adds a plugin factory method
+        /// </summary>
+        /// <param name="dc"></param>
+        /// <returns></returns>
+        public static void AddFactoryForType(string typeName, Func<DeviceConfig, IKeyed> method)
+        {
             //Debug.Console(1, Debug.ErrorLogLevel.Notice, "Adding factory method for type '{0}'", typeName);
-            DeviceFactory.FactoryMethods.Add(typeName, new DeviceFactoryWrapper() { FactoryMethod = method});
-		}
+            DeviceFactory.FactoryMethods.Add(typeName, new DeviceFactoryWrapper() { FactoryMethod = method });
+        }
 
-        public static void AddFactoryForType(string typeName, string description, CType cType, Func<DeviceConfig, IKeyed> method)
+        public static void AddFactoryForType(string typeName, string description, CType cType,
+            Func<DeviceConfig, IKeyed> method)
         {
             //Debug.Console(1, Debug.ErrorLogLevel.Notice, "Adding factory method for type '{0}'", typeName);
 
-            if(FactoryMethods.ContainsKey(typeName))
+            if (FactoryMethods.ContainsKey(typeName))
             {
-                Debug.Console(0, Debug.ErrorLogLevel.Error, "Unable to add type: '{0}'.  Already exists in DeviceFactory", typeName);
+                Debug.Console(0, Debug.ErrorLogLevel.Error,
+                    "Unable to add type: '{0}'.  Already exists in DeviceFactory", typeName);
                 return;
             }
 
-            var wrapper = new DeviceFactoryWrapper() { CType = cType, Description = description, FactoryMethod = method };
+            DeviceFactoryWrapper wrapper = new DeviceFactoryWrapper()
+                { CType = cType, Description = description, FactoryMethod = method };
             DeviceFactory.FactoryMethods.Add(typeName, wrapper);
         }
 
         private static void CheckForSecrets(IEnumerable<JProperty> obj)
         {
-            foreach (var prop in obj.Where(prop => prop.Value as JObject != null))
+            foreach (JProperty prop in obj.Where(prop => prop.Value as JObject != null))
             {
                 if (prop.Name.ToLower() == "secret")
                 {
-                    var secret = GetSecret(prop.Children().First().ToObject<SecretsPropertiesConfig>());
+                    string secret = GetSecret(prop.Children().First().ToObject<SecretsPropertiesConfig>());
                     //var secret = GetSecret(JsonConvert.DeserializeObject<SecretsPropertiesConfig>(prop.Children().First().ToString()));
                     prop.Parent.Replace(secret);
                 }
-                var recurseProp = prop.Value as JObject;
+
+                JObject recurseProp = prop.Value as JObject;
                 if (recurseProp == null) return;
                 CheckForSecrets(recurseProp.Properties());
             }
@@ -97,14 +103,14 @@ namespace PepperDash.Essentials.Core
 
         private static string GetSecret(SecretsPropertiesConfig data)
         {
-            var secretProvider = SecretsManager.GetSecretProviderByKey(data.Provider);
+            ISecretProvider secretProvider = SecretsManager.GetSecretProviderByKey(data.Provider);
             if (secretProvider == null) return null;
-            var secret = secretProvider.GetSecret(data.Key);
-            if (secret != null) return (string) secret.Value;
+            ISecret secret = secretProvider.GetSecret(data.Key);
+            if (secret != null) return (string)secret.Value;
             Debug.Console(1,
                 "Unable to retrieve secret {0}{1} - Make sure you've added it to the secrets provider",
                 data.Provider, data.Key);
-            return String.Empty;
+            return string.Empty;
         }
 
 
@@ -120,21 +126,21 @@ namespace PepperDash.Essentials.Core
             {
                 Debug.Console(0, "Loading '{0}' from Essentials Core", dc.Type);
 
-                var localDc = new DeviceConfig(dc);
+                DeviceConfig localDc = new DeviceConfig(dc);
 
-                var key = localDc.Key;
-                var name = localDc.Name;
-                var type = localDc.Type;
-                var properties = localDc.Properties;
+                string key = localDc.Key;
+                string name = localDc.Name;
+                string type = localDc.Type;
+                JToken properties = localDc.Properties;
                 //var propRecurse = properties;
 
-                var typeName = localDc.Type.ToLower();
+                string typeName = localDc.Type.ToLower();
 
 
-                var jObject = properties as JObject;
+                JObject jObject = properties as JObject;
                 if (jObject != null)
                 {
-                    var jProp = jObject.Properties();
+                    IEnumerable<JProperty> jProp = jObject.Properties();
 
                     CheckForSecrets(jProp);
                 }
@@ -145,7 +151,8 @@ namespace PepperDash.Essentials.Core
             }
             catch (Exception ex)
             {
-                Debug.Console(0, Debug.ErrorLogLevel.Error, "Exception occurred while creating device {0}: {1}", dc.Key, ex.Message);
+                Debug.Console(0, Debug.ErrorLogLevel.Error, "Exception occurred while creating device {0}: {1}", dc.Key,
+                    ex.Message);
 
                 Debug.Console(2, "{0}", ex.StackTrace);
 
@@ -180,17 +187,17 @@ namespace PepperDash.Essentials.Core
 
             Debug.Console(0, "Device Types:");
 
-            foreach (var type in types.OrderBy(t => t.Key))
+            foreach (KeyValuePair<string, DeviceFactoryWrapper> type in types.OrderBy(t => t.Key))
             {
-                var description = type.Value.Description;
-                var cType = "Not Specified by Plugin";
+                string description = type.Value.Description;
+                string cType = "Not Specified by Plugin";
 
-                if(type.Value.CType != null)
+                if (type.Value.CType != null)
                 {
                     cType = type.Value.CType.FullName;
                 }
 
-                Debug.Console(0, 
+                Debug.Console(0,
                     @"Type: '{0}' 
                     CType: '{1}' 
                     Description: {2}", type.Key, cType, description);

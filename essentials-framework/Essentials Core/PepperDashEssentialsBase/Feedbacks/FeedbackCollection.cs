@@ -14,10 +14,7 @@ namespace PepperDash.Essentials.Core
         /// </summary>
         public T this[string key]
         {
-            get
-            {
-                return this.FirstOrDefault(i => i.Key.Equals(key, StringComparison.OrdinalIgnoreCase));
-            }
+            get { return this.FirstOrDefault(i => i.Key.Equals(key, StringComparison.OrdinalIgnoreCase)); }
         }
     }
 }

@@ -83,7 +83,7 @@ namespace PepperDash.Essentials.Core
     /// <summary>
     /// Devices the basic needs for a Device Factory
     /// </summary>
-    public abstract class EssentialsDeviceFactory<T> : IDeviceFactory where T:EssentialsDevice
+    public abstract class EssentialsDeviceFactory<T> : IDeviceFactory where T : EssentialsDevice
     {
         #region IDeviceFactory Members
 
@@ -97,12 +97,14 @@ namespace PepperDash.Essentials.Core
         /// </summary>
         public void LoadTypeFactories()
         {
-            foreach (var typeName in TypeNames)
+            foreach (string typeName in TypeNames)
             {
                 //Debug.Console(2, "Getting Description Attribute from class: '{0}'", typeof(T).FullName);
-                var descriptionAttribute = typeof(T).GetCustomAttributes(typeof(DescriptionAttribute), true) as DescriptionAttribute[];
+                DescriptionAttribute[] descriptionAttribute =
+                    typeof(T).GetCustomAttributes(typeof(DescriptionAttribute), true) as DescriptionAttribute[];
                 string description = descriptionAttribute[0].Description;
-                var snippetAttribute = typeof(T).GetCustomAttributes(typeof(ConfigSnippetAttribute), true) as ConfigSnippetAttribute[];
+                ConfigSnippetAttribute[] snippetAttribute =
+                    typeof(T).GetCustomAttributes(typeof(ConfigSnippetAttribute), true) as ConfigSnippetAttribute[];
                 DeviceFactory.AddFactoryForType(typeName.ToLower(), description, typeof(T), BuildDevice);
             }
         }
@@ -120,7 +122,8 @@ namespace PepperDash.Essentials.Core
     /// <summary>
     /// Devices the basic needs for a Device Factory
     /// </summary>
-    public abstract class EssentialsPluginDeviceFactory<T> : EssentialsDeviceFactory<T>, IPluginDeviceFactory where T : EssentialsDevice
+    public abstract class EssentialsPluginDeviceFactory<T> : EssentialsDeviceFactory<T>, IPluginDeviceFactory
+        where T : EssentialsDevice
     {
         /// <summary>
         /// Specifies the minimum version of Essentials required for a plugin to run.  Must use the format Major.Minor.Build (ex. "1.4.33")
@@ -128,14 +131,14 @@ namespace PepperDash.Essentials.Core
         public string MinimumEssentialsFrameworkVersion { get; protected set; }
     }
 
-    public abstract class EssentialsPluginDevelopmentDeviceFactory<T> : EssentialsDeviceFactory<T>, IPluginDevelopmentDeviceFactory where T : EssentialsDevice
+    public abstract class EssentialsPluginDevelopmentDeviceFactory<T> : EssentialsDeviceFactory<T>,
+        IPluginDevelopmentDeviceFactory where T : EssentialsDevice
     {
         /// <summary>
         /// Specifies the minimum version of Essentials required for a plugin to run.  Must use the format Major.Minor.Build (ex. "1.4.33")
         /// </summary>
         public string MinimumEssentialsFrameworkVersion { get; protected set; }
 
-        public List<string>  DevelopmentEssentialsFrameworkVersions { get; protected set; }
+        public List<string> DevelopmentEssentialsFrameworkVersions { get; protected set; }
     }
-
 }

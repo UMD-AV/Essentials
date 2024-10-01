@@ -20,16 +20,16 @@ namespace NvxEpi.Features.Streams.Video
         private readonly CCriticalSection _lock = new CCriticalSection();
         private IStream _current;
 
-        private readonly IList<IStream> _transmitters = new List<IStream>(); 
+        private readonly IList<IStream> _transmitters = new List<IStream>();
 
         public CurrentVideoStream(INvxDeviceWithHardware device) : base(device)
         {
             _currentStreamId = IsTransmitter
-                ? new IntFeedback(() => default( int ))
-                : new IntFeedback(RouteValueKey, () => _current != null ? _current.DeviceId : default( int ));
+                ? new IntFeedback(() => default(int))
+                : new IntFeedback(RouteValueKey, () => _current != null ? _current.DeviceId : default(int));
 
             _currentStreamName = IsTransmitter
-                ? new StringFeedback(() => String.Empty)
+                ? new StringFeedback(() => string.Empty)
                 : new StringFeedback(RouteNameKey,
                     () => _current != null ? _current.Name : NvxGlobalRouter.NoSourceText);
 
@@ -65,7 +65,8 @@ namespace NvxEpi.Features.Streams.Video
                 }
                 else
                 {
-                    Debug.Console(2, this, "Current stream address: {0} device ID: {1}", _current.MulticastAddress, _current.DeviceId);
+                    Debug.Console(2, this, "Current stream address: {0} device ID: {1}", _current.MulticastAddress,
+                        _current.DeviceId);
                 }
 
                 CurrentStreamId.FireUpdate();
@@ -91,7 +92,7 @@ namespace NvxEpi.Features.Streams.Video
             if (string.IsNullOrEmpty(StreamUrl.StringValue) || MulticastAddress.StringValue.Equals("0.0.0.0"))
                 return null;
 
-            var result = _transmitters
+            IStream result = _transmitters
                 .Where(x => !string.IsNullOrEmpty(x.StreamUrl.StringValue))
                 .FirstOrDefault(
                     x => x.StreamUrl.StringValue.Equals(StreamUrl.StringValue, StringComparison.OrdinalIgnoreCase));

@@ -16,7 +16,6 @@ using NvxEpi.Features.Hdmi.Input;
 using NvxEpi.Features.Hdmi.Output;
 using NvxEpi.Features.Streams.Usb;
 using NvxEpi.Features.InputSwitching;
-
 using NvxEpi.Services.Bridge;
 using NvxEpi.Services.InputPorts;
 using NvxEpi.Services.InputSwitching;
@@ -27,7 +26,6 @@ using PepperDash.Essentials.Core.Bridges;
 using PepperDash.Essentials.Core.Config;
 using PepperDash.Essentials.Core.DeviceTypeInterfaces;
 using Feedback = PepperDash.Essentials.Core.Feedback;
-
 using HdmiInput = NvxEpi.Features.Hdmi.Input.HdmiInput;
 
 #if SERIES4
@@ -36,14 +34,14 @@ using NvxEpi.McMessengers;
 
 namespace NvxEpi.Devices
 {
-    public class Nvx36X : 
-        NvxBaseDevice, 
-        IComPorts, 
+    public class Nvx36X :
+        NvxBaseDevice,
+        IComPorts,
         IIROutputPorts,
-        IUsbStreamWithHardware, 
-        IHdmiInput, 
-        IVideowallMode, 
-        IRouting, 
+        IUsbStreamWithHardware,
+        IHdmiInput,
+        IVideowallMode,
+        IRouting,
         ICec,
         IBasicVolumeWithFeedback
     {
@@ -65,15 +63,15 @@ namespace NvxEpi.Devices
         {
             try
             {
-                var result = base.CustomActivate();
+                bool result = base.CustomActivate();
 
-                _audio = new Nvx36XAudio((DmNvx36x) Hardware, this);
+                _audio = new Nvx36XAudio((DmNvx36x)Hardware, this);
                 _usbStream = UsbStream.GetUsbStream(this, _config.Usb);
                 _hdmiInputs = new HdmiInput(this);
                 _hdmiOutput = new VideowallModeOutput(this);
                 _danteSwitcher = new DanteInputSwitcher(this);
 
-                Feedbacks.AddRange(new [] { (Feedback)_audio.MuteFeedback, _audio.VolumeLevelFeedback });
+                Feedbacks.AddRange(new[] { (Feedback)_audio.MuteFeedback, _audio.VolumeLevelFeedback });
 
                 if (_config.EnableAutoRoute)
                     // ReSharper disable once ObjectCreationAsStatement
@@ -98,12 +96,14 @@ namespace NvxEpi.Devices
         public void MakeUsbRoute(IUsbStreamWithHardware hardware)
         {
             Debug.Console(0, this, "Try Make USB Route for mac : {0}", hardware.UsbLocalId.StringValue);
-            var usbStream = _usbStream as UsbStream;
+            UsbStream usbStream = _usbStream as UsbStream;
             if (usbStream == null)
             {
-                Debug.Console(0, this, "cannot Make USB Route for url : {0} - UsbStream is null", hardware.UsbLocalId.StringValue);
+                Debug.Console(0, this, "cannot Make USB Route for url : {0} - UsbStream is null",
+                    hardware.UsbLocalId.StringValue);
                 return;
             }
+
             usbStream.MakeUsbRoute(hardware);
         }
 
@@ -182,13 +182,25 @@ namespace NvxEpi.Devices
             get { return _hdmiInputs.CurrentResolution; }
         }
 
-        public ReadOnlyDictionary<uint, IntFeedback> AudioChannels { get { return _hdmiInputs.AudioChannels; } }
+        public ReadOnlyDictionary<uint, IntFeedback> AudioChannels
+        {
+            get { return _hdmiInputs.AudioChannels; }
+        }
 
-        public ReadOnlyDictionary<uint, StringFeedback> AudioFormat { get { return _hdmiInputs.AudioFormat; } }
+        public ReadOnlyDictionary<uint, StringFeedback> AudioFormat
+        {
+            get { return _hdmiInputs.AudioFormat; }
+        }
 
-        public ReadOnlyDictionary<uint, StringFeedback> ColorSpace { get { return _hdmiInputs.ColorSpace; } }
+        public ReadOnlyDictionary<uint, StringFeedback> ColorSpace
+        {
+            get { return _hdmiInputs.ColorSpace; }
+        }
 
-        public ReadOnlyDictionary<uint, StringFeedback> HdrType { get { return _hdmiInputs.HdrType; } }
+        public ReadOnlyDictionary<uint, StringFeedback> HdrType
+        {
+            get { return _hdmiInputs.HdrType; }
+        }
 
         public IntFeedback VideowallMode
         {
@@ -199,7 +211,7 @@ namespace NvxEpi.Devices
         {
             try
             {
-                var switcher = outputSelector as IHandleInputSwitch;
+                IHandleInputSwitch switcher = outputSelector as IHandleInputSwitch;
                 if (switcher == null)
                     throw new NullReferenceException("outputSelector");
 
@@ -220,7 +232,7 @@ namespace NvxEpi.Devices
 
         public override void LinkToApi(BasicTriList trilist, uint joinStart, string joinMapKey, EiscApiAdvanced bridge)
         {
-            var deviceBridge = new NvxDeviceBridge(this);
+            NvxDeviceBridge deviceBridge = new NvxDeviceBridge(this);
             deviceBridge.LinkToApi(trilist, joinStart, joinMapKey, bridge);
         }
 
@@ -289,8 +301,14 @@ namespace NvxEpi.Devices
             get { return _audio.MuteFeedback; }
         }
 
-        public ReadOnlyDictionary<uint, StringFeedback> HdcpCapabilityString { get { return _hdmiInputs.HdcpCapabilityString; } }
+        public ReadOnlyDictionary<uint, StringFeedback> HdcpCapabilityString
+        {
+            get { return _hdmiInputs.HdcpCapabilityString; }
+        }
 
-        public ReadOnlyDictionary<uint, StringFeedback> HdcpSupport { get { return _hdmiInputs.HdcpSupport; } }
+        public ReadOnlyDictionary<uint, StringFeedback> HdcpSupport
+        {
+            get { return _hdmiInputs.HdcpSupport; }
+        }
     }
 }

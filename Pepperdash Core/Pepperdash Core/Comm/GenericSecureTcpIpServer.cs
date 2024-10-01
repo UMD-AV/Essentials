@@ -3,10 +3,10 @@ JAG
 Copyright:		2017
 ------------------------------------
 ***Notice of Ownership and Copyright***
-The material in which this notice appears is the property of PepperDash Technology Corporation, 
-which claims copyright under the laws of the United States of America in the entire body of material 
-and in all parts thereof, regardless of the use to which it is being put.  Any use, in whole or in part, 
-of this material by another party without the express written permission of PepperDash Technology Corporation is prohibited.  
+The material in which this notice appears is the property of PepperDash Technology Corporation,
+which claims copyright under the laws of the United States of America in the entire body of material
+and in all parts thereof, regardless of the use to which it is being put.  Any use, in whole or in part,
+of this material by another party without the express written permission of PepperDash Technology Corporation is prohibited.
 PepperDash Technology Corporation reserves all rights under applicable laws.
 ------------------------------------ */
 
@@ -22,6 +22,7 @@ namespace PepperDash.Core
     public class GenericSecureTcpIpServer : Device
     {
         #region Events
+
         /// <summary>
         /// Event for Receiving text
         /// </summary>
@@ -112,9 +113,7 @@ namespace PepperDash.Core
                 if (SecureServer != null)
                     return SecureServer.State.ToString();
                 return ServerState.SERVER_NOT_LISTENING.ToString();
-
             }
-
         }
 
         /// <summary>
@@ -166,10 +165,17 @@ namespace PepperDash.Core
         {
             get { return (ushort)(IsListening ? 1 : 0); }
         }
+
         /// <summary>
         /// Max number of clients this server will allow for connection. Crestron max is 64. This number should be less than 65 
         /// </summary>
-        public ushort MaxClients { get; set; } // should be set by parameter in SIMPL+ in the MAIN method, Should not ever need to be configurable
+        public ushort
+            MaxClients
+        {
+            get;
+            set;
+        } // should be set by parameter in SIMPL+ in the MAIN method, Should not ever need to be configurable
+
         /// <summary>
         /// Number of clients currently connected.
         /// </summary>
@@ -249,7 +255,10 @@ namespace PepperDash.Core
         /// <summary>
         /// Simpl+ Heartbeat Analog value in seconds
         /// </summary>
-        public ushort HeartbeatRequiredIntervalInSeconds { set { HeartbeatRequiredIntervalMs = (value * 1000); } }
+        public ushort HeartbeatRequiredIntervalInSeconds
+        {
+            set { HeartbeatRequiredIntervalMs = (value * 1000); }
+        }
 
         /// <summary>
         /// String to Match for heartbeat. If null or empty any string will reset heartbeat timer
@@ -288,6 +297,7 @@ namespace PepperDash.Core
         #endregion
 
         #region Constructors
+
         /// <summary>
         /// constructor S+ Does not accept a key. Use initialze with key to set the debug key on this device. If using with + make sure to set all properties manually.
         /// </summary>
@@ -295,7 +305,8 @@ namespace PepperDash.Core
             : base("Uninitialized Secure TCP Server")
         {
             HeartbeatRequiredIntervalInSeconds = 15;
-            CrestronEnvironment.ProgramStatusEventHandler += new ProgramStatusEventHandler(CrestronEnvironment_ProgramStatusEventHandler);
+            CrestronEnvironment.ProgramStatusEventHandler +=
+                new ProgramStatusEventHandler(CrestronEnvironment_ProgramStatusEventHandler);
             BufferSize = 2000;
             MonitorClientMaxFailureCount = 3;
         }
@@ -308,7 +319,8 @@ namespace PepperDash.Core
             : base("Uninitialized Secure TCP Server")
         {
             HeartbeatRequiredIntervalInSeconds = 15;
-            CrestronEnvironment.ProgramStatusEventHandler += new ProgramStatusEventHandler(CrestronEnvironment_ProgramStatusEventHandler);
+            CrestronEnvironment.ProgramStatusEventHandler +=
+                new ProgramStatusEventHandler(CrestronEnvironment_ProgramStatusEventHandler);
             BufferSize = 2000;
             MonitorClientMaxFailureCount = 3;
             Key = key;
@@ -322,14 +334,17 @@ namespace PepperDash.Core
             : base("Uninitialized Secure TCP Server")
         {
             HeartbeatRequiredIntervalInSeconds = 15;
-            CrestronEnvironment.ProgramStatusEventHandler += new ProgramStatusEventHandler(CrestronEnvironment_ProgramStatusEventHandler);
+            CrestronEnvironment.ProgramStatusEventHandler +=
+                new ProgramStatusEventHandler(CrestronEnvironment_ProgramStatusEventHandler);
             BufferSize = 2000;
             MonitorClientMaxFailureCount = 3;
             Initialize(serverConfigObject);
         }
+
         #endregion
 
         #region Methods - Server Actions
+
         /// <summary>
         /// Disconnects all clients and stops the server
         /// </summary>
@@ -340,6 +355,7 @@ namespace PepperDash.Core
             {
                 MonitorClient.Disconnect();
             }
+
             DisconnectAllClientsForShutdown();
             StopListening();
         }
@@ -368,7 +384,9 @@ namespace PepperDash.Core
                     HeartbeatRequiredIntervalInSeconds = serverConfigObject.HeartbeatRequiredIntervalInSeconds;
                     HeartbeatStringToMatch = serverConfigObject.HeartbeatStringToMatch;
                     BufferSize = serverConfigObject.BufferSize;
-                    ReceiveQueueSize = serverConfigObject.ReceiveQueueSize > 20 ? serverConfigObject.ReceiveQueueSize : 20;
+                    ReceiveQueueSize = serverConfigObject.ReceiveQueueSize > 20
+                        ? serverConfigObject.ReceiveQueueSize
+                        : 20;
                     MessageQueue = new CrestronQueue<GenericTcpServerCommMethodReceiveTextArgs>(ReceiveQueueSize);
                 }
                 else
@@ -396,6 +414,7 @@ namespace PepperDash.Core
                     ErrorLog.Warn(string.Format("Server '{0}': Invalid port", Key));
                     return;
                 }
+
                 if (string.IsNullOrEmpty(SharedKey) && SharedKeyRequired)
                 {
                     Debug.Console(1, this, Debug.ErrorLogLevel.Error, "Server '{0}': No Shared Key set", Key);
@@ -404,34 +423,38 @@ namespace PepperDash.Core
                 }
 
 
-					if (SecureServer == null)
-					{
-						SecureServer = new SecureTCPServer(Port, MaxClients);
-						if (HeartbeatRequired)
-							SecureServer.SocketSendOrReceiveTimeOutInMs = (this.HeartbeatRequiredIntervalMs * 5);
-						SecureServer.HandshakeTimeout = 30;
-						SecureServer.SocketStatusChange += new SecureTCPServerSocketStatusChangeEventHandler(SecureServer_SocketStatusChange);
-					}
-					else
-					{
-						SecureServer.PortNumber = Port;
-					}
-					ServerStopped = false;
+                if (SecureServer == null)
+                {
+                    SecureServer = new SecureTCPServer(Port, MaxClients);
+                    if (HeartbeatRequired)
+                        SecureServer.SocketSendOrReceiveTimeOutInMs = (this.HeartbeatRequiredIntervalMs * 5);
+                    SecureServer.HandshakeTimeout = 30;
+                    SecureServer.SocketStatusChange +=
+                        new SecureTCPServerSocketStatusChangeEventHandler(SecureServer_SocketStatusChange);
+                }
+                else
+                {
+                    SecureServer.PortNumber = Port;
+                }
 
-					// Start the listner
-					SocketErrorCodes status = SecureServer.WaitForConnectionAsync(IPAddress.Any, SecureConnectCallback);
-					if (status != SocketErrorCodes.SOCKET_OPERATION_PENDING)
-					{
-						Debug.Console(0, this, Debug.ErrorLogLevel.Error, "Error starting WaitForConnectionAsync {0}", status);
-					}
-				else 
-				{
-					ServerStopped = false;
-				} 
-				OnServerStateChange(SecureServer.State);
-				Debug.Console(1, this, Debug.ErrorLogLevel.Notice, "Secure Server Status: {0}, Socket Status: {1}", SecureServer.State, SecureServer.ServerSocketStatus);
-				ServerCCSection.Leave();
-			
+                ServerStopped = false;
+
+                // Start the listner
+                SocketErrorCodes status = SecureServer.WaitForConnectionAsync(IPAddress.Any, SecureConnectCallback);
+                if (status != SocketErrorCodes.SOCKET_OPERATION_PENDING)
+                {
+                    Debug.Console(0, this, Debug.ErrorLogLevel.Error, "Error starting WaitForConnectionAsync {0}",
+                        status);
+                }
+                else
+                {
+                    ServerStopped = false;
+                }
+
+                OnServerStateChange(SecureServer.State);
+                Debug.Console(1, this, Debug.ErrorLogLevel.Notice, "Secure Server Status: {0}, Socket Status: {1}",
+                    SecureServer.State, SecureServer.ServerSocketStatus);
+                ServerCCSection.Leave();
             }
             catch (Exception ex)
             {
@@ -445,21 +468,22 @@ namespace PepperDash.Core
         /// </summary>
         public void StopListening()
         {
-			try
-			{
-				Debug.Console(2, this, Debug.ErrorLogLevel.Notice, "Stopping Listener");
-				if (SecureServer != null)
-				{
-					SecureServer.Stop();
-					Debug.Console(2, this, Debug.ErrorLogLevel.Notice, "Server State: {0}", SecureServer.State);
-					OnServerStateChange(SecureServer.State);
-				}
-				ServerStopped = true;
-			}
-			catch (Exception ex)
-			{
-				Debug.Console(2, this, Debug.ErrorLogLevel.Error, "Error stopping server. Error: {0}", ex);
-			}
+            try
+            {
+                Debug.Console(2, this, Debug.ErrorLogLevel.Notice, "Stopping Listener");
+                if (SecureServer != null)
+                {
+                    SecureServer.Stop();
+                    Debug.Console(2, this, Debug.ErrorLogLevel.Notice, "Server State: {0}", SecureServer.State);
+                    OnServerStateChange(SecureServer.State);
+                }
+
+                ServerStopped = true;
+            }
+            catch (Exception ex)
+            {
+                Debug.Console(2, this, Debug.ErrorLogLevel.Error, "Error stopping server. Error: {0}", ex);
+            }
         }
 
         /// <summary>
@@ -475,9 +499,11 @@ namespace PepperDash.Core
             }
             catch (Exception ex)
             {
-                Debug.Console(2, this, Debug.ErrorLogLevel.Error, "Error Disconnecting client index: {0}. Error: {1}", client, ex);
+                Debug.Console(2, this, Debug.ErrorLogLevel.Error, "Error Disconnecting client index: {0}. Error: {1}",
+                    client, ex);
             }
         }
+
         /// <summary>
         /// Disconnect All Clients
         /// </summary>
@@ -487,9 +513,9 @@ namespace PepperDash.Core
             if (SecureServer != null)
             {
                 SecureServer.SocketStatusChange -= SecureServer_SocketStatusChange;
-                foreach (var index in ConnectedClientsIndexes.ToList()) // copy it here so that it iterates properly
+                foreach (uint index in ConnectedClientsIndexes.ToList()) // copy it here so that it iterates properly
                 {
-                    var i = index;
+                    uint i = index;
                     if (!SecureServer.ClientConnected(index))
                         continue;
                     try
@@ -499,10 +525,13 @@ namespace PepperDash.Core
                     }
                     catch (Exception ex)
                     {
-                        Debug.Console(2, this, Debug.ErrorLogLevel.Error, "Error Disconnecting client index: {0}. Error: {1}", i, ex);
+                        Debug.Console(2, this, Debug.ErrorLogLevel.Error,
+                            "Error Disconnecting client index: {0}. Error: {1}", i, ex);
                     }
                 }
-                Debug.Console(2, this, Debug.ErrorLogLevel.Notice, "Server Status: {0}", SecureServer.ServerSocketStatus);
+
+                Debug.Console(2, this, Debug.ErrorLogLevel.Notice, "Server Status: {0}",
+                    SecureServer.ServerSocketStatus);
             }
 
             Debug.Console(2, this, Debug.ErrorLogLevel.Notice, "Disconnected All Clients");
@@ -514,7 +543,7 @@ namespace PepperDash.Core
                 OnServerStateChange(SecureServer.State); //State shows both listening and connected
             }
 
-           // var o = new { };
+            // var o = new { };
         }
 
         /// <summary>
@@ -535,17 +564,20 @@ namespace PepperDash.Core
                         if (!SharedKeyRequired || (SharedKeyRequired && ClientReadyAfterKeyExchange.Contains(i)))
                         {
                             SocketErrorCodes error = SecureServer.SendDataAsync(i, b, b.Length, (x, y, z) => { });
-                            if (error != SocketErrorCodes.SOCKET_OK && error != SocketErrorCodes.SOCKET_OPERATION_PENDING)
+                            if (error != SocketErrorCodes.SOCKET_OK &&
+                                error != SocketErrorCodes.SOCKET_OPERATION_PENDING)
                                 Debug.Console(2, error.ToString());
                         }
                     }
                 }
+
                 CCBroadcast.Leave();
             }
             catch (Exception ex)
             {
                 CCBroadcast.Leave();
-                Debug.Console(2, this, Debug.ErrorLogLevel.Error, "Error Broadcasting messages from server. Error: {0}", ex.Message);
+                Debug.Console(2, this, Debug.ErrorLogLevel.Error, "Error Broadcasting messages from server. Error: {0}",
+                    ex.Message);
             }
         }
 
@@ -559,7 +591,8 @@ namespace PepperDash.Core
             try
             {
                 byte[] b = Encoding.GetEncoding(28591).GetBytes(text);
-                if (SecureServer != null && SecureServer.GetServerSocketStatusForSpecificClient(clientIndex) == SocketStatus.SOCKET_STATUS_CONNECTED)
+                if (SecureServer != null && SecureServer.GetServerSocketStatusForSpecificClient(clientIndex) ==
+                    SocketStatus.SOCKET_STATUS_CONNECTED)
                 {
                     if (!SharedKeyRequired || (SharedKeyRequired && ClientReadyAfterKeyExchange.Contains(clientIndex)))
                         SecureServer.SendDataAsync(clientIndex, b, b.Length, (x, y, z) => { });
@@ -580,18 +613,21 @@ namespace PepperDash.Core
                 {
                     if (!string.IsNullOrEmpty(HeartbeatStringToMatch))
                     {
-                        var remainingText = received.Replace(HeartbeatStringToMatch, "");
-                        var noDelimiter = received.Trim(new char[] { '\r', '\n' });
+                        string remainingText = received.Replace(HeartbeatStringToMatch, "");
+                        string noDelimiter = received.Trim(new char[] { '\r', '\n' });
                         if (noDelimiter.Contains(HeartbeatStringToMatch))
                         {
                             if (HeartbeatTimerDictionary.ContainsKey(clientIndex))
                                 HeartbeatTimerDictionary[clientIndex].Reset(HeartbeatRequiredIntervalMs);
                             else
                             {
-                                CTimer HeartbeatTimer = new CTimer(HeartbeatTimer_CallbackFunction, clientIndex, HeartbeatRequiredIntervalMs);
+                                CTimer HeartbeatTimer = new CTimer(HeartbeatTimer_CallbackFunction, clientIndex,
+                                    HeartbeatRequiredIntervalMs);
                                 HeartbeatTimerDictionary.Add(clientIndex, HeartbeatTimer);
                             }
-                            Debug.Console(1, this, "Heartbeat Received: {0}, from client index: {1}", HeartbeatStringToMatch, clientIndex);
+
+                            Debug.Console(1, this, "Heartbeat Received: {0}, from client index: {1}",
+                                HeartbeatStringToMatch, clientIndex);
                             // Return Heartbeat
                             SendTextToClient(HeartbeatStringToMatch, clientIndex);
                             return remainingText;
@@ -603,10 +639,13 @@ namespace PepperDash.Core
                             HeartbeatTimerDictionary[clientIndex].Reset(HeartbeatRequiredIntervalMs);
                         else
                         {
-                            CTimer HeartbeatTimer = new CTimer(HeartbeatTimer_CallbackFunction, clientIndex, HeartbeatRequiredIntervalMs);
+                            CTimer HeartbeatTimer = new CTimer(HeartbeatTimer_CallbackFunction, clientIndex,
+                                HeartbeatRequiredIntervalMs);
                             HeartbeatTimerDictionary.Add(clientIndex, HeartbeatTimer);
                         }
-                        Debug.Console(1, this, "Heartbeat Received: {0}, from client index: {1}", received, clientIndex);
+
+                        Debug.Console(1, this, "Heartbeat Received: {0}, from client index: {1}", received,
+                            clientIndex);
                     }
                 }
             }
@@ -614,6 +653,7 @@ namespace PepperDash.Core
             {
                 Debug.Console(1, this, "Error checking heartbeat: {0}", ex.Message);
             }
+
             return received;
         }
 
@@ -622,10 +662,9 @@ namespace PepperDash.Core
             Debug.Console(1, this, Debug.ErrorLogLevel.Notice, "GetClientIPAddress Index: {0}", clientIndex);
             if (!SharedKeyRequired || (SharedKeyRequired && ClientReadyAfterKeyExchange.Contains(clientIndex)))
             {
-                var ipa = this.SecureServer.GetAddressServerAcceptedConnectionFromForSpecificClient(clientIndex);
+                string ipa = this.SecureServer.GetAddressServerAcceptedConnectionFromForSpecificClient(clientIndex);
                 Debug.Console(1, this, Debug.ErrorLogLevel.Notice, "GetClientIPAddress IPAddreess: {0}", ipa);
                 return ipa;
-
             }
             else
             {
@@ -646,13 +685,18 @@ namespace PepperDash.Core
                 clientIndex = (uint)o;
                 address = SecureServer.GetAddressServerAcceptedConnectionFromForSpecificClient(clientIndex);
 
-                Debug.Console(1, this, Debug.ErrorLogLevel.Warning, "Heartbeat not received for Client index {2} IP: {0}, DISCONNECTING BECAUSE HEARTBEAT REQUIRED IS TRUE {1}",
-                    address, string.IsNullOrEmpty(HeartbeatStringToMatch) ? "" : ("HeartbeatStringToMatch: " + HeartbeatStringToMatch), clientIndex);
+                Debug.Console(1, this, Debug.ErrorLogLevel.Warning,
+                    "Heartbeat not received for Client index {2} IP: {0}, DISCONNECTING BECAUSE HEARTBEAT REQUIRED IS TRUE {1}",
+                    address,
+                    string.IsNullOrEmpty(HeartbeatStringToMatch)
+                        ? ""
+                        : ("HeartbeatStringToMatch: " + HeartbeatStringToMatch), clientIndex);
 
-                if (SecureServer.GetServerSocketStatusForSpecificClient(clientIndex) == SocketStatus.SOCKET_STATUS_CONNECTED)
+                if (SecureServer.GetServerSocketStatusForSpecificClient(clientIndex) ==
+                    SocketStatus.SOCKET_STATUS_CONNECTED)
                     SendTextToClient("Heartbeat not received by server, closing connection", clientIndex);
 
-                var discoResult = SecureServer.Disconnect(clientIndex);
+                SocketErrorCodes discoResult = SecureServer.Disconnect(clientIndex);
                 //Debug.Console(1, this, "{0}", discoResult);  
 
                 if (HeartbeatTimerDictionary.ContainsKey(clientIndex))
@@ -664,13 +708,15 @@ namespace PepperDash.Core
             }
             catch (Exception ex)
             {
-                ErrorLog.Error("{3}: Heartbeat timeout Error on Client Index: {0}, at address: {1}, error: {2}", clientIndex, address, ex.Message, Key);
+                ErrorLog.Error("{3}: Heartbeat timeout Error on Client Index: {0}, at address: {1}, error: {2}",
+                    clientIndex, address, ex.Message, Key);
             }
         }
 
         #endregion
 
         #region Methods - Socket Status Changed Callbacks
+
         /// <summary>
         /// Secure Server Socket Status Changed Callback
         /// </summary>
@@ -681,13 +727,13 @@ namespace PepperDash.Core
         {
             try
             {
-				
-
-               // Debug.Console(1, this, Debug.ErrorLogLevel.Notice, "SecureServerSocketStatusChange Index:{0} status:{1} Port:{2} IP:{3}", clientIndex, serverSocketStatus, this.SecureServer.GetPortNumberServerAcceptedConnectionFromForSpecificClient(clientIndex), this.SecureServer.GetLocalAddressServerAcceptedConnectionFromForSpecificClient(clientIndex));
+                // Debug.Console(1, this, Debug.ErrorLogLevel.Notice, "SecureServerSocketStatusChange Index:{0} status:{1} Port:{2} IP:{3}", clientIndex, serverSocketStatus, this.SecureServer.GetPortNumberServerAcceptedConnectionFromForSpecificClient(clientIndex), this.SecureServer.GetLocalAddressServerAcceptedConnectionFromForSpecificClient(clientIndex));
                 if (serverSocketStatus != SocketStatus.SOCKET_STATUS_CONNECTED)
                 {
-					Debug.Console(1, this, Debug.ErrorLogLevel.Notice, "SecureServerSocketStatusChange ConnectedCLients: {0} ServerState: {1} Port: {2}", SecureServer.NumberOfClientsConnected, SecureServer.State, SecureServer.PortNumber);
-                
+                    Debug.Console(1, this, Debug.ErrorLogLevel.Notice,
+                        "SecureServerSocketStatusChange ConnectedCLients: {0} ServerState: {1} Port: {2}",
+                        SecureServer.NumberOfClientsConnected, SecureServer.State, SecureServer.PortNumber);
+
                     if (ConnectedClientsIndexes.Contains(clientIndex))
                         ConnectedClientsIndexes.Remove(clientIndex);
                     if (HeartbeatRequired && HeartbeatTimerDictionary.ContainsKey(clientIndex))
@@ -696,29 +742,34 @@ namespace PepperDash.Core
                         HeartbeatTimerDictionary[clientIndex].Dispose();
                         HeartbeatTimerDictionary.Remove(clientIndex);
                     }
+
                     if (ClientReadyAfterKeyExchange.Contains(clientIndex))
                         ClientReadyAfterKeyExchange.Remove(clientIndex);
-					if (WaitingForSharedKey.Contains(clientIndex))
-						WaitingForSharedKey.Remove(clientIndex);
-					if (SecureServer.MaxNumberOfClientSupported > SecureServer.NumberOfClientsConnected)
-					{
-						Listen();
-					}
+                    if (WaitingForSharedKey.Contains(clientIndex))
+                        WaitingForSharedKey.Remove(clientIndex);
+                    if (SecureServer.MaxNumberOfClientSupported > SecureServer.NumberOfClientsConnected)
+                    {
+                        Listen();
+                    }
                 }
             }
             catch (Exception ex)
             {
-                Debug.Console(2, this, Debug.ErrorLogLevel.Error, "Error in Socket Status Change Callback. Error: {0}", ex);
+                Debug.Console(2, this, Debug.ErrorLogLevel.Error, "Error in Socket Status Change Callback. Error: {0}",
+                    ex);
             }
+
             //Use a thread for this event so that the server state updates to listening while this event is processed. Listening must be added to the server state
             //after every client connection so that the server can check and see if it is at max clients. Due to this the event fires and server listening enum bit flag
             //is not set. Putting in a thread allows the state to update before this event processes so that the subscribers to this event get accurate isListening in the event. 
-            CrestronInvoke.BeginInvoke(o => onConnectionChange(clientIndex, server.GetServerSocketStatusForSpecificClient(clientIndex)), null);
+            CrestronInvoke.BeginInvoke(
+                o => onConnectionChange(clientIndex, server.GetServerSocketStatusForSpecificClient(clientIndex)), null);
         }
 
         #endregion
 
         #region Methods Connected Callbacks
+
         /// <summary>
         /// Secure TCP Client Connected to Secure Server Callback
         /// </summary>
@@ -728,37 +779,44 @@ namespace PepperDash.Core
         {
             try
             {
-                Debug.Console(1, this, Debug.ErrorLogLevel.Notice, "ConnectCallback: IPAddress: {0}. Index: {1}. Status: {2}",
+                Debug.Console(1, this, Debug.ErrorLogLevel.Notice,
+                    "ConnectCallback: IPAddress: {0}. Index: {1}. Status: {2}",
                     server.GetAddressServerAcceptedConnectionFromForSpecificClient(clientIndex),
                     clientIndex, server.GetServerSocketStatusForSpecificClient(clientIndex));
                 if (clientIndex != 0)
                 {
                     if (server.ClientConnected(clientIndex))
                     {
-
                         if (!ConnectedClientsIndexes.Contains(clientIndex))
                         {
                             ConnectedClientsIndexes.Add(clientIndex);
                         }
+
                         if (SharedKeyRequired)
                         {
                             if (!WaitingForSharedKey.Contains(clientIndex))
                             {
                                 WaitingForSharedKey.Add(clientIndex);
                             }
+
                             byte[] b = Encoding.GetEncoding(28591).GetBytes("SharedKey:");
                             server.SendDataAsync(clientIndex, b, b.Length, (x, y, z) => { });
-                            Debug.Console(1, this, Debug.ErrorLogLevel.Notice, "Sent Shared Key Request to client at {0}", server.GetAddressServerAcceptedConnectionFromForSpecificClient(clientIndex));
+                            Debug.Console(1, this, Debug.ErrorLogLevel.Notice,
+                                "Sent Shared Key Request to client at {0}",
+                                server.GetAddressServerAcceptedConnectionFromForSpecificClient(clientIndex));
                         }
                         else
                         {
                             OnServerClientReadyForCommunications(clientIndex);
                         }
+
                         if (HeartbeatRequired)
                         {
                             if (!HeartbeatTimerDictionary.ContainsKey(clientIndex))
                             {
-                                HeartbeatTimerDictionary.Add(clientIndex, new CTimer(HeartbeatTimer_CallbackFunction, clientIndex, HeartbeatRequiredIntervalMs));
+                                HeartbeatTimerDictionary.Add(clientIndex,
+                                    new CTimer(HeartbeatTimer_CallbackFunction, clientIndex,
+                                        HeartbeatRequiredIntervalMs));
                             }
                         }
 
@@ -767,44 +825,46 @@ namespace PepperDash.Core
                 }
                 else
                 {
-                    Debug.Console(1, this, Debug.ErrorLogLevel.Error, "Client attempt faulty.");                    
+                    Debug.Console(1, this, Debug.ErrorLogLevel.Error, "Client attempt faulty.");
                 }
             }
             catch (Exception ex)
             {
-                Debug.Console(2, this, Debug.ErrorLogLevel.Error, "Error in Socket Status Connect Callback. Error: {0}", ex);
+                Debug.Console(2, this, Debug.ErrorLogLevel.Error, "Error in Socket Status Connect Callback. Error: {0}",
+                    ex);
             }
 
-			// Rearm the listner 
-			SocketErrorCodes status = server.WaitForConnectionAsync(IPAddress.Any, SecureConnectCallback);
-			if (status != SocketErrorCodes.SOCKET_OPERATION_PENDING)
-			{
-				Debug.Console(0, this, Debug.ErrorLogLevel.Error, "Socket status connect callback status {0}", status);
-				if (status == SocketErrorCodes.SOCKET_CONNECTION_IN_PROGRESS)
-				{
-					// There is an issue where on a failed negotiation we need to stop and start the server. This should still leave connected clients intact. 
-					server.Stop();
-					Listen();
-				}
-			}
-		}
+            // Rearm the listner 
+            SocketErrorCodes status = server.WaitForConnectionAsync(IPAddress.Any, SecureConnectCallback);
+            if (status != SocketErrorCodes.SOCKET_OPERATION_PENDING)
+            {
+                Debug.Console(0, this, Debug.ErrorLogLevel.Error, "Socket status connect callback status {0}", status);
+                if (status == SocketErrorCodes.SOCKET_CONNECTION_IN_PROGRESS)
+                {
+                    // There is an issue where on a failed negotiation we need to stop and start the server. This should still leave connected clients intact. 
+                    server.Stop();
+                    Listen();
+                }
+            }
+        }
 
         #endregion
 
         #region Methods - Send/Receive Callbacks
+
         /// <summary>
         /// Secure Received Data Async Callback
         /// </summary>
         /// <param name="mySecureTCPServer"></param>
         /// <param name="clientIndex"></param>
         /// <param name="numberOfBytesReceived"></param>
-        void SecureReceivedDataAsyncCallback(SecureTCPServer mySecureTCPServer, uint clientIndex, int numberOfBytesReceived)
+        void SecureReceivedDataAsyncCallback(SecureTCPServer mySecureTCPServer, uint clientIndex,
+            int numberOfBytesReceived)
         {
             if (numberOfBytesReceived > 0)
             {
-				
                 string received = "Nothing";
-                var handler = TextReceivedQueueInvoke;
+                EventHandler<GenericTcpServerCommMethodReceiveTextArgs> handler = TextReceivedQueueInvoke;
                 try
                 {
                     byte[] bytes = mySecureTCPServer.GetIncomingDataBufferForSpecificClient(clientIndex);
@@ -815,11 +875,14 @@ namespace PepperDash.Core
                         received = received.Replace("\n", "");
                         if (received != SharedKey)
                         {
-                            byte[] b = Encoding.GetEncoding(28591).GetBytes("Shared key did not match server. Disconnecting");
-                            Debug.Console(1, this, Debug.ErrorLogLevel.Warning, "Client at index {0} Shared key did not match the server, disconnecting client. Key: {1}", clientIndex, received);
+                            byte[] b = Encoding.GetEncoding(28591)
+                                .GetBytes("Shared key did not match server. Disconnecting");
+                            Debug.Console(1, this, Debug.ErrorLogLevel.Warning,
+                                "Client at index {0} Shared key did not match the server, disconnecting client. Key: {1}",
+                                clientIndex, received);
                             mySecureTCPServer.SendData(clientIndex, b, b.Length);
                             mySecureTCPServer.Disconnect(clientIndex);
-                            
+
                             return;
                         }
 
@@ -827,35 +890,41 @@ namespace PepperDash.Core
                         byte[] success = Encoding.GetEncoding(28591).GetBytes("Shared Key Match");
                         mySecureTCPServer.SendDataAsync(clientIndex, success, success.Length, null);
                         OnServerClientReadyForCommunications(clientIndex);
-                        Debug.Console(1, this, Debug.ErrorLogLevel.Notice, "Client with index {0} provided the shared key and successfully connected to the server", clientIndex);                        
+                        Debug.Console(1, this, Debug.ErrorLogLevel.Notice,
+                            "Client with index {0} provided the shared key and successfully connected to the server",
+                            clientIndex);
                     }
                     else if (!string.IsNullOrEmpty(checkHeartbeat(clientIndex, received)))
                     {
                         onTextReceived(received, clientIndex);
                         if (handler != null)
                         {
-                            MessageQueue.TryToEnqueue(new GenericTcpServerCommMethodReceiveTextArgs(received, clientIndex));
+                            MessageQueue.TryToEnqueue(
+                                new GenericTcpServerCommMethodReceiveTextArgs(received, clientIndex));
                         }
                     }
                 }
                 catch (Exception ex)
                 {
-                    Debug.Console(2, this, Debug.ErrorLogLevel.Error, "Error Receiving data: {0}. Error: {1}", received, ex);
+                    Debug.Console(2, this, Debug.ErrorLogLevel.Error, "Error Receiving data: {0}. Error: {1}", received,
+                        ex);
                 }
-				if (mySecureTCPServer.GetServerSocketStatusForSpecificClient(clientIndex) == SocketStatus.SOCKET_STATUS_CONNECTED)
-					mySecureTCPServer.ReceiveDataAsync(clientIndex, SecureReceivedDataAsyncCallback);
+
+                if (mySecureTCPServer.GetServerSocketStatusForSpecificClient(clientIndex) ==
+                    SocketStatus.SOCKET_STATUS_CONNECTED)
+                    mySecureTCPServer.ReceiveDataAsync(clientIndex, SecureReceivedDataAsyncCallback);
 
                 //Check to see if there is a subscription to the TextReceivedQueueInvoke event. If there is start the dequeue thread. 
                 if (handler != null)
                 {
-                    var gotLock = DequeueLock.TryEnter();
+                    bool gotLock = DequeueLock.TryEnter();
                     if (gotLock)
                         CrestronInvoke.BeginInvoke((o) => DequeueEvent());
                 }
             }
-			else
-			{
-				mySecureTCPServer.Disconnect(clientIndex);
+            else
+            {
+                mySecureTCPServer.Disconnect(clientIndex);
             }
         }
 
@@ -870,8 +939,8 @@ namespace PepperDash.Core
                 while (true)
                 {
                     // Pull from Queue and fire an event. Block indefinitely until an item can be removed, similar to a Gather.
-                    var message = MessageQueue.Dequeue();
-                    var handler = TextReceivedQueueInvoke;
+                    GenericTcpServerCommMethodReceiveTextArgs message = MessageQueue.Dequeue();
+                    EventHandler<GenericTcpServerCommMethodReceiveTextArgs> handler = TextReceivedQueueInvoke;
                     if (handler != null)
                     {
                         handler(this, message);
@@ -882,6 +951,7 @@ namespace PepperDash.Core
             {
                 Debug.Console(2, "DequeueEvent error: {0}\r", e);
             }
+
             // Make sure to leave the CCritical section in case an exception above stops this thread, or we won't be able to restart it.
             if (DequeueLock != null)
             {
@@ -898,10 +968,11 @@ namespace PepperDash.Core
         {
             if (clientIndex != 0) //0 is error not valid client change
             {
-                var handler = ClientConnectionChange;
+                EventHandler<GenericTcpServerSocketStatusChangeEventArgs> handler = ClientConnectionChange;
                 if (handler != null)
                 {
-                    handler(this, new GenericTcpServerSocketStatusChangeEventArgs(SecureServer, clientIndex, clientStatus));
+                    handler(this,
+                        new GenericTcpServerSocketStatusChangeEventArgs(SecureServer, clientIndex, clientStatus));
                 }
             }
         }
@@ -913,7 +984,8 @@ namespace PepperDash.Core
             {
                 return;
             }
-            var handler = ClientConnectionChange;
+
+            EventHandler<GenericTcpServerSocketStatusChangeEventArgs> handler = ClientConnectionChange;
             if (handler != null)
             {
                 handler(this, new GenericTcpServerSocketStatusChangeEventArgs());
@@ -923,7 +995,7 @@ namespace PepperDash.Core
         //Private Helper Method to call the Text Received Event
         void onTextReceived(string text, uint clientIndex)
         {
-            var handler = TextReceived;
+            EventHandler<GenericTcpServerCommMethodReceiveTextArgs> handler = TextReceived;
             if (handler != null)
                 handler(this, new GenericTcpServerCommMethodReceiveTextArgs(text, clientIndex));
         }
@@ -935,7 +1007,8 @@ namespace PepperDash.Core
             {
                 return;
             }
-            var handler = ServerStateChange;
+
+            EventHandler<GenericTcpServerStateChangedEventArgs> handler = ServerStateChange;
             if (handler != null)
             {
                 handler(this, new GenericTcpServerStateChangedEventArgs(state));
@@ -966,14 +1039,16 @@ namespace PepperDash.Core
         void OnServerClientReadyForCommunications(uint clientIndex)
         {
             ClientReadyAfterKeyExchange.Add(clientIndex);
-            var handler = ServerClientReadyForCommunications;
+            EventHandler<GenericTcpServerSocketStatusChangeEventArgs> handler = ServerClientReadyForCommunications;
             if (handler != null)
                 handler(this, new GenericTcpServerSocketStatusChangeEventArgs(
                     this, clientIndex, SecureServer.GetServerSocketStatusForSpecificClient(clientIndex)));
         }
+
         #endregion
 
         #region Monitor Client
+
         /// <summary>
         /// Starts the monitor client cycle. Timed wait, then call RunMonitorClient
         /// </summary>
@@ -983,6 +1058,7 @@ namespace PepperDash.Core
             {
                 return;
             }
+
             MonitorClientTimer = new CTimer(o => RunMonitorClient(), 60000);
         }
 
@@ -1002,7 +1078,6 @@ namespace PepperDash.Core
 
             MonitorClient.Connect();
             // From here MonitorCLient either connects or hangs, MonitorClient will call back 
-
         }
 
         /// <summary>
@@ -1025,7 +1100,8 @@ namespace PepperDash.Core
         {
             if (args.IsReady)
             {
-                Debug.Console(1, this, Debug.ErrorLogLevel.Notice, "Monitor client connection success. Disconnecting in 2s");
+                Debug.Console(1, this, Debug.ErrorLogLevel.Notice,
+                    "Monitor client connection success. Disconnecting in 2s");
                 MonitorClientTimer.Stop();
                 MonitorClientTimer = null;
                 MonitorClientFailureCount = 0;
@@ -1046,7 +1122,8 @@ namespace PepperDash.Core
             StopMonitorClient();
             if (MonitorClientFailureCount < MonitorClientMaxFailureCount)
             {
-                Debug.Console(2, this, Debug.ErrorLogLevel.Warning, "Monitor client connection has hung {0} time{1}, maximum {2}",
+                Debug.Console(2, this, Debug.ErrorLogLevel.Warning,
+                    "Monitor client connection has hung {0} time{1}, maximum {2}",
                     MonitorClientFailureCount, MonitorClientFailureCount > 1 ? "s" : "", MonitorClientMaxFailureCount);
                 StartMonitorClient();
             }
@@ -1056,12 +1133,13 @@ namespace PepperDash.Core
                     "\r***************************\rMonitor client connection has hung a maximum of {0} times. \r***************************",
                     MonitorClientMaxFailureCount);
 
-                var handler = ServerHasChoked;
+                ServerHasChokedCallbackDelegate handler = ServerHasChoked;
                 if (handler != null)
                     handler();
                 // Some external thing is in charge here.  Expected reset of program
             }
         }
+
         #endregion
     }
 }

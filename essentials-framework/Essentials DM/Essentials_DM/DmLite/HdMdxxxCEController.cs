@@ -4,7 +4,6 @@ using Crestron.SimplSharpPro.DeviceSupport;
 using Crestron.SimplSharpPro.DM;
 using Newtonsoft.Json;
 using PepperDash.Core;
-
 using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Bridges;
 using PepperDash.Essentials.Core.Config;
@@ -15,7 +14,7 @@ namespace PepperDash.Essentials.DM
     /// Represent both a transmitter and receiver pair of the HD-MD-400-C-E / HD-MD-300-C-E / HD-MD-200-C-E kits
     /// </summary>
     [Description("Wrapper class for all HD-MD variants")]
-    public class HdMdxxxCEController : CrestronGenericBridgeableBaseDevice, IRouting//, IComPorts
+    public class HdMdxxxCEController : CrestronGenericBridgeableBaseDevice, IRouting //, IComPorts
     {
         /// <summary>
         /////  DmLite Ports
@@ -65,9 +64,8 @@ namespace PepperDash.Essentials.DM
         }
 
         public HdMdxxxCEController(string key, string name, HdMdxxxCE txRxPair)
-            :base(key, name, txRxPair)
+            : base(key, name, txRxPair)
         {
-
             TxRxPair = txRxPair;
 
             RemoteEndDetectedFeedback = new BoolFeedback(() => TxRxPair.RemoteEndDetectedOnFeedback.BoolValue);
@@ -76,7 +74,8 @@ namespace PepperDash.Essentials.DM
 
             PriorityRoutingOnFeedback = new BoolFeedback(() => TxRxPair.PriorityRoutingOnFeedback.BoolValue);
 
-            InputOnScreenDisplayEnabledFeedback = new BoolFeedback(() => TxRxPair.OnScreenDisplayEnabledFeedback.BoolValue);
+            InputOnScreenDisplayEnabledFeedback =
+                new BoolFeedback(() => TxRxPair.OnScreenDisplayEnabledFeedback.BoolValue);
 
             InputPorts = new RoutingPortCollection<RoutingInputPort>();
 
@@ -86,21 +85,28 @@ namespace PepperDash.Essentials.DM
             InputPorts.Add(new RoutingInputPort(DmPortName.Hdmi, eRoutingSignalType.Audio | eRoutingSignalType.Video,
                 eRoutingPortConnectionType.Hdmi, 1, this));
 
-            SyncDetectedFeedbacks.Add(1, new BoolFeedback( () => TxRxPair.HdmiInputs[1].VideoDetectedFeedback.BoolValue));
+            SyncDetectedFeedbacks.Add(1,
+                new BoolFeedback(() => TxRxPair.HdmiInputs[1].VideoDetectedFeedback.BoolValue));
 
-            if(txRxPair is HdMd400CE)
+            if (txRxPair is HdMd400CE)
             {
-                InputPorts.Add(new RoutingInputPort(DmPortName.HdmiIn1, eRoutingSignalType.Audio | eRoutingSignalType.Video,
-                eRoutingPortConnectionType.Hdmi, 2, this));
-                SyncDetectedFeedbacks.Add(2, new BoolFeedback(() => TxRxPair.HdmiInputs[2].VideoDetectedFeedback.BoolValue));
+                InputPorts.Add(new RoutingInputPort(DmPortName.HdmiIn1,
+                    eRoutingSignalType.Audio | eRoutingSignalType.Video,
+                    eRoutingPortConnectionType.Hdmi, 2, this));
+                SyncDetectedFeedbacks.Add(2,
+                    new BoolFeedback(() => TxRxPair.HdmiInputs[2].VideoDetectedFeedback.BoolValue));
 
-                InputPorts.Add(new RoutingInputPort(DmPortName.HdmiIn2, eRoutingSignalType.Audio | eRoutingSignalType.Video,
-                eRoutingPortConnectionType.Hdmi, 3, this));
-                SyncDetectedFeedbacks.Add(3, new BoolFeedback(() => TxRxPair.HdmiInputs[3].VideoDetectedFeedback.BoolValue));
+                InputPorts.Add(new RoutingInputPort(DmPortName.HdmiIn2,
+                    eRoutingSignalType.Audio | eRoutingSignalType.Video,
+                    eRoutingPortConnectionType.Hdmi, 3, this));
+                SyncDetectedFeedbacks.Add(3,
+                    new BoolFeedback(() => TxRxPair.HdmiInputs[3].VideoDetectedFeedback.BoolValue));
 
-                InputPorts.Add(new RoutingInputPort(DmPortName.VgaIn, eRoutingSignalType.Video | eRoutingSignalType.Audio,
+                InputPorts.Add(new RoutingInputPort(DmPortName.VgaIn,
+                    eRoutingSignalType.Video | eRoutingSignalType.Audio,
                     eRoutingPortConnectionType.Vga, 4, this));
-                SyncDetectedFeedbacks.Add(4, new BoolFeedback(() => TxRxPair.VgaInputs[1].VideoDetectedFeedback.BoolValue));
+                SyncDetectedFeedbacks.Add(4,
+                    new BoolFeedback(() => TxRxPair.VgaInputs[1].VideoDetectedFeedback.BoolValue));
 
                 // Set Ports for CEC
                 InputPorts[DmPortName.HdmiIn1].Port = TxRxPair.HdmiInputs[1];
@@ -108,22 +114,28 @@ namespace PepperDash.Essentials.DM
             }
             else if (txRxPair is HdMd300CE)
             {
-                InputPorts.Add(new RoutingInputPort(DmPortName.HdmiIn, eRoutingSignalType.Audio | eRoutingSignalType.Video,
+                InputPorts.Add(new RoutingInputPort(DmPortName.HdmiIn,
+                    eRoutingSignalType.Audio | eRoutingSignalType.Video,
                     eRoutingPortConnectionType.Hdmi, 2, this));
-                SyncDetectedFeedbacks.Add(2, new BoolFeedback(() => TxRxPair.HdmiInputs[2].VideoDetectedFeedback.BoolValue));
+                SyncDetectedFeedbacks.Add(2,
+                    new BoolFeedback(() => TxRxPair.HdmiInputs[2].VideoDetectedFeedback.BoolValue));
 
-                InputPorts.Add(new RoutingInputPort(DmPortName.VgaIn, eRoutingSignalType.Video | eRoutingSignalType.Audio,
+                InputPorts.Add(new RoutingInputPort(DmPortName.VgaIn,
+                    eRoutingSignalType.Video | eRoutingSignalType.Audio,
                     eRoutingPortConnectionType.Vga, 3, this));
-                SyncDetectedFeedbacks.Add(3, new BoolFeedback(() => TxRxPair.VgaInputs[1].VideoDetectedFeedback.BoolValue));
+                SyncDetectedFeedbacks.Add(3,
+                    new BoolFeedback(() => TxRxPair.VgaInputs[1].VideoDetectedFeedback.BoolValue));
 
                 // Set Ports for CEC
                 InputPorts[DmPortName.HdmiIn].Port = TxRxPair.HdmiInputs[1];
             }
             else if (txRxPair is HdMd200CE || txRxPair is HdMd200C1GE)
             {
-                InputPorts.Add(new RoutingInputPort(DmPortName.HdmiIn, eRoutingSignalType.Audio | eRoutingSignalType.Video,
+                InputPorts.Add(new RoutingInputPort(DmPortName.HdmiIn,
+                    eRoutingSignalType.Audio | eRoutingSignalType.Video,
                     eRoutingPortConnectionType.Hdmi, 2, this));
-                SyncDetectedFeedbacks.Add(2, new BoolFeedback(() => TxRxPair.HdmiInputs[2].VideoDetectedFeedback.BoolValue));
+                SyncDetectedFeedbacks.Add(2,
+                    new BoolFeedback(() => TxRxPair.HdmiInputs[2].VideoDetectedFeedback.BoolValue));
 
                 // Set Ports for CEC
                 InputPorts[DmPortName.HdmiIn].Port = TxRxPair.HdmiInputs[1];
@@ -203,9 +215,9 @@ namespace PepperDash.Essentials.DM
 
         public void ExecuteSwitch(object inputSelector, object outputSelector, eRoutingSignalType signalType)
         {
-            var number = Convert.ToUInt32(inputSelector); // Cast can sometimes fail
+            uint number = Convert.ToUInt32(inputSelector); // Cast can sometimes fail
 
-            var input = number == 0 ? null : TxRxPair.Inputs[number];
+            DMInput input = number == 0 ? null : TxRxPair.Inputs[number];
 
             TxRxPair.HdmiOutputs[1].VideoOut = input;
         }
@@ -218,9 +230,9 @@ namespace PepperDash.Essentials.DM
         //#endregion
         public override void LinkToApi(BasicTriList trilist, uint joinStart, string joinMapKey, EiscApiAdvanced bridge)
         {
-            var joinMap = new HdMdxxxCEControllerJoinMap(joinStart);
+            HdMdxxxCEControllerJoinMap joinMap = new HdMdxxxCEControllerJoinMap(joinStart);
 
-            var joinMapSerialized = JoinMapHelper.GetSerializedJoinMapForDevice(joinMapKey);
+            string joinMapSerialized = JoinMapHelper.GetSerializedJoinMapForDevice(joinMapKey);
 
             if (!string.IsNullOrEmpty(joinMapSerialized))
                 joinMap = JsonConvert.DeserializeObject<HdMdxxxCEControllerJoinMap>(joinMapSerialized);
@@ -231,7 +243,8 @@ namespace PepperDash.Essentials.DM
             }
             else
             {
-                Debug.Console(0, this, "Please update config to use 'eiscapiadvanced' to get all join map features for this device.");
+                Debug.Console(0, this,
+                    "Please update config to use 'eiscapiadvanced' to get all join map features for this device.");
             }
 
             Debug.Console(1, this, "Linking to Trilist '{0}'", trilist.ID.ToString("X"));
@@ -247,23 +260,28 @@ namespace PepperDash.Essentials.DM
             trilist.SetSigTrueAction(joinMap.PriorityRoutingOn.JoinNumber, PriorityRouteOn);
             PriorityRoutingOnFeedback.LinkInputSig(trilist.BooleanInput[joinMap.PriorityRoutingOn.JoinNumber]);
             trilist.SetSigTrueAction(joinMap.PriorityRoutingOff.JoinNumber, PriorityRouteOff);
-            PriorityRoutingOnFeedback.LinkComplementInputSig(trilist.BooleanInput[joinMap.PriorityRoutingOff.JoinNumber]);
+            PriorityRoutingOnFeedback.LinkComplementInputSig(
+                trilist.BooleanInput[joinMap.PriorityRoutingOff.JoinNumber]);
 
             trilist.SetSigTrueAction(joinMap.InputOnScreenDisplayEnabled.JoinNumber, OnScreenDisplayEnable);
-            InputOnScreenDisplayEnabledFeedback.LinkInputSig(trilist.BooleanInput[joinMap.InputOnScreenDisplayEnabled.JoinNumber]);
+            InputOnScreenDisplayEnabledFeedback.LinkInputSig(
+                trilist.BooleanInput[joinMap.InputOnScreenDisplayEnabled.JoinNumber]);
             trilist.SetSigTrueAction(joinMap.AutoRouteOff.JoinNumber, OnScreenDisplayDisable);
-            InputOnScreenDisplayEnabledFeedback.LinkComplementInputSig(trilist.BooleanInput[joinMap.InputOnScreenDisplayDisabled.JoinNumber]);
+            InputOnScreenDisplayEnabledFeedback.LinkComplementInputSig(
+                trilist.BooleanInput[joinMap.InputOnScreenDisplayDisabled.JoinNumber]);
 
-            trilist.SetUShortSigAction(joinMap.VideoSource.JoinNumber, (i) => ExecuteSwitch(i, null, eRoutingSignalType.Video | eRoutingSignalType.Audio));
+            trilist.SetUShortSigAction(joinMap.VideoSource.JoinNumber,
+                (i) => ExecuteSwitch(i, null, eRoutingSignalType.Video | eRoutingSignalType.Audio));
             VideoSourceFeedback.LinkInputSig(trilist.UShortInput[joinMap.VideoSource.JoinNumber]);
 
             trilist.UShortInput[joinMap.SourceCount.JoinNumber].UShortValue = (ushort)InputPorts.Count;
 
-            foreach (var input in InputPorts)
+            foreach (RoutingInputPort input in InputPorts)
             {
-                var number = Convert.ToUInt16(input.Selector);
-                var numberJoin = (UInt16)(number - 1);
-                SyncDetectedFeedbacks[number].LinkInputSig(trilist.BooleanInput[joinMap.SyncDetected.JoinNumber + numberJoin]);
+                ushort number = Convert.ToUInt16(input.Selector);
+                ushort numberJoin = (ushort)(number - 1);
+                SyncDetectedFeedbacks[number]
+                    .LinkInputSig(trilist.BooleanInput[joinMap.SyncDetected.JoinNumber + numberJoin]);
                 trilist.StringInput[joinMap.SourceNames.JoinNumber + numberJoin].StringValue = input.Key;
             }
         }
@@ -278,18 +296,18 @@ namespace PepperDash.Essentials.DM
     {
         public HdMdxxxCEControllerFactory()
         {
-            TypeNames = new List<string>() { "hdmd400ce", "hdmd300ce", "hdmd200ce", "hdmd200c1ge"};
+            TypeNames = new List<string>() { "hdmd400ce", "hdmd300ce", "hdmd200ce", "hdmd200c1ge" };
         }
 
         public override EssentialsDevice BuildDevice(DeviceConfig dc)
         {
-            var typeName = dc.Type.ToLower();
-            var key = dc.Key;
-            var name = dc.Name;
+            string typeName = dc.Type.ToLower();
+            string key = dc.Key;
+            string name = dc.Name;
 
             Debug.Console(1, "Factory Attempting to create new HD-MD Device");
 
-            var props = JsonConvert.DeserializeObject
+            HdMdxxxCEPropertiesConfig props = JsonConvert.DeserializeObject
                 <PepperDash.Essentials.DM.HdMdxxxCEPropertiesConfig>(dc.Properties.ToString());
 
             if (typeName.Equals("hdmd400ce"))
@@ -303,10 +321,10 @@ namespace PepperDash.Essentials.DM
                     new HdMd200CE(props.Control.IpIdInt, props.Control.TcpSshProperties.Address, Global.ControlSystem));
             else if (typeName.Equals("hdmd200c1ge"))
                 return new PepperDash.Essentials.DM.HdMdxxxCEController(key, name,
-                    new HdMd200C1GE(props.Control.IpIdInt, props.Control.TcpSshProperties.Address, Global.ControlSystem));
+                    new HdMd200C1GE(props.Control.IpIdInt, props.Control.TcpSshProperties.Address,
+                        Global.ControlSystem));
             else
                 return null;
         }
     }
-
 }

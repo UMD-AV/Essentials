@@ -27,15 +27,16 @@ namespace NvxEpi.Services.Messages
             if (_device.Registered)
                 return;
 
-            var result = _device.RegisterWithLogging(Key);
+            eDeviceRegistrationUnRegistrationResponse result = _device.RegisterWithLogging(Key);
 
             if (result != eDeviceRegistrationUnRegistrationResponse.Success)
             {
-                Debug.Console(1, this, Debug.ErrorLogLevel.Warning, "Device registration failed! '{0}'", _device.RegistrationFailureReason.ToString());
+                Debug.Console(1, this, Debug.ErrorLogLevel.Warning, "Device registration failed! '{0}'",
+                    _device.RegistrationFailureReason.ToString());
                 throw new Exception(_device.RegistrationFailureReason.ToString());
             }
         }
-    
+
         public string Key { get; private set; }
     }
 }

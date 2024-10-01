@@ -10,7 +10,7 @@ namespace NvxEpi.Services.Feedback
 
         public static StringFeedback GetFeedback(DmNvxBaseClass device)
         {
-            var feedback = new StringFeedback(Key, () => device.Control.StatusTextFeedback.StringValue);
+            StringFeedback feedback = new StringFeedback(Key, () => device.Control.StatusTextFeedback.StringValue);
 
             device.BaseEvent += (@base, args) =>
             {
@@ -21,6 +21,6 @@ namespace NvxEpi.Services.Feedback
             };
 
             return feedback;
-        }      
+        }
     }
 }

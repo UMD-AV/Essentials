@@ -3,12 +3,9 @@ using System.Collections.Generic;
 using Crestron.SimplSharp;
 using Crestron.SimplSharpPro;
 using Crestron.SimplSharpPro.DeviceSupport;
-
 using PepperDash.Core;
 using PepperDash.Essentials.Core.Config;
 using PepperDash.Essentials.Core.Bridges;
-
-
 using Newtonsoft.Json;
 
 namespace PepperDash.Essentials.Core.CrestronIO
@@ -25,10 +22,7 @@ namespace PepperDash.Essentials.Core.CrestronIO
 
         Func<bool> OutputStateFeedbackFunc
         {
-            get
-            {
-                return () => OutputPort.DigitalOut;
-            }
+            get { return () => OutputPort.DigitalOut; }
         }
 
         public GenericVersiportDigitalOutputDevice(string key, string name, RelayPortConfig config) :
@@ -52,7 +46,8 @@ namespace PepperDash.Essentials.Core.CrestronIO
             {
                 OutputPort.SetVersiportConfiguration(eVersiportConfiguration.DigitalOutput);
                 OutputPort.VersiportChange += OutputPort_VersiportChange;
-                Debug.Console(0, this, "Created GenericVersiportDigitalOutputDevice on port '{0}'.  Current State: {1}", config.PortNumber, OutputPort.DigitalOut);
+                Debug.Console(0, this, "Created GenericVersiportDigitalOutputDevice on port '{0}'.  Current State: {1}",
+                    config.PortNumber, OutputPort.DigitalOut);
             });
         }
 
@@ -125,9 +120,9 @@ namespace PepperDash.Essentials.Core.CrestronIO
 
         public override void LinkToApi(BasicTriList trilist, uint joinStart, string joinMapKey, EiscApiAdvanced bridge)
         {
-            var joinMap = new GenericRelayControllerJoinMap(joinStart);
+            GenericRelayControllerJoinMap joinMap = new GenericRelayControllerJoinMap(joinStart);
 
-            var joinMapSerialized = JoinMapHelper.GetSerializedJoinMapForDevice(joinMapKey);
+            string joinMapSerialized = JoinMapHelper.GetSerializedJoinMapForDevice(joinMapKey);
 
             if (!string.IsNullOrEmpty(joinMapSerialized))
                 joinMap = JsonConvert.DeserializeObject<GenericRelayControllerJoinMap>(joinMapSerialized);
@@ -138,7 +133,8 @@ namespace PepperDash.Essentials.Core.CrestronIO
             }
             else
             {
-                Debug.Console(0, this, "Please update config to use 'eiscapiadvanced' to get all join map features for this device.");
+                Debug.Console(0, this,
+                    "Please update config to use 'eiscapiadvanced' to get all join map features for this device.");
             }
 
             try
@@ -181,34 +177,40 @@ namespace PepperDash.Essentials.Core.CrestronIO
                     Debug.Console(0, "GetVersiportDigitalOuput: Processor does not support Versiports");
                     return null;
                 }
+
                 ioPortDevice = Global.ControlSystem;
             }
             else
             {
-                var ioPortDev = DeviceManager.GetDeviceForKey(dc.PortDeviceKey) as IIOPorts;
+                IIOPorts ioPortDev = DeviceManager.GetDeviceForKey(dc.PortDeviceKey) as IIOPorts;
                 if (ioPortDev == null)
                 {
                     Debug.Console(0, "GetVersiportDigitalOuput: Device {0} is not a valid device", dc.PortDeviceKey);
                     return null;
                 }
+
                 ioPortDevice = ioPortDev;
             }
+
             if (ioPortDevice == null)
             {
-                Debug.Console(0, "GetVersiportDigitalOuput: Device '0' is not a valid IIOPorts Device", dc.PortDeviceKey);
+                Debug.Console(0, "GetVersiportDigitalOuput: Device '0' is not a valid IIOPorts Device",
+                    dc.PortDeviceKey);
                 return null;
             }
 
             if (dc.PortNumber > ioPortDevice.NumberOfVersiPorts)
             {
-                Debug.Console(0, "GetVersiportDigitalOuput: Device {0} does not contain a port {1}", dc.PortDeviceKey, dc.PortNumber);
+                Debug.Console(0, "GetVersiportDigitalOuput: Device {0} does not contain a port {1}", dc.PortDeviceKey,
+                    dc.PortNumber);
             }
 
             return ioPortDevice.VersiPorts[dc.PortNumber];
         }
     }
 
-    public class GenericVersiportDigitalOutputDeviceFactory : EssentialsDeviceFactory<GenericVersiportDigitalOutputDevice>
+    public class
+        GenericVersiportDigitalOutputDeviceFactory : EssentialsDeviceFactory<GenericVersiportDigitalOutputDevice>
     {
         public GenericVersiportDigitalOutputDeviceFactory()
         {
@@ -219,11 +221,11 @@ namespace PepperDash.Essentials.Core.CrestronIO
         {
             Debug.Console(1, "Factory Attempting to create new Generic Versiport Output Device");
 
-            var props = JsonConvert.DeserializeObject<RelayPortConfig>(dc.Properties.ToString());
+            RelayPortConfig props = JsonConvert.DeserializeObject<RelayPortConfig>(dc.Properties.ToString());
 
             if (props == null) return null;
 
-            var portDevice = new GenericVersiportDigitalOutputDevice(dc.Key, dc.Name, props);
+            GenericVersiportDigitalOutputDevice portDevice = new GenericVersiportDigitalOutputDevice(dc.Key, dc.Name, props);
 
             return portDevice;
         }

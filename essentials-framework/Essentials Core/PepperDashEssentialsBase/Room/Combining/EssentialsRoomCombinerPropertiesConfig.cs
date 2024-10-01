@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using PepperDash.Core;
-
 using Newtonsoft.Json;
 
 namespace PepperDash.Essentials.Core
@@ -14,7 +13,7 @@ namespace PepperDash.Essentials.Core
         /// The list of partitions that device the rooms
         /// </summary>
         [JsonProperty("partitions")]
-        public List<PartitionConfig> Partitions {get; set;}
+        public List<PartitionConfig> Partitions { get; set; }
 
         /// <summary>
         /// The list of combinations scenarios for the rooms
@@ -26,7 +25,7 @@ namespace PepperDash.Essentials.Core
         /// The list of rooms keys that can be combined
         /// </summary>
         [JsonProperty("roomKeys")]
-        public List<string> RoomKeys {get; set;}
+        public List<string> RoomKeys { get; set; }
 
         /// <summary>
         /// Set to true to default to manual mode
@@ -49,11 +48,9 @@ namespace PepperDash.Essentials.Core
     /// </summary>
     public class PartitionConfig : IKeyName
     {
-        [JsonProperty("key")]
-        public string Key { get; set; }
+        [JsonProperty("key")] public string Key { get; set; }
 
-        [JsonProperty("name")]
-        public string Name { get; set; }
+        [JsonProperty("name")] public string Name { get; set; }
 
         /// <summary>
         /// Key of the device that implements IPartitionStateProvider to provide the state of the partition
@@ -73,14 +70,11 @@ namespace PepperDash.Essentials.Core
     /// </summary>
     public class RoomCombinationScenarioConfig : IKeyName
     {
-        [JsonProperty("key")]
-        public string Key { get; set; }
+        [JsonProperty("key")] public string Key { get; set; }
 
-        [JsonProperty("name")]
-        public string Name { get; set; }
+        [JsonProperty("name")] public string Name { get; set; }
 
-        [JsonProperty("partitionStates")]
-        public List<PartitionState> PartitionStates { get; set; }
+        [JsonProperty("partitionStates")] public List<PartitionState> PartitionStates { get; set; }
 
         /// <summary>
         /// Determines which UI devices get mapped to which room in this scenario.  The Key should be the key of the UI device and the Value should be the key of the room to map to
@@ -88,11 +82,9 @@ namespace PepperDash.Essentials.Core
         [JsonProperty("uiMap")]
         public Dictionary<string, string> UiMap { get; set; }
 
-        [JsonProperty("activationActions")]
-        public List<DeviceActionWrapper> ActivationActions { get; set; }
+        [JsonProperty("activationActions")] public List<DeviceActionWrapper> ActivationActions { get; set; }
 
-        [JsonProperty("deactivationActions")]
-        public List<DeviceActionWrapper> DeactivationActions { get; set; }    
+        [JsonProperty("deactivationActions")] public List<DeviceActionWrapper> DeactivationActions { get; set; }
     }
 
     /// <summary>
@@ -100,10 +92,8 @@ namespace PepperDash.Essentials.Core
     /// </summary>
     public class PartitionState
     {
-        [JsonProperty("partitionKey")]
-        public string PartitionKey { get; set; }
+        [JsonProperty("partitionKey")] public string PartitionKey { get; set; }
 
-        [JsonProperty("partitionSensedState")]
-        public bool PartitionPresent { get; set; }
+        [JsonProperty("partitionSensedState")] public bool PartitionPresent { get; set; }
     }
 }

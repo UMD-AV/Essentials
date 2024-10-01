@@ -18,10 +18,10 @@ using PepperDash.Essentials.Core.Config;
 
 namespace NvxEpi.Devices
 {
-    public class NvxD3X : 
-        NvxBaseDevice, 
-        INvxD3XDeviceWithHardware, 
-        IComPorts, 
+    public class NvxD3X :
+        NvxBaseDevice,
+        INvxD3XDeviceWithHardware,
+        IComPorts,
         IIROutputPorts,
         IHdmiOutput,
         IRouting
@@ -37,7 +37,7 @@ namespace NvxEpi.Devices
 
         public override bool CustomActivate()
         {
-            var hardware = base.Hardware as DmNvxD3x;
+            DmNvxD3x hardware = base.Hardware as DmNvxD3x;
             if (hardware == null)
                 throw new Exception("hardware built doesn't match");
 
@@ -98,7 +98,7 @@ namespace NvxEpi.Devices
         {
             try
             {
-                var switcher = outputSelector as IHandleInputSwitch;
+                IHandleInputSwitch switcher = outputSelector as IHandleInputSwitch;
                 if (switcher == null)
                     throw new NullReferenceException("outputSelector");
 
@@ -119,7 +119,7 @@ namespace NvxEpi.Devices
 
         public override void LinkToApi(BasicTriList trilist, uint joinStart, string joinMapKey, EiscApiAdvanced bridge)
         {
-            var deviceBridge = new NvxDeviceBridge(this);
+            NvxDeviceBridge deviceBridge = new NvxDeviceBridge(this);
             deviceBridge.LinkToApi(trilist, joinStart, joinMapKey, bridge);
         }
 

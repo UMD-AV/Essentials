@@ -2,6 +2,6 @@
 {
     public interface IHasFarEndContentStatus
     {
-         BoolFeedback ReceivingContent { get; }
+        BoolFeedback ReceivingContent { get; }
     }
 }

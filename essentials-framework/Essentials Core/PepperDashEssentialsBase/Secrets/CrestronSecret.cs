@@ -16,7 +16,5 @@
             Value = value;
             Provider = provider;
         }
-
     }
-
 }

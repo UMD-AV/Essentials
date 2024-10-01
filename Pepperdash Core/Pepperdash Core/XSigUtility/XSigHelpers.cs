@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Crestron.SimplSharp.CrestronIO;
 using PepperDash.Core.XSigUtility.Serialization;
@@ -65,11 +66,11 @@ namespace PepperDash.Core.XSigUtility
         /// <returns>Bytes in XSig format for each token within the state representation.</returns>
         public static byte[] GetBytes(IXSigSerialization xSigSerialization, int offset)
         {
-            var tokens = xSigSerialization.Serialize();
+            IEnumerable<XSigToken> tokens = xSigSerialization.Serialize();
             if (tokens == null) return new byte[0];
-            using (var memoryStream = new MemoryStream())
+            using (MemoryStream memoryStream = new MemoryStream())
             {
-                using (var tokenWriter = new XSigTokenStreamWriter(memoryStream))
+                using (XSigTokenStreamWriter tokenWriter = new XSigTokenStreamWriter(memoryStream))
                     tokenWriter.WriteXSigData(xSigSerialization, offset);
 
                 return memoryStream.ToArray();
@@ -121,8 +122,8 @@ namespace PepperDash.Core.XSigUtility
         {
             // Digital XSig data is 2 bytes per value
             const int fixedLength = 2;
-            var bytes = new byte[values.Length * fixedLength];
-            for (var i = 0; i < values.Length; i++)
+            byte[] bytes = new byte[values.Length * fixedLength];
+            for (int i = 0; i < values.Length; i++)
                 Buffer.BlockCopy(GetBytes(startIndex++, offset, values[i]), 0, bytes, i * fixedLength, fixedLength);
 
             return bytes;
@@ -173,8 +174,8 @@ namespace PepperDash.Core.XSigUtility
         {
             // Analog XSig data is 4 bytes per value
             const int fixedLength = 4;
-            var bytes = new byte[values.Length * fixedLength];
-            for (var i = 0; i < values.Length; i++)
+            byte[] bytes = new byte[values.Length * fixedLength];
+            for (int i = 0; i < values.Length; i++)
                 Buffer.BlockCopy(GetBytes(startIndex++, offset, values[i]), 0, bytes, i * fixedLength, fixedLength);
 
             return bytes;
@@ -224,11 +225,11 @@ namespace PepperDash.Core.XSigUtility
         public static byte[] GetBytes(int startIndex, int offset, string[] values)
         {
             // Serial XSig data is not fixed-length like the other formats
-            var dstOffset = 0;
-            var bytes = new byte[values.Sum(v => v.Length + 3)];
-            for (var i = 0; i < values.Length; i++)
+            int dstOffset = 0;
+            byte[] bytes = new byte[values.Sum(v => v.Length + 3)];
+            for (int i = 0; i < values.Length; i++)
             {
-                var data = GetBytes(startIndex++, offset, values[i]);
+                byte[] data = GetBytes(startIndex++, offset, values[i]);
                 Buffer.BlockCopy(data, 0, bytes, dstOffset, data.Length);
                 dstOffset += data.Length;
             }

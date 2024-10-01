@@ -7,7 +7,7 @@ using Crestron.SimplSharpPro;
 
 namespace PepperDash.Essentials.Core.UI
 {
-    public abstract class TouchpanelBase: EssentialsDevice, IHasBasicTriListWithSmartObject
+    public abstract class TouchpanelBase : EssentialsDevice, IHasBasicTriListWithSmartObject
     {
         protected CrestronTouchpanelPropertiesConfig _config;
         public BasicTriListWithSmartObject Panel { get; private set; }
@@ -22,10 +22,10 @@ namespace PepperDash.Essentials.Core.UI
         /// <param name="type">Touchpanel Type to build</param>
         /// <param name="config">Touchpanel Configuration</param>
         /// <param name="id">IP-ID to use for touch panel</param>
-        protected TouchpanelBase(string key, string name, BasicTriListWithSmartObject panel, CrestronTouchpanelPropertiesConfig config)
-            :base(key, name)
+        protected TouchpanelBase(string key, string name, BasicTriListWithSmartObject panel,
+            CrestronTouchpanelPropertiesConfig config)
+            : base(key, name)
         {
-
             if (Panel == null)
             {
                 Debug.Console(0, this, "Panel is not valid. Touchpanel class WILL NOT work correctly");
@@ -38,7 +38,7 @@ namespace PepperDash.Essentials.Core.UI
 
             if (Panel is TswFt5ButtonSystem)
             {
-                var tsw = Panel as TswFt5ButtonSystem;
+                TswFt5ButtonSystem tsw = Panel as TswFt5ButtonSystem;
                 tsw.ExtenderSystemReservedSigs.Use();
                 tsw.ExtenderSystemReservedSigs.DeviceExtenderSigChange
                     += ExtenderSystemReservedSigs_DeviceExtenderSigChange;
@@ -46,23 +46,30 @@ namespace PepperDash.Essentials.Core.UI
                 tsw.ButtonStateChange += Tsw_ButtonStateChange;
             }
 
-            _config = config;            
+            _config = config;
 
-            AddPreActivationAction(() => {
+            AddPreActivationAction(() =>
+            {
                 if (Panel.Register() != eDeviceRegistrationUnRegistrationResponse.Success)
-                    Debug.Console(0, this, Debug.ErrorLogLevel.Notice, "WARNING: Registration failed. Continuing, but panel may not function: {0}", Panel.RegistrationFailureReason);
+                    Debug.Console(0, this, Debug.ErrorLogLevel.Notice,
+                        "WARNING: Registration failed. Continuing, but panel may not function: {0}",
+                        Panel.RegistrationFailureReason);
 
                 // Give up cleanly if SGD is not present.
-                var sgdName = Global.FilePathPrefix + "sgd" + Global.DirectorySeparator + _config.SgdFile;
+                string sgdName = Global.FilePathPrefix + "sgd" + Global.DirectorySeparator + _config.SgdFile;
                 if (!File.Exists(sgdName))
                 {
-                    Debug.Console(0, this, "Smart object file '{0}' not present in User folder. Looking for embedded file", sgdName);
+                    Debug.Console(0, this,
+                        "Smart object file '{0}' not present in User folder. Looking for embedded file", sgdName);
 
-                    sgdName = Global.ApplicationDirectoryPathPrefix + Global.DirectorySeparator + "SGD" + Global.DirectorySeparator + _config.SgdFile;
+                    sgdName = Global.ApplicationDirectoryPathPrefix + Global.DirectorySeparator + "SGD" +
+                              Global.DirectorySeparator + _config.SgdFile;
 
                     if (!File.Exists(sgdName))
                     {
-                        Debug.Console(0, this, "Unable to find SGD file '{0}' in User sgd or application SGD folder. Exiting touchpanel load.", sgdName);
+                        Debug.Console(0, this,
+                            "Unable to find SGD file '{0}' in User sgd or application SGD folder. Exiting touchpanel load.",
+                            sgdName);
                         return;
                     }
                 }
@@ -71,12 +78,15 @@ namespace PepperDash.Essentials.Core.UI
             AddPostActivationAction(() =>
             {
                 // Check for IEssentialsRoomCombiner in DeviceManager and if found, subscribe to its event
-                var roomCombiner = DeviceManager.AllDevices.FirstOrDefault((d) => d is IEssentialsRoomCombiner) as IEssentialsRoomCombiner;
+                IEssentialsRoomCombiner roomCombiner =
+                    DeviceManager.AllDevices.FirstOrDefault((d) => d is IEssentialsRoomCombiner) as
+                        IEssentialsRoomCombiner;
 
                 if (roomCombiner != null)
                 {
                     // Subscribe to the even
-                    roomCombiner.RoomCombinationScenarioChanged += new EventHandler<EventArgs>(roomCombiner_RoomCombinationScenarioChanged);
+                    roomCombiner.RoomCombinationScenarioChanged +=
+                        new EventHandler<EventArgs>(roomCombiner_RoomCombinationScenarioChanged);
 
                     // Connect to the initial roomKey
                     if (roomCombiner.CurrentScenario != null)
@@ -110,7 +120,8 @@ namespace PepperDash.Essentials.Core.UI
         /// </summary>
         /// <param name="currentDeviceExtender"></param>
         /// <param name="args"></param>
-        protected abstract void ExtenderSystemReservedSigs_DeviceExtenderSigChange(DeviceExtender currentDeviceExtender, SigEventArgs args);
+        protected abstract void ExtenderSystemReservedSigs_DeviceExtenderSigChange(DeviceExtender currentDeviceExtender,
+            SigEventArgs args);
 
 
         /// <summary>
@@ -120,7 +131,7 @@ namespace PepperDash.Essentials.Core.UI
         /// <param name="e"></param>
         protected virtual void roomCombiner_RoomCombinationScenarioChanged(object sender, EventArgs e)
         {
-            var roomCombiner = sender as IEssentialsRoomCombiner;
+            IEssentialsRoomCombiner roomCombiner = sender as IEssentialsRoomCombiner;
 
             DetermineRoomKeyFromScenario(roomCombiner.CurrentScenario);
         }
@@ -146,23 +157,23 @@ namespace PepperDash.Essentials.Core.UI
         }
 
         private void Panel_SigChange(object currentDevice, Crestron.SimplSharpPro.SigEventArgs args)
-		{
-			if (Debug.Level == 2)
-				Debug.Console(2, this, "Sig change: {0} {1}={2}", args.Sig.Type, args.Sig.Number, args.Sig.StringValue);
-			var uo = args.Sig.UserObject;
-			if (uo is Action<bool>)
-				(uo as Action<bool>)(args.Sig.BoolValue);
-			else if (uo is Action<ushort>)
-				(uo as Action<ushort>)(args.Sig.UShortValue);
-			else if (uo is Action<string>)
-				(uo as Action<string>)(args.Sig.StringValue);
-		}
-	
-		private void Tsw_ButtonStateChange(GenericBase device, ButtonEventArgs args)
-		{
-			var uo = args.Button.UserObject;
-			if(uo is Action<bool>)
-				(uo as Action<bool>)(args.Button.State == eButtonState.Pressed);
-		}
+        {
+            if (Debug.Level == 2)
+                Debug.Console(2, this, "Sig change: {0} {1}={2}", args.Sig.Type, args.Sig.Number, args.Sig.StringValue);
+            object uo = args.Sig.UserObject;
+            if (uo is Action<bool>)
+                (uo as Action<bool>)(args.Sig.BoolValue);
+            else if (uo is Action<ushort>)
+                (uo as Action<ushort>)(args.Sig.UShortValue);
+            else if (uo is Action<string>)
+                (uo as Action<string>)(args.Sig.StringValue);
+        }
+
+        private void Tsw_ButtonStateChange(GenericBase device, ButtonEventArgs args)
+        {
+            object uo = args.Button.UserObject;
+            if (uo is Action<bool>)
+                (uo as Action<bool>)(args.Button.State == eButtonState.Pressed);
+        }
     }
 }

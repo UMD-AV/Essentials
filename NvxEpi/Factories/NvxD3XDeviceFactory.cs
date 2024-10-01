@@ -17,7 +17,7 @@ namespace NvxEpi.Factories
         public NvxD3XDeviceFactory()
         {
             MinimumEssentialsFrameworkVersion = MinumumEssentialsVersion;
-            
+
             if (_typeNames == null)
             {
                 _typeNames = new List<string>
@@ -32,8 +32,8 @@ namespace NvxEpi.Factories
 
         public override EssentialsDevice BuildDevice(DeviceConfig dc)
         {
-            var props = NvxDeviceProperties.FromDeviceConfig(dc);
-            var deviceBuild = GetDeviceBuildAction(dc.Type, props);
+            NvxDeviceProperties props = NvxDeviceProperties.FromDeviceConfig(dc);
+            Func<DmNvxBaseClass> deviceBuild = GetDeviceBuildAction(dc.Type, props);
             return new NvxD3X(dc, deviceBuild);
         }
     }

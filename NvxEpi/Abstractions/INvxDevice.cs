@@ -7,6 +7,5 @@ namespace NvxEpi.Abstractions
     public interface INvxDevice : IRoutingInputsOutputs,
         IHasFeedback, IOnline, ITransmitterReceiver, IKeyName, IDeviceId
     {
-
     }
 }

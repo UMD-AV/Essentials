@@ -12,13 +12,13 @@ namespace NvxEpi.Services.Feedback
         public const string Key = "HdmiOutOutputResolution";
 
         public static StringFeedback GetFeedback(DmNvxBaseClass device)
-        {            
-            if(device.HdmiOut == null)
+        {
+            if (device.HdmiOut == null)
             {
                 return new StringFeedback(Key, () => string.Empty);
             }
 
-            var feedback = new StringFeedback(Key, () => string.Format("{0}x{1}@{2}",
+            StringFeedback feedback = new StringFeedback(Key, () => string.Format("{0}x{1}@{2}",
                 device.HdmiOut.VideoAttributes.HorizontalResolutionFeedback.UShortValue,
                 device.HdmiOut.VideoAttributes.VerticalResolutionFeedback.UShortValue,
                 device.HdmiOut.VideoAttributes.FramesPerSecondFeedback.UShortValue));

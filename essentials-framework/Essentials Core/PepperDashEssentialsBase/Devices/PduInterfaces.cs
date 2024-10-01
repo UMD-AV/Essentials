@@ -12,7 +12,7 @@ namespace PepperDash_Essentials_Core.Devices
         /// <summary>
         /// Delay between power off and power on for reboot
         /// </summary>
-        int PowerCycleTimeMs { get;}
+        int PowerCycleTimeMs { get; }
 
         /// <summary>
         /// Reboot outlet
@@ -29,6 +29,5 @@ namespace PepperDash_Essentials_Core.Devices
         /// Collection of IPduOutlets
         /// </summary>
         ReadOnlyDictionary<int, IHasPowerCycle> PduOutlets { get; }
-
     }
 }

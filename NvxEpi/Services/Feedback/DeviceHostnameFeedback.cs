@@ -9,7 +9,7 @@ namespace NvxEpi.Services.Feedback
 
         public static StringFeedback GetFeedback(DmNvxBaseClass device)
         {
-            var feedback = new StringFeedback(Key, () => device.Network.HostNameFeedback.StringValue);
+            StringFeedback feedback = new StringFeedback(Key, () => device.Network.HostNameFeedback.StringValue);
             device.Network.NetworkChange += (@base, args) => feedback.FireUpdate();
 
             return feedback;

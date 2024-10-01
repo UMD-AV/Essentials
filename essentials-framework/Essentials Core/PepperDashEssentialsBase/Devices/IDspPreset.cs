@@ -7,7 +7,6 @@ namespace PepperDash.Essentials.Core
         List<IDspPreset> Presets { get; }
 
         void RecallPreset(IDspPreset preset);
-
     }
 
     public interface IDspPreset

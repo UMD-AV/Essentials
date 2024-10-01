@@ -7,7 +7,7 @@ using PepperDash.Essentials.Core.Config;
 
 namespace PepperDash.Essentials.Core.Devices
 {
-    public class GenericIrController: EssentialsBridgeableDevice
+    public class GenericIrController : EssentialsBridgeableDevice
     {
         //data storage for bridging
         private BasicTriList _trilist;
@@ -15,9 +15,12 @@ namespace PepperDash.Essentials.Core.Devices
         private string _joinMapKey;
         private EiscApiAdvanced _bridge;
 
-        private readonly IrOutputPortController _port; 
+        private readonly IrOutputPortController _port;
 
-        public string[] IrCommands {get { return _port.IrFileCommands; }}
+        public string[] IrCommands
+        {
+            get { return _port.IrFileCommands; }
+        }
 
         public GenericIrController(string key, string name, IrOutputPortController irPort) : base(key, name)
         {
@@ -28,6 +31,7 @@ namespace PepperDash.Essentials.Core.Devices
                 Debug.Console(0, this, Debug.ErrorLogLevel.Error, "IR Port is null, device will not function");
                 return;
             }
+
             DeviceManager.AddDevice(_port);
 
             _port.DriverLoaded.OutputChange += DriverLoadedOnOutputChange;
@@ -62,17 +66,17 @@ namespace PepperDash.Essentials.Core.Devices
                 return;
             }
 
-            var joinMap = new GenericIrControllerJoinMap(joinStart);
+            GenericIrControllerJoinMap joinMap = new GenericIrControllerJoinMap(joinStart);
 
-            var joinMapSerialized = JoinMapHelper.GetSerializedJoinMapForDevice(joinMapKey);
+            string joinMapSerialized = JoinMapHelper.GetSerializedJoinMapForDevice(joinMapKey);
 
             if (!string.IsNullOrEmpty(joinMapSerialized))
                 joinMap = JsonConvert.DeserializeObject<GenericIrControllerJoinMap>(joinMapSerialized);
 
             for (uint i = 0; i < _port.IrFileCommands.Length; i++)
             {
-                var cmd = _port.IrFileCommands[i];
-                var joinData = new JoinDataComplete(new JoinData {JoinNumber = i, JoinSpan = 1},
+                string cmd = _port.IrFileCommands[i];
+                JoinDataComplete joinData = new JoinDataComplete(new JoinData { JoinNumber = i, JoinSpan = 1 },
                     new JoinMetadata
                     {
                         Description = cmd,
@@ -82,7 +86,7 @@ namespace PepperDash.Essentials.Core.Devices
 
                 joinData.SetJoinOffset(joinStart);
 
-                joinMap.Joins.Add(cmd,joinData);
+                joinMap.Joins.Add(cmd, joinData);
 
                 trilist.SetBoolSigAction(joinData.JoinNumber, (b) => Press(cmd, b));
             }
@@ -95,7 +99,8 @@ namespace PepperDash.Essentials.Core.Devices
             }
             else
             {
-                Debug.Console(0, this, "Please update config to use 'eiscapiadvanced' to get all join map features for this device.");
+                Debug.Console(0, this,
+                    "Please update config to use 'eiscapiadvanced' to get all join map features for this device.");
             }
         }
 
@@ -118,15 +123,16 @@ namespace PepperDash.Essentials.Core.Devices
     {
         public GenericIrControllerFactory()
         {
-            TypeNames = new List<string> {"genericIrController"};
+            TypeNames = new List<string> { "genericIrController" };
         }
+
         #region Overrides of EssentialsDeviceFactory<GenericIRController>
 
         public override EssentialsDevice BuildDevice(DeviceConfig dc)
         {
             Debug.Console(1, "Factory Attempting to create new Generic IR Controller Device");
 
-            var irPort = IRPortHelper.GetIrOutputPortController(dc);
+            IrOutputPortController irPort = IRPortHelper.GetIrOutputPortController(dc);
 
             return new GenericIrController(dc.Key, dc.Name, irPort);
         }

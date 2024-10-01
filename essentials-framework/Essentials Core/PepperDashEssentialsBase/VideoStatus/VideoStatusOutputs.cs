@@ -3,141 +3,145 @@ using System.Collections.Generic;
 
 namespace PepperDash.Essentials.Core
 {
-	/// <summary>
-	/// Use this class to pass in values to RoutingInputPorts.  Unused properties will have default 
-	/// funcs assigned to them.
-	/// </summary>
-	public class VideoStatusFuncsWrapper
-	{
-		public Func<bool> HasVideoStatusFunc { get; set; }
-		public Func<bool> HdcpActiveFeedbackFunc { get; set; }
-		public Func<string> HdcpStateFeedbackFunc { get; set; }
-		public Func<string> VideoResolutionFeedbackFunc { get; set; }
-		public Func<bool> VideoSyncFeedbackFunc { get; set; }
+    /// <summary>
+    /// Use this class to pass in values to RoutingInputPorts.  Unused properties will have default 
+    /// funcs assigned to them.
+    /// </summary>
+    public class VideoStatusFuncsWrapper
+    {
+        public Func<bool> HasVideoStatusFunc { get; set; }
+        public Func<bool> HdcpActiveFeedbackFunc { get; set; }
+        public Func<string> HdcpStateFeedbackFunc { get; set; }
+        public Func<string> VideoResolutionFeedbackFunc { get; set; }
+        public Func<bool> VideoSyncFeedbackFunc { get; set; }
 
-		public VideoStatusFuncsWrapper()
-		{
-			HasVideoStatusFunc = () => true;
-			HdcpActiveFeedbackFunc = () => false;
-			HdcpStateFeedbackFunc = () => "";
-			VideoResolutionFeedbackFunc = () => "n/a";
-			VideoSyncFeedbackFunc = () => false;
-		}
-	}
+        public VideoStatusFuncsWrapper()
+        {
+            HasVideoStatusFunc = () => true;
+            HdcpActiveFeedbackFunc = () => false;
+            HdcpStateFeedbackFunc = () => "";
+            VideoResolutionFeedbackFunc = () => "n/a";
+            VideoSyncFeedbackFunc = () => false;
+        }
+    }
 
-	/// <summary>
-	/// Wraps up the common video statuses exposed on a video input port
-	/// </summary>
-	public class VideoStatusOutputs
-	{
-		public BoolFeedback HasVideoStatusFeedback { get; private set; }
-		public BoolFeedback HdcpActiveFeedback { get; private set; }
-		public StringFeedback HdcpStateFeedback { get; private set; }
-		public StringFeedback VideoResolutionFeedback { get; private set; }
-		public BoolFeedback VideoSyncFeedback { get; private set; }
+    /// <summary>
+    /// Wraps up the common video statuses exposed on a video input port
+    /// </summary>
+    public class VideoStatusOutputs
+    {
+        public BoolFeedback HasVideoStatusFeedback { get; private set; }
+        public BoolFeedback HdcpActiveFeedback { get; private set; }
+        public StringFeedback HdcpStateFeedback { get; private set; }
+        public StringFeedback VideoResolutionFeedback { get; private set; }
+        public BoolFeedback VideoSyncFeedback { get; private set; }
 
-		/// <summary>
-		/// Gets the default, empty status group.
-		/// </summary>
-		public static VideoStatusOutputs NoStatus { get { return _Default; } }
-		static VideoStatusOutputs _Default = new VideoStatusOutputs(new VideoStatusFuncsWrapper
-			{
-				HasVideoStatusFunc = () => false
-			});
+        /// <summary>
+        /// Gets the default, empty status group.
+        /// </summary>
+        public static VideoStatusOutputs NoStatus
+        {
+            get { return _Default; }
+        }
 
-		public VideoStatusOutputs(VideoStatusFuncsWrapper funcs)
-		{
-			HasVideoStatusFeedback = new BoolFeedback("HasVideoStatusFeedback", funcs.HasVideoStatusFunc);
-			HdcpActiveFeedback = new BoolFeedback("HdcpActiveFeedback", funcs.HdcpActiveFeedbackFunc);
-			HdcpStateFeedback = new StringFeedback("HdcpStateFeedback", funcs.HdcpStateFeedbackFunc);
-			VideoResolutionFeedback = new StringFeedback("VideoResolutionFeedback", 
-				funcs.VideoResolutionFeedbackFunc);
-			VideoSyncFeedback = new BoolFeedback("VideoSyncFeedback", funcs.VideoSyncFeedbackFunc);
-		}
+        static VideoStatusOutputs _Default = new VideoStatusOutputs(new VideoStatusFuncsWrapper
+        {
+            HasVideoStatusFunc = () => false
+        });
 
-		public void FireAll()
-		{
-			HasVideoStatusFeedback.FireUpdate();
-			HdcpActiveFeedback.FireUpdate();
-			HdcpActiveFeedback.FireUpdate();
-			VideoResolutionFeedback.FireUpdate();
-			VideoSyncFeedback.FireUpdate();
-		}
+        public VideoStatusOutputs(VideoStatusFuncsWrapper funcs)
+        {
+            HasVideoStatusFeedback = new BoolFeedback("HasVideoStatusFeedback", funcs.HasVideoStatusFunc);
+            HdcpActiveFeedback = new BoolFeedback("HdcpActiveFeedback", funcs.HdcpActiveFeedbackFunc);
+            HdcpStateFeedback = new StringFeedback("HdcpStateFeedback", funcs.HdcpStateFeedbackFunc);
+            VideoResolutionFeedback = new StringFeedback("VideoResolutionFeedback",
+                funcs.VideoResolutionFeedbackFunc);
+            VideoSyncFeedback = new BoolFeedback("VideoSyncFeedback", funcs.VideoSyncFeedbackFunc);
+        }
 
-		public List<Feedback> ToList()
-		{
-			return new List<Feedback>
-			{
-				HasVideoStatusFeedback,
-				HdcpActiveFeedback,
-				HdcpStateFeedback,
-				VideoResolutionFeedback,
-				VideoSyncFeedback
-			};
-		}
-	}
+        public void FireAll()
+        {
+            HasVideoStatusFeedback.FireUpdate();
+            HdcpActiveFeedback.FireUpdate();
+            HdcpActiveFeedback.FireUpdate();
+            VideoResolutionFeedback.FireUpdate();
+            VideoSyncFeedback.FireUpdate();
+        }
 
-	///// <summary>
-	///// Wraps up the common video statuses exposed on a video input port
-	///// </summary>
-	//public class BasicVideoStatus : IBasicVideoStatus
-	//{
-	//    public event VideoStatusChangeHandler VideoStatusChange;
+        public List<Feedback> ToList()
+        {
+            return new List<Feedback>
+            {
+                HasVideoStatusFeedback,
+                HdcpActiveFeedback,
+                HdcpStateFeedback,
+                VideoResolutionFeedback,
+                VideoSyncFeedback
+            };
+        }
+    }
 
-	//    public bool HasVideoStatus { get; private set; }
+    ///// <summary>
+    ///// Wraps up the common video statuses exposed on a video input port
+    ///// </summary>
+    //public class BasicVideoStatus : IBasicVideoStatus
+    //{
+    //    public event VideoStatusChangeHandler VideoStatusChange;
 
-	//    public bool HdcpActive
-	//    {
-	//        get { return HdcpActiveFunc != null ? HdcpActiveFunc() : false; }
-	//    }
+    //    public bool HasVideoStatus { get; private set; }
 
-	//    public string HdcpState
-	//    {
-	//        get { return HdcpStateFunc != null? HdcpStateFunc() : ""; }
-	//    }
+    //    public bool HdcpActive
+    //    {
+    //        get { return HdcpActiveFunc != null ? HdcpActiveFunc() : false; }
+    //    }
 
-	//    public string VideoResolution
-	//    {
-	//        get { return VideoResolutionFunc != null ? VideoResolutionFunc() : ""; }
-	//    }
+    //    public string HdcpState
+    //    {
+    //        get { return HdcpStateFunc != null? HdcpStateFunc() : ""; }
+    //    }
 
-	//    public bool VideoSync
-	//    {
-	//        get { return VideoSyncFunc != null ? VideoSyncFunc() : false; }
-	//    }
+    //    public string VideoResolution
+    //    {
+    //        get { return VideoResolutionFunc != null ? VideoResolutionFunc() : ""; }
+    //    }
 
-	//    Func<bool> HdcpActiveFunc;
-	//    Func<string> HdcpStateFunc;
-	//    Func<string> VideoResolutionFunc;
-	//    Func<bool> VideoSyncFunc;
+    //    public bool VideoSync
+    //    {
+    //        get { return VideoSyncFunc != null ? VideoSyncFunc() : false; }
+    //    }
 
-	//    public BasicVideoStatus(bool hasVideoStatus, Func<bool> hdcpActiveFunc,
-	//        Func<string> hdcpStateFunc, Func<string> videoResolutionFunc, Func<bool> videoSyncFunc)
-	//    {
-	//        HasVideoStatus = hasVideoStatus;
-	//        HdcpActiveFunc = hdcpActiveFunc;
-	//        HdcpStateFunc = hdcpStateFunc;
-	//        VideoResolutionFunc = videoResolutionFunc;
-	//        VideoSyncFunc = videoSyncFunc;
-	//    }
-	//}
+    //    Func<bool> HdcpActiveFunc;
+    //    Func<string> HdcpStateFunc;
+    //    Func<string> VideoResolutionFunc;
+    //    Func<bool> VideoSyncFunc;
 
-	//public enum eVideoStatusChangeType
-	//{
-	//    HdcpActive,
-	//    HdcpState,
-	//    VideoResolution,
-	//    VideoSync
-	//}
+    //    public BasicVideoStatus(bool hasVideoStatus, Func<bool> hdcpActiveFunc,
+    //        Func<string> hdcpStateFunc, Func<string> videoResolutionFunc, Func<bool> videoSyncFunc)
+    //    {
+    //        HasVideoStatus = hasVideoStatus;
+    //        HdcpActiveFunc = hdcpActiveFunc;
+    //        HdcpStateFunc = hdcpStateFunc;
+    //        VideoResolutionFunc = videoResolutionFunc;
+    //        VideoSyncFunc = videoSyncFunc;
+    //    }
+    //}
 
-	//public interface IBasicVideoStatus
-	//{
-	//    event VideoStatusChangeHandler VideoStatusChange;
-	//    bool HdcpActive { get; }
-	//    string HdcpState { get; }
-	//    string VideoResolution { get; }
-	//    bool VideoSync { get; }
-	//}
+    //public enum eVideoStatusChangeType
+    //{
+    //    HdcpActive,
+    //    HdcpState,
+    //    VideoResolution,
+    //    VideoSync
+    //}
 
-	//public delegate void VideoStatusChangeHandler(IBasicVideoStatus device, eVideoStatusChangeType type);
+    //public interface IBasicVideoStatus
+    //{
+    //    event VideoStatusChangeHandler VideoStatusChange;
+    //    bool HdcpActive { get; }
+    //    string HdcpState { get; }
+    //    string VideoResolution { get; }
+    //    bool VideoSync { get; }
+    //}
+
+    //public delegate void VideoStatusChangeHandler(IBasicVideoStatus device, eVideoStatusChangeType type);
 }

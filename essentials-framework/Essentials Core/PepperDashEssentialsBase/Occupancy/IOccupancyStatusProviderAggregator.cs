@@ -12,17 +12,14 @@ namespace PepperDash.Essentials.Core
         /// <summary>
         /// Aggregated feedback of all linked IOccupancyStatusProvider devices
         /// </summary>
-        public BoolFeedback RoomIsOccupiedFeedback 
+        public BoolFeedback RoomIsOccupiedFeedback
         {
-            get
-            {
-                return _aggregatedOccupancyStatus.Output;
-            }
+            get { return _aggregatedOccupancyStatus.Output; }
         }
 
         private readonly BoolFeedbackOr _aggregatedOccupancyStatus;
 
-        public IOccupancyStatusProviderAggregator(string key, string name) 
+        public IOccupancyStatusProviderAggregator(string key, string name)
             : base(key, name)
         {
             _aggregatedOccupancyStatus = new BoolFeedbackOr();
@@ -38,9 +35,9 @@ namespace PepperDash.Essentials.Core
                     return;
                 }
 
-                foreach (var deviceKey in config.DeviceKeys)
+                foreach (string deviceKey in config.DeviceKeys)
                 {
-                    var device = DeviceManager.GetDeviceForKey(deviceKey);
+                    IKeyed device = DeviceManager.GetDeviceForKey(deviceKey);
 
                     if (device == null)
                     {
@@ -49,7 +46,7 @@ namespace PepperDash.Essentials.Core
                         continue;
                     }
 
-                    var provider = device as IOccupancyStatusProvider;
+                    IOccupancyStatusProvider provider = device as IOccupancyStatusProvider;
 
                     if (provider == null)
                     {
@@ -95,8 +92,8 @@ namespace PepperDash.Essentials.Core
         {
             Debug.Console(1, "Factory Attempting to create new GlsOccupancySensorBaseController Device");
 
-            var config = dc.Properties.ToObject<OccupancyAggregatorConfig>();
-                
+            OccupancyAggregatorConfig config = dc.Properties.ToObject<OccupancyAggregatorConfig>();
+
             return new IOccupancyStatusProviderAggregator(dc.Key, dc.Name, config);
         }
     }

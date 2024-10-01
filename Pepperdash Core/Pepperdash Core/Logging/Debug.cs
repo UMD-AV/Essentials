@@ -48,91 +48,96 @@ namespace PepperDash.Core
         /// <summary>
         /// Version for the currently loaded PepperDashCore dll
         /// </summary>
-        public static string PepperDashCoreVersion { get; private set; } 
+        public static string PepperDashCoreVersion { get; private set; }
 
         private static CTimer _saveTimer;
 
-		/// <summary>
-		/// When true, the IncludedExcludedKeys dict will contain keys to include. 
-		/// When false (default), IncludedExcludedKeys will contain keys to exclude.
-		/// </summary>
-		private static bool _excludeAllMode;
+        /// <summary>
+        /// When true, the IncludedExcludedKeys dict will contain keys to include. 
+        /// When false (default), IncludedExcludedKeys will contain keys to exclude.
+        /// </summary>
+        private static bool _excludeAllMode;
 
-		//static bool ExcludeNoKeyMessages;
+        //static bool ExcludeNoKeyMessages;
 
-		private static readonly Dictionary<string, object> IncludedExcludedKeys;
+        private static readonly Dictionary<string, object> IncludedExcludedKeys;
 
         static Debug()
         {
             // Get the assembly version and print it to console and the log
             GetVersion();
 
-            var msg = string.Format("[App {0}] Using PepperDash_Core v{1}", InitialParametersClass.ApplicationNumber, PepperDashCoreVersion);
+            string msg = string.Format("[App {0}] Using PepperDash_Core v{1}", InitialParametersClass.ApplicationNumber,
+                PepperDashCoreVersion);
 
             CrestronConsole.PrintLine(msg);
 
             LogError(ErrorLogLevel.Notice, msg);
 
-			IncludedExcludedKeys = new Dictionary<string, object>();
+            IncludedExcludedKeys = new Dictionary<string, object>();
 
             //CrestronDataStoreStatic.InitCrestronDataStore();
             if (CrestronEnvironment.RuntimeEnvironment == eRuntimeEnvironment.SimplSharpPro)
             {
                 // Add command to console
-                CrestronConsole.AddNewConsoleCommand(SetDoNotLoadOnNextBootFromConsole, "donotloadonnextboot", 
-                    "donotloadonnextboot:P [true/false]: Should the application load on next boot", ConsoleAccessLevelEnum.AccessOperator);
+                CrestronConsole.AddNewConsoleCommand(SetDoNotLoadOnNextBootFromConsole, "donotloadonnextboot",
+                    "donotloadonnextboot:P [true/false]: Should the application load on next boot",
+                    ConsoleAccessLevelEnum.AccessOperator);
 
                 CrestronConsole.AddNewConsoleCommand(SetDebugFromConsole, "appdebug",
                     "appdebug:P [0-2]: Sets the application's console debug message level",
                     ConsoleAccessLevelEnum.AccessOperator);
                 CrestronConsole.AddNewConsoleCommand(ShowDebugLog, "appdebuglog",
-                    "appdebuglog:P [all] Use \"all\" for full log.", 
+                    "appdebuglog:P [all] Use \"all\" for full log.",
                     ConsoleAccessLevelEnum.AccessOperator);
                 CrestronConsole.AddNewConsoleCommand(s => CrestronLogger.Clear(false), "appdebugclear",
-                    "appdebugclear:P Clears the current custom log", 
+                    "appdebugclear:P Clears the current custom log",
                     ConsoleAccessLevelEnum.AccessOperator);
-				CrestronConsole.AddNewConsoleCommand(SetDebugFilterFromConsole, "appdebugfilter",
-					"appdebugfilter [params]", ConsoleAccessLevelEnum.AccessOperator);
+                CrestronConsole.AddNewConsoleCommand(SetDebugFilterFromConsole, "appdebugfilter",
+                    "appdebugfilter [params]", ConsoleAccessLevelEnum.AccessOperator);
             }
 
             CrestronEnvironment.ProgramStatusEventHandler += CrestronEnvironment_ProgramStatusEventHandler;
 
             LoadMemory();
 
-            var context = _contexts.GetOrCreateItem("DEFAULT");
+            DebugContextItem context = _contexts.GetOrCreateItem("DEFAULT");
             Level = context.Level;
             DoNotLoadOnNextBoot = context.DoNotLoadOnNextBoot;
 
-            if(DoNotLoadOnNextBoot)
-                CrestronConsole.PrintLine(string.Format("Program {0} will not load config after next boot.  Use console command go:{0} to load the config manually", InitialParametersClass.ApplicationNumber));
+            if (DoNotLoadOnNextBoot)
+                CrestronConsole.PrintLine(string.Format(
+                    "Program {0} will not load config after next boot.  Use console command go:{0} to load the config manually",
+                    InitialParametersClass.ApplicationNumber));
 
             try
             {
                 if (InitialParametersClass.NumberOfRemovableDrives > 0)
                 {
-                    CrestronConsole.PrintLine("{0} RM Drive(s) Present.", InitialParametersClass.NumberOfRemovableDrives);
-                    CrestronLogger.Initialize(2, LoggerModeEnum.DEFAULT); // Use RM instead of DEFAULT as not to double-up console messages.
+                    CrestronConsole.PrintLine("{0} RM Drive(s) Present.",
+                        InitialParametersClass.NumberOfRemovableDrives);
+                    CrestronLogger.Initialize(2,
+                        LoggerModeEnum.DEFAULT); // Use RM instead of DEFAULT as not to double-up console messages.
                 }
                 else
                     CrestronConsole.PrintLine("No RM Drive(s) Present.");
             }
             catch (Exception e)
             {
-
                 CrestronConsole.PrintLine("Initializing of CrestronLogger failed: {0}", e);
             }
         }
 
         private static void GetVersion()
         {
-            var assembly = Assembly.GetExecutingAssembly();
-            var ver =
+            Assembly assembly = Assembly.GetExecutingAssembly();
+            object[] ver =
                 assembly
-                    .GetCustomAttributes(typeof (AssemblyInformationalVersionAttribute), false);
+                    .GetCustomAttributes(typeof(AssemblyInformationalVersionAttribute), false);
 
             if (ver != null && ver.Length > 0)
             {
-                var verAttribute = ver[0] as AssemblyInformationalVersionAttribute;
+                AssemblyInformationalVersionAttribute verAttribute = ver[0] as AssemblyInformationalVersionAttribute;
 
                 if (verAttribute != null)
                 {
@@ -141,7 +146,7 @@ namespace PepperDash.Core
             }
             else
             {
-                var version = assembly.GetName().Version;
+                Version version = assembly.GetName().Version;
                 PepperDashCoreVersion = string.Format("{0}.{1}.{2}.{3}", version.Major, version.Minor, version.Build,
                     version.Revision);
             }
@@ -160,6 +165,7 @@ namespace PepperDash.Core
                     _saveTimer.Stop();
                     _saveTimer = null;
                 }
+
                 Console(0, "Saving debug settings");
                 SaveMemory();
             }
@@ -201,7 +207,7 @@ namespace PepperDash.Core
                     return;
                 }
 
-                SetDoNotLoadOnNextBoot(Boolean.Parse(stateString));
+                SetDoNotLoadOnNextBoot(bool.Parse(stateString));
             }
             catch
             {
@@ -213,80 +219,80 @@ namespace PepperDash.Core
         /// Callback for console command
         /// </summary>
         /// <param name="items"></param>
-		public static void SetDebugFilterFromConsole(string items)
-		{
-			var str = items.Trim();
-			if (str == "?")
-			{
-				CrestronConsole.ConsoleCommandResponse("Usage:\r APPDEBUGFILTER key1 key2 key3....\r " +
-					"+all: at beginning puts filter into 'default include' mode\r" +
-					"      All keys that follow will be excluded from output.\r" +
-					"-all: at beginning puts filter into 'default excluse all' mode.\r" +
-					"      All keys that follow will be the only keys that are shown\r" +
-					"+nokey: Enables messages with no key (default)\r" +
-					"-nokey: Disables messages with no key.\r" +
-					"(nokey settings are independent of all other settings)");
-				return;
-			}
-			var keys = Regex.Split(str, @"\s*");
-			foreach (var keyToken in keys)
-			{
-				var lkey = keyToken.ToLower();
-				if (lkey == "+all")
-				{
-					IncludedExcludedKeys.Clear();
-					_excludeAllMode = false;
-				}
-				else if (lkey == "-all")
-				{
-					IncludedExcludedKeys.Clear();
-					_excludeAllMode = true;
-				}
-				//else if (lkey == "+nokey")
-				//{
-				//    ExcludeNoKeyMessages = false;
-				//}
-				//else if (lkey == "-nokey")
-				//{
-				//    ExcludeNoKeyMessages = true;
-				//}
-				else
-				{
-					string key;
-					if (lkey.StartsWith("-"))
-					{
-						key = lkey.Substring(1);
-						// if in exclude all mode, we need to remove this from the inclusions
-						if (_excludeAllMode)
-						{
-							if (IncludedExcludedKeys.ContainsKey(key))
-								IncludedExcludedKeys.Remove(key);
-						}
-						// otherwise include all mode, add to the exclusions
-						else
-						{
-							IncludedExcludedKeys[key] = new object();
-						}
-					}
-					else if (lkey.StartsWith("+"))
-					{
-						key = lkey.Substring(1);
-						// if in exclude all mode, we need to add this as inclusion
-						if (_excludeAllMode)
-						{
+        public static void SetDebugFilterFromConsole(string items)
+        {
+            string str = items.Trim();
+            if (str == "?")
+            {
+                CrestronConsole.ConsoleCommandResponse("Usage:\r APPDEBUGFILTER key1 key2 key3....\r " +
+                                                       "+all: at beginning puts filter into 'default include' mode\r" +
+                                                       "      All keys that follow will be excluded from output.\r" +
+                                                       "-all: at beginning puts filter into 'default excluse all' mode.\r" +
+                                                       "      All keys that follow will be the only keys that are shown\r" +
+                                                       "+nokey: Enables messages with no key (default)\r" +
+                                                       "-nokey: Disables messages with no key.\r" +
+                                                       "(nokey settings are independent of all other settings)");
+                return;
+            }
 
-							IncludedExcludedKeys[key] = new object();
-						}
-						// otherwise include all mode, remove this from exclusions
-						else
-						{
-							if (IncludedExcludedKeys.ContainsKey(key))
-								IncludedExcludedKeys.Remove(key);
-						}
-					}
-				}
-			}
-		}
+            string[] keys = Regex.Split(str, @"\s*");
+            foreach (string keyToken in keys)
+            {
+                string lkey = keyToken.ToLower();
+                if (lkey == "+all")
+                {
+                    IncludedExcludedKeys.Clear();
+                    _excludeAllMode = false;
+                }
+                else if (lkey == "-all")
+                {
+                    IncludedExcludedKeys.Clear();
+                    _excludeAllMode = true;
+                }
+                //else if (lkey == "+nokey")
+                //{
+                //    ExcludeNoKeyMessages = false;
+                //}
+                //else if (lkey == "-nokey")
+                //{
+                //    ExcludeNoKeyMessages = true;
+                //}
+                else
+                {
+                    string key;
+                    if (lkey.StartsWith("-"))
+                    {
+                        key = lkey.Substring(1);
+                        // if in exclude all mode, we need to remove this from the inclusions
+                        if (_excludeAllMode)
+                        {
+                            if (IncludedExcludedKeys.ContainsKey(key))
+                                IncludedExcludedKeys.Remove(key);
+                        }
+                        // otherwise include all mode, add to the exclusions
+                        else
+                        {
+                            IncludedExcludedKeys[key] = new object();
+                        }
+                    }
+                    else if (lkey.StartsWith("+"))
+                    {
+                        key = lkey.Substring(1);
+                        // if in exclude all mode, we need to add this as inclusion
+                        if (_excludeAllMode)
+                        {
+                            IncludedExcludedKeys[key] = new object();
+                        }
+                        // otherwise include all mode, remove this from exclusions
+                        else
+                        {
+                            if (IncludedExcludedKeys.ContainsKey(key))
+                                IncludedExcludedKeys.Remove(key);
+                        }
+                    }
+                }
+            }
+        }
 
 
         /// <summary>
@@ -330,7 +336,7 @@ namespace PepperDash.Core
         public static object GetDeviceDebugSettingsForKey(string deviceKey)
         {
             return _contexts.GetDebugSettingsForKey(deviceKey);
-        }  
+        }
 
         /// <summary>
         /// Sets the flag to prevent application starting on next boot
@@ -351,8 +357,8 @@ namespace PepperDash.Core
         /// </summary>
         public static void ShowDebugLog(string s)
         {
-            var loglist = CrestronLogger.PrintTheLog(s.ToLower() == "all");
-            foreach (var l in loglist)
+            List<string> loglist = CrestronLogger.PrintTheLog(s.ToLower() == "all");
+            foreach (string l in loglist)
                 CrestronConsole.ConsoleCommandResponse(l + CrestronEnvironment.NewLine);
         }
 
@@ -366,12 +372,13 @@ namespace PepperDash.Core
         public static void Console(uint level, string format, params object[] items)
         {
             if (Level >= level)
-                CrestronConsole.PrintLine("[{0}]App {1}:{2}", DateTime.Now.ToString("HH:mm:ss.fff"), InitialParametersClass.ApplicationNumber,
+                CrestronConsole.PrintLine("[{0}]App {1}:{2}", DateTime.Now.ToString("HH:mm:ss.fff"),
+                    InitialParametersClass.ApplicationNumber,
                     string.Format(format, items));
         }
 
         /// <summary>
-		/// Logs to Console when at-level, and all messages to error log, including device key			
+        /// Logs to Console when at-level, and all messages to error log, including device key			
         /// </summary>
         public static void Console(uint level, IKeyed dev, string format, params object[] items)
         {
@@ -386,32 +393,34 @@ namespace PepperDash.Core
         public static void Console(uint level, IKeyed dev, ErrorLogLevel errorLogLevel,
             string format, params object[] items)
         {
-            var str = string.Format("[{0}] {1}", dev.Key, string.Format(format, items));
+            string str = string.Format("[{0}] {1}", dev.Key, string.Format(format, items));
             if (errorLogLevel != ErrorLogLevel.None)
             {
                 LogError(errorLogLevel, str);
             }
+
             if (Level >= level)
             {
                 Console(level, str);
             }
         }
 
-		/// <summary>
-		/// Logs to Console when at-level, and all messages to error log
-		/// </summary>
+        /// <summary>
+        /// Logs to Console when at-level, and all messages to error log
+        /// </summary>
         public static void Console(uint level, ErrorLogLevel errorLogLevel,
             string format, params object[] items)
         {
-            var str = string.Format(format, items);
+            string str = string.Format(format, items);
             if (errorLogLevel != ErrorLogLevel.None)
             {
                 LogError(errorLogLevel, str);
             }
-			if (Level >= level)
-			{
-				Console(level, str);
-			}
+
+            if (Level >= level)
+            {
+                Console(level, str);
+            }
         }
 
         /// <summary>
@@ -421,7 +430,7 @@ namespace PepperDash.Core
         /// </summary>
         public static void ConsoleWithLog(uint level, string format, params object[] items)
         {
-            var str = string.Format(format, items);
+            string str = string.Format(format, items);
             if (Level >= level)
                 CrestronConsole.PrintLine("App {0}:{1}", InitialParametersClass.ApplicationNumber, str);
             CrestronLogger.WriteToLog(str, level);
@@ -434,7 +443,7 @@ namespace PepperDash.Core
         /// </summary>
         public static void ConsoleWithLog(uint level, IKeyed dev, string format, params object[] items)
         {
-            var str = string.Format(format, items);
+            string str = string.Format(format, items);
             if (Level >= level)
                 ConsoleWithLog(level, "[{0}] {1}", dev.Key, str);
         }
@@ -446,7 +455,7 @@ namespace PepperDash.Core
         /// <param name="str"></param>
         public static void LogError(ErrorLogLevel errorLogLevel, string str)
         {
-            var msg = string.Format("App {0}:{1}", InitialParametersClass.ApplicationNumber, str);
+            string msg = string.Format("App {0}:{1}", InitialParametersClass.ApplicationNumber, str);
             switch (errorLogLevel)
             {
                 case ErrorLogLevel.Error:
@@ -486,9 +495,9 @@ namespace PepperDash.Core
             //if (!Directory.Exists(dir))
             //    Directory.Create(dir);
 
-            using (var sw = new StreamWriter(GetMemoryFileName()))
+            using (StreamWriter sw = new StreamWriter(GetMemoryFileName()))
             {
-                var json = JsonConvert.SerializeObject(_contexts);
+                string json = JsonConvert.SerializeObject(_contexts);
                 sw.Write(json);
                 sw.Flush();
             }
@@ -499,12 +508,12 @@ namespace PepperDash.Core
         /// </summary>
         static void LoadMemory()
         {
-            var file = GetMemoryFileName();
+            string file = GetMemoryFileName();
             if (File.Exists(file))
             {
-                using (var sr = new StreamReader(file))
+                using (StreamReader sr = new StreamReader(file))
                 {
-                    var json = sr.ReadToEnd();
+                    string json = sr.ReadToEnd();
                     _contexts = JsonConvert.DeserializeObject<DebugContextCollection>(json);
 
                     if (_contexts != null)
@@ -529,8 +538,10 @@ namespace PepperDash.Core
 
         private static void CheckForMigration()
         {
-            var oldFilePath = String.Format(@"\nvram\debugSettings\program{0}", InitialParametersClass.ApplicationNumber);
-            var newFilePath = String.Format(@"\user\debugSettings\program{0}", InitialParametersClass.ApplicationNumber);
+            string oldFilePath =
+                string.Format(@"\nvram\debugSettings\program{0}", InitialParametersClass.ApplicationNumber);
+            string newFilePath =
+                string.Format(@"\user\debugSettings\program{0}", InitialParametersClass.ApplicationNumber);
 
             //check for file at old path
             if (!File.Exists(oldFilePath))
@@ -545,8 +556,9 @@ namespace PepperDash.Core
             }
 
             Console(0, ErrorLogLevel.Notice,
-                String.Format(
-                    @"File found at \nvram\debugSettings\program{0}. Migrating to \user\debugSettings\program{0}", InitialParametersClass.ApplicationNumber));
+                string.Format(
+                    @"File found at \nvram\debugSettings\program{0}. Migrating to \user\debugSettings\program{0}",
+                    InitialParametersClass.ApplicationNumber));
 
             //Copy file from old path to new path, then delete it. This will overwrite the existing file
             File.Copy(oldFilePath, newFilePath, true);
@@ -563,7 +575,10 @@ namespace PepperDash.Core
 
         public enum ErrorLogLevel
         {
-            Error, Warning, Notice, None
+            Error,
+            Warning,
+            Notice,
+            None
         }
     }
 }

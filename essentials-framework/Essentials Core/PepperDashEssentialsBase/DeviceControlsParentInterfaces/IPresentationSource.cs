@@ -14,6 +14,7 @@
 //        PresentationSourceType Type { get; }
 //        string IconName { get; set; }
 //        BoolFeedback HasPowerOnFeedback { get; }
-		
+
 //    }
 //}
+

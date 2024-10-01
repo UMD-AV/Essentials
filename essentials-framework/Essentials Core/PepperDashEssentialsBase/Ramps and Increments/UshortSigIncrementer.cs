@@ -1,6 +1,5 @@
 ﻿using Crestron.SimplSharp;
 using Crestron.SimplSharpPro;
-
 using PepperDash.Core;
 
 namespace PepperDash.Essentials.Core
@@ -19,7 +18,8 @@ namespace PepperDash.Essentials.Core
         bool SignedMode;
         CTimer Timer;
 
-        public UshortSigIncrementer(UShortInputSig sig, ushort changeAmount, int minValue, int maxValue, uint repeatDelay, uint repeatTime)
+        public UshortSigIncrementer(UShortInputSig sig, ushort changeAmount, int minValue, int maxValue,
+            uint repeatDelay, uint repeatTime)
         {
             TheSig = sig;
             ChangeAmount = changeAmount;
@@ -77,6 +77,7 @@ namespace PepperDash.Essentials.Core
             }
             else
                 levelOut = levelIn;
+
             return IsAtLimit;
         }
 

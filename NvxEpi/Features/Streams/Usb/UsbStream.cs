@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Crestron.SimplSharp;
+using Crestron.SimplSharpPro;
 using Crestron.SimplSharpPro.DM.Endpoints;
 using Crestron.SimplSharpPro.DM.Streaming;
 using Newtonsoft.Json;
@@ -22,17 +24,18 @@ namespace NvxEpi.Features.Streams.Usb
         {
             try
             {
-                var props = incomingProps ?? new NvxUsbProperties()
+                NvxUsbProperties props = incomingProps ?? new NvxUsbProperties()
                 {
                     Mode = "local",
                     Default = string.Empty,
                     FollowVideo = false,
                     IsLayer3 = false
                 };
-                    //if (Debug.Level >= 0)
-                    //    Debug.Console(0, device.Key, JsonConvert.SerializeObject(props, Formatting.Indented));
-                
-                Debug.Console(1, device, "Mode : \"{0}\", Default : \"{1}\", FollowVideo = \"{2}\"", props.Mode, props.Default, props.FollowVideo);
+                //if (Debug.Level >= 0)
+                //    Debug.Console(0, device.Key, JsonConvert.SerializeObject(props, Formatting.Indented));
+
+                Debug.Console(1, device, "Mode : \"{0}\", Default : \"{1}\", FollowVideo = \"{2}\"", props.Mode,
+                    props.Default, props.FollowVideo);
 
                 return props.Mode.Equals("local", StringComparison.OrdinalIgnoreCase)
                     ? new UsbStream(device, false, props.FollowVideo, props.Default, props.IsLayer3)
@@ -55,7 +58,8 @@ namespace NvxEpi.Features.Streams.Usb
         private readonly ReadOnlyDictionary<uint, StringFeedback> _usbRemoteIds;
         private readonly bool _isRemote;
 
-        private UsbStream(INvxDeviceWithHardware device, bool isRemote, bool followStream, string defaultPair, bool isLayer3)
+        private UsbStream(INvxDeviceWithHardware device, bool isRemote, bool followStream, string defaultPair,
+            bool isLayer3)
         {
             _device = device;
             _isRemote = isRemote;
@@ -63,33 +67,34 @@ namespace NvxEpi.Features.Streams.Usb
             _usbRemoteIds = UsbRemoteAddressFeedback.GetFeedbacks(device.Hardware);
 
             device.Feedbacks.AddRange(new Feedback[]
-                {
-                    _usbLocalId,
-                    new BoolFeedback("UsbFollowsVideoStream", () => !followStream || IsTransmitter), 
-                    UsbRemoteAddressFeedback.GetFeedback(device.Hardware),
-                    UsbModeFeedback.GetFeedback(Hardware),
-                    UsbStatusFeedback.GetFeedback(Hardware),
-                    UsbRouteFeedback.GetFeedback(device.Hardware)
-                });
+            {
+                _usbLocalId,
+                new BoolFeedback("UsbFollowsVideoStream", () => !followStream || IsTransmitter),
+                UsbRemoteAddressFeedback.GetFeedback(device.Hardware),
+                UsbModeFeedback.GetFeedback(Hardware),
+                UsbStatusFeedback.GetFeedback(Hardware),
+                UsbRouteFeedback.GetFeedback(device.Hardware)
+            });
 
 
-
-            foreach (var item in _usbRemoteIds.Values)
+            foreach (StringFeedback item in _usbRemoteIds.Values)
                 _device.Feedbacks.Add(item);
 
             Hardware.OnlineStatusChange += (currentDevice, args) =>
-                {
-                    if (!args.DeviceOnLine || Hardware.UsbInput == null)
-                        return;
+            {
+                if (!args.DeviceOnLine || Hardware.UsbInput == null)
+                    return;
 
-                    Hardware.UsbInput.AutomaticUsbPairingEnabled();
-                    Hardware.UsbInput.Mode = IsRemote ? DmNvxUsbInput.eUsbMode.Remote : DmNvxUsbInput.eUsbMode.Local;
-                    Hardware.UsbInput.TransportMode = isLayer3 ? DmNvxUsbInput.eUsbTransportMode.Layer3 : DmNvxUsbInput.eUsbTransportMode.Layer2;
-                    if (!followStream || IsTransmitter)
-                        return;
+                Hardware.UsbInput.AutomaticUsbPairingEnabled();
+                Hardware.UsbInput.Mode = IsRemote ? DmNvxUsbInput.eUsbMode.Remote : DmNvxUsbInput.eUsbMode.Local;
+                Hardware.UsbInput.TransportMode = isLayer3
+                    ? DmNvxUsbInput.eUsbTransportMode.Layer3
+                    : DmNvxUsbInput.eUsbTransportMode.Layer2;
+                if (!followStream || IsTransmitter)
+                    return;
 
-                    SetDefaultStream(isRemote, defaultPair);
-                };
+                SetDefaultStream(isRemote, defaultPair);
+            };
 
             if (Hardware.UsbInput == null)
             {
@@ -104,7 +109,7 @@ namespace NvxEpi.Features.Streams.Usb
                 return;
             }
 
-            var stream = device as ICurrentStream;
+            ICurrentStream stream = device as ICurrentStream;
             if (stream == null)
             {
                 return;
@@ -117,7 +122,7 @@ namespace NvxEpi.Features.Streams.Usb
         {
             if (args.EventId == UsbInputEventIds.RemoteDeviceIdFeedbackEventId)
             {
-                var feedback =_device.Feedbacks.FirstOrDefault(o => o.Key == UsbRouteFeedback.Key);
+                Feedback feedback = _device.Feedbacks.FirstOrDefault(o => o.Key == UsbRouteFeedback.Key);
                 feedback.FireUpdate();
             }
         }
@@ -131,9 +136,9 @@ namespace NvxEpi.Features.Streams.Usb
             }
 
             Debug.Console(0, this, "Trying USB Route {0}", hardware.UsbLocalId.StringValue);
-            
+
             ClearCurrentUsbRoute();
-            if (String.IsNullOrEmpty(hardware.UsbLocalId.StringValue)) return;
+            if (string.IsNullOrEmpty(hardware.UsbLocalId.StringValue)) return;
 
 
             /*else*/
@@ -155,13 +160,13 @@ namespace NvxEpi.Features.Streams.Usb
 
         private void FollowCurrentRoute(string streamUrl)
         {
-            if (String.IsNullOrEmpty(streamUrl))
+            if (string.IsNullOrEmpty(streamUrl))
             {
                 ClearCurrentUsbRoute();
                 return;
             }
 
-            var result = DeviceManager
+            IUsbStreamWithHardware result = DeviceManager
                 .AllDevices
                 .OfType<IStreamWithHardware>()
                 .FirstOrDefault(x =>
@@ -171,21 +176,24 @@ namespace NvxEpi.Features.Streams.Usb
                         Debug.Console(1, this, "StreamUrl Is Null!");
                         return false;
                     }
-                    if (String.IsNullOrEmpty(x.StreamUrl.StringValue))
+
+                    if (string.IsNullOrEmpty(x.StreamUrl.StringValue))
                     {
                         Debug.Console(1, this, "StreamUrl Is Empty!");
                         return false;
                     }
+
                     Debug.Console(1, this, "StreamUrl Is Valid!");
 
                     return x.IsTransmitter && x.StreamUrl.StringValue.Equals(streamUrl);
                 }) as IUsbStreamWithHardware;
 
 
-            var currentRoute = result;
+            IUsbStreamWithHardware currentRoute = result;
             //if (currentRoute == null)
             ClearCurrentUsbRoute();
-            /*else*/ if (IsRemote && !currentRoute.IsRemote)
+            /*else*/
+            if (IsRemote && !currentRoute.IsRemote)
             {
                 Debug.Console(1, this, "Routing to Local from CurrentRoute : {0}!", currentRoute.Name);
 
@@ -205,30 +213,34 @@ namespace NvxEpi.Features.Streams.Usb
         {
             Debug.Console(1, this, "Setting remote id to : {0}", UsbStreamExt.ClearUsbValue);
             Hardware.UsbInput.RemoteDeviceId.StringValue = UsbStreamExt.ClearUsbValue;
-            foreach (var usb in Hardware.UsbInput.RemoteDeviceIds)
+            foreach (StringInputSig usb in Hardware.UsbInput.RemoteDeviceIds)
             {
                 usb.StringValue = UsbStreamExt.ClearUsbValue;
             }
-            if(Hardware.UsbInput.AutomaticUsbPairingDisabledFeedback.BoolValue)
+
+            if (Hardware.UsbInput.AutomaticUsbPairingDisabledFeedback.BoolValue)
                 Hardware.UsbInput.RemovePairing();
             ClearRemoteUsbRoute();
         }
 
         public void ClearRemoteUsbRoute()
         {
-            foreach (var item in
-                DeviceManager.AllDevices.OfType<IUsbStreamWithHardware>()
-                    .Where(device => device.Hardware.UsbInput.RemoteDeviceIdFeedback.StringValue.Equals(Hardware.UsbInput.LocalDeviceIdFeedback.StringValue))
-                )
+            foreach (IUsbStreamWithHardware item in
+                     DeviceManager.AllDevices.OfType<IUsbStreamWithHardware>()
+                         .Where(device =>
+                             device.Hardware.UsbInput.RemoteDeviceIdFeedback.StringValue.Equals(Hardware.UsbInput
+                                 .LocalDeviceIdFeedback.StringValue))
+                    )
             {
                 item.Hardware.UsbInput.RemoteDeviceId.StringValue = UsbStreamExt.ClearUsbValue;
-                foreach (var id in item.Hardware.UsbInput.RemoteDeviceIds)
+                foreach (StringInputSig id in item.Hardware.UsbInput.RemoteDeviceIds)
                 {
                     if (!id.StringValue.Equals(UsbStreamExt.ClearUsbValue, StringComparison.OrdinalIgnoreCase))
                     {
                         id.StringValue = UsbStreamExt.ClearUsbValue;
                     }
                 }
+
                 if (item.Hardware.UsbInput.AutomaticUsbPairingDisabledFeedback.BoolValue)
                     item.Hardware.UsbInput.RemovePairing();
             }
@@ -236,23 +248,22 @@ namespace NvxEpi.Features.Streams.Usb
 
         private static void ClearRemoteUsbStreamToLocal(string usbId)
         {
-            var results =
+            IEnumerable<IUsbStreamWithHardware> results =
                 DeviceManager.AllDevices.OfType<IUsbStreamWithHardware>().Where(x => !x.IsRemote);
 
             IUsbStreamWithHardware local = null;
             uint index = 0;
-            foreach (var usbStream in results)
+            foreach (IUsbStreamWithHardware usbStream in results)
             {
-                foreach (var item in usbStream.UsbRemoteIds.Where(s =>
-                {
-                    if (s.Value == null)
-                    {
-                        
-                        return false;
-                    }
+                foreach (KeyValuePair<uint, StringFeedback> item in usbStream.UsbRemoteIds.Where(s =>
+                         {
+                             if (s.Value == null)
+                             {
+                                 return false;
+                             }
 
-                    return !String.IsNullOrEmpty(s.Value.StringValue) && s.Value.StringValue.Equals(usbId);
-                }))
+                             return !string.IsNullOrEmpty(s.Value.StringValue) && s.Value.StringValue.Equals(usbId);
+                         }))
                 {
                     local = usbStream;
                     index = item.Key;
@@ -276,20 +287,21 @@ namespace NvxEpi.Features.Streams.Usb
 
             Debug.Console(1, local, "Setting remote id to : {0}", UsbStreamExt.ClearUsbValue);
             local.Hardware.UsbInput.RemoteDeviceId.StringValue = UsbStreamExt.ClearUsbValue;
-            foreach (var usb in local.Hardware.UsbInput.RemoteDeviceIds)
+            foreach (StringInputSig usb in local.Hardware.UsbInput.RemoteDeviceIds)
             {
                 usb.StringValue = UsbStreamExt.ClearUsbValue;
             }
-            if(local.Hardware.UsbInput.AutomaticUsbPairingDisabledFeedback.BoolValue)
+
+            if (local.Hardware.UsbInput.AutomaticUsbPairingDisabledFeedback.BoolValue)
                 local.Hardware.UsbInput.RemovePairing();
         }
 
         private void SetDefaultStream(bool isRemote, string defaultPair)
         {
-            if (!isRemote || String.IsNullOrEmpty(defaultPair))
+            if (!isRemote || string.IsNullOrEmpty(defaultPair))
                 return;
 
-            var local = DeviceManager.GetDeviceForKey(defaultPair) as IUsbStreamWithHardware;
+            IUsbStreamWithHardware local = DeviceManager.GetDeviceForKey(defaultPair) as IUsbStreamWithHardware;
             if (local == null)
                 return;
 

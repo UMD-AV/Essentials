@@ -3,7 +3,6 @@ using Crestron.SimplSharpPro.DeviceSupport;
 using Crestron.SimplSharpPro.DM;
 using Crestron.SimplSharpPro.DM.Endpoints;
 using Crestron.SimplSharpPro.DM.Endpoints.Receivers;
-
 using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Bridges;
 
@@ -38,18 +37,21 @@ namespace PepperDash.Essentials.DM
             HdmiOut = new RoutingOutputPort(DmPortName.HdmiOut, eRoutingSignalType.AudioVideo,
                 eRoutingPortConnectionType.Hdmi, null, this);
 
-            EdidManufacturerFeedback = new StringFeedback(() => _rmc.HdmiOutput.ConnectedDevice.Manufacturer.StringValue);
+            EdidManufacturerFeedback =
+                new StringFeedback(() => _rmc.HdmiOutput.ConnectedDevice.Manufacturer.StringValue);
             EdidNameFeedback = new StringFeedback(() => _rmc.HdmiOutput.ConnectedDevice.Name.StringValue);
-            EdidPreferredTimingFeedback = new StringFeedback(() => _rmc.HdmiOutput.ConnectedDevice.PreferredTiming.StringValue);
-            EdidSerialNumberFeedback = new StringFeedback(() => _rmc.HdmiOutput.ConnectedDevice.SerialNumber.StringValue);
+            EdidPreferredTimingFeedback =
+                new StringFeedback(() => _rmc.HdmiOutput.ConnectedDevice.PreferredTiming.StringValue);
+            EdidSerialNumberFeedback =
+                new StringFeedback(() => _rmc.HdmiOutput.ConnectedDevice.SerialNumber.StringValue);
 
             VideoOutputResolutionFeedback = new StringFeedback(() => _rmc.HdmiOutput.GetVideoResolutionString());
 
             _rmc.HdmiOutput.OutputStreamChange += HdmiOutput_OutputStreamChange;
             _rmc.HdmiOutput.ConnectedDevice.DeviceInformationChange += ConnectedDevice_DeviceInformationChange;
 
-            InputPorts = new RoutingPortCollection<RoutingInputPort> {DmIn};
-            OutputPorts = new RoutingPortCollection<RoutingOutputPort> {HdmiOut};
+            InputPorts = new RoutingPortCollection<RoutingInputPort> { DmIn };
+            OutputPorts = new RoutingPortCollection<RoutingOutputPort> { HdmiOut };
 
             // Set Ports for CEC
             HdmiOut.Port = _rmc.HdmiOutput;
@@ -57,14 +59,16 @@ namespace PepperDash.Essentials.DM
 
         void HdmiOutput_OutputStreamChange(EndpointOutputStream outputStream, EndpointOutputStreamEventArgs args)
         {
-            if (args.EventId == EndpointOutputStreamEventIds.HorizontalResolutionFeedbackEventId || args.EventId == EndpointOutputStreamEventIds.VerticalResolutionFeedbackEventId ||
+            if (args.EventId == EndpointOutputStreamEventIds.HorizontalResolutionFeedbackEventId ||
+                args.EventId == EndpointOutputStreamEventIds.VerticalResolutionFeedbackEventId ||
                 args.EventId == EndpointOutputStreamEventIds.FramesPerSecondFeedbackEventId)
             {
                 VideoOutputResolutionFeedback.FireUpdate();
             }
         }
 
-        void ConnectedDevice_DeviceInformationChange(ConnectedDeviceInformation connectedDevice, ConnectedDeviceEventArgs args)
+        void ConnectedDevice_DeviceInformationChange(ConnectedDeviceInformation connectedDevice,
+            ConnectedDeviceEventArgs args)
         {
             switch (args.EventId)
             {
@@ -90,20 +94,43 @@ namespace PepperDash.Essentials.DM
         }
 
         #region IIROutputPorts Members
-        public CrestronCollection<IROutputPort> IROutputPorts { get { return _rmc.IROutputPorts; } }
-        public int NumberOfIROutputPorts { get { return _rmc.NumberOfIROutputPorts; } }
+
+        public CrestronCollection<IROutputPort> IROutputPorts
+        {
+            get { return _rmc.IROutputPorts; }
+        }
+
+        public int NumberOfIROutputPorts
+        {
+            get { return _rmc.NumberOfIROutputPorts; }
+        }
+
         #endregion
 
         #region IComPorts Members
-        public CrestronCollection<ComPort> ComPorts { get { return _rmc.ComPorts; } }
-        public int NumberOfComPorts { get { return _rmc.NumberOfComPorts; } }
+
+        public CrestronCollection<ComPort> ComPorts
+        {
+            get { return _rmc.ComPorts; }
+        }
+
+        public int NumberOfComPorts
+        {
+            get { return _rmc.NumberOfComPorts; }
+        }
+
         #endregion
 
         #region ICec Members
+
         /// <summary>
         /// Gets the CEC stream directly from the HDMI port.
         /// </summary>
-        public Cec StreamCec { get { return _rmc.HdmiOutput.StreamCec; } }
+        public Cec StreamCec
+        {
+            get { return _rmc.HdmiOutput.StreamCec; }
+        }
+
         #endregion
     }
 }

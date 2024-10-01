@@ -38,6 +38,7 @@ namespace NvxEpi.Extensions
                 Debug.Console(1, device, "Device is unable to use method 'SetVideoToHdmiInput1'");
                 return;
             }
+
             Debug.Console(1, device, "Switching Video Input to : 'Hdmi1'");
             device.Hardware.Control.VideoSource = eSfpVideoSourceTypes.Hdmi1;
         }
@@ -49,6 +50,7 @@ namespace NvxEpi.Extensions
                 Debug.Console(1, device, "Device is unable to use method 'SetVideoToHdmiInput2'");
                 return;
             }
+
             Debug.Console(1, device, "Switching Video Input to : 'Hdmi2'");
             device.Hardware.Control.VideoSource = eSfpVideoSourceTypes.Hdmi2;
         }
@@ -60,6 +62,7 @@ namespace NvxEpi.Extensions
                 Debug.Console(1, device, "Device is unable to use method 'SetVideoToInputNone'");
                 return;
             }
+
             Debug.Console(1, device, "Switching Video Input to : 'Disable'");
             device.Hardware.Control.VideoSource = eSfpVideoSourceTypes.Disable;
         }

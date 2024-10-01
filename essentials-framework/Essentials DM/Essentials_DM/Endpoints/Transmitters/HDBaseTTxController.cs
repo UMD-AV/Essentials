@@ -3,9 +3,7 @@ using Crestron.SimplSharpPro;
 using Crestron.SimplSharpPro.DeviceSupport;
 using Crestron.SimplSharpPro.DM.Endpoints.Transmitters;
 using Newtonsoft.Json;
-
 using PepperDash.Core;
-
 using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Bridges;
 
@@ -48,11 +46,18 @@ namespace PepperDash.Essentials.DM
         public RoutingPortCollection<RoutingOutputPort> OutputPorts { get; private set; }
 
         #endregion
-        
+
         #region IComPorts Members
 
-        public CrestronCollection<ComPort> ComPorts { get { return (Hardware as HDTx3CB).ComPorts; } }
-        public int NumberOfComPorts { get { return (Hardware as HDTx3CB).NumberOfComPorts; } }
+        public CrestronCollection<ComPort> ComPorts
+        {
+            get { return (Hardware as HDTx3CB).ComPorts; }
+        }
+
+        public int NumberOfComPorts
+        {
+            get { return (Hardware as HDTx3CB).NumberOfComPorts; }
+        }
 
         #endregion
 
@@ -60,9 +65,9 @@ namespace PepperDash.Essentials.DM
 
         public override void LinkToApi(BasicTriList trilist, uint joinStart, string joinMapKey, EiscApiAdvanced bridge)
         {
-            var joinMap = new HDBaseTTxControllerJoinMap(joinStart);
+            HDBaseTTxControllerJoinMap joinMap = new HDBaseTTxControllerJoinMap(joinStart);
 
-            var joinMapSerialized = JoinMapHelper.GetSerializedJoinMapForDevice(joinMapKey);
+            string joinMapSerialized = JoinMapHelper.GetSerializedJoinMapForDevice(joinMapKey);
 
             if (!string.IsNullOrEmpty(joinMapSerialized))
                 joinMap = JsonConvert.DeserializeObject<HDBaseTTxControllerJoinMap>(joinMapSerialized);
@@ -74,7 +79,8 @@ namespace PepperDash.Essentials.DM
             }
             else
             {
-                Debug.Console(0, this, "Please update config to use 'eiscapiadvanced' to get all join map features for this device.");
+                Debug.Console(0, this,
+                    "Please update config to use 'eiscapiadvanced' to get all join map features for this device.");
             }
 
             Debug.Console(1, this, "Linking to Trilist '{0}'", trilist.ID.ToString("X"));
@@ -88,8 +94,7 @@ namespace PepperDash.Essentials.DM
 
     public class HDBaseTTxControllerJoinMap : JoinMapBaseAdvanced
     {
-        [JoinName("IsOnline")]
-        public JoinDataComplete IsOnline = new JoinDataComplete(
+        [JoinName("IsOnline")] public JoinDataComplete IsOnline = new JoinDataComplete(
             new JoinData
             {
                 JoinNumber = 1,
@@ -102,18 +107,21 @@ namespace PepperDash.Essentials.DM
                 JoinType = eJoinType.Digital
             });
 
-        [JoinName("Name")]
-        public JoinDataComplete Name = new JoinDataComplete(new JoinData { JoinNumber = 2, JoinSpan = 1 },
-            new JoinMetadata { Description = "DM Tx Name", JoinCapabilities = eJoinCapabilities.ToSIMPL, JoinType = eJoinType.Serial });
-	
+        [JoinName("Name")] public JoinDataComplete Name = new JoinDataComplete(
+            new JoinData { JoinNumber = 2, JoinSpan = 1 },
+            new JoinMetadata
+            {
+                Description = "DM Tx Name", JoinCapabilities = eJoinCapabilities.ToSIMPL, JoinType = eJoinType.Serial
+            });
+
         /// <summary>
-		/// Plugin device BridgeJoinMap constructor
-		/// </summary>
-		/// <param name="joinStart">This will be the join it starts on the EISC bridge</param>
+        /// Plugin device BridgeJoinMap constructor
+        /// </summary>
+        /// <param name="joinStart">This will be the join it starts on the EISC bridge</param>
         public HDBaseTTxControllerJoinMap(uint joinStart)
             : this(joinStart, typeof(HDBaseTTxControllerJoinMap))
-		{
-		}
+        {
+        }
 
         /// <summary>
         /// Constructor to use when extending this Join map

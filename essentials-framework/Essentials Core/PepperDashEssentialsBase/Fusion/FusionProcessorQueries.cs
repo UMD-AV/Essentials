@@ -13,12 +13,12 @@ namespace PepperDash.Essentials.Core.Fusion
 
         public static Dictionary<int, ProcessorProgramItem> GetProcessorProgReg()
         {
-            var programs = new Dictionary<int, ProcessorProgramItem>();
+            Dictionary<int, ProcessorProgramItem> programs = new Dictionary<int, ProcessorProgramItem>();
             for (int i = 1; i <= Global.ControlSystem.NumProgramsSupported; i++)
             {
                 string response = null;
-                var success = CrestronConsole.SendControlSystemCommand("progcomments:" + i, ref response);
-                var item = new ProcessorProgramItem();
+                bool success = CrestronConsole.SendControlSystemCommand("progcomments:" + i, ref response);
+                ProcessorProgramItem item = new ProcessorProgramItem();
                 if (!success)
                     item.Name = "Error: PROGCOMMENTS failed";
                 else
@@ -27,9 +27,9 @@ namespace PepperDash.Essentials.Core.Fusion
                         item.Name = "";
                     else
                     {
-                        var startPos = response.IndexOf("Program File");
-                        var colonPos = response.IndexOf(":", startPos) + 1;
-                        var endPos = response.IndexOf(CrestronEnvironment.NewLine, colonPos);
+                        int startPos = response.IndexOf("Program File");
+                        int colonPos = response.IndexOf(":", startPos) + 1;
+                        int endPos = response.IndexOf(CrestronEnvironment.NewLine, colonPos);
                         item.Name = response.Substring(colonPos, endPos - colonPos).Trim();
                         item.Exists = true;
                         if (item.Name.Contains(".dll"))
@@ -41,9 +41,11 @@ namespace PepperDash.Essentials.Core.Fusion
                         }
                     }
                 }
+
                 programs[i] = item;
                 Debug.Console(1, "Program {0}: {1}", i, item.Name);
             }
+
             return programs;
         }
     }

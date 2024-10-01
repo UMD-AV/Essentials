@@ -19,15 +19,17 @@ namespace NvxEpi.Features.Streams.Audio
         private readonly IntFeedback _currentSecondaryAudioStreamId;
         private readonly StringFeedback _currentSecondaryAudioStreamName;
 
-        private readonly IList<ISecondaryAudioStream> _audioTransmitters = new List<ISecondaryAudioStream>(); 
+        private readonly IList<ISecondaryAudioStream> _audioTransmitters = new List<ISecondaryAudioStream>();
         private readonly CCriticalSection _lock = new CCriticalSection();
 
         private ISecondaryAudioStream _current;
 
         public CurrentSecondaryAudioStream(INvxDeviceWithHardware device) : base(device)
         {
-            _currentSecondaryAudioStreamId = new IntFeedback(RouteValueKey, () => _current != null ? _current.DeviceId : default( int ));
-            _currentSecondaryAudioStreamName = new StringFeedback(RouteNameKey, () => _current != null ? _current.Name : NvxGlobalRouter.NoSourceText);
+            _currentSecondaryAudioStreamId =
+                new IntFeedback(RouteValueKey, () => _current != null ? _current.DeviceId : default(int));
+            _currentSecondaryAudioStreamName = new StringFeedback(RouteNameKey,
+                () => _current != null ? _current.Name : NvxGlobalRouter.NoSourceText);
 
             Feedbacks.Add(CurrentSecondaryAudioStreamId);
             Feedbacks.Add(CurrentSecondaryAudioStreamName);
@@ -50,7 +52,7 @@ namespace NvxEpi.Features.Streams.Audio
             if (string.IsNullOrEmpty(RxAudioAddress.StringValue) || RxAudioAddress.StringValue.Equals("0.0.0.0"))
                 return null;
 
-            var result = _audioTransmitters
+            ISecondaryAudioStream result = _audioTransmitters
                 .Where(x => !string.IsNullOrEmpty(x.TxAudioAddress.StringValue))
                 .FirstOrDefault(
                     x => x.TxAudioAddress.StringValue.Equals(RxAudioAddress.StringValue));
@@ -68,7 +70,7 @@ namespace NvxEpi.Features.Streams.Audio
             if (result != null)
                 _audioTransmitters.Add(result);
 
-            return result;      
+            return result;
         }
 
         private void Initialize()

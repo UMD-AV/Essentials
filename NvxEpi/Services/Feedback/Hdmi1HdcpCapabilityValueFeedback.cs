@@ -13,7 +13,7 @@ namespace NvxEpi.Services.Feedback
             if (device.HdmiIn == null || device.HdmiIn[1] == null)
                 return new IntFeedback(() => 0);
 
-            var feedback = new IntFeedback(Key,
+            IntFeedback feedback = new IntFeedback(Key,
                 () => (int)device.HdmiIn[1].HdcpCapabilityFeedback);
 
             device.HdmiIn[1].StreamChange += (stream, args) => feedback.FireUpdate();

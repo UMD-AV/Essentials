@@ -12,7 +12,7 @@ namespace NvxEpi.Extensions
     {
         public static void SetDanteInput(this ICurrentDanteInput device, ushort input)
         {
-            var inputToSwitch = (DmNvxControl.eAudioSource) input;
+            DmNvxControl.eAudioSource inputToSwitch = (DmNvxControl.eAudioSource)input;
 
             switch (inputToSwitch)
             {

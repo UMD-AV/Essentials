@@ -13,17 +13,19 @@ namespace PepperDash_Essentials_Core.Extensions
         /*
          * Round shift values
          */
-        static int[] s = new int[64] {
-            7, 12, 17, 22,  7, 12, 17, 22,  7, 12, 17, 22,  7, 12, 17, 22,
-            5,  9, 14, 20,  5,  9, 14, 20,  5,  9, 14, 20,  5,  9, 14, 20,
-            4, 11, 16, 23,  4, 11, 16, 23,  4, 11, 16, 23,  4, 11, 16, 23,
-            6, 10, 15, 21,  6, 10, 15, 21,  6, 10, 15, 21,  6, 10, 15, 21
+        static int[] s = new int[64]
+        {
+            7, 12, 17, 22, 7, 12, 17, 22, 7, 12, 17, 22, 7, 12, 17, 22,
+            5, 9, 14, 20, 5, 9, 14, 20, 5, 9, 14, 20, 5, 9, 14, 20,
+            4, 11, 16, 23, 4, 11, 16, 23, 4, 11, 16, 23, 4, 11, 16, 23,
+            6, 10, 15, 21, 6, 10, 15, 21, 6, 10, 15, 21, 6, 10, 15, 21
         };
 
         /*
          * Constant K Values
          */
-        static uint[] K = new uint[64] { 
+        static uint[] K = new uint[64]
+        {
             0xd76aa478, 0xe8c7b756, 0x242070db, 0xc1bdceee,
             0xf57c0faf, 0x4787c62a, 0xa8304613, 0xfd469501,
             0x698098d8, 0x8b44f7af, 0xffff5bb1, 0x895cd7be,
@@ -50,16 +52,17 @@ namespace PepperDash_Essentials_Core.Extensions
         // assumes whole bytes as input
         public static string Calculate(byte[] input)
         {
-            uint a0 = 0x67452301;   // A
-            uint b0 = 0xefcdab89;   // B
-            uint c0 = 0x98badcfe;   // C
-            uint d0 = 0x10325476;   // D
+            uint a0 = 0x67452301; // A
+            uint b0 = 0xefcdab89; // B
+            uint c0 = 0x98badcfe; // C
+            uint d0 = 0x10325476; // D
 
-            var addLength = (56 - ((input.Length + 1) % 64)) % 64; // calculate the new length with padding
-            var processedInputBuilder = new List<byte>(input) { 0x80 };
+            int addLength = (56 - ((input.Length + 1) % 64)) % 64; // calculate the new length with padding
+            List<byte> processedInputBuilder = new List<byte>(input) { 0x80 };
             while (processedInputBuilder.Count % 64 != 56) processedInputBuilder.Add(0x0);
-            processedInputBuilder.AddRange(BitConverter.GetBytes((long)input.Length * 8)); // bit converter returns little-endian
-            var processedInput = processedInputBuilder.ToArray();
+            processedInputBuilder.AddRange(
+                BitConverter.GetBytes((long)input.Length * 8)); // bit converter returns little-endian
+            byte[] processedInput = processedInputBuilder.ToArray();
 
             byte[] length = BitConverter.GetBytes(input.Length * 8); // bit converter returns little-endian
             Array.Copy(length, 0, processedInput, processedInput.Length - 8, 4); // add length in bits
@@ -98,7 +101,7 @@ namespace PepperDash_Essentials_Core.Extensions
                         g = (7 * k) % 16;
                     }
 
-                    var dtemp = D;
+                    uint dtemp = D;
                     D = C;
                     C = B;
                     B = B + leftRotate((A + F + K[k] + M[g]), s[k]);
@@ -116,7 +119,7 @@ namespace PepperDash_Essentials_Core.Extensions
 
         private static string GetByteString(uint x)
         {
-            return String.Join("", BitConverter.GetBytes(x).Select(y => y.ToString("x2")).ToArray());
+            return string.Join("", BitConverter.GetBytes(x).Select(y => y.ToString("x2")).ToArray());
         }
     }
 }

@@ -6,20 +6,15 @@ namespace PepperDash.Essentials.Core.Config
 {
     public class DeviceConfig
     {
-        [JsonProperty("key")]
-        public string Key { get; set; }
+        [JsonProperty("key")] public string Key { get; set; }
 
-        [JsonProperty("uid")]
-        public int Uid { get; set; }
+        [JsonProperty("uid")] public int Uid { get; set; }
 
-        [JsonProperty("name")]
-        public string Name { get; set; }
+        [JsonProperty("name")] public string Name { get; set; }
 
-        [JsonProperty("group")]
-        public string Group { get; set; }
+        [JsonProperty("group")] public string Group { get; set; }
 
-        [JsonProperty("type")]
-        public string Type { get; set; }
+        [JsonProperty("type")] public string Type { get; set; }
 
         [JsonProperty("properties")]
         [JsonConverter(typeof(DevicePropertiesConverter))]
@@ -38,7 +33,9 @@ namespace PepperDash.Essentials.Core.Config
             //Properties = JToken.FromObject(dc.Properties);
         }
 
-        public DeviceConfig() {}
+        public DeviceConfig()
+        {
+        }
     }
 
     /// <summary>
@@ -46,23 +43,20 @@ namespace PepperDash.Essentials.Core.Config
     /// </summary>
     public class DevicePropertiesConverter : JsonConverter
     {
-
         public override bool CanConvert(Type objectType)
         {
             return objectType == typeof(JToken);
         }
 
-        public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+        public override object ReadJson(JsonReader reader, Type objectType, object existingValue,
+            JsonSerializer serializer)
         {
             return JToken.ReadFrom(reader);
         }
 
         public override bool CanWrite
         {
-            get
-            {
-                return false;
-            }
+            get { return false; }
         }
 
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)

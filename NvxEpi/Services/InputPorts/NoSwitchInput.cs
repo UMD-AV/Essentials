@@ -8,7 +8,7 @@ namespace NvxEpi.Services.InputPorts
     {
         public static void AddRoutingPort(INvxDevice device)
         {
-            var port = new RoutingInputPort(
+            RoutingInputPort port = new RoutingInputPort(
                 DeviceInputEnum.NoSwitch.Name,
                 eRoutingSignalType.AudioVideo,
                 eRoutingPortConnectionType.Streaming,

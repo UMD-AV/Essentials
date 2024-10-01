@@ -12,7 +12,7 @@ namespace NvxEpi.Services.Feedback
             if (device.HdmiOut == null)
                 return new IntFeedback(() => 0);
 
-            var feedback = new IntFeedback(Key, () => device.HdmiOut.VideoWallModeFeedback.UShortValue);
+            IntFeedback feedback = new IntFeedback(Key, () => device.HdmiOut.VideoWallModeFeedback.UShortValue);
             device.HdmiOut.StreamChange += (stream, args) => feedback.FireUpdate();
 
             return feedback;

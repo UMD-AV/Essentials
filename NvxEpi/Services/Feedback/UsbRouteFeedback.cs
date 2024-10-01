@@ -23,14 +23,14 @@ namespace NvxEpi.Services.Feedback
     public static class UsbRouteFeedback
     {
         public const string Key = "UsbRoute";
-        
+
         public static IntFeedback GetFeedback(DmNvxBaseClass device)
         {
             if (device.UsbInput == null)
                 return new IntFeedback(Key, () => 0);
 
-            var usbRoute = ReturnRoute(device);
-            var usbRouteFb = new IntFeedback(Key, () => usbRoute);
+            int usbRoute = ReturnRoute(device);
+            IntFeedback usbRouteFb = new IntFeedback(Key, () => usbRoute);
 
             device.UsbInput.UsbInputChange += (s, a) =>
             {
@@ -51,16 +51,16 @@ namespace NvxEpi.Services.Feedback
                 return 0;
             }
 
-            var deviceIp = device.Network.IpAddressFeedback.StringValue;
+            string deviceIp = device.Network.IpAddressFeedback.StringValue;
 
-            var remoteDeviceId = String.IsNullOrEmpty(device.UsbInput.RemoteDeviceIdFeedback.StringValue)
+            string remoteDeviceId = string.IsNullOrEmpty(device.UsbInput.RemoteDeviceIdFeedback.StringValue)
                 ? "00"
                 : device.UsbInput.RemoteDeviceIdFeedback.StringValue;
 
             Debug.Console(2, "{1} :: remoteDeviceId = {0}", remoteDeviceId, deviceIp);
             if (remoteDeviceId.Equals(UsbStreamExt.ClearUsbValue)) return 0;
 
-            var remoteEndpoint = DeviceManager.AllDevices.OfType<NvxBaseDevice>()
+            NvxBaseDevice remoteEndpoint = DeviceManager.AllDevices.OfType<NvxBaseDevice>()
                 .Where(d => d.Hardware.UsbInput != null)
                 .FirstOrDefault(
                     o =>
@@ -72,21 +72,24 @@ namespace NvxEpi.Services.Feedback
                 return 0;
             }
 
-            var sb = new StringBuilder(Newline);
+            StringBuilder sb = new StringBuilder(Newline);
             sb.AppendFormat("Device ID :: {0}" + Newline, remoteEndpoint.DeviceId);
             sb.AppendFormat("IsTransmitter :: {0}" + Newline, remoteEndpoint.IsTransmitter);
-            sb.AppendFormat("IP Address :: {0}" + Newline, remoteEndpoint.Hardware.Network.IpAddressFeedback.StringValue);
-            sb.AppendFormat("Local USB Address :: {0}" + Newline, remoteEndpoint.Hardware.UsbInput.LocalDeviceIdFeedback.StringValue);
-            sb.AppendFormat("Remote USB Address :: {0}" + Newline, remoteEndpoint.Hardware.UsbInput.RemoteDeviceIdFeedback.StringValue);
+            sb.AppendFormat("IP Address :: {0}" + Newline,
+                remoteEndpoint.Hardware.Network.IpAddressFeedback.StringValue);
+            sb.AppendFormat("Local USB Address :: {0}" + Newline,
+                remoteEndpoint.Hardware.UsbInput.LocalDeviceIdFeedback.StringValue);
+            sb.AppendFormat("Remote USB Address :: {0}" + Newline,
+                remoteEndpoint.Hardware.UsbInput.RemoteDeviceIdFeedback.StringValue);
 
             Debug.Console(2, remoteEndpoint, sb.ToString());
 
 
-            var macAddress = remoteEndpoint.Hardware.UsbInput.LocalDeviceIdFeedback.StringValue;
+            string macAddress = remoteEndpoint.Hardware.UsbInput.LocalDeviceIdFeedback.StringValue;
             //var isTransmitter = remoteEndpoint.Hardware.Control.DeviceModeFeedback == eDeviceMode.Transmitter;
-            var isTransmitter = remoteEndpoint.IsTransmitter;
+            bool isTransmitter = remoteEndpoint.IsTransmitter;
 
-            var deviceId = remoteEndpoint.DeviceId + (isTransmitter ? 0 : 1000);
+            int deviceId = remoteEndpoint.DeviceId + (isTransmitter ? 0 : 1000);
 
             return deviceId;
         }

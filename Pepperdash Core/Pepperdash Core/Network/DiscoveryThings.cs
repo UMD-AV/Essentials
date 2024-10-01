@@ -3,14 +3,13 @@
     /// <summary>
     /// Not in use
     /// </summary>
-	public static class NetworkComm
-	{
+    public static class NetworkComm
+    {
         /// <summary>
         /// Not in use
         /// </summary>
-		static NetworkComm()
-		{
-		}
-	}
-
+        static NetworkComm()
+        {
+        }
+    }
 }

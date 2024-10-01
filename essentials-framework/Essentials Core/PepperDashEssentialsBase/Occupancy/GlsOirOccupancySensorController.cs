@@ -8,15 +8,17 @@ using PepperDash.Essentials.Core.Config;
 
 namespace PepperDash.Essentials.Core
 {
-    public class GlsOirOccupancySensorController:GlsOccupancySensorBaseController
+    public class GlsOirOccupancySensorController : GlsOccupancySensorBaseController
     {
         private GlsOirCCn _occSensor;
 
-        public GlsOirOccupancySensorController(string key, Func<DeviceConfig, GlsOirCCn> preActivationFunc,DeviceConfig config) : this(key,config.Name, preActivationFunc, config)
+        public GlsOirOccupancySensorController(string key, Func<DeviceConfig, GlsOirCCn> preActivationFunc,
+            DeviceConfig config) : this(key, config.Name, preActivationFunc, config)
         {
         }
 
-        public GlsOirOccupancySensorController(string key, string name, Func<DeviceConfig, GlsOirCCn> preActivationFunc, DeviceConfig config) : base(key, name, config)
+        public GlsOirOccupancySensorController(string key, string name, Func<DeviceConfig, GlsOirCCn> preActivationFunc,
+            DeviceConfig config) : base(key, name, config)
         {
             AddPreActivationAction(() =>
             {
@@ -55,26 +57,27 @@ namespace PepperDash.Essentials.Core
 
         private static GlsOirCCn GetGlsOirCCn(DeviceConfig dc)
         {
-            var control = CommFactory.GetControlPropertiesConfig(dc);
-            var cresnetId = control.CresnetIdInt;
-            var branchId = control.ControlPortNumber;
-            var parentKey = string.IsNullOrEmpty(control.ControlPortDevKey) ? "processor" : control.ControlPortDevKey;
+            EssentialsControlPropertiesConfig control = CommFactory.GetControlPropertiesConfig(dc);
+            uint cresnetId = control.CresnetIdInt;
+            uint branchId = control.ControlPortNumber;
+            string parentKey = string.IsNullOrEmpty(control.ControlPortDevKey) ? "processor" : control.ControlPortDevKey;
 
             if (parentKey.Equals("processor", StringComparison.CurrentCultureIgnoreCase))
             {
                 Debug.Console(0, "Device {0} is a valid cresnet master - creating new GlsOirCCn", parentKey);
                 return new GlsOirCCn(cresnetId, Global.ControlSystem);
             }
-            var cresnetBridge = DeviceManager.GetDeviceForKey(parentKey) as IHasCresnetBranches;
+
+            IHasCresnetBranches cresnetBridge = DeviceManager.GetDeviceForKey(parentKey) as IHasCresnetBranches;
 
             if (cresnetBridge != null)
             {
                 Debug.Console(0, "Device {0} is a valid cresnet master - creating new GlsOirCCn", parentKey);
                 return new GlsOirCCn(cresnetId, cresnetBridge.CresnetBranches[branchId]);
             }
+
             Debug.Console(0, "Device {0} is not a valid cresnet master", parentKey);
             return null;
         }
-
     }
 }

@@ -15,7 +15,7 @@ namespace NvxEpi.Extensions
                 if (device.Hardware.HdmiOut == null)
                     throw new NotSupportedException("HdmiOut");
 
-                var modeToSet = (eAspectRatioMode) mode;
+                eAspectRatioMode modeToSet = (eAspectRatioMode)mode;
 
 
                 Debug.Console(1, device, "Setting Video Aspect Ratio to '{0}'", modeToSet.ToString());

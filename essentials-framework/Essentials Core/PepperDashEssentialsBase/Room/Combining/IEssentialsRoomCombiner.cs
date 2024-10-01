@@ -22,7 +22,7 @@ namespace PepperDash.Essentials.Core
         /// <summary>
         /// When true, indicates the current mode is auto mode
         /// </summary>
-        BoolFeedback IsInAutoModeFeedback {get;}
+        BoolFeedback IsInAutoModeFeedback { get; }
 
         /// <summary>
         /// Sets auto mode
@@ -89,5 +89,4 @@ namespace PepperDash.Essentials.Core
         /// </summary>
         Dictionary<string, string> UiMap { get; set; }
     }
-
 }

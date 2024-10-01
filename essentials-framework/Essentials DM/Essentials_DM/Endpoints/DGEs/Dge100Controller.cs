@@ -3,37 +3,37 @@ using System.Collections.Generic;
 using System.Linq;
 using Crestron.SimplSharpPro;
 using Crestron.SimplSharpPro.UI;
-
 using Crestron.SimplSharpPro.DM;
-
-
 using Newtonsoft.Json;
-
 using PepperDash.Core;
 using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Config;
 using Crestron.SimplSharpPro.DeviceSupport;
-
 using PepperDash.Essentials.Core.DeviceInfo;
 
 namespace PepperDash.Essentials.DM.Endpoints.DGEs
 {
-    [Description("Wrapper class for DGE-100")]    
-    public class Dge100Controller : CrestronGenericBaseDevice, IComPorts, IIROutputPorts, IHasBasicTriListWithSmartObject, ICec, IDeviceInfoProvider
+    [Description("Wrapper class for DGE-100")]
+    public class Dge100Controller : CrestronGenericBaseDevice, IComPorts, IIROutputPorts,
+        IHasBasicTriListWithSmartObject, ICec, IDeviceInfoProvider
     {
         private const int CtpPort = 41795;
         private readonly Dge100 _dge;
 
         private readonly TsxCcsUcCodec100EthernetReservedSigs _dgeEthernetInfo;
 
-        public BasicTriListWithSmartObject Panel { get { return _dge; } }
+        public BasicTriListWithSmartObject Panel
+        {
+            get { return _dge; }
+        }
 
         private DeviceConfig _dc;
 
         CrestronTouchpanelPropertiesConfig PropertiesConfig;
 
-        public Dge100Controller(string key, string name, Dge100 device, DeviceConfig dc, CrestronTouchpanelPropertiesConfig props)
-            :base(key, name, device)
+        public Dge100Controller(string key, string name, Dge100 device, DeviceConfig dc,
+            CrestronTouchpanelPropertiesConfig props)
+            : base(key, name, device)
         {
             _dge = device;
             _dgeEthernetInfo = _dge.ExtenderEthernetReservedSigs;
@@ -42,7 +42,10 @@ namespace PepperDash.Essentials.DM.Endpoints.DGEs
 
             DeviceInfo = new DeviceInfo();
 
-            _dge.OnlineStatusChange += (currentDevice, args) => { if (args.DeviceOnLine) UpdateDeviceInfo(); };
+            _dge.OnlineStatusChange += (currentDevice, args) =>
+            {
+                if (args.DeviceOnLine) UpdateDeviceInfo();
+            };
 
             _dc = dc;
 
@@ -78,7 +81,12 @@ namespace PepperDash.Essentials.DM.Endpoints.DGEs
         #endregion
 
         #region ICec Members
-        public Cec StreamCec { get { return _dge.HdmiOut.StreamCec; } }
+
+        public Cec StreamCec
+        {
+            get { return _dge.HdmiOut.StreamCec; }
+        }
+
         #endregion
 
         #region Implementation of IDeviceInfoProvider
@@ -99,15 +107,16 @@ namespace PepperDash.Essentials.DM.Endpoints.DGEs
 
         private void GetFirmwareAndSerialInfo()
         {
-            if (String.IsNullOrEmpty(_dgeEthernetInfo.IpAddressFeedback.StringValue))
+            if (string.IsNullOrEmpty(_dgeEthernetInfo.IpAddressFeedback.StringValue))
             {
                 Debug.Console(1, this, "IP Address information not yet received. No device is online");
                 return;
             }
 
-            var tcpClient = new GenericTcpIpClient("", _dgeEthernetInfo.IpAddressFeedback.StringValue, CtpPort, 1024){AutoReconnect = false};
+            GenericTcpIpClient tcpClient = new GenericTcpIpClient("", _dgeEthernetInfo.IpAddressFeedback.StringValue, CtpPort, 1024)
+                { AutoReconnect = false };
 
-            var gather = new CommunicationGather(tcpClient, "\r\n\r\n");
+            CommunicationGather gather = new CommunicationGather(tcpClient, "\r\n\r\n");
 
             tcpClient.ConnectionChange += (sender, args) =>
             {
@@ -151,7 +160,8 @@ namespace PepperDash.Essentials.DM.Endpoints.DGEs
                     {
                         return;
                     }
-                    var splitResponse = args.Text.Split('[');
+
+                    string[] splitResponse = args.Text.Split('[');
 
                     foreach (string t in splitResponse)
                     {
@@ -178,7 +188,7 @@ namespace PepperDash.Essentials.DM.Endpoints.DGEs
 
         private void OnDeviceInfoChange()
         {
-            var handler = DeviceInfoChanged;
+            DeviceInfoChangeHandler handler = DeviceInfoChanged;
 
             if (handler == null) return;
 
@@ -197,9 +207,9 @@ namespace PepperDash.Essentials.DM.Endpoints.DGEs
 
         public override EssentialsDevice BuildDevice(DeviceConfig dc)
         {
-            var typeName = dc.Type.ToLower();
-            var comm = CommFactory.GetControlPropertiesConfig(dc);
-            var props = JsonConvert.DeserializeObject<CrestronTouchpanelPropertiesConfig>(dc.Properties.ToString());
+            string typeName = dc.Type.ToLower();
+            EssentialsControlPropertiesConfig comm = CommFactory.GetControlPropertiesConfig(dc);
+            CrestronTouchpanelPropertiesConfig props = JsonConvert.DeserializeObject<CrestronTouchpanelPropertiesConfig>(dc.Properties.ToString());
 
             Debug.Console(1, "Factory Attempting to create new DgeController Device");
 
@@ -213,7 +223,7 @@ namespace PepperDash.Essentials.DM.Endpoints.DGEs
                 return null;
             }
 
-            var dgeController = new Dge100Controller(dc.Key, dc.Name, dgeDevice, dc, props);
+            Dge100Controller dgeController = new Dge100Controller(dc.Key, dc.Name, dgeDevice, dc, props);
 
             return dgeController;
         }

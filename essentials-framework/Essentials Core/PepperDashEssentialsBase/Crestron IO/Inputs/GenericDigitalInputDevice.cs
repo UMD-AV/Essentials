@@ -19,10 +19,7 @@ namespace PepperDash.Essentials.Core.CrestronIO
 
         Func<bool> InputStateFeedbackFunc
         {
-            get
-            {
-                return () => InputPort.State;
-            }
+            get { return () => InputPort.State; }
         }
 
 
@@ -39,7 +36,6 @@ namespace PepperDash.Essentials.Core.CrestronIO
                 InputPort.Register();
 
                 InputPort.StateChange += InputPort_StateChange;
-
             });
         }
 
@@ -65,32 +61,35 @@ namespace PepperDash.Essentials.Core.CrestronIO
                     Debug.Console(0, "GetDigitalInput: Processor does not support Digital Inputs");
                     return null;
                 }
+
                 ioPortDevice = Global.ControlSystem;
             }
             else
             {
-                var ioPortDev = DeviceManager.GetDeviceForKey(dc.PortDeviceKey) as IDigitalInputPorts;
+                IDigitalInputPorts ioPortDev = DeviceManager.GetDeviceForKey(dc.PortDeviceKey) as IDigitalInputPorts;
                 if (ioPortDev == null)
                 {
                     Debug.Console(0, "GetDigitalInput: Device {0} is not a valid device", dc.PortDeviceKey);
                     return null;
                 }
+
                 ioPortDevice = ioPortDev;
             }
+
             if (ioPortDevice == null)
             {
-                Debug.Console(0, "GetDigitalInput: Device '0' is not a valid IDigitalInputPorts Device", dc.PortDeviceKey);
+                Debug.Console(0, "GetDigitalInput: Device '0' is not a valid IDigitalInputPorts Device",
+                    dc.PortDeviceKey);
                 return null;
             }
 
             if (dc.PortNumber > ioPortDevice.NumberOfDigitalInputPorts)
             {
-                Debug.Console(0, "GetDigitalInput: Device {0} does not contain a port {1}", dc.PortDeviceKey, dc.PortNumber);
+                Debug.Console(0, "GetDigitalInput: Device {0} does not contain a port {1}", dc.PortDeviceKey,
+                    dc.PortNumber);
             }
 
             return ioPortDevice.DigitalInputPorts[dc.PortNumber];
-
-
         }
 
         #endregion
@@ -99,9 +98,9 @@ namespace PepperDash.Essentials.Core.CrestronIO
 
         public override void LinkToApi(BasicTriList trilist, uint joinStart, string joinMapKey, EiscApiAdvanced bridge)
         {
-            var joinMap = new IDigitalInputJoinMap(joinStart);
+            IDigitalInputJoinMap joinMap = new IDigitalInputJoinMap(joinStart);
 
-            var joinMapSerialized = JoinMapHelper.GetSerializedJoinMapForDevice(joinMapKey);
+            string joinMapSerialized = JoinMapHelper.GetSerializedJoinMapForDevice(joinMapKey);
 
             if (!string.IsNullOrEmpty(joinMapSerialized))
                 joinMap = JsonConvert.DeserializeObject<IDigitalInputJoinMap>(joinMapSerialized);
@@ -112,7 +111,8 @@ namespace PepperDash.Essentials.Core.CrestronIO
             }
             else
             {
-                Debug.Console(0, this, "Please update config to use 'eiscapiadvanced' to get all join map features for this device.");
+                Debug.Console(0, this,
+                    "Please update config to use 'eiscapiadvanced' to get all join map features for this device.");
             }
 
             try
@@ -144,19 +144,16 @@ namespace PepperDash.Essentials.Core.CrestronIO
             {
                 Debug.Console(1, "Factory Attempting to create new Generic Digital Input Device");
 
-                var props = JsonConvert.DeserializeObject<IOPortConfig>(dc.Properties.ToString());
+                IOPortConfig props = JsonConvert.DeserializeObject<IOPortConfig>(dc.Properties.ToString());
 
                 if (props == null) return null;
 
-                var portDevice = new GenericDigitalInputDevice(dc.Key, dc.Name, GetDigitalInput, props);
+                GenericDigitalInputDevice portDevice = new GenericDigitalInputDevice(dc.Key, dc.Name, GetDigitalInput, props);
 
                 return portDevice;
             }
         }
 
         #endregion
-
     }
-
-
 }

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using Crestron.SimplSharp.CrestronSockets;
 using Crestron.SimplSharpPro.DeviceSupport;
 using Newtonsoft.Json;
-
 using PepperDash.Core;
 using PepperDash.Essentials.Core.Bridges;
 using PepperDash.Essentials.Core.Devices;
@@ -25,10 +24,9 @@ namespace PepperDash.Essentials.Core
         public GenericComm(DeviceConfig config)
             : base(config)
         {
-
             PropertiesConfig = CommFactory.GetControlPropertiesConfig(config);
 
-            var commPort = CommFactory.CreateCommForDevice(config);
+            IBasicCommunication commPort = CommFactory.CreateCommForDevice(config);
 
             //Fixing decision to require '-comPorts' in delcaration for DGE in order to get a device with comports included
             if (commPort == null)
@@ -38,7 +36,6 @@ namespace PepperDash.Essentials.Core
             }
 
             CommPort = commPort;
-
         }
 
         public static IKeyed BuildDevice(DeviceConfig dc)
@@ -70,9 +67,9 @@ namespace PepperDash.Essentials.Core
 
         public override void LinkToApi(BasicTriList trilist, uint joinStart, string joinMapKey, EiscApiAdvanced bridge)
         {
-            var joinMap = new IBasicCommunicationJoinMap(joinStart);
+            IBasicCommunicationJoinMap joinMap = new IBasicCommunicationJoinMap(joinStart);
 
-            var joinMapSerialized = JoinMapHelper.GetSerializedJoinMapForDevice(joinMapKey);
+            string joinMapSerialized = JoinMapHelper.GetSerializedJoinMapForDevice(joinMapKey);
 
             if (!string.IsNullOrEmpty(joinMapSerialized))
                 joinMap = JsonConvert.DeserializeObject<IBasicCommunicationJoinMap>(joinMapSerialized);
@@ -83,7 +80,8 @@ namespace PepperDash.Essentials.Core
             }
             else
             {
-                Debug.Console(0, this, "Please update config to use 'eiscapiadvanced' to get all join map features for this device.");
+                Debug.Console(0, this,
+                    "Please update config to use 'eiscapiadvanced' to get all join map features for this device.");
             }
 
             if (CommPort == null)
@@ -95,21 +93,18 @@ namespace PepperDash.Essentials.Core
             Debug.Console(1, this, "Linking to Trilist '{0}'", trilist.ID.ToString("X"));
 
             // this is a permanent event handler. This cannot be -= from event
-            CommPort.TextReceived += (s, a) =>
-            {
-                trilist.SetString(joinMap.TextReceived.JoinNumber, a.Text);
-            };
+            CommPort.TextReceived += (s, a) => { trilist.SetString(joinMap.TextReceived.JoinNumber, a.Text); };
             trilist.SetStringSigAction(joinMap.SendText.JoinNumber, s => CommPort.SendText(s));
             trilist.SetStringSigAction(joinMap.SetPortConfig.JoinNumber, SetPortConfig);
 
 
-            var sComm = CommPort as ISocketStatus;
+            ISocketStatus sComm = CommPort as ISocketStatus;
             if (sComm == null) return;
             sComm.ConnectionChange += (s, a) =>
             {
                 trilist.SetUshort(joinMap.Status.JoinNumber, (ushort)(a.Client.ClientStatus));
                 trilist.SetBool(joinMap.Connected.JoinNumber, a.Client.ClientStatus ==
-                                                   SocketStatus.SOCKET_STATUS_CONNECTED);
+                                                              SocketStatus.SOCKET_STATUS_CONNECTED);
             };
 
             trilist.SetBoolSigAction(joinMap.Connect.JoinNumber, b =>

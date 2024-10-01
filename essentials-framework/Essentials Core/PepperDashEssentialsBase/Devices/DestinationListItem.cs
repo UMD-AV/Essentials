@@ -4,8 +4,7 @@ namespace PepperDash.Essentials.Core
 {
     public class DestinationListItem
     {
-        [JsonProperty("sinkKey")]
-        public string SinkKey { get; set; }
+        [JsonProperty("sinkKey")] public string SinkKey { get; set; }
 
         private EssentialsDevice _sinkDevice;
 
@@ -29,25 +28,19 @@ namespace PepperDash.Essentials.Core
             }
         }
 
-        [JsonProperty("name")]
-        public string Name { get; set; }
+        [JsonProperty("name")] public string Name { get; set; }
 
         [JsonProperty("includeInDestinationList")]
         public bool IncludeInDestinationList { get; set; }
 
-        [JsonProperty("order")]
-        public int Order { get; set; }
+        [JsonProperty("order")] public int Order { get; set; }
 
-        [JsonProperty("surfaceLocation")]
-        public int SurfaceLocation { get; set; }
+        [JsonProperty("surfaceLocation")] public int SurfaceLocation { get; set; }
 
-        [JsonProperty("verticalLocation")]
-        public int VerticalLocation { get; set; }
-        
-        [JsonProperty("horizontalLocation")]
-        public int HorizontalLocation { get; set; }
+        [JsonProperty("verticalLocation")] public int VerticalLocation { get; set; }
 
-        [JsonProperty("sinkType")]
-        public eRoutingSignalType SinkType { get; set; }
+        [JsonProperty("horizontalLocation")] public int HorizontalLocation { get; set; }
+
+        [JsonProperty("sinkType")] public eRoutingSignalType SinkType { get; set; }
     }
 }

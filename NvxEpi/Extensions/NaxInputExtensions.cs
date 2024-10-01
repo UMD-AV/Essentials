@@ -10,7 +10,7 @@ namespace NvxEpi.Extensions
     {
         public static void SetNaxInput(this ICurrentNaxInput device, ushort input)
         {
-            var inputToSwitch = (DmNvxControl.eAudioSource) input;
+            DmNvxControl.eAudioSource inputToSwitch = (DmNvxControl.eAudioSource)input;
 
             switch (inputToSwitch)
             {

@@ -13,10 +13,12 @@ namespace PepperDash.Core
 
         public string ControlPortDevKey { get; set; }
 
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)] // In case "null" is present in config on this value
+        [JsonProperty(NullValueHandling =
+            NullValueHandling.Ignore)] // In case "null" is present in config on this value
         public uint ControlPortNumber { get; set; }
 
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)] // In case "null" is present in config on this value
+        [JsonProperty(NullValueHandling =
+            NullValueHandling.Ignore)] // In case "null" is present in config on this value
         public string ControlPortName { get; set; }
 
         public TcpSshPropertiesConfig TcpSshProperties { get; set; }
@@ -31,7 +33,10 @@ namespace PepperDash.Core
         public string IpId { get; set; }
 
         [JsonIgnore]
-        public uint IpIdInt { get { return Convert.ToUInt32(IpId, 16); } }
+        public uint IpIdInt
+        {
+            get { return Convert.ToUInt32(IpId, 16); }
+        }
 
         public char EndOfLineChar { get; set; }
 

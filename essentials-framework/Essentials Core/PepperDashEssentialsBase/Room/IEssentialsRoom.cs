@@ -1,7 +1,6 @@
 ﻿using System;
 using PepperDash.Essentials.Core.DeviceTypeInterfaces;
 using PepperDash.Essentials.Core.Devices;
-
 using PepperDash.Core;
 
 namespace PepperDash.Essentials.Core
@@ -55,5 +54,4 @@ namespace PepperDash.Essentials.Core
 
         void RoomVacatedForTimeoutPeriod(object o);
     }
-
 }

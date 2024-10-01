@@ -5,9 +5,7 @@ using Crestron.SimplSharpPro.DM;
 using Crestron.SimplSharpPro.DM.Endpoints;
 using Crestron.SimplSharpPro.DM.Endpoints.Transmitters;
 using System.Linq;
-
 using PepperDash.Core;
-
 using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Bridges;
 
@@ -17,13 +15,14 @@ namespace PepperDash.Essentials.DM
     /// Controller class for all DM-TX-201C/S/F transmitters
     /// </summary>
     [Description("Wrapper class for DM-TX-201-C")]
-    public class DmTx201CController : DmTxControllerBase, ITxRoutingWithFeedback, IHasFreeRun, IVgaBrightnessContrastControls
-	{
-		public DmTx201C Tx { get; private set; }
+    public class DmTx201CController : DmTxControllerBase, ITxRoutingWithFeedback, IHasFreeRun,
+        IVgaBrightnessContrastControls
+    {
+        public DmTx201C Tx { get; private set; }
 
-		public RoutingInputPortWithVideoStatuses HdmiInput { get; private set; }
-		public RoutingInputPortWithVideoStatuses VgaInput { get; private set; }
-		public RoutingOutputPort DmOutput { get; private set; }
+        public RoutingInputPortWithVideoStatuses HdmiInput { get; private set; }
+        public RoutingInputPortWithVideoStatuses VgaInput { get; private set; }
+        public RoutingOutputPort DmOutput { get; private set; }
         public RoutingOutputPort HdmiLoopOut { get; private set; }
 
         public override StringFeedback ActiveVideoInputFeedback { get; protected set; }
@@ -47,64 +46,61 @@ namespace PepperDash.Essentials.DM
         /// <param name="e">Arguments defined as IKeyName sender, output, input, and eRoutingSignalType</param>
         private void OnSwitchChange(RoutingNumericEventArgs e)
         {
-            var newEvent = NumericSwitchChange;
+            EventHandler<RoutingNumericEventArgs> newEvent = NumericSwitchChange;
             if (newEvent != null) newEvent(this, e);
         }
 
-		/// <summary>
-		/// Helps get the "real" inputs, including when in Auto
-		/// </summary>
-		public DmTx200Base.eSourceSelection ActualActiveVideoInput
-		{
-			get
-			{
-				if (Tx.VideoSourceFeedback == DmTx200Base.eSourceSelection.Digital ||
-						Tx.VideoSourceFeedback == DmTx200Base.eSourceSelection.Analog ||
-						Tx.VideoSourceFeedback == DmTx200Base.eSourceSelection.Disable)
-					return Tx.VideoSourceFeedback;
-				else // auto
-				{
-					if (Tx.HdmiInput.SyncDetectedFeedback.BoolValue)
-						return DmTx200Base.eSourceSelection.Digital;
-					else if (Tx.VgaInput.SyncDetectedFeedback.BoolValue)
-						return DmTx200Base.eSourceSelection.Analog;
-					else
-						return DmTx200Base.eSourceSelection.Disable;
-				}
-			}
-		}
+        /// <summary>
+        /// Helps get the "real" inputs, including when in Auto
+        /// </summary>
+        public DmTx200Base.eSourceSelection ActualActiveVideoInput
+        {
+            get
+            {
+                if (Tx.VideoSourceFeedback == DmTx200Base.eSourceSelection.Digital ||
+                    Tx.VideoSourceFeedback == DmTx200Base.eSourceSelection.Analog ||
+                    Tx.VideoSourceFeedback == DmTx200Base.eSourceSelection.Disable)
+                    return Tx.VideoSourceFeedback;
+                else // auto
+                {
+                    if (Tx.HdmiInput.SyncDetectedFeedback.BoolValue)
+                        return DmTx200Base.eSourceSelection.Digital;
+                    else if (Tx.VgaInput.SyncDetectedFeedback.BoolValue)
+                        return DmTx200Base.eSourceSelection.Analog;
+                    else
+                        return DmTx200Base.eSourceSelection.Disable;
+                }
+            }
+        }
 
-		public RoutingPortCollection<RoutingInputPort> InputPorts
-		{
-			get
-			{
-				return new RoutingPortCollection<RoutingInputPort> 
-				{ 
-					HdmiInput, 
-					VgaInput, 
-					AnyVideoInput 
-				};
-			}
-		}
+        public RoutingPortCollection<RoutingInputPort> InputPorts
+        {
+            get
+            {
+                return new RoutingPortCollection<RoutingInputPort>
+                {
+                    HdmiInput,
+                    VgaInput,
+                    AnyVideoInput
+                };
+            }
+        }
 
-		public RoutingPortCollection<RoutingOutputPort> OutputPorts
-		{
-			get
-			{
-				return new RoutingPortCollection<RoutingOutputPort> { DmOutput, HdmiLoopOut };
-			}
-		}
+        public RoutingPortCollection<RoutingOutputPort> OutputPorts
+        {
+            get { return new RoutingPortCollection<RoutingOutputPort> { DmOutput, HdmiLoopOut }; }
+        }
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="key"></param>
-		/// <param name="name"></param>
-		/// <param name="tx"></param>
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="name"></param>
+        /// <param name="tx"></param>
         public DmTx201CController(string key, string name, DmTx201C tx, bool preventRegistration)
-			: base(key, name, tx)
-		{
-			Tx = tx;
+            : base(key, name, tx)
+        {
+            Tx = tx;
             PreventRegistration = preventRegistration;
 
             HdmiInput = new RoutingInputPortWithVideoStatuses(DmPortName.HdmiIn,
@@ -122,8 +118,8 @@ namespace PepperDash.Essentials.DM
                 FeedbackMatchObject = DmTx200Base.eSourceSelection.Analog
             };
 
-			ActiveVideoInputFeedback = new StringFeedback("ActiveVideoInput",
-				() => ActualActiveVideoInput.ToString());
+            ActiveVideoInputFeedback = new StringFeedback("ActiveVideoInput",
+                () => ActualActiveVideoInput.ToString());
 
             Tx.HdmiInput.InputStreamChange += InputStreamChangeEvent;
             Tx.VgaInput.InputStreamChange += VgaInputOnInputStreamChange;
@@ -137,7 +133,7 @@ namespace PepperDash.Essentials.DM
             HdmiInHdcpCapabilityFeedback = new IntFeedback("HdmiInHdcpCapability", () =>
                 (tx.HdmiInput.HdcpSupportOnFeedback.BoolValue ? 1 : 0));
 
-		    HdcpStateFeedback = HdmiInHdcpCapabilityFeedback;
+            HdcpStateFeedback = HdmiInHdcpCapabilityFeedback;
 
             HdmiVideoSyncFeedback = new BoolFeedback(() => (bool)tx.HdmiInput.SyncDetectedFeedback.BoolValue);
 
@@ -153,39 +149,44 @@ namespace PepperDash.Essentials.DM
 
             HdcpSupportCapability = eHdcpCapabilityType.HdcpAutoSupport;
 
-			var combinedFuncs = new VideoStatusFuncsWrapper
-			{
-				HdcpActiveFeedbackFunc = () =>
-					(ActualActiveVideoInput == DmTx200Base.eSourceSelection.Digital
-					&& tx.HdmiInput.VideoAttributes.HdcpActiveFeedback.BoolValue),
+            VideoStatusFuncsWrapper combinedFuncs = new VideoStatusFuncsWrapper
+            {
+                HdcpActiveFeedbackFunc = () =>
+                    (ActualActiveVideoInput == DmTx200Base.eSourceSelection.Digital
+                     && tx.HdmiInput.VideoAttributes.HdcpActiveFeedback.BoolValue),
 
-                HdcpStateFeedbackFunc = () => ActualActiveVideoInput == DmTx200Base.eSourceSelection.Digital ? 
-                    tx.HdmiInput.VideoAttributes.HdcpStateFeedback.ToString() : "",
+                HdcpStateFeedbackFunc = () =>
+                    ActualActiveVideoInput == DmTx200Base.eSourceSelection.Digital
+                        ? tx.HdmiInput.VideoAttributes.HdcpStateFeedback.ToString()
+                        : "",
 
-				VideoResolutionFeedbackFunc = () =>
-				{
-					if (ActualActiveVideoInput == DmTx200Base.eSourceSelection.Digital)
-						return tx.HdmiInput.VideoAttributes.GetVideoResolutionString();
-					return ActualActiveVideoInput == DmTx200Base.eSourceSelection.Analog ?
-                        tx.VgaInput.VideoAttributes.GetVideoResolutionString() : "";						
-				},
+                VideoResolutionFeedbackFunc = () =>
+                {
+                    if (ActualActiveVideoInput == DmTx200Base.eSourceSelection.Digital)
+                        return tx.HdmiInput.VideoAttributes.GetVideoResolutionString();
+                    return ActualActiveVideoInput == DmTx200Base.eSourceSelection.Analog
+                        ? tx.VgaInput.VideoAttributes.GetVideoResolutionString()
+                        : "";
+                },
 
-				VideoSyncFeedbackFunc = () => 			
-				(ActualActiveVideoInput == DmTx200Base.eSourceSelection.Digital
-				&& tx.HdmiInput.SyncDetectedFeedback.BoolValue)
-				|| (ActualActiveVideoInput == DmTx200Base.eSourceSelection.Analog
-				&& tx.VgaInput.SyncDetectedFeedback.BoolValue)
-				|| (ActualActiveVideoInput == DmTx200Base.eSourceSelection.Auto
-				&& (tx.VgaInput.SyncDetectedFeedback.BoolValue || tx.HdmiInput.SyncDetectedFeedback.BoolValue))
-				
-			};
+                VideoSyncFeedbackFunc = () =>
+                    (ActualActiveVideoInput == DmTx200Base.eSourceSelection.Digital
+                     && tx.HdmiInput.SyncDetectedFeedback.BoolValue)
+                    || (ActualActiveVideoInput == DmTx200Base.eSourceSelection.Analog
+                        && tx.VgaInput.SyncDetectedFeedback.BoolValue)
+                    || (ActualActiveVideoInput == DmTx200Base.eSourceSelection.Auto
+                        && (tx.VgaInput.SyncDetectedFeedback.BoolValue || tx.HdmiInput.SyncDetectedFeedback.BoolValue))
+            };
 
-			AnyVideoInput = new RoutingInputPortWithVideoStatuses(DmPortName.AnyVideoIn,
-	            eRoutingSignalType.Audio | eRoutingSignalType.Video, eRoutingPortConnectionType.None, 0, this, combinedFuncs);
+            AnyVideoInput = new RoutingInputPortWithVideoStatuses(DmPortName.AnyVideoIn,
+                eRoutingSignalType.Audio | eRoutingSignalType.Video, eRoutingPortConnectionType.None, 0, this,
+                combinedFuncs);
 
-			DmOutput = new RoutingOutputPort(DmPortName.DmOut, eRoutingSignalType.Audio | eRoutingSignalType.Video, eRoutingPortConnectionType.DmCat, null, this);
-			HdmiLoopOut = new RoutingOutputPort(DmPortName.HdmiLoopOut, eRoutingSignalType.Audio | eRoutingSignalType.Video,
-				eRoutingPortConnectionType.Hdmi, null, this);
+            DmOutput = new RoutingOutputPort(DmPortName.DmOut, eRoutingSignalType.Audio | eRoutingSignalType.Video,
+                eRoutingPortConnectionType.DmCat, null, this);
+            HdmiLoopOut = new RoutingOutputPort(DmPortName.HdmiLoopOut,
+                eRoutingSignalType.Audio | eRoutingSignalType.Video,
+                eRoutingPortConnectionType.Hdmi, null, this);
 
             AddToFeedbackList(ActiveVideoInputFeedback, VideoSourceNumericFeedback, AudioSourceNumericFeedback,
                 AnyVideoInput.VideoStatus.HasVideoStatusFeedback, AnyVideoInput.VideoStatus.HdcpActiveFeedback,
@@ -198,11 +199,11 @@ namespace PepperDash.Essentials.DM
             VgaInput.Port = Tx.VgaInput;
             HdmiLoopOut.Port = Tx.HdmiOutput;
             DmOutput.Port = Tx.DmOutput;
-		}
+        }
 
         void VideoControls_ControlChange(object sender, Crestron.SimplSharpPro.DeviceSupport.GenericEventArgs args)
         {
-            var id = args.EventId;
+            int id = args.EventId;
             Debug.Console(2, this, "EventId {0}", args.EventId);
 
             switch (id)
@@ -218,17 +219,19 @@ namespace PepperDash.Essentials.DM
 
         void Tx_OnlineStatusChange(GenericBase currentDevice, OnlineOfflineEventArgs args)
         {
-            var localVideoInputPort =
+            RoutingInputPort localVideoInputPort =
                 InputPorts.FirstOrDefault(p => (DmTx200Base.eSourceSelection)p.Selector == Tx.VideoSourceFeedback);
-            var localAudioInputPort =
+            RoutingInputPort localAudioInputPort =
                 InputPorts.FirstOrDefault(p => (DmTx200Base.eSourceSelection)p.Selector == Tx.AudioSourceFeedback);
 
 
             ActiveVideoInputFeedback.FireUpdate();
             VideoSourceNumericFeedback.FireUpdate();
             AudioSourceNumericFeedback.FireUpdate();
-            OnSwitchChange(new RoutingNumericEventArgs(1, VideoSourceNumericFeedback.UShortValue, OutputPorts.First(), localVideoInputPort, eRoutingSignalType.Video));
-            OnSwitchChange(new RoutingNumericEventArgs(1, AudioSourceNumericFeedback.UShortValue, OutputPorts.First(), localAudioInputPort, eRoutingSignalType.Audio));
+            OnSwitchChange(new RoutingNumericEventArgs(1, VideoSourceNumericFeedback.UShortValue, OutputPorts.First(),
+                localVideoInputPort, eRoutingSignalType.Video));
+            OnSwitchChange(new RoutingNumericEventArgs(1, AudioSourceNumericFeedback.UShortValue, OutputPorts.First(),
+                localAudioInputPort, eRoutingSignalType.Audio));
         }
 
         private void VgaInputOnInputStreamChange(EndpointInputStream inputStream, EndpointInputStreamEventArgs args)
@@ -244,26 +247,27 @@ namespace PepperDash.Essentials.DM
             }
         }
 
-		public override bool CustomActivate()
-		{		
-			Tx.HdmiInput.InputStreamChange += (o, a) => FowardInputStreamChange(HdmiInput, a.EventId);
-			Tx.HdmiInput.VideoAttributes.AttributeChange += (o, a) => FireVideoAttributeChange(HdmiInput, a.EventId);
+        public override bool CustomActivate()
+        {
+            Tx.HdmiInput.InputStreamChange += (o, a) => FowardInputStreamChange(HdmiInput, a.EventId);
+            Tx.HdmiInput.VideoAttributes.AttributeChange += (o, a) => FireVideoAttributeChange(HdmiInput, a.EventId);
 
-			Tx.VgaInput.InputStreamChange += (o, a) => FowardInputStreamChange(VgaInput, a.EventId);
-			Tx.VgaInput.VideoAttributes.AttributeChange += (o, a) => FireVideoAttributeChange(VgaInput, a.EventId);
+            Tx.VgaInput.InputStreamChange += (o, a) => FowardInputStreamChange(VgaInput, a.EventId);
+            Tx.VgaInput.VideoAttributes.AttributeChange += (o, a) => FireVideoAttributeChange(VgaInput, a.EventId);
 
-			// Base does register and sets up comm monitoring.
-			return base.CustomActivate();
-		}
+            // Base does register and sets up comm monitoring.
+            return base.CustomActivate();
+        }
 
         public override void LinkToApi(BasicTriList trilist, uint joinStart, string joinMapKey, EiscApiAdvanced bridge)
         {
-            var joinMap = GetDmTxJoinMap(joinStart, joinMapKey);
+            DmTxControllerJoinMap joinMap = GetDmTxJoinMap(joinStart, joinMapKey);
 
             if (HdmiVideoSyncFeedback != null)
             {
                 HdmiVideoSyncFeedback.LinkInputSig(trilist.BooleanInput[joinMap.Input1VideoSyncStatus.JoinNumber]);
             }
+
             if (VgaVideoSyncFeedback != null)
             {
                 VgaVideoSyncFeedback.LinkInputSig(trilist.BooleanInput[joinMap.Input2VideoSyncStatus.JoinNumber]);
@@ -312,62 +316,67 @@ namespace PepperDash.Essentials.DM
             switch (input)
             {
                 case 0:
-                    {
-                        ExecuteSwitch(DmTx200Base.eSourceSelection.Auto, null, type);
-                        break;
-                    }
+                {
+                    ExecuteSwitch(DmTx200Base.eSourceSelection.Auto, null, type);
+                    break;
+                }
                 case 1:
-                    {
-                        ExecuteSwitch(HdmiInput.Selector, null, type);
-                        break;
-                    }
+                {
+                    ExecuteSwitch(HdmiInput.Selector, null, type);
+                    break;
+                }
                 case 2:
-                    {
-                        ExecuteSwitch(VgaInput.Selector, null, type);
-                        break;
-                    }
+                {
+                    ExecuteSwitch(VgaInput.Selector, null, type);
+                    break;
+                }
                 case 3:
-                    {
-                        ExecuteSwitch(DmTx200Base.eSourceSelection.Disable, null, type);
-                        break;
-                    }
+                {
+                    ExecuteSwitch(DmTx200Base.eSourceSelection.Disable, null, type);
+                    break;
+                }
             }
         }
 
         public void ExecuteSwitch(object inputSelector, object outputSelector, eRoutingSignalType signalType)
         {
-            if((signalType | eRoutingSignalType.Video) == eRoutingSignalType.Video)
+            if ((signalType | eRoutingSignalType.Video) == eRoutingSignalType.Video)
                 Tx.VideoSource = (DmTx200Base.eSourceSelection)inputSelector;
             if ((signalType | eRoutingSignalType.Audio) == eRoutingSignalType.Audio)
                 Tx.AudioSource = (DmTx200Base.eSourceSelection)inputSelector;
         }
 
-		void Tx_BaseEvent(GenericBase device, BaseEventArgs args)
-		{
-            var id = args.EventId;
+        void Tx_BaseEvent(GenericBase device, BaseEventArgs args)
+        {
+            int id = args.EventId;
             Debug.Console(2, this, "EventId {0}", args.EventId);
 
             switch (id)
             {
                 case EndpointTransmitterBase.VideoSourceFeedbackEventId:
-                    var localVideoInputPort = InputPorts.FirstOrDefault(p => (DmTx200Base.eSourceSelection)p.Selector == Tx.VideoSourceFeedback);
+                    RoutingInputPort localVideoInputPort = InputPorts.FirstOrDefault(p =>
+                        (DmTx200Base.eSourceSelection)p.Selector == Tx.VideoSourceFeedback);
                     Debug.Console(2, this, "  Video Source: {0}", Tx.VideoSourceFeedback);
                     VideoSourceNumericFeedback.FireUpdate();
                     ActiveVideoInputFeedback.FireUpdate();
-                    OnSwitchChange(new RoutingNumericEventArgs(1, VideoSourceNumericFeedback.UShortValue, OutputPorts.First(), localVideoInputPort, eRoutingSignalType.Video));
+                    OnSwitchChange(new RoutingNumericEventArgs(1, VideoSourceNumericFeedback.UShortValue,
+                        OutputPorts.First(), localVideoInputPort, eRoutingSignalType.Video));
                     break;
                 case EndpointTransmitterBase.AudioSourceFeedbackEventId:
-                    var localInputAudioPort = InputPorts.FirstOrDefault(p => (DmTx200Base.eSourceSelection)p.Selector == Tx.AudioSourceFeedback);
+                    RoutingInputPort localInputAudioPort = InputPorts.FirstOrDefault(p =>
+                        (DmTx200Base.eSourceSelection)p.Selector == Tx.AudioSourceFeedback);
                     Debug.Console(2, this, "  Audio Source: {0}", Tx.AudioSourceFeedback);
                     AudioSourceNumericFeedback.FireUpdate();
-                    OnSwitchChange(new RoutingNumericEventArgs(1, AudioSourceNumericFeedback.UShortValue, OutputPorts.First(), localInputAudioPort, eRoutingSignalType.Audio));
+                    OnSwitchChange(new RoutingNumericEventArgs(1, AudioSourceNumericFeedback.UShortValue,
+                        OutputPorts.First(), localInputAudioPort, eRoutingSignalType.Audio));
                     break;
-            }        
-		}
+            }
+        }
 
         void InputStreamChangeEvent(EndpointInputStream inputStream, EndpointInputStreamEventArgs args)
         {
-            Debug.Console(2, "{0} event {1} stream {2}", Tx.ToString(), inputStream.ToString(), args.EventId.ToString());
+            Debug.Console(2, "{0} event {1} stream {2}", Tx.ToString(), inputStream.ToString(),
+                args.EventId.ToString());
 
             switch (args.EventId)
             {
@@ -381,51 +390,50 @@ namespace PepperDash.Essentials.DM
                     HdmiVideoSyncFeedback.FireUpdate();
                     break;
             }
-
         }
 
-		/// <summary>
-		/// Relays the input stream change to the appropriate RoutingInputPort.
-		/// </summary>
-		void FowardInputStreamChange(RoutingInputPortWithVideoStatuses inputPort, int eventId)
-		{
-			if (eventId != EndpointInputStreamEventIds.SyncDetectedFeedbackEventId)
-			{
+        /// <summary>
+        /// Relays the input stream change to the appropriate RoutingInputPort.
+        /// </summary>
+        void FowardInputStreamChange(RoutingInputPortWithVideoStatuses inputPort, int eventId)
+        {
+            if (eventId != EndpointInputStreamEventIds.SyncDetectedFeedbackEventId)
+            {
                 return;
-			}
+            }
+
             inputPort.VideoStatus.VideoSyncFeedback.FireUpdate();
             AnyVideoInput.VideoStatus.VideoSyncFeedback.FireUpdate();
-		}
-		
-		/// <summary>
-		/// Relays the VideoAttributes change to a RoutingInputPort
-		/// </summary>
-		void FireVideoAttributeChange(RoutingInputPortWithVideoStatuses inputPort, int eventId)
-		{
-			//// LOCATION: Crestron.SimplSharpPro.DM.VideoAttributeEventIds
-			//Debug.Console(2, this, "VideoAttributes_AttributeChange event id={0} from {1}",
-			//    args.EventId, (sender as VideoAttributesEnhanced).Owner.GetType());
-			switch (eventId)
-			{
-				case VideoAttributeEventIds.HdcpActiveFeedbackEventId:
-					inputPort.VideoStatus.HdcpActiveFeedback.FireUpdate();
-					AnyVideoInput.VideoStatus.HdcpActiveFeedback.FireUpdate();
-					break;
-				case VideoAttributeEventIds.HdcpStateFeedbackEventId:
-					inputPort.VideoStatus.HdcpStateFeedback.FireUpdate();
-					AnyVideoInput.VideoStatus.HdcpStateFeedback.FireUpdate();
-					break;
-				case VideoAttributeEventIds.HorizontalResolutionFeedbackEventId:
-				case VideoAttributeEventIds.VerticalResolutionFeedbackEventId:
-					inputPort.VideoStatus.VideoResolutionFeedback.FireUpdate();
-					AnyVideoInput.VideoStatus.VideoResolutionFeedback.FireUpdate();
-					break;
+        }
+
+        /// <summary>
+        /// Relays the VideoAttributes change to a RoutingInputPort
+        /// </summary>
+        void FireVideoAttributeChange(RoutingInputPortWithVideoStatuses inputPort, int eventId)
+        {
+            //// LOCATION: Crestron.SimplSharpPro.DM.VideoAttributeEventIds
+            //Debug.Console(2, this, "VideoAttributes_AttributeChange event id={0} from {1}",
+            //    args.EventId, (sender as VideoAttributesEnhanced).Owner.GetType());
+            switch (eventId)
+            {
+                case VideoAttributeEventIds.HdcpActiveFeedbackEventId:
+                    inputPort.VideoStatus.HdcpActiveFeedback.FireUpdate();
+                    AnyVideoInput.VideoStatus.HdcpActiveFeedback.FireUpdate();
+                    break;
+                case VideoAttributeEventIds.HdcpStateFeedbackEventId:
+                    inputPort.VideoStatus.HdcpStateFeedback.FireUpdate();
+                    AnyVideoInput.VideoStatus.HdcpStateFeedback.FireUpdate();
+                    break;
+                case VideoAttributeEventIds.HorizontalResolutionFeedbackEventId:
+                case VideoAttributeEventIds.VerticalResolutionFeedbackEventId:
+                    inputPort.VideoStatus.VideoResolutionFeedback.FireUpdate();
+                    AnyVideoInput.VideoStatus.VideoResolutionFeedback.FireUpdate();
+                    break;
                 case VideoAttributeEventIds.FramesPerSecondFeedbackEventId:
                     inputPort.VideoStatus.VideoResolutionFeedback.FireUpdate();
                     AnyVideoInput.VideoStatus.VideoResolutionFeedback.FireUpdate();
                     break;
-			}
-		}
-
-	}
+            }
+        }
+    }
 }

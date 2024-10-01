@@ -5,6 +5,22 @@
     /// </summary>
     public enum eControlMethod
     {
-        None = 0, Com, IpId, IpidTcp, IR, Ssh, Tcpip, Telnet, Cresnet, Cec, Udp, Http, Https, Ws, Wss, SecureTcpIp, UdpShared
+        None = 0,
+        Com,
+        IpId,
+        IpidTcp,
+        IR,
+        Ssh,
+        Tcpip,
+        Telnet,
+        Cresnet,
+        Cec,
+        Udp,
+        Http,
+        Https,
+        Ws,
+        Wss,
+        SecureTcpIp,
+        UdpShared
     }
 }

@@ -31,19 +31,19 @@ namespace NvxEpi.Application.Entities
             _source = new DummyRoutingInputsDevice(config.DeviceKey + "--audioSource");
 
             AddPostActivationAction(() =>
-                {
-                    Device = DeviceManager.GetDeviceForKey(config.DeviceKey) as INvxDevice;
-                    if (Device == null)
-                        throw new NullReferenceException("device");
-                });
+            {
+                Device = DeviceManager.GetDeviceForKey(config.DeviceKey) as INvxDevice;
+                if (Device == null)
+                    throw new NullReferenceException("device");
+            });
 
             AddPostActivationAction(() =>
-                {
-                    Name = Device.Name;
-                    AudioName =
-                        new StringFeedback(() => string.IsNullOrEmpty(config.AudioName) ? Device.Name : config.AudioName);
-                    AudioName.FireUpdate();
-                });
+            {
+                Name = Device.Name;
+                AudioName =
+                    new StringFeedback(() => string.IsNullOrEmpty(config.AudioName) ? Device.Name : config.AudioName);
+                AudioName.FireUpdate();
+            });
 
             AddPostActivationAction(() => LinkRoutingInputPort(config.NvxRoutingPort));
         }
@@ -52,7 +52,7 @@ namespace NvxEpi.Application.Entities
         {
             if (string.IsNullOrEmpty(routingPortKey))
             {
-                var routingPort = Device.InputPorts[DeviceInputEnum.NoSwitch.Name];
+                RoutingInputPort routingPort = Device.InputPorts[DeviceInputEnum.NoSwitch.Name];
                 if (routingPort == null)
                     throw new NullReferenceException(DeviceInputEnum.NoSwitch.Name);
 
@@ -60,7 +60,7 @@ namespace NvxEpi.Application.Entities
             }
             else if (routingPortKey.Equals(DeviceInputEnum.Hdmi1.Name, StringComparison.OrdinalIgnoreCase))
             {
-                var routingPort = Device.InputPorts[DeviceInputEnum.Hdmi1.Name];
+                RoutingInputPort routingPort = Device.InputPorts[DeviceInputEnum.Hdmi1.Name];
                 if (routingPort == null)
                     throw new NullReferenceException(DeviceInputEnum.Hdmi1.Name);
 
@@ -68,7 +68,7 @@ namespace NvxEpi.Application.Entities
             }
             else if (routingPortKey.Equals(DeviceInputEnum.Hdmi2.Name, StringComparison.OrdinalIgnoreCase))
             {
-                var routingPort = Device.InputPorts[DeviceInputEnum.Hdmi2.Name];
+                RoutingInputPort routingPort = Device.InputPorts[DeviceInputEnum.Hdmi2.Name];
                 if (routingPort == null)
                     throw new NullReferenceException(DeviceInputEnum.Hdmi2.Name);
 
@@ -76,7 +76,7 @@ namespace NvxEpi.Application.Entities
             }
             else if (routingPortKey.Equals(DeviceInputEnum.AnalogAudio.Name, StringComparison.OrdinalIgnoreCase))
             {
-                var routingPort = Device.InputPorts[DeviceInputEnum.AnalogAudio.Name];
+                RoutingInputPort routingPort = Device.InputPorts[DeviceInputEnum.AnalogAudio.Name];
                 if (routingPort == null)
                     throw new NullReferenceException(DeviceInputEnum.AnalogAudio.Name);
 
@@ -84,7 +84,7 @@ namespace NvxEpi.Application.Entities
             }
             else if (routingPortKey.Equals(DeviceInputEnum.Automatic.Name, StringComparison.OrdinalIgnoreCase))
             {
-                var routingPort = Device.InputPorts[DeviceInputEnum.Automatic.Name];
+                RoutingInputPort routingPort = Device.InputPorts[DeviceInputEnum.Automatic.Name];
                 if (routingPort == null)
                     throw new NullReferenceException(DeviceInputEnum.Automatic.Name);
 
@@ -92,7 +92,8 @@ namespace NvxEpi.Application.Entities
             }
             else
             {
-                Debug.Console(1, this, "----- {0} is not a valid routing port key, available ports are:", routingPortKey);
+                Debug.Console(1, this, "----- {0} is not a valid routing port key, available ports are:",
+                    routingPortKey);
                 Device
                     .InputPorts
                     .ToList()

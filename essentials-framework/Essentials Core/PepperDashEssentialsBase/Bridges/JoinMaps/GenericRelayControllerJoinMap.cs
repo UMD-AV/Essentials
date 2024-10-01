@@ -4,18 +4,26 @@ namespace PepperDash.Essentials.Core.Bridges
 {
     public class GenericRelayControllerJoinMap : JoinMapBaseAdvanced
     {
+        [JoinName("Relay")] public JoinDataComplete Relay = new JoinDataComplete(
+            new JoinData { JoinNumber = 1, JoinSpan = 1 },
+            new JoinMetadata
+            {
+                Description = "Device Relay State Set / Get", JoinCapabilities = eJoinCapabilities.ToFromSIMPL,
+                JoinType = eJoinType.Digital
+            });
 
-        [JoinName("Relay")]
-        public JoinDataComplete Relay = new JoinDataComplete(new JoinData { JoinNumber = 1, JoinSpan = 1 },
-            new JoinMetadata { Description = "Device Relay State Set / Get", JoinCapabilities = eJoinCapabilities.ToFromSIMPL, JoinType = eJoinType.Digital });
+        [JoinName("Name")] public JoinDataComplete Name = new JoinDataComplete(
+            new JoinData { JoinNumber = 1, JoinSpan = 1 },
+            new JoinMetadata
+                { Description = "Name", JoinCapabilities = eJoinCapabilities.ToSIMPL, JoinType = eJoinType.Serial });
 
-        [JoinName("Name")]
-        public JoinDataComplete Name = new JoinDataComplete(new JoinData { JoinNumber = 1, JoinSpan = 1 },
-            new JoinMetadata { Description = "Name", JoinCapabilities = eJoinCapabilities.ToSIMPL, JoinType = eJoinType.Serial });
-
-        [JoinName("RelayHoldTimeSeconds")]
-        public JoinDataComplete RelayHoldTimeSeconds = new JoinDataComplete(new JoinData { JoinNumber = 1, JoinSpan = 1 },
-            new JoinMetadata { Description = "RelayHoldTimeSeconds", JoinCapabilities = eJoinCapabilities.ToSIMPL, JoinType = eJoinType.Analog });
+        [JoinName("RelayHoldTimeSeconds")] public JoinDataComplete RelayHoldTimeSeconds = new JoinDataComplete(
+            new JoinData { JoinNumber = 1, JoinSpan = 1 },
+            new JoinMetadata
+            {
+                Description = "RelayHoldTimeSeconds", JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                JoinType = eJoinType.Analog
+            });
 
         /// <summary>
         /// Constructor to use when instantiating this Join Map without inheriting from it

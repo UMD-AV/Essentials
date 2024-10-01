@@ -13,7 +13,7 @@ namespace NvxEpi.Services.Feedback
             if (device.HdmiOut == null)
                 return new BoolFeedback(Key, () => false);
 
-            var feedback = new BoolFeedback(Key, () => device.HdmiOut.DisabledByHdcpFeedback.BoolValue);
+            BoolFeedback feedback = new BoolFeedback(Key, () => device.HdmiOut.DisabledByHdcpFeedback.BoolValue);
             device.HdmiOut.StreamChange += (stream, args) => feedback.FireUpdate();
 
             return feedback;
@@ -29,7 +29,7 @@ namespace NvxEpi.Services.Feedback
             if (device.HdmiOut == null)
                 return new StringFeedback(() => string.Empty);
 
-            var feedback = new StringFeedback(Key, () => device.HdmiOut.ConnectedDevice.Manufacturer.StringValue);
+            StringFeedback feedback = new StringFeedback(Key, () => device.HdmiOut.ConnectedDevice.Manufacturer.StringValue);
             device.HdmiOut.ConnectedDevice.DeviceInformationChange += (stream, args) => feedback.FireUpdate();
 
             return feedback;

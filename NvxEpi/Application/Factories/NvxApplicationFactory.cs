@@ -14,7 +14,7 @@ namespace NvxEpi.Application.Factories
 
         static NvxApplicationFactory()
         {
-            _typeNames = new List<string>() {"dynnvx", "nvxapplication", "nvxapp"};
+            _typeNames = new List<string>() { "dynnvx", "nvxapplication", "nvxapp" };
         }
 
         public NvxApplicationFactory()

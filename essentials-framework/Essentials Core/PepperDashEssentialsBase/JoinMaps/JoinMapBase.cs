@@ -7,8 +7,8 @@ using Crestron.SimplSharp.Reflection;
 using Crestron.SimplSharp.CrestronIO;
 using PepperDash.Core;
 using PepperDash.Essentials.Core.Config;
-
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace PepperDash.Essentials.Core
 {
@@ -24,7 +24,7 @@ namespace PepperDash.Essentials.Core
             if (string.IsNullOrEmpty(joinMapKey))
                 return null;
 
-            var joinMap = ConfigReader.ConfigObject.JoinMaps[joinMapKey];
+            JObject joinMap = ConfigReader.ConfigObject.JoinMaps[joinMapKey];
 
             return joinMap.ToString();
         }
@@ -59,12 +59,12 @@ namespace PepperDash.Essentials.Core
 
                 Debug.Console(2, "Attempting to load custom join map with key: {0}", joinMapKey);
 
-                var joinMapJToken = ConfigReader.ConfigObject.JoinMaps[joinMapKey];
+                JObject joinMapJToken = ConfigReader.ConfigObject.JoinMaps[joinMapKey];
 
                 if (joinMapJToken == null)
                     return null;
 
-                var joinMapData = joinMapJToken.ToObject<Dictionary<string, JoinData>>();
+                Dictionary<string, JoinData> joinMapData = joinMapJToken.ToObject<Dictionary<string, JoinData>>();
 
                 return joinMapData;
             }
@@ -74,7 +74,6 @@ namespace PepperDash.Essentials.Core
                 return null;
             }
         }
-
     }
 
     /// <summary>
@@ -103,20 +102,22 @@ namespace PepperDash.Essentials.Core
 
             // Get the joins of each type and print them
             Debug.Console(0, "Digitals:");
-            var digitals = Joins.Where(j => (j.Value.JoinType & eJoinType.Digital) == eJoinType.Digital).ToDictionary(j => j.Key, j => j.Value);
-            Debug.Console(2, "Found {0} Digital Joins", digitals.Count); 
+            Dictionary<string, JoinMetadata> digitals = Joins.Where(j => (j.Value.JoinType & eJoinType.Digital) == eJoinType.Digital)
+                .ToDictionary(j => j.Key, j => j.Value);
+            Debug.Console(2, "Found {0} Digital Joins", digitals.Count);
             PrintJoinList(GetSortedJoins(digitals));
 
             Debug.Console(0, "Analogs:");
-            var analogs = Joins.Where(j => (j.Value.JoinType & eJoinType.Analog) == eJoinType.Analog).ToDictionary(j => j.Key, j => j.Value);
-            Debug.Console(2, "Found {0} Analog Joins", analogs.Count); 
+            Dictionary<string, JoinMetadata> analogs = Joins.Where(j => (j.Value.JoinType & eJoinType.Analog) == eJoinType.Analog)
+                .ToDictionary(j => j.Key, j => j.Value);
+            Debug.Console(2, "Found {0} Analog Joins", analogs.Count);
             PrintJoinList(GetSortedJoins(analogs));
 
             Debug.Console(0, "Serials:");
-            var serials = Joins.Where(j => (j.Value.JoinType & eJoinType.Serial) == eJoinType.Serial).ToDictionary(j => j.Key, j => j.Value);
+            Dictionary<string, JoinMetadata> serials = Joins.Where(j => (j.Value.JoinType & eJoinType.Serial) == eJoinType.Serial)
+                .ToDictionary(j => j.Key, j => j.Value);
             Debug.Console(2, "Found {0} Serial Joins", serials.Count);
             PrintJoinList(GetSortedJoins(serials));
-
         }
 
         /// <summary>
@@ -126,7 +127,7 @@ namespace PepperDash.Essentials.Core
         /// <returns></returns>
         List<KeyValuePair<string, JoinMetadata>> GetSortedJoins(Dictionary<string, JoinMetadata> joins)
         {
-            var sortedJoins = joins.ToList();
+            List<KeyValuePair<string, JoinMetadata>> sortedJoins = joins.ToList();
 
             sortedJoins.Sort((pair1, pair2) => pair1.Value.JoinNumber.CompareTo(pair2.Value.JoinNumber));
 
@@ -135,15 +136,15 @@ namespace PepperDash.Essentials.Core
 
         void PrintJoinList(List<KeyValuePair<string, JoinMetadata>> joins)
         {
-            foreach (var join in joins)
+            foreach (KeyValuePair<string, JoinMetadata> join in joins)
             {
                 Debug.Console(0,
                     @"Join Number: {0} | Label: '{1}' | JoinSpan: '{2}' | Type: '{3}' | Capabilities: '{4}'",
-                        join.Value.JoinNumber,
-                        join.Value.Label,
-                        join.Value.JoinSpan,
-                        join.Value.JoinType.ToString(),
-                        join.Value.JoinCapabilities.ToString());
+                    join.Value.JoinNumber,
+                    join.Value.Label,
+                    join.Value.JoinSpan,
+                    join.Value.JoinType.ToString(),
+                    join.Value.JoinCapabilities.ToString());
             }
         }
 
@@ -187,23 +188,26 @@ namespace PepperDash.Essentials.Core
             JoinOffset = joinStart - 1;
         }
 
-        protected JoinMapBaseAdvanced(uint joinStart, Type type):this(joinStart)
+        protected JoinMapBaseAdvanced(uint joinStart, Type type) : this(joinStart)
         {
             AddJoins(type);
         }
 
         protected void AddJoins(Type type)
         {
-            var fields =
+            IEnumerable<FieldInfo> fields =
                 type.GetCType()
                     .GetFields(BindingFlags.Public | BindingFlags.Instance)
-                    .Where(f => f.IsDefined(typeof (JoinNameAttribute), true));
+                    .Where(f => f.IsDefined(typeof(JoinNameAttribute), true));
 
-            foreach (var field in fields)
+            foreach (FieldInfo field in fields)
             {
-                var childClass = Convert.ChangeType(this, type, null);
+                object childClass = Convert.ChangeType(this, type, null);
 
-                var value = field.GetValue(childClass) as JoinDataComplete; //this here is JoinMapBaseAdvanced, not the child class. JoinMapBaseAdvanced has no fields.
+                JoinDataComplete value =
+                    field.GetValue(
+                            childClass) as
+                        JoinDataComplete; //this here is JoinMapBaseAdvanced, not the child class. JoinMapBaseAdvanced has no fields.
 
                 if (value == null)
                 {
@@ -213,9 +217,9 @@ namespace PepperDash.Essentials.Core
 
                 value.SetJoinOffset(JoinOffset);
 
-                var joinName = value.GetNameAttribute(field);
+                string joinName = value.GetNameAttribute(field);
 
-                if (String.IsNullOrEmpty(joinName)) continue;
+                if (string.IsNullOrEmpty(joinName)) continue;
 
                 Joins.Add(joinName, value);
             }
@@ -236,72 +240,78 @@ namespace PepperDash.Essentials.Core
 
             // Get the joins of each type and print them
             Debug.Console(0, "Digitals:");
-            var digitals = Joins.Where(j => (j.Value.Metadata.JoinType & eJoinType.Digital) == eJoinType.Digital).ToDictionary(j => j.Key, j => j.Value);
+            Dictionary<string, JoinDataComplete> digitals = Joins.Where(j => (j.Value.Metadata.JoinType & eJoinType.Digital) == eJoinType.Digital)
+                .ToDictionary(j => j.Key, j => j.Value);
             Debug.Console(2, "Found {0} Digital Joins", digitals.Count);
             PrintJoinList(GetSortedJoins(digitals));
 
             Debug.Console(0, "Analogs:");
-            var analogs = Joins.Where(j => (j.Value.Metadata.JoinType & eJoinType.Analog) == eJoinType.Analog).ToDictionary(j => j.Key, j => j.Value);
+            Dictionary<string, JoinDataComplete> analogs = Joins.Where(j => (j.Value.Metadata.JoinType & eJoinType.Analog) == eJoinType.Analog)
+                .ToDictionary(j => j.Key, j => j.Value);
             Debug.Console(2, "Found {0} Analog Joins", analogs.Count);
             PrintJoinList(GetSortedJoins(analogs));
 
             Debug.Console(0, "Serials:");
-            var serials = Joins.Where(j => (j.Value.Metadata.JoinType & eJoinType.Serial) == eJoinType.Serial).ToDictionary(j => j.Key, j => j.Value);
+            Dictionary<string, JoinDataComplete> serials = Joins.Where(j => (j.Value.Metadata.JoinType & eJoinType.Serial) == eJoinType.Serial)
+                .ToDictionary(j => j.Key, j => j.Value);
             Debug.Console(2, "Found {0} Serial Joins", serials.Count);
             PrintJoinList(GetSortedJoins(serials));
-
         }
+
         /// <summary>
         /// Prints the join information to console
         /// </summary>
         public void MarkdownJoinMapInfo(string deviceKey, string bridgeKey)
         {
-            var pluginType = GetType().Name;
+            string pluginType = GetType().Name;
 
             Debug.Console(0, "{0}:\n", pluginType);
 
-            var sb = new StringBuilder();
+            StringBuilder sb = new StringBuilder();
 
-            sb.AppendLine(String.Format("# {0}", GetType().Name));
-            sb.AppendLine(String.Format("Generated from '{0}' on bridge '{1}'", deviceKey, bridgeKey));
+            sb.AppendLine(string.Format("# {0}", GetType().Name));
+            sb.AppendLine(string.Format("Generated from '{0}' on bridge '{1}'", deviceKey, bridgeKey));
             sb.AppendLine();
             sb.AppendLine("## Digitals");
             // Get the joins of each type and print them
-            var digitals = Joins.Where(j => (j.Value.Metadata.JoinType & eJoinType.Digital) == eJoinType.Digital).ToDictionary(j => j.Key, j => j.Value);
+            Dictionary<string, JoinDataComplete> digitals = Joins.Where(j => (j.Value.Metadata.JoinType & eJoinType.Digital) == eJoinType.Digital)
+                .ToDictionary(j => j.Key, j => j.Value);
             Debug.Console(2, "Found {0} Digital Joins", digitals.Count);
-            var digitalSb = AppendJoinList(GetSortedJoins(digitals));
+            StringBuilder digitalSb = AppendJoinList(GetSortedJoins(digitals));
             digitalSb.AppendLine("## Analogs");
             digitalSb.AppendLine();
 
             Debug.Console(0, "Analogs:");
-            var analogs = Joins.Where(j => (j.Value.Metadata.JoinType & eJoinType.Analog) == eJoinType.Analog).ToDictionary(j => j.Key, j => j.Value);
+            Dictionary<string, JoinDataComplete> analogs = Joins.Where(j => (j.Value.Metadata.JoinType & eJoinType.Analog) == eJoinType.Analog)
+                .ToDictionary(j => j.Key, j => j.Value);
             Debug.Console(2, "Found {0} Analog Joins", analogs.Count);
-            var analogSb = AppendJoinList(GetSortedJoins(analogs));
+            StringBuilder analogSb = AppendJoinList(GetSortedJoins(analogs));
             analogSb.AppendLine("## Serials");
             analogSb.AppendLine();
 
             Debug.Console(0, "Serials:");
-            var serials = Joins.Where(j => (j.Value.Metadata.JoinType & eJoinType.Serial) == eJoinType.Serial).ToDictionary(j => j.Key, j => j.Value);
+            Dictionary<string, JoinDataComplete> serials = Joins.Where(j => (j.Value.Metadata.JoinType & eJoinType.Serial) == eJoinType.Serial)
+                .ToDictionary(j => j.Key, j => j.Value);
             Debug.Console(2, "Found {0} Serial Joins", serials.Count);
-            var serialSb = AppendJoinList(GetSortedJoins(serials));
+            StringBuilder serialSb = AppendJoinList(GetSortedJoins(serials));
 
             sb.EnsureCapacity(sb.Length + digitalSb.Length + analogSb.Length + serialSb.Length);
             sb.Append(digitalSb).Append(analogSb).Append(serialSb);
 
             WriteJoinmapMarkdown(sb, pluginType, bridgeKey, deviceKey);
-
         }
 
-        private static void WriteJoinmapMarkdown(StringBuilder stringBuilder, string pluginType, string bridgeKey, string deviceKey)
+        private static void WriteJoinmapMarkdown(StringBuilder stringBuilder, string pluginType, string bridgeKey,
+            string deviceKey)
         {
-            var fileName = String.Format("{0}{1}{2}__{3}__{4}.md", Global.FilePathPrefix, "joinMaps/", pluginType, bridgeKey, deviceKey);
+            string fileName = string.Format("{0}{1}{2}__{3}__{4}.md", Global.FilePathPrefix, "joinMaps/", pluginType,
+                bridgeKey, deviceKey);
 
-            using (var sw = new StreamWriter(fileName))
+            using (StreamWriter sw = new StreamWriter(fileName))
             {
                 sw.WriteLine(stringBuilder.ToString());
                 Debug.Console(0, "Joinmap Readme generated and written to {0}", fileName);
             }
-
         }
 
         /// <summary>
@@ -311,7 +321,7 @@ namespace PepperDash.Essentials.Core
         /// <returns></returns>
         List<KeyValuePair<string, JoinDataComplete>> GetSortedJoins(Dictionary<string, JoinDataComplete> joins)
         {
-            var sortedJoins = joins.ToList();
+            List<KeyValuePair<string, JoinDataComplete>> sortedJoins = joins.ToList();
 
             sortedJoins.Sort((pair1, pair2) => pair1.Value.JoinNumber.CompareTo(pair2.Value.JoinNumber));
 
@@ -320,48 +330,52 @@ namespace PepperDash.Essentials.Core
 
         void PrintJoinList(List<KeyValuePair<string, JoinDataComplete>> joins)
         {
-            foreach (var join in joins)
+            foreach (KeyValuePair<string, JoinDataComplete> join in joins)
             {
                 Debug.Console(0,
                     @"Join Number: {0} | JoinSpan: '{1}' | JoinName: {2} | Description: '{3}' | Type: '{4}' | Capabilities: '{5}'",
-                        join.Value.JoinNumber,
-                        join.Value.JoinSpan,
-                        join.Key,
-                        String.IsNullOrEmpty(join.Value.AttributeName) ? join.Value.Metadata.Label : join.Value.AttributeName,
-                        join.Value.Metadata.JoinType.ToString(),
-                        join.Value.Metadata.JoinCapabilities.ToString());
+                    join.Value.JoinNumber,
+                    join.Value.JoinSpan,
+                    join.Key,
+                    string.IsNullOrEmpty(join.Value.AttributeName)
+                        ? join.Value.Metadata.Label
+                        : join.Value.AttributeName,
+                    join.Value.Metadata.JoinType.ToString(),
+                    join.Value.Metadata.JoinCapabilities.ToString());
             }
         }
 
         static StringBuilder AppendJoinList(List<KeyValuePair<string, JoinDataComplete>> joins)
         {
-            var sb = new StringBuilder();
+            StringBuilder sb = new StringBuilder();
             const string stringFormatter = "| {0} | {1} | {2} | {3} | {4} |";
             const int joinNumberLen = 11;
             const int joinSpanLen = 9;
             const int typeLen = 19;
             const int capabilitiesLen = 12;
-            var descriptionLen = (from @join in joins select @join.Value into j select j.Metadata.Description.Length).Concat(new[] {11}).Max();
+            int descriptionLen = (from @join in joins select @join.Value into j select j.Metadata.Description.Length)
+                .Concat(new[] { 11 }).Max();
 
             //build header
-            sb.AppendLine(String.Format(stringFormatter, 
-                String.Format("Join Number").PadRight(joinNumberLen, ' '), 
-                String.Format("Join Span").PadRight(joinSpanLen, ' '), 
-                String.Format("Description").PadRight(descriptionLen, ' '), 
-                String.Format("Type").PadRight(typeLen, ' '),
-                 String.Format("Capabilities").PadRight(capabilitiesLen, ' ')));
+            sb.AppendLine(string.Format(stringFormatter,
+                string.Format("Join Number").PadRight(joinNumberLen, ' '),
+                string.Format("Join Span").PadRight(joinSpanLen, ' '),
+                string.Format("Description").PadRight(descriptionLen, ' '),
+                string.Format("Type").PadRight(typeLen, ' '),
+                string.Format("Capabilities").PadRight(capabilitiesLen, ' ')));
             //build table seperator
-            sb.AppendLine(String.Format(stringFormatter,
-                new String('-', joinNumberLen),
-                new String('-', joinSpanLen),
-                new String('-', descriptionLen),
-                new String('-', typeLen),
-                new String('-', capabilitiesLen)));
+            sb.AppendLine(string.Format(stringFormatter,
+                new string('-', joinNumberLen),
+                new string('-', joinSpanLen),
+                new string('-', descriptionLen),
+                new string('-', typeLen),
+                new string('-', capabilitiesLen)));
 
-            foreach (var join in joins)
+            foreach (KeyValuePair<string, JoinDataComplete> join in joins)
             {
                 sb.AppendLine(join.Value.GetMarkdownFormattedData(stringFormatter, descriptionLen));
             }
+
             sb.AppendLine();
             return sb;
         }
@@ -372,9 +386,9 @@ namespace PepperDash.Essentials.Core
         /// <param name="joinData"></param>
         public void SetCustomJoinData(Dictionary<string, JoinData> joinData)
         {
-            foreach (var customJoinData in joinData)
+            foreach (KeyValuePair<string, JoinData> customJoinData in joinData)
             {
-                var join = Joins[customJoinData.Key];
+                JoinDataComplete join = Joins[customJoinData.Key];
 
                 if (join != null)
                 {
@@ -453,6 +467,7 @@ namespace PepperDash.Essentials.Core
         [JsonProperty("joinNumber")]
         [Obsolete]
         public uint JoinNumber { get; set; }
+
         /// <summary>
         /// Join range span.  If join indicates the start of a range of joins, this indicated the maximum number of joins in the range
         /// </summary>
@@ -465,29 +480,39 @@ namespace PepperDash.Essentials.Core
         /// </summary>
         [Obsolete("Use Description instead")]
         [JsonProperty("label")]
-        public string Label { get { return _description; } set { _description = value; } }
+        public string Label
+        {
+            get { return _description; }
+            set { _description = value; }
+        }
 
         /// <summary>
         /// A description for the join to better describe its usage
         /// </summary>
         [JsonProperty("description")]
-        public string Description { get { return _description; } set { _description = value; } }
+        public string Description
+        {
+            get { return _description; }
+            set { _description = value; }
+        }
+
         /// <summary>
         /// Signal type(s)
         /// </summary>
         [JsonProperty("joinType")]
         public eJoinType JoinType { get; set; }
+
         /// <summary>
         /// Indicates whether the join is read and/or write
         /// </summary>
         [JsonProperty("joinCapabilities")]
         public eJoinCapabilities JoinCapabilities { get; set; }
+
         /// <summary>
         /// Indicates a set of valid values (particularly if this translates to an enum
         /// </summary>
         [JsonProperty("validValues")]
         public string[] ValidValues { get; set; }
-
     }
 
     /// <summary>
@@ -500,11 +525,13 @@ namespace PepperDash.Essentials.Core
         /// </summary>
         [JsonProperty("joinNumber")]
         public uint JoinNumber { get; set; }
+
         /// <summary>
         /// Join range span.  If join indicates the start of a range of joins, this indicated the maximum number of joins in the range
         /// </summary>
         [JsonProperty("joinSpan")]
         public uint JoinSpan { get; set; }
+
         /// <summary>
         /// Fusion Attribute Name (optional)
         /// </summary>
@@ -521,6 +548,7 @@ namespace PepperDash.Essentials.Core
 
         private JoinData _data;
         public JoinMetadata Metadata { get; set; }
+
         /// <summary>
         /// To store some future information as you please
         /// </summary>
@@ -534,53 +562,64 @@ namespace PepperDash.Essentials.Core
 
         public string GetMarkdownFormattedData(string stringFormatter, int descriptionLen)
         {
-
             //Fixed Width Headers
-            var joinNumberLen = String.Format("Join Number").Length;
-            var joinSpanLen = String.Format("Join Span").Length;
-            var typeLen = String.Format("AnalogDigitalSerial").Length;
-            var capabilitiesLen = String.Format("ToFromFusion").Length;
+            int joinNumberLen = string.Format("Join Number").Length;
+            int joinSpanLen = string.Format("Join Span").Length;
+            int typeLen = string.Format("AnalogDigitalSerial").Length;
+            int capabilitiesLen = string.Format("ToFromFusion").Length;
 
             //Track which one failed, if it did
             const string placeholder = "unknown";
-            var dataArray = new Dictionary<string, string>
+            Dictionary<string, string> dataArray = new Dictionary<string, string>
             {
-                {"joinNumber", placeholder.PadRight(joinNumberLen, ' ')},
-                {"joinSpan", placeholder.PadRight(joinSpanLen, ' ')},
-                {"description", placeholder.PadRight(descriptionLen, ' ')},
-                {"joinType", placeholder.PadRight(typeLen, ' ')},
-                {"capabilities", placeholder.PadRight(capabilitiesLen, ' ')}
+                { "joinNumber", placeholder.PadRight(joinNumberLen, ' ') },
+                { "joinSpan", placeholder.PadRight(joinSpanLen, ' ') },
+                { "description", placeholder.PadRight(descriptionLen, ' ') },
+                { "joinType", placeholder.PadRight(typeLen, ' ') },
+                { "capabilities", placeholder.PadRight(capabilitiesLen, ' ') }
             };
 
 
             try
             {
-                dataArray["joinNumber"] = String.Format("{0}", JoinNumber.ToString(CultureInfo.InvariantCulture).ReplaceIfNullOrEmpty(placeholder)).PadRight(joinNumberLen, ' ');
-                dataArray["joinSpan"] = String.Format("{0}", JoinSpan.ToString(CultureInfo.InvariantCulture).ReplaceIfNullOrEmpty(placeholder)).PadRight(joinSpanLen, ' ');
-                dataArray["description"] = String.Format("{0}", Metadata.Description.ReplaceIfNullOrEmpty(placeholder)).PadRight(descriptionLen, ' ');
-                dataArray["joinType"] = String.Format("{0}", Metadata.JoinType.ToString().ReplaceIfNullOrEmpty(placeholder)).PadRight(typeLen, ' ');
-                dataArray["capabilities"] = String.Format("{0}", Metadata.JoinCapabilities.ToString().ReplaceIfNullOrEmpty(placeholder)).PadRight(capabilitiesLen, ' ');
+                dataArray["joinNumber"] =
+                    string.Format("{0}",
+                            JoinNumber.ToString(CultureInfo.InvariantCulture).ReplaceIfNullOrEmpty(placeholder))
+                        .PadRight(joinNumberLen, ' ');
+                dataArray["joinSpan"] =
+                    string.Format("{0}",
+                            JoinSpan.ToString(CultureInfo.InvariantCulture).ReplaceIfNullOrEmpty(placeholder))
+                        .PadRight(joinSpanLen, ' ');
+                dataArray["description"] = string.Format("{0}", Metadata.Description.ReplaceIfNullOrEmpty(placeholder))
+                    .PadRight(descriptionLen, ' ');
+                dataArray["joinType"] =
+                    string.Format("{0}", Metadata.JoinType.ToString().ReplaceIfNullOrEmpty(placeholder))
+                        .PadRight(typeLen, ' ');
+                dataArray["capabilities"] = string
+                    .Format("{0}", Metadata.JoinCapabilities.ToString().ReplaceIfNullOrEmpty(placeholder))
+                    .PadRight(capabilitiesLen, ' ');
 
-                return String.Format(stringFormatter,
+                return string.Format(stringFormatter,
                     dataArray["joinNumber"],
                     dataArray["joinSpan"],
                     dataArray["description"],
                     dataArray["joinType"],
                     dataArray["capabilities"]);
-
             }
             catch (Exception e)
             {
                 //Don't Throw - we don't want to kill the system if this falls over - it's not mission critical. Print the error, use placeholder data
-                var errorKey = string.Empty;
-                foreach (var item in dataArray)
+                string errorKey = string.Empty;
+                foreach (KeyValuePair<string, string> item in dataArray)
                 {
                     if (item.Value.TrimEnd() == placeholder)
-                    errorKey = item.Key;
+                        errorKey = item.Key;
                     break;
                 }
-                Debug.Console(0, "Unable to decode join metadata {1}- {0}", e.Message, !String.IsNullOrEmpty(errorKey) ? (' ' + errorKey) : String.Empty);
-                return String.Format(stringFormatter,
+
+                Debug.Console(0, "Unable to decode join metadata {1}- {0}", e.Message,
+                    !string.IsNullOrEmpty(errorKey) ? (' ' + errorKey) : string.Empty);
+                return string.Format(stringFormatter,
                     dataArray["joinNumber"],
                     dataArray["joinSpan"],
                     dataArray["description"],
@@ -604,7 +643,7 @@ namespace PepperDash.Essentials.Core
         /// </summary>
         public uint JoinNumber
         {
-            get { return _data.JoinNumber+ _joinOffset; }
+            get { return _data.JoinNumber + _joinOffset; }
             set { _data.JoinNumber = value; }
         }
 
@@ -625,8 +664,8 @@ namespace PepperDash.Essentials.Core
 
         public string GetNameAttribute(MemberInfo memberInfo)
         {
-            var name = string.Empty;
-            var attribute = (JoinNameAttribute)CAttribute.GetCustomAttribute(memberInfo, typeof(JoinNameAttribute));
+            string name = string.Empty;
+            JoinNameAttribute attribute = (JoinNameAttribute)CAttribute.GetCustomAttribute(memberInfo, typeof(JoinNameAttribute));
 
             if (attribute == null) return name;
 
@@ -636,7 +675,6 @@ namespace PepperDash.Essentials.Core
         }
     }
 
-    
 
     [AttributeUsage(AttributeTargets.All)]
     public class JoinNameAttribute : CAttribute

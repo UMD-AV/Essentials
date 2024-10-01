@@ -2,7 +2,7 @@
 
 namespace PepperDash.Essentials.Core.DeviceInfo
 {
-    public interface IDeviceInfoProvider:IKeyed
+    public interface IDeviceInfoProvider : IKeyed
     {
         DeviceInfo DeviceInfo { get; }
 

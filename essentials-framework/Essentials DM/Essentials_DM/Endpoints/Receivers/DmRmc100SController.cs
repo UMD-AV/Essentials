@@ -2,7 +2,6 @@
 using Crestron.SimplSharpPro.DeviceSupport;
 using Crestron.SimplSharpPro.DM;
 using Crestron.SimplSharpPro.DM.Endpoints.Receivers;
-
 using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Bridges;
 
@@ -36,10 +35,10 @@ namespace PepperDash.Essentials.DM
             DmIn = new RoutingInputPort(DmPortName.DmIn, eRoutingSignalType.AudioVideo,
                 eRoutingPortConnectionType.DmCat, 0, this);
             HdmiOut = new RoutingOutputPort(DmPortName.HdmiOut, eRoutingSignalType.AudioVideo,
-                eRoutingPortConnectionType.Hdmi, null, this) {Port = _rmc};
+                eRoutingPortConnectionType.Hdmi, null, this) { Port = _rmc };
 
-            InputPorts = new RoutingPortCollection<RoutingInputPort> {DmIn};
-            OutputPorts = new RoutingPortCollection<RoutingOutputPort> {HdmiOut};
+            InputPorts = new RoutingPortCollection<RoutingInputPort> { DmIn };
+            OutputPorts = new RoutingPortCollection<RoutingOutputPort> { HdmiOut };
         }
 
         public override void LinkToApi(BasicTriList trilist, uint joinStart, string joinMapKey, EiscApiAdvanced bridge)
@@ -48,17 +47,40 @@ namespace PepperDash.Essentials.DM
         }
 
         #region IIROutputPorts Members
-        public CrestronCollection<IROutputPort> IROutputPorts { get { return _rmc.IROutputPorts; } }
-        public int NumberOfIROutputPorts { get { return _rmc.NumberOfIROutputPorts; } }
+
+        public CrestronCollection<IROutputPort> IROutputPorts
+        {
+            get { return _rmc.IROutputPorts; }
+        }
+
+        public int NumberOfIROutputPorts
+        {
+            get { return _rmc.NumberOfIROutputPorts; }
+        }
+
         #endregion
 
         #region IComPorts Members
-        public CrestronCollection<ComPort> ComPorts { get { return _rmc.ComPorts; } }
-        public int NumberOfComPorts { get { return _rmc.NumberOfComPorts; } }
+
+        public CrestronCollection<ComPort> ComPorts
+        {
+            get { return _rmc.ComPorts; }
+        }
+
+        public int NumberOfComPorts
+        {
+            get { return _rmc.NumberOfComPorts; }
+        }
+
         #endregion
 
         #region ICec Members
-        public Cec StreamCec { get { return _rmc.HdmiOutput.StreamCec; } }
+
+        public Cec StreamCec
+        {
+            get { return _rmc.HdmiOutput.StreamCec; }
+        }
+
         #endregion
     }
 }

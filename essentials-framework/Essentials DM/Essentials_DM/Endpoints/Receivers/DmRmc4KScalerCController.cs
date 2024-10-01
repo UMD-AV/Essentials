@@ -4,57 +4,59 @@ using Crestron.SimplSharpPro.DM;
 using Crestron.SimplSharpPro.DM.Endpoints;
 using Crestron.SimplSharpPro.DM.Endpoints.Receivers;
 using PepperDash.Core;
-
 using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Bridges;
 
 namespace PepperDash.Essentials.DM
 {
-	/// <summary>
-	/// Builds a controller for basic DM-RMCs with Com and IR ports and no control functions
-	/// 
-	/// </summary>
+    /// <summary>
+    /// Builds a controller for basic DM-RMCs with Com and IR ports and no control functions
+    /// 
+    /// </summary>
     [Description("Wrapper Class for DM-RMC-4K-SCALER-C")]
     public class DmRmc4kScalerCController : DmRmcControllerBase, IRoutingInputsOutputs, IBasicVolumeWithFeedback,
-		IIROutputPorts, IComPorts, ICec, IRelayPorts
-	{
-	    private readonly DmRmc4kScalerC _rmc;
+        IIROutputPorts, IComPorts, ICec, IRelayPorts
+    {
+        private readonly DmRmc4kScalerC _rmc;
 
-		public RoutingInputPort DmIn { get; private set; }
-		public RoutingOutputPort HdmiOut { get; private set; }
-		public RoutingOutputPort BalancedAudioOut { get; private set; }
+        public RoutingInputPort DmIn { get; private set; }
+        public RoutingOutputPort HdmiOut { get; private set; }
+        public RoutingOutputPort BalancedAudioOut { get; private set; }
 
-		public RoutingPortCollection<RoutingInputPort> InputPorts { get; private set; }
+        public RoutingPortCollection<RoutingInputPort> InputPorts { get; private set; }
 
-		public RoutingPortCollection<RoutingOutputPort> OutputPorts { get; private set; }
+        public RoutingPortCollection<RoutingOutputPort> OutputPorts { get; private set; }
 
-		/// <summary>
-		///  Make a Crestron RMC and put it in here
-		/// </summary>
-		public DmRmc4kScalerCController(string key, string name, DmRmc4kScalerC rmc)
-			: base(key, name, rmc)
-		{
-			_rmc = rmc;
+        /// <summary>
+        ///  Make a Crestron RMC and put it in here
+        /// </summary>
+        public DmRmc4kScalerCController(string key, string name, DmRmc4kScalerC rmc)
+            : base(key, name, rmc)
+        {
+            _rmc = rmc;
 
-			DmIn = new RoutingInputPort(DmPortName.DmIn, eRoutingSignalType.AudioVideo, 
-				eRoutingPortConnectionType.DmCat, 0, this);
-			HdmiOut = new RoutingOutputPort(DmPortName.HdmiOut, eRoutingSignalType.AudioVideo, 
-				eRoutingPortConnectionType.Hdmi, null, this);
-			BalancedAudioOut = new RoutingOutputPort(DmPortName.BalancedAudioOut, eRoutingSignalType.Audio,
-				eRoutingPortConnectionType.LineAudio, null, this);
+            DmIn = new RoutingInputPort(DmPortName.DmIn, eRoutingSignalType.AudioVideo,
+                eRoutingPortConnectionType.DmCat, 0, this);
+            HdmiOut = new RoutingOutputPort(DmPortName.HdmiOut, eRoutingSignalType.AudioVideo,
+                eRoutingPortConnectionType.Hdmi, null, this);
+            BalancedAudioOut = new RoutingOutputPort(DmPortName.BalancedAudioOut, eRoutingSignalType.Audio,
+                eRoutingPortConnectionType.LineAudio, null, this);
 
-			MuteFeedback = new BoolFeedback(() => false);
+            MuteFeedback = new BoolFeedback(() => false);
 
-			VolumeLevelFeedback = new IntFeedback("MainVolumeLevelFeedback", () => 
-				rmc.AudioOutput.VolumeFeedback.UShortValue);
+            VolumeLevelFeedback = new IntFeedback("MainVolumeLevelFeedback", () =>
+                rmc.AudioOutput.VolumeFeedback.UShortValue);
 
-            EdidManufacturerFeedback = new StringFeedback(() => _rmc.HdmiOutput.ConnectedDevice.Manufacturer.StringValue);
+            EdidManufacturerFeedback =
+                new StringFeedback(() => _rmc.HdmiOutput.ConnectedDevice.Manufacturer.StringValue);
             EdidNameFeedback = new StringFeedback(() => _rmc.HdmiOutput.ConnectedDevice.Name.StringValue);
-            EdidPreferredTimingFeedback = new StringFeedback(() => _rmc.HdmiOutput.ConnectedDevice.PreferredTiming.StringValue);
-            EdidSerialNumberFeedback = new StringFeedback(() => _rmc.HdmiOutput.ConnectedDevice.SerialNumber.StringValue);
+            EdidPreferredTimingFeedback =
+                new StringFeedback(() => _rmc.HdmiOutput.ConnectedDevice.PreferredTiming.StringValue);
+            EdidSerialNumberFeedback =
+                new StringFeedback(() => _rmc.HdmiOutput.ConnectedDevice.SerialNumber.StringValue);
 
-		    InputPorts = new RoutingPortCollection<RoutingInputPort> {DmIn};
-		    OutputPorts = new RoutingPortCollection<RoutingOutputPort> {HdmiOut, BalancedAudioOut};
+            InputPorts = new RoutingPortCollection<RoutingInputPort> { DmIn };
+            OutputPorts = new RoutingPortCollection<RoutingOutputPort> { HdmiOut, BalancedAudioOut };
 
             VideoOutputResolutionFeedback = new StringFeedback(() => _rmc.HdmiOutput.GetVideoResolutionString());
 
@@ -67,14 +69,16 @@ namespace PepperDash.Essentials.DM
 
         void HdmiOutput_OutputStreamChange(EndpointOutputStream outputStream, EndpointOutputStreamEventArgs args)
         {
-            if (args.EventId == EndpointOutputStreamEventIds.HorizontalResolutionFeedbackEventId || args.EventId == EndpointOutputStreamEventIds.VerticalResolutionFeedbackEventId ||
+            if (args.EventId == EndpointOutputStreamEventIds.HorizontalResolutionFeedbackEventId ||
+                args.EventId == EndpointOutputStreamEventIds.VerticalResolutionFeedbackEventId ||
                 args.EventId == EndpointOutputStreamEventIds.FramesPerSecondFeedbackEventId)
             {
                 VideoOutputResolutionFeedback.FireUpdate();
             }
         }
 
-        void ConnectedDevice_DeviceInformationChange(ConnectedDeviceInformation connectedDevice, ConnectedDeviceEventArgs args)
+        void ConnectedDevice_DeviceInformationChange(ConnectedDeviceInformation connectedDevice,
+            ConnectedDeviceEventArgs args)
         {
             switch (args.EventId)
             {
@@ -93,105 +97,120 @@ namespace PepperDash.Essentials.DM
             }
         }
 
-	    public override void LinkToApi(BasicTriList trilist, uint joinStart, string joinMapKey, EiscApiAdvanced bridge)
-	    {
-	        LinkDmRmcToApi(this, trilist, joinStart, joinMapKey, bridge);
-	    }
+        public override void LinkToApi(BasicTriList trilist, uint joinStart, string joinMapKey, EiscApiAdvanced bridge)
+        {
+            LinkDmRmcToApi(this, trilist, joinStart, joinMapKey, bridge);
+        }
 
-	    #region IIROutputPorts Members
-		public CrestronCollection<IROutputPort> IROutputPorts { get { return _rmc.IROutputPorts; } }
-		public int NumberOfIROutputPorts { get { return _rmc.NumberOfIROutputPorts; } }
-		#endregion
+        #region IIROutputPorts Members
 
-		#region IComPorts Members
-		public CrestronCollection<ComPort> ComPorts { get { return _rmc.ComPorts; } }
-		public int NumberOfComPorts { get { return _rmc.NumberOfComPorts; } }
-		#endregion
+        public CrestronCollection<IROutputPort> IROutputPorts
+        {
+            get { return _rmc.IROutputPorts; }
+        }
 
-		#region ICec Members
-		/// <summary>
-		/// Gets the CEC stream directly from the HDMI port.
-		/// </summary>
-		public Cec StreamCec { get { return _rmc.HdmiOutput.StreamCec; } }
-		#endregion
+        public int NumberOfIROutputPorts
+        {
+            get { return _rmc.NumberOfIROutputPorts; }
+        }
 
-		#region IRelayPorts Members
+        #endregion
 
-		public int NumberOfRelayPorts
-		{
-			get { return _rmc.NumberOfRelayPorts; }
-		}
+        #region IComPorts Members
 
-		public CrestronCollection<Relay> RelayPorts
-		{
-			get { return _rmc.RelayPorts; }
-		}
+        public CrestronCollection<ComPort> ComPorts
+        {
+            get { return _rmc.ComPorts; }
+        }
 
-		#endregion
+        public int NumberOfComPorts
+        {
+            get { return _rmc.NumberOfComPorts; }
+        }
 
-		#region IBasicVolumeWithFeedback Members
+        #endregion
 
-		public BoolFeedback MuteFeedback
-		{
-			get;
-			private set;
-		}
+        #region ICec Members
 
-		/// <summary>
-		/// Not implemented
-		/// </summary>
-		public void MuteOff()
-		{	
+        /// <summary>
+        /// Gets the CEC stream directly from the HDMI port.
+        /// </summary>
+        public Cec StreamCec
+        {
+            get { return _rmc.HdmiOutput.StreamCec; }
+        }
+
+        #endregion
+
+        #region IRelayPorts Members
+
+        public int NumberOfRelayPorts
+        {
+            get { return _rmc.NumberOfRelayPorts; }
+        }
+
+        public CrestronCollection<Relay> RelayPorts
+        {
+            get { return _rmc.RelayPorts; }
+        }
+
+        #endregion
+
+        #region IBasicVolumeWithFeedback Members
+
+        public BoolFeedback MuteFeedback { get; private set; }
+
+        /// <summary>
+        /// Not implemented
+        /// </summary>
+        public void MuteOff()
+        {
             Debug.Console(2, this, "DM Endpoint {0} does not have a mute function", Key);
-		}
+        }
 
-		/// <summary>
-		/// Not implemented
-		/// </summary>
-		public void MuteOn()
-		{
+        /// <summary>
+        /// Not implemented
+        /// </summary>
+        public void MuteOn()
+        {
             Debug.Console(2, this, "DM Endpoint {0} does not have a mute function", Key);
-		}
+        }
 
-		public void SetVolume(ushort level)
-		{
-			_rmc.AudioOutput.Volume.UShortValue = level;
-		}
+        public void SetVolume(ushort level)
+        {
+            _rmc.AudioOutput.Volume.UShortValue = level;
+        }
 
-		public IntFeedback VolumeLevelFeedback
-		{
-			get;
-			private set;
-		}
+        public IntFeedback VolumeLevelFeedback { get; private set; }
 
-		#endregion
+        #endregion
 
-		#region IBasicVolumeControls Members
+        #region IBasicVolumeControls Members
 
-		/// <summary>
-		/// Not implemented
-		/// </summary>
-		public void MuteToggle()
-		{
+        /// <summary>
+        /// Not implemented
+        /// </summary>
+        public void MuteToggle()
+        {
             Debug.Console(2, this, "DM Endpoint {0} does not have a mute function", Key);
-		}
+        }
 
-		public void VolumeDown(bool pressRelease)
-		{
-			if (pressRelease)
-				SigHelper.RampTimeScaled(_rmc.AudioOutput.Volume, 0, 4000);
-			else
-				_rmc.AudioOutput.Volume.StopRamp();
-		}
+        public void VolumeDown(bool pressRelease)
+        {
+            if (pressRelease)
+                SigHelper.RampTimeScaled(_rmc.AudioOutput.Volume, 0, 4000);
+            else
+                _rmc.AudioOutput.Volume.StopRamp();
+        }
 
-		public void VolumeUp(bool pressRelease)
-		{
-			if (pressRelease)
-				SigHelper.RampTimeScaled(_rmc.AudioOutput.Volume, 65535, 4000);
-			else
-				_rmc.AudioOutput.Volume.StopRamp();
-		}
+        public void VolumeUp(bool pressRelease)
+        {
+            if (pressRelease)
+                SigHelper.RampTimeScaled(_rmc.AudioOutput.Volume, 65535, 4000);
+            else
+                _rmc.AudioOutput.Volume.StopRamp();
+        }
 
-		#endregion
-	}
+        #endregion
+    }
 }

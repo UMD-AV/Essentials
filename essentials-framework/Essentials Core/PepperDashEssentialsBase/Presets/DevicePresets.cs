@@ -44,17 +44,17 @@ namespace PepperDash.Essentials.Core.Presets
                 // If any fail, the whole thing fails peacefully
                 _dialFunctions = new Dictionary<char, Action<bool>>(10)
                 {
-                    {'1', setTopBox.Digit1},
-                    {'2', setTopBox.Digit2},
-                    {'3', setTopBox.Digit3},
-                    {'4', setTopBox.Digit4},
-                    {'5', setTopBox.Digit5},
-                    {'6', setTopBox.Digit6},
-                    {'7', setTopBox.Digit7},
-                    {'8', setTopBox.Digit8},
-                    {'9', setTopBox.Digit9},
-                    {'0', setTopBox.Digit0},
-                    {'-', setTopBox.Dash}
+                    { '1', setTopBox.Digit1 },
+                    { '2', setTopBox.Digit2 },
+                    { '3', setTopBox.Digit3 },
+                    { '4', setTopBox.Digit4 },
+                    { '5', setTopBox.Digit5 },
+                    { '6', setTopBox.Digit6 },
+                    { '7', setTopBox.Digit7 },
+                    { '8', setTopBox.Digit8 },
+                    { '9', setTopBox.Digit9 },
+                    { '0', setTopBox.Digit0 },
+                    { '-', setTopBox.Dash }
                 };
             }
             catch
@@ -123,7 +123,7 @@ namespace PepperDash.Essentials.Core.Presets
                 PresetsAreLoaded = false;
                 try
                 {
-                    var pl = JsonConvert.DeserializeObject<PresetsList>(File.ReadToEnd(_filePath, Encoding.ASCII));
+                    PresetsList pl = JsonConvert.DeserializeObject<PresetsList>(File.ReadToEnd(_filePath, Encoding.ASCII));
                     Name = pl.Name;
                     PresetsList = pl.Channels;
                 }
@@ -135,9 +135,10 @@ namespace PepperDash.Essentials.Core.Presets
                     // Just save a default empty list
                     PresetsList = new List<PresetChannel>();
                 }
+
                 PresetsAreLoaded = true;
 
-                var handler = PresetsLoaded;
+                EventHandler handler = PresetsLoaded;
                 if (handler != null)
                 {
                     handler(this, EventArgs.Empty);
@@ -163,6 +164,7 @@ namespace PepperDash.Essentials.Core.Presets
             {
                 return;
             }
+
             if (_dialFunctions == null)
             {
                 Debug.Console(1, "DevicePresets '{0}', not attached to keypad device. Ignoring channel", Key);
@@ -172,12 +174,13 @@ namespace PepperDash.Essentials.Core.Presets
             _dialIsRunning = true;
             CrestronInvoke.BeginInvoke(o =>
             {
-                foreach (var c in chanNum.ToCharArray())
+                foreach (char c in chanNum.ToCharArray())
                 {
                     if (_dialFunctions.ContainsKey(c))
                     {
                         Pulse(_dialFunctions[c]);
                     }
+
                     CrestronEnvironment.Sleep(DigitSpacingMs);
                 }
 
@@ -185,6 +188,7 @@ namespace PepperDash.Essentials.Core.Presets
                 {
                     Pulse(_enterFunction);
                 }
+
                 _dialIsRunning = false;
             });
 
@@ -205,17 +209,17 @@ namespace PepperDash.Essentials.Core.Presets
         {
             _dialFunctions = new Dictionary<char, Action<bool>>(10)
             {
-                {'1', setTopBox.Digit1},
-                {'2', setTopBox.Digit2},
-                {'3', setTopBox.Digit3},
-                {'4', setTopBox.Digit4},
-                {'5', setTopBox.Digit5},
-                {'6', setTopBox.Digit6},
-                {'7', setTopBox.Digit7},
-                {'8', setTopBox.Digit8},
-                {'9', setTopBox.Digit9},
-                {'0', setTopBox.Digit0},
-                {'-', setTopBox.Dash}
+                { '1', setTopBox.Digit1 },
+                { '2', setTopBox.Digit2 },
+                { '3', setTopBox.Digit3 },
+                { '4', setTopBox.Digit4 },
+                { '5', setTopBox.Digit5 },
+                { '6', setTopBox.Digit6 },
+                { '7', setTopBox.Digit7 },
+                { '8', setTopBox.Digit8 },
+                { '9', setTopBox.Digit9 },
+                { '0', setTopBox.Digit0 },
+                { '-', setTopBox.Dash }
             };
 
             _enterFunction = setTopBox.KeypadEnter;
@@ -227,7 +231,7 @@ namespace PepperDash.Essentials.Core.Presets
 
         private void OnPresetRecalled(ISetTopBoxNumericKeypad setTopBox, string channel)
         {
-            var handler = PresetRecalled;
+            PresetRecalledCallback handler = PresetRecalled;
 
             if (handler == null)
             {
@@ -265,10 +269,10 @@ namespace PepperDash.Essentials.Core.Presets
             try
             {
                 _fileOps.Enter();
-                var pl = new PresetsList {Channels = PresetsList, Name = Name};
-                var json = JsonConvert.SerializeObject(pl, Formatting.Indented);
+                PresetsList pl = new PresetsList { Channels = PresetsList, Name = Name };
+                string json = JsonConvert.SerializeObject(pl, Formatting.Indented);
 
-                using (var file = File.Open(_filePath, FileMode.Truncate))
+                using (FileStream file = File.Open(_filePath, FileMode.Truncate))
                 {
                     file.Write(json, Encoding.UTF8);
                 }
@@ -277,12 +281,11 @@ namespace PepperDash.Essentials.Core.Presets
             {
                 _fileOps.Leave();
             }
-            
         }
 
         private void OnPresetsSaved()
         {
-            var handler = PresetsSaved;
+            PresetsSavedCallback handler = PresetsSaved;
 
             if (handler == null) return;
 

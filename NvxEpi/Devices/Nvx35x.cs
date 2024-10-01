@@ -23,23 +23,22 @@ using PepperDash.Core;
 using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Bridges;
 using PepperDash.Essentials.Core.Config;
-
 using HdmiInput = NvxEpi.Features.Hdmi.Input.HdmiInput;
 
 namespace NvxEpi.Devices
 {
     public class Nvx35X :
-        NvxBaseDevice, 
-        IComPorts, 
+        NvxBaseDevice,
+        IComPorts,
         IIROutputPorts,
-        IUsbStreamWithHardware, 
-        IHdmiInput, 
-        IVideowallMode, 
-        IRouting, 
+        IUsbStreamWithHardware,
+        IHdmiInput,
+        IVideowallMode,
+        IRouting,
         ICec,
         INvx35XDeviceWithHardware
     {
-        private IHdmiInput _hdmiInputs;        
+        private IHdmiInput _hdmiInputs;
         private IVideowallMode _hdmiOutput;
         private IUsbStreamWithHardware _usbStream;
         private readonly NvxDeviceProperties _config;
@@ -53,17 +52,17 @@ namespace NvxEpi.Devices
 
         public override bool CustomActivate()
         {
-            var hardware = base.Hardware as DmNvx35x;
+            DmNvx35x hardware = base.Hardware as DmNvx35x;
             if (hardware == null)
                 throw new Exception("hardware built doesn't match");
 
             Hardware = hardware;
-            var result = base.CustomActivate();
+            bool result = base.CustomActivate();
             //if (Debug.Level >= 0)
             //    Debug.Console(0, this, "{0}", JsonConvert.SerializeObject(_config, Formatting.Indented));
 
             _usbStream = UsbStream.GetUsbStream(this, _config.Usb);
-            _hdmiInputs = new HdmiInput(this);            
+            _hdmiInputs = new HdmiInput(this);
             _hdmiOutput = new VideowallModeOutput(this);
 
             if (_config.EnableAutoRoute)
@@ -83,12 +82,14 @@ namespace NvxEpi.Devices
         public void MakeUsbRoute(IUsbStreamWithHardware hardware)
         {
             Debug.Console(0, this, "Try Make USB Route for mac : {0}", hardware.UsbLocalId.StringValue);
-            var usbStream = _usbStream as UsbStream;
+            UsbStream usbStream = _usbStream as UsbStream;
             if (usbStream == null)
             {
-                Debug.Console(0, this, "cannot Make USB Route for url : {0} - UsbStream is null", hardware.UsbLocalId.StringValue);
+                Debug.Console(0, this, "cannot Make USB Route for url : {0} - UsbStream is null",
+                    hardware.UsbLocalId.StringValue);
                 return;
             }
+
             usbStream.MakeUsbRoute(hardware);
         }
 
@@ -123,6 +124,7 @@ namespace NvxEpi.Devices
         {
             get { return _hdmiOutput.OutputResolution; }
         }
+
         public IntFeedback VideoAspectRatioMode
         {
             get { return _hdmiOutput.VideoAspectRatioMode; }
@@ -177,7 +179,7 @@ namespace NvxEpi.Devices
         {
             try
             {
-                var switcher = outputSelector as IHandleInputSwitch;
+                IHandleInputSwitch switcher = outputSelector as IHandleInputSwitch;
                 if (switcher == null)
                     throw new NullReferenceException("outputSelector");
 
@@ -198,7 +200,7 @@ namespace NvxEpi.Devices
 
         public override void LinkToApi(BasicTriList trilist, uint joinStart, string joinMapKey, EiscApiAdvanced bridge)
         {
-            var deviceBridge = new NvxDeviceBridge(this);
+            NvxDeviceBridge deviceBridge = new NvxDeviceBridge(this);
             deviceBridge.LinkToApi(trilist, joinStart, joinMapKey, bridge);
         }
 
@@ -227,16 +229,34 @@ namespace NvxEpi.Devices
             get { return _usbStream.UsbLocalId; }
         }
 
-        public ReadOnlyDictionary<uint, IntFeedback> AudioChannels { get { return _hdmiInputs.AudioChannels; } }
+        public ReadOnlyDictionary<uint, IntFeedback> AudioChannels
+        {
+            get { return _hdmiInputs.AudioChannels; }
+        }
 
-        public ReadOnlyDictionary<uint, StringFeedback> AudioFormat { get { return _hdmiInputs.AudioFormat; } }
+        public ReadOnlyDictionary<uint, StringFeedback> AudioFormat
+        {
+            get { return _hdmiInputs.AudioFormat; }
+        }
 
-        public ReadOnlyDictionary<uint, StringFeedback> ColorSpace { get { return _hdmiInputs.ColorSpace; } }
+        public ReadOnlyDictionary<uint, StringFeedback> ColorSpace
+        {
+            get { return _hdmiInputs.ColorSpace; }
+        }
 
-        public ReadOnlyDictionary<uint, StringFeedback> HdrType { get { return _hdmiInputs.HdrType; } }
+        public ReadOnlyDictionary<uint, StringFeedback> HdrType
+        {
+            get { return _hdmiInputs.HdrType; }
+        }
 
-        public ReadOnlyDictionary<uint, StringFeedback> HdcpCapabilityString { get { return _hdmiInputs.HdcpCapabilityString; } }
+        public ReadOnlyDictionary<uint, StringFeedback> HdcpCapabilityString
+        {
+            get { return _hdmiInputs.HdcpCapabilityString; }
+        }
 
-        public ReadOnlyDictionary<uint, StringFeedback> HdcpSupport { get { return _hdmiInputs.HdcpSupport; } }
+        public ReadOnlyDictionary<uint, StringFeedback> HdcpSupport
+        {
+            get { return _hdmiInputs.HdcpSupport; }
+        }
     }
 }

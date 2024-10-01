@@ -33,13 +33,13 @@ namespace NvxEpi.Services.Bridge
         private static void BuildFeedbackList(BasicTriList trilist,
             IEnumerable<PepperDash.Essentials.Core.Feedback> feedbacks, NvxDeviceJoinMap joinMap)
         {
-            foreach (var feedback in feedbacks)
+            foreach (PepperDash.Essentials.Core.Feedback feedback in feedbacks)
             {
                 uint joinNumber = 0;
 
                 if (feedback.Key == DeviceNameFeedback.Key)
                     joinNumber = joinMap.DeviceName.JoinNumber;
- 
+
                 /*if (feedback.Key == IsStreamingVideoFeedback.Key)
                     joinNumber = joinMap.StreamStarted.JoinNumber;*/
 
@@ -138,26 +138,26 @@ namespace NvxEpi.Services.Bridge
         {
             Debug.Console(2, feedback, "Linking to Trilist : {0} | Join : {1}", trilist.ID, join);
 
-            var stringFeedback = feedback as StringFeedback;
+            StringFeedback stringFeedback = feedback as StringFeedback;
             if (stringFeedback != null)
                 stringFeedback.LinkInputSig(trilist.StringInput[join]);
 
-            var intFeedback = feedback as IntFeedback;
+            IntFeedback intFeedback = feedback as IntFeedback;
             if (intFeedback != null)
                 intFeedback.LinkInputSig(trilist.UShortInput[join]);
 
-            var boolFeedback = feedback as BoolFeedback;
+            BoolFeedback boolFeedback = feedback as BoolFeedback;
             if (boolFeedback != null)
                 boolFeedback.LinkInputSig(trilist.BooleanInput[join]);
         }
 
         public void LinkToApi(BasicTriList trilist, uint joinStart, string joinMapKey, EiscApiAdvanced bridge)
         {
-            var joinMap = new NvxDeviceJoinMap(joinStart);
+            NvxDeviceJoinMap joinMap = new NvxDeviceJoinMap(joinStart);
             if (bridge != null)
                 bridge.AddJoinMap(_device.Key, joinMap);
 
-            var customJoins = JoinMapHelper.TryGetJoinMapAdvancedForDevice(joinMapKey);
+            Dictionary<string, JoinData> customJoins = JoinMapHelper.TryGetJoinMapAdvancedForDevice(joinMapKey);
             if (customJoins != null)
                 joinMap.SetCustomJoinData(customJoins);
 
@@ -169,14 +169,14 @@ namespace NvxEpi.Services.Bridge
             LinkRouting(trilist, joinMap);
             LinkUsbRouting(trilist, joinMap);
 
-            var videoInput = _device as ICurrentVideoInput;
+            ICurrentVideoInput videoInput = _device as ICurrentVideoInput;
             if (videoInput != null)
                 trilist.SetUShortSigAction(joinMap.VideoInput.JoinNumber, videoInput.SetVideoInput);
 
-            var audioInput = _device as ICurrentAudioInput;
+            ICurrentAudioInput audioInput = _device as ICurrentAudioInput;
             if (audioInput != null)
                 trilist.SetUShortSigAction(joinMap.AudioInput.JoinNumber, audioInput.SetAudioInput);
-                
+
             /*var naxInput = _device as ICurrentNaxInput;
             if (naxInput != null)
                 trilist.SetUShortSigAction(joinMap.NaxInput.JoinNumber, naxInput.SetNaxInput);
@@ -188,8 +188,6 @@ namespace NvxEpi.Services.Bridge
             var stream = _device as IStreamWithHardware;
             if (stream != null)
                 trilist.SetStringSigAction(joinMap.StreamUrl.JoinNumber, stream.SetStreamUrl);*/
-
-                
         }
 
         private void LinkRouting(BasicTriList trilist, NvxDeviceJoinMap joinMap)

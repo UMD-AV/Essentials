@@ -15,7 +15,6 @@ namespace NvxEpi.Features.Routing
         }
 
 
-
         #region IRouting Members
 
         public void ExecuteSwitch(object inputSelector, object outputSelector, eRoutingSignalType signalType)

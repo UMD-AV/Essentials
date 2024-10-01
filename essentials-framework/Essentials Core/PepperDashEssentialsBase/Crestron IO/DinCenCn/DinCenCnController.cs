@@ -14,9 +14,7 @@ namespace PepperDash.Essentials.Core
 
         public CrestronCollection<CresnetBranch> CresnetBranches
         {
-            get {
-                return _device != null ? _device.Branches : null;
-            }
+            get { return _device != null ? _device.Branches : null; }
         }
 
         public DinCenCn2Controller(string key, string name, DinCenCn2 device, DeviceConfig config)
@@ -36,8 +34,8 @@ namespace PepperDash.Essentials.Core
             {
                 Debug.Console(1, "Factory Attempting to create new DIN-CEN-CN2 Device");
 
-                var control = CommFactory.GetControlPropertiesConfig(dc);
-                var ipid = control.IpIdInt;
+                EssentialsControlPropertiesConfig control = CommFactory.GetControlPropertiesConfig(dc);
+                uint ipid = control.IpIdInt;
 
                 if (dc.Type.ToLower().Contains("poe"))
                 {

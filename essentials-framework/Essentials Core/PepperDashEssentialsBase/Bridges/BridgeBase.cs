@@ -20,11 +20,11 @@ namespace PepperDash.Essentials.Core.Bridges
     {
         public static void PrintJoinMap(string command)
         {
-            var targets = command.Split(' ');
+            string[] targets = command.Split(' ');
 
-            var bridgeKey = targets[0].Trim();
+            string bridgeKey = targets[0].Trim();
 
-            var bridge = DeviceManager.GetDeviceForKey(bridgeKey) as EiscApiAdvanced;
+            EiscApiAdvanced bridge = DeviceManager.GetDeviceForKey(bridgeKey) as EiscApiAdvanced;
 
             if (bridge == null)
             {
@@ -34,7 +34,7 @@ namespace PepperDash.Essentials.Core.Bridges
 
             if (targets.Length > 1)
             {
-                var deviceKey = targets[1].Trim();
+                string deviceKey = targets[1].Trim();
 
                 if (string.IsNullOrEmpty(deviceKey)) return;
                 bridge.PrintJoinMapForDevice(deviceKey);
@@ -44,13 +44,14 @@ namespace PepperDash.Essentials.Core.Bridges
                 bridge.PrintJoinMaps();
             }
         }
+
         public static void JoinmapMarkdown(string command)
         {
-            var targets = command.Split(' ');
+            string[] targets = command.Split(' ');
 
-            var bridgeKey = targets[0].Trim();
+            string bridgeKey = targets[0].Trim();
 
-            var bridge = DeviceManager.GetDeviceForKey(bridgeKey) as EiscApiAdvanced;
+            EiscApiAdvanced bridge = DeviceManager.GetDeviceForKey(bridgeKey) as EiscApiAdvanced;
 
             if (bridge == null)
             {
@@ -60,7 +61,7 @@ namespace PepperDash.Essentials.Core.Bridges
 
             if (targets.Length > 1)
             {
-                var deviceKey = targets[1].Trim();
+                string deviceKey = targets[1].Trim();
 
                 if (string.IsNullOrEmpty(deviceKey)) return;
                 bridge.MarkdownJoinMapForDevice(deviceKey, bridgeKey);
@@ -68,7 +69,6 @@ namespace PepperDash.Essentials.Core.Bridges
             else
             {
                 bridge.MarkdownForBridge(bridgeKey);
-
             }
         }
     }
@@ -84,7 +84,6 @@ namespace PepperDash.Essentials.Core.Bridges
         public BridgeBase(string key) :
             base(key)
         {
-
         }
     }
 
@@ -96,7 +95,6 @@ namespace PepperDash.Essentials.Core.Bridges
         protected BridgeApi(string key) :
             base(key)
         {
-
         }
     }
 
@@ -151,9 +149,9 @@ namespace PepperDash.Essentials.Core.Bridges
                 return;
             }
 
-            foreach (var d in PropertiesConfig.Devices)
+            foreach (EiscApiPropertiesConfig.ApiDevicePropertiesConfig d in PropertiesConfig.Devices)
             {
-                var device = DeviceManager.GetDeviceForKey(d.DeviceKey);
+                IKeyed device = DeviceManager.GetDeviceForKey(d.DeviceKey);
 
                 if (device == null)
                 {
@@ -162,7 +160,7 @@ namespace PepperDash.Essentials.Core.Bridges
 
                 Debug.Console(1, this, "Linking Device: '{0}'", device.Key);
 
-                if (!typeof (IBridgeAdvanced).IsAssignableFrom(device.GetType().GetCType()))
+                if (!typeof(IBridgeAdvanced).IsAssignableFrom(device.GetType().GetCType()))
                 {
                     Debug.Console(0, this, Debug.ErrorLogLevel.Notice,
                         "{0} is not compatible with this bridge type. Please use 'eiscapi' instead, or updae the device.",
@@ -170,7 +168,7 @@ namespace PepperDash.Essentials.Core.Bridges
                     continue;
                 }
 
-                var bridge = device as IBridgeAdvanced;
+                IBridgeAdvanced bridge = device as IBridgeAdvanced;
                 if (bridge != null)
                 {
                     bridge.LinkToApi(Eisc, d.JoinStart, d.JoinMapKey, this);
@@ -185,7 +183,7 @@ namespace PepperDash.Essentials.Core.Bridges
                 return;
             }
 
-            var registerResult = Eisc.Register();
+            eDeviceRegistrationUnRegistrationResponse registerResult = Eisc.Register();
 
             if (registerResult != eDeviceRegistrationUnRegistrationResponse.Success)
             {
@@ -209,7 +207,8 @@ namespace PepperDash.Essentials.Core.Bridges
             }
             else
             {
-                Debug.Console(2, this, "Unable to add join map with key '{0}'.  Key already exists in JoinMaps dictionary", deviceKey);
+                Debug.Console(2, this,
+                    "Unable to add join map with key '{0}'.  Key already exists in JoinMaps dictionary", deviceKey);
             }
         }
 
@@ -220,12 +219,13 @@ namespace PepperDash.Essentials.Core.Bridges
         {
             Debug.Console(0, this, "Join Maps for EISC IPID: {0}", Eisc.ID.ToString("X"));
 
-            foreach (var joinMap in JoinMaps)
+            foreach (KeyValuePair<string, JoinMapBaseAdvanced> joinMap in JoinMaps)
             {
                 Debug.Console(0, "Join map for device '{0}':", joinMap.Key);
                 joinMap.Value.PrintJoinMapInfo();
             }
         }
+
         /// <summary>
         /// Generates markdown for all join maps on this bridge
         /// </summary>
@@ -233,7 +233,7 @@ namespace PepperDash.Essentials.Core.Bridges
         {
             Debug.Console(0, this, "Writing Joinmaps to files for EISC IPID: {0}", Eisc.ID.ToString("X"));
 
-            foreach (var joinMap in JoinMaps)
+            foreach (KeyValuePair<string, JoinMapBaseAdvanced> joinMap in JoinMaps)
             {
                 Debug.Console(0, "Generating markdown for device '{0}':", joinMap.Key);
                 joinMap.Value.MarkdownJoinMapInfo(joinMap.Key, bridgeKey);
@@ -246,7 +246,7 @@ namespace PepperDash.Essentials.Core.Bridges
         /// <param name="deviceKey"></param>
         public void PrintJoinMapForDevice(string deviceKey)
         {
-            var joinMap = JoinMaps[deviceKey];
+            JoinMapBaseAdvanced joinMap = JoinMaps[deviceKey];
 
             if (joinMap == null)
             {
@@ -257,13 +257,14 @@ namespace PepperDash.Essentials.Core.Bridges
             Debug.Console(0, "Join map for device '{0}' on EISC '{1}':", deviceKey, Key);
             joinMap.PrintJoinMapInfo();
         }
+
         /// <summary>
         /// Prints the join map for a device by key
         /// </summary>
         /// <param name="deviceKey"></param>
         public void MarkdownJoinMapForDevice(string deviceKey, string bridgeKey)
         {
-            var joinMap = JoinMaps[deviceKey];
+            JoinMapBaseAdvanced joinMap = JoinMaps[deviceKey];
 
             if (joinMap == null)
             {
@@ -288,52 +289,55 @@ namespace PepperDash.Essentials.Core.Bridges
                 switch (type.ToLower())
                 {
                     case "digital":
+                    {
+                        Action<bool> uo = Eisc.BooleanOutput[join].UserObject as Action<bool>;
+                        if (uo != null)
                         {
-                            var uo = Eisc.BooleanOutput[join].UserObject as Action<bool>;
-                            if (uo != null)
-                            {
-                                Debug.Console(2, this, "Executing Action: {0}", uo.ToString());
-                                uo(Convert.ToBoolean(state));
-                            }
-                            else
-                                Debug.Console(2, this, "User Action is null.  Nothing to Execute");
-                            break;
+                            Debug.Console(2, this, "Executing Action: {0}", uo.ToString());
+                            uo(Convert.ToBoolean(state));
                         }
+                        else
+                            Debug.Console(2, this, "User Action is null.  Nothing to Execute");
+
+                        break;
+                    }
                     case "analog":
+                    {
+                        Action<ushort> uo = Eisc.BooleanOutput[join].UserObject as Action<ushort>;
+                        if (uo != null)
                         {
-                            var uo = Eisc.BooleanOutput[join].UserObject as Action<ushort>;
-                            if (uo != null)
-                            {
-                                Debug.Console(2, this, "Executing Action: {0}", uo.ToString());
-                                uo(Convert.ToUInt16(state));
-                            }
-                            else
-                                Debug.Console(2, this, "User Action is null.  Nothing to Execute"); break;
+                            Debug.Console(2, this, "Executing Action: {0}", uo.ToString());
+                            uo(Convert.ToUInt16(state));
                         }
+                        else
+                            Debug.Console(2, this, "User Action is null.  Nothing to Execute");
+
+                        break;
+                    }
                     case "serial":
+                    {
+                        Action<string> uo = Eisc.BooleanOutput[join].UserObject as Action<string>;
+                        if (uo != null)
                         {
-                            var uo = Eisc.BooleanOutput[join].UserObject as Action<string>;
-                            if (uo != null)
-                            {
-                                Debug.Console(2, this, "Executing Action: {0}", uo.ToString());
-                                uo(Convert.ToString(state));
-                            }
-                            else
-                                Debug.Console(2, this, "User Action is null.  Nothing to Execute");
-                            break;
+                            Debug.Console(2, this, "Executing Action: {0}", uo.ToString());
+                            uo(Convert.ToString(state));
                         }
+                        else
+                            Debug.Console(2, this, "User Action is null.  Nothing to Execute");
+
+                        break;
+                    }
                     default:
-                        {
-                            Debug.Console(2, "Unknown join type.  Use digital/serial/analog");
-                            break;
-                        }
+                    {
+                        Debug.Console(2, "Unknown join type.  Use digital/serial/analog");
+                        break;
+                    }
                 }
             }
             catch (Exception e)
             {
                 Debug.Console(1, this, "Error: {0}", e);
             }
-
         }
 
         /// <summary>
@@ -346,8 +350,9 @@ namespace PepperDash.Essentials.Core.Bridges
             try
             {
                 if (Debug.Level >= 1)
-                    Debug.Console(1, this, "EiscApiAdvanced change: {0} {1}={2}", args.Sig.Type, args.Sig.Number, args.Sig.StringValue);
-                var uo = args.Sig.UserObject;
+                    Debug.Console(1, this, "EiscApiAdvanced change: {0} {1}={2}", args.Sig.Type, args.Sig.Number,
+                        args.Sig.StringValue);
+                object uo = args.Sig.UserObject;
 
                 if (uo == null) return;
 
@@ -374,78 +379,73 @@ namespace PepperDash.Essentials.Core.Bridges
 
     public class EiscApiPropertiesConfig
     {
-        [JsonProperty("control")]
-        public EssentialsControlPropertiesConfig Control { get; set; }
+        [JsonProperty("control")] public EssentialsControlPropertiesConfig Control { get; set; }
 
-        [JsonProperty("devices")]
-        public List<ApiDevicePropertiesConfig> Devices { get; set; }
+        [JsonProperty("devices")] public List<ApiDevicePropertiesConfig> Devices { get; set; }
 
-        [JsonProperty("rooms")]
-        public List<ApiRoomPropertiesConfig> Rooms { get; set; } 
+        [JsonProperty("rooms")] public List<ApiRoomPropertiesConfig> Rooms { get; set; }
 
 
         public class ApiDevicePropertiesConfig
         {
-            [JsonProperty("deviceKey")]
-            public string DeviceKey { get; set; }
+            [JsonProperty("deviceKey")] public string DeviceKey { get; set; }
 
-            [JsonProperty("joinStart")]
-            public uint JoinStart { get; set; }
+            [JsonProperty("joinStart")] public uint JoinStart { get; set; }
 
-            [JsonProperty("joinMapKey")]
-            public string JoinMapKey { get; set; }
+            [JsonProperty("joinMapKey")] public string JoinMapKey { get; set; }
         }
 
         public class ApiRoomPropertiesConfig
         {
-            [JsonProperty("roomKey")]
-            public string RoomKey { get; set; }
+            [JsonProperty("roomKey")] public string RoomKey { get; set; }
 
-            [JsonProperty("joinStart")]
-            public uint JoinStart { get; set; }
+            [JsonProperty("joinStart")] public uint JoinStart { get; set; }
 
-            [JsonProperty("joinMapKey")]
-            public string JoinMapKey { get; set; }
+            [JsonProperty("joinMapKey")] public string JoinMapKey { get; set; }
         }
-
     }
 
     public class EiscApiAdvancedFactory : EssentialsDeviceFactory<EiscApiAdvanced>
     {
         public EiscApiAdvancedFactory()
         {
-            TypeNames = new List<string> { "eiscapiadv", "eiscapiadvanced", "eiscapiadvancedserver", "eiscapiadvancedclient",  "vceiscapiadv", "vceiscapiadvanced" };
+            TypeNames = new List<string>
+            {
+                "eiscapiadv", "eiscapiadvanced", "eiscapiadvancedserver", "eiscapiadvancedclient", "vceiscapiadv",
+                "vceiscapiadvanced"
+            };
         }
 
         public override EssentialsDevice BuildDevice(DeviceConfig dc)
         {
             Debug.Console(1, "Factory Attempting to create new EiscApiAdvanced Device");
 
-            var controlProperties = CommFactory.GetControlPropertiesConfig(dc);
+            EssentialsControlPropertiesConfig controlProperties = CommFactory.GetControlPropertiesConfig(dc);
 
             switch (dc.Type.ToLower())
             {
                 case "eiscapiadv":
                 case "eiscapiadvanced":
                 {
-                    var eisc = new ThreeSeriesTcpIpEthernetIntersystemCommunications(controlProperties.IpIdInt,
+                    ThreeSeriesTcpIpEthernetIntersystemCommunications eisc = new ThreeSeriesTcpIpEthernetIntersystemCommunications(controlProperties.IpIdInt,
                         controlProperties.TcpSshProperties.Address, Global.ControlSystem);
                     return new EiscApiAdvanced(dc, eisc);
                 }
                 case "eiscapiadvancedserver":
                 {
-                    var eisc = new EISCServer(controlProperties.IpIdInt, Global.ControlSystem);
+                    EISCServer eisc = new EISCServer(controlProperties.IpIdInt, Global.ControlSystem);
                     return new EiscApiAdvanced(dc, eisc);
                 }
                 case "eiscapiadvancedclient":
                 {
-                    var eisc = new EISCClient(controlProperties.IpIdInt, controlProperties.TcpSshProperties.Address, Global.ControlSystem);
+                    EISCClient eisc = new EISCClient(controlProperties.IpIdInt, controlProperties.TcpSshProperties.Address,
+                        Global.ControlSystem);
                     return new EiscApiAdvanced(dc, eisc);
                 }
                 case "vceiscapiadv":
                 case "vceiscapiadvanced":
                 {
-                    var eisc = new VirtualControlEISCClient(controlProperties.IpIdInt, InitialParametersClass.RoomId,
+                    VirtualControlEISCClient eisc = new VirtualControlEISCClient(controlProperties.IpIdInt, InitialParametersClass.RoomId,
                         Global.ControlSystem);
                     return new EiscApiAdvanced(dc, eisc);
                 }
@@ -454,5 +454,4 @@ namespace PepperDash.Essentials.Core.Bridges
             }
         }
     }
-
 }

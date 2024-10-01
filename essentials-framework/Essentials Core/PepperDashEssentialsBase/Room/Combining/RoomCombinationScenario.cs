@@ -6,7 +6,7 @@ namespace PepperDash.Essentials.Core
     /// <summary>
     /// Represents a room combination scenario
     /// </summary>
-    public class RoomCombinationScenario: IRoomCombinationScenario
+    public class RoomCombinationScenario : IRoomCombinationScenario
     {
         private RoomCombinationScenarioConfig _config;
 
@@ -47,11 +47,11 @@ namespace PepperDash.Essentials.Core
 
         public void Activate()
         {
-            Debug.Console(1, "Activating Scenario: '{0}' with {1} action(s) defined", Name, activationActions.Count);   
+            Debug.Console(1, "Activating Scenario: '{0}' with {1} action(s) defined", Name, activationActions.Count);
 
             if (activationActions != null)
             {
-                foreach (var action in activationActions)
+                foreach (DeviceActionWrapper action in activationActions)
                 {
                     DeviceJsonApi.DoDeviceAction(action);
                 }
@@ -63,11 +63,12 @@ namespace PepperDash.Essentials.Core
 
         public void Deactivate()
         {
-            Debug.Console(1, "Deactivating Scenario: '{0}' with {1} action(s) defined", Name, deactivationActions.Count);
+            Debug.Console(1, "Deactivating Scenario: '{0}' with {1} action(s) defined", Name,
+                deactivationActions.Count);
 
             if (deactivationActions != null)
             {
-                foreach (var action in deactivationActions)
+                foreach (DeviceActionWrapper action in deactivationActions)
                 {
                     DeviceJsonApi.DoDeviceAction(action);
                 }
@@ -76,7 +77,5 @@ namespace PepperDash.Essentials.Core
             _isActive = false;
             IsActiveFeedback.FireUpdate();
         }
-
     }
-
 }

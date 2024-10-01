@@ -13,7 +13,7 @@ namespace PepperDash.Essentials.Core
         /// <returns></returns>
         public static Feedback GetFeedbackProperty(this Device device, string propertyName)
         {
-            var feedback = DeviceJsonApi.GetPropertyByName(device.Key, propertyName) as Feedback;
+            Feedback feedback = DeviceJsonApi.GetPropertyByName(device.Key, propertyName) as Feedback;
 
             if (feedback != null)
             {

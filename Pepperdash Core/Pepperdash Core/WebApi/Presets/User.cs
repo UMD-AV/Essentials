@@ -2,26 +2,26 @@
 
 namespace PepperDash.Core.WebApi.Presets
 {
-	/// <summary>
-	/// 
-	/// </summary>
-	public class User
-	{
-		public int Id { get; set; }
-		
-		public string ExternalId { get; set; }
+    /// <summary>
+    /// 
+    /// </summary>
+    public class User
+    {
+        public int Id { get; set; }
 
-		public string FirstName { get; set; }
+        public string ExternalId { get; set; }
 
-		public string LastName { get; set; }
-	}
+        public string FirstName { get; set; }
+
+        public string LastName { get; set; }
+    }
 
 
-	/// <summary>
-	/// 
-	/// </summary>
-	public class UserReceivedEventArgs : EventArgs
-	{
+    /// <summary>
+    /// 
+    /// </summary>
+    public class UserReceivedEventArgs : EventArgs
+    {
         /// <summary>
         /// True when user is found
         /// </summary>
@@ -30,31 +30,36 @@ namespace PepperDash.Core.WebApi.Presets
         /// <summary>
         /// For stupid S+
         /// </summary>
-        public ushort ULookupSuccess { get { return (ushort)(LookupSuccess ? 1 : 0); } }
+        public ushort ULookupSuccess
+        {
+            get { return (ushort)(LookupSuccess ? 1 : 0); }
+        }
 
-		public User User { get; private set; }
+        public User User { get; private set; }
 
-		/// <summary>
-		/// For Simpl+
-		/// </summary>
-		public UserReceivedEventArgs() { }
+        /// <summary>
+        /// For Simpl+
+        /// </summary>
+        public UserReceivedEventArgs()
+        {
+        }
 
-		public UserReceivedEventArgs(User user, bool success)
-		{
+        public UserReceivedEventArgs(User user, bool success)
+        {
             LookupSuccess = success;
-			User = user;
-		}
-	}
+            User = user;
+        }
+    }
 
-	/// <summary>
-	/// 
-	/// </summary>
-	public class UserAndRoomMessage
-	{
-		public int UserId { get; set; }
+    /// <summary>
+    /// 
+    /// </summary>
+    public class UserAndRoomMessage
+    {
+        public int UserId { get; set; }
 
-		public int RoomTypeId { get; set; }
+        public int RoomTypeId { get; set; }
 
-		public int PresetNumber { get; set; }
-	}
+        public int PresetNumber { get; set; }
+    }
 }

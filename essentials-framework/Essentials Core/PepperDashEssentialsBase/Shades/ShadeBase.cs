@@ -8,7 +8,6 @@
         public ShadeBase(string key, string name)
             : base(key, name)
         {
-
         }
 
         #region iShadesOpenClose Members

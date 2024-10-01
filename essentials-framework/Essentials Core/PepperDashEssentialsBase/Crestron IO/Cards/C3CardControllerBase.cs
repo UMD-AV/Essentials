@@ -3,7 +3,7 @@ using Crestron.SimplSharpProInternal;
 
 namespace PepperDash.Essentials.Core.CrestronIO.Cards
 {
-    public class C3CardControllerBase:CrestronGenericBaseDevice
+    public class C3CardControllerBase : CrestronGenericBaseDevice
     {
         private readonly C3Card _card;
 
@@ -16,7 +16,7 @@ namespace PepperDash.Essentials.Core.CrestronIO.Cards
 
         public override string ToString()
         {
-            return String.Format("{0} {1}", Key, _card.ToString());
+            return string.Format("{0} {1}", Key, _card.ToString());
         }
 
         #endregion

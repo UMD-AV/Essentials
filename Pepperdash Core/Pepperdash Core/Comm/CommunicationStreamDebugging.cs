@@ -28,13 +28,10 @@ namespace PepperDash.Core
         /// </summary>
         public uint DebugTimeoutMinutes
         {
-            get
-            {
-                return _DebugTimeoutInMs/60000;
-            }
+            get { return _DebugTimeoutInMs / 60000; }
         }
 
-        public bool RxStreamDebuggingIsEnabled{ get; private set; }
+        public bool RxStreamDebuggingIsEnabled { get; private set; }
 
         public bool TxStreamDebuggingIsEnabled { get; private set; }
 
@@ -86,7 +83,6 @@ namespace PepperDash.Core
                 TxStreamDebuggingIsEnabled = true;
 
             Debug.SetDeviceDebugSettings(ParentDeviceKey, setting);
-        
         }
 
         /// <summary>
@@ -122,7 +118,7 @@ namespace PepperDash.Core
     public enum eStreamDebuggingSetting
     {
         Off = 0,
-        Rx = 1, 
+        Rx = 1,
         Tx = 2,
         Both = Rx | Tx
     }

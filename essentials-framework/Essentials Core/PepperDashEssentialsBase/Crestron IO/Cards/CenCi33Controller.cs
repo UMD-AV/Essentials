@@ -16,9 +16,10 @@ namespace PepperDash.Essentials.Core.CrestronIO.Cards
         private readonly CenCi33 _cardCage;
         private readonly CenCi33Configuration _config;
 
-        private readonly Dictionary<string, Func<CenCi33, uint, C3CardControllerBase>> _cardDict; 
+        private readonly Dictionary<string, Func<CenCi33, uint, C3CardControllerBase>> _cardDict;
 
-        public CenCi33Controller(string key, string name, CenCi33Configuration config, CenCi33 hardware) : base(key, name, hardware)
+        public CenCi33Controller(string key, string name, CenCi33Configuration config, CenCi33 hardware) : base(key,
+            name, hardware)
         {
             _cardCage = hardware;
 
@@ -29,34 +30,33 @@ namespace PepperDash.Essentials.Core.CrestronIO.Cards
                 {
                     "c3com3",
                     (c, s) =>
-                        new C3Com3Controller(String.Format(CardKeyTemplate, key, s),
-                            String.Format(CardNameTemplate, key, s, "C3Com3"), new C3com3(s,_cardCage))
+                        new C3Com3Controller(string.Format(CardKeyTemplate, key, s),
+                            string.Format(CardNameTemplate, key, s, "C3Com3"), new C3com3(s, _cardCage))
                 },
                 {
                     "c3io16",
                     (c, s) =>
-                        new C3Io16Controller(String.Format(CardKeyTemplate, key, s),
-                            String.Format(CardNameTemplate, key, s, "C3Io16"), new C3io16(s,_cardCage))
+                        new C3Io16Controller(string.Format(CardKeyTemplate, key, s),
+                            string.Format(CardNameTemplate, key, s, "C3Io16"), new C3io16(s, _cardCage))
                 },
                 {
                     "c3ir8",
                     (c, s) =>
-                        new C3Ir8Controller(String.Format(CardKeyTemplate, key, s),
-                            String.Format(CardNameTemplate, key, s, "C3Ir8"), new C3ir8(s,_cardCage))
+                        new C3Ir8Controller(string.Format(CardKeyTemplate, key, s),
+                            string.Format(CardNameTemplate, key, s, "C3Ir8"), new C3ir8(s, _cardCage))
                 },
                 {
                     "c3ry16",
                     (c, s) =>
-                        new C3Ry16Controller(String.Format(CardKeyTemplate, key, s),
-                            String.Format(CardNameTemplate, key, s, "C3Ry16"), new C3ry16(s,_cardCage))
+                        new C3Ry16Controller(string.Format(CardKeyTemplate, key, s),
+                            string.Format(CardNameTemplate, key, s, "C3Ry16"), new C3ry16(s, _cardCage))
                 },
                 {
                     "c3ry8",
                     (c, s) =>
-                        new C3Ry8Controller(String.Format(CardKeyTemplate, key, s),
-                            String.Format(CardNameTemplate, key, s, "C3Ry8"), new C3ry8(s,_cardCage))
+                        new C3Ry8Controller(string.Format(CardKeyTemplate, key, s),
+                            string.Format(CardNameTemplate, key, s, "C3Ry8"), new C3ry8(s, _cardCage))
                 },
-
             };
 
             GetCards();
@@ -79,7 +79,7 @@ namespace PepperDash.Essentials.Core.CrestronIO.Cards
                     continue;
                 }
 
-                if (String.IsNullOrEmpty(cardType))
+                if (string.IsNullOrEmpty(cardType))
                 {
                     Debug.Console(0, this, "No card specified for slot {0}", i);
                     return;
@@ -92,7 +92,7 @@ namespace PepperDash.Essentials.Core.CrestronIO.Cards
                     return;
                 }
 
-                var device = cardBuilder(_cardCage, i);
+                C3CardControllerBase device = cardBuilder(_cardCage, i);
 
                 DeviceManager.AddDevice(device);
             }
@@ -101,27 +101,27 @@ namespace PepperDash.Essentials.Core.CrestronIO.Cards
 
     public class CenCi33Configuration
     {
-        [JsonProperty("cards")]
-        public Dictionary<uint, string> Cards { get; set; }
+        [JsonProperty("cards")] public Dictionary<uint, string> Cards { get; set; }
     }
 
     public class CenCi33ControllerFactory : EssentialsDeviceFactory<CenCi33Controller>
     {
         public CenCi33ControllerFactory()
         {
-            TypeNames = new List<string> {"cenci33"};
+            TypeNames = new List<string> { "cenci33" };
         }
+
         #region Overrides of EssentialsDeviceFactory<CenCi33Controller>
 
         public override EssentialsDevice BuildDevice(DeviceConfig dc)
         {
             Debug.Console(1, "Factory attempting to build new CEN-CI-3");
 
-            var controlProperties = CommFactory.GetControlPropertiesConfig(dc);
-            var ipId = controlProperties.IpIdInt;
+            EssentialsControlPropertiesConfig controlProperties = CommFactory.GetControlPropertiesConfig(dc);
+            uint ipId = controlProperties.IpIdInt;
 
-            var cardCage = new CenCi33(ipId, Global.ControlSystem);
-            var config = dc.Properties.ToObject<CenCi33Configuration>();
+            CenCi33 cardCage = new CenCi33(ipId, Global.ControlSystem);
+            CenCi33Configuration config = dc.Properties.ToObject<CenCi33Configuration>();
 
             return new CenCi33Controller(dc.Key, dc.Name, config, cardCage);
         }

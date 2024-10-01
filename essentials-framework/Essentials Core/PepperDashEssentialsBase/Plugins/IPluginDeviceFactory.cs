@@ -12,7 +12,6 @@ namespace PepperDash.Essentials.Core
         /// Required to define the minimum version for Essentials in the format xx.yy.zz
         /// </summary>
         string MinimumEssentialsFrameworkVersion { get; }
-
     }
 
     public interface IPluginDevelopmentDeviceFactory : IPluginDeviceFactory
@@ -20,5 +19,3 @@ namespace PepperDash.Essentials.Core
         List<string> DevelopmentEssentialsFrameworkVersions { get; }
     }
 }
-
-

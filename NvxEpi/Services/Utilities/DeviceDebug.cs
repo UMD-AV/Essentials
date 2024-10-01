@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using Crestron.SimplSharpPro.DeviceSupport;
 using Crestron.SimplSharpPro.DM.Streaming;
 using NvxEpi.Abstractions;
 using PepperDash.Core;
@@ -44,20 +45,20 @@ namespace NvxEpi.Services.Utilities
             if (feedback.Feedbacks == null)
                 throw new NullReferenceException("Feedbacks");
 
-            foreach (var item in feedback.Feedbacks.Where(x => x != null && !string.IsNullOrEmpty(x.Key)))
+            foreach (PepperDash.Essentials.Core.Feedback item in feedback.Feedbacks.Where(x => x != null && !string.IsNullOrEmpty(x.Key)))
             {
-                var fb = item;
+                PepperDash.Essentials.Core.Feedback fb = item;
                 item.OutputChange += (sender, args) =>
-                    {
-                        if (sender is BoolFeedback)
-                            Debug.Console(1, feedback, "Received {0} Update : '{1}'", fb.Key, args.BoolValue);
+                {
+                    if (sender is BoolFeedback)
+                        Debug.Console(1, feedback, "Received {0} Update : '{1}'", fb.Key, args.BoolValue);
 
-                        if (sender is IntFeedback)
-                            Debug.Console(1, feedback, "Received {0} Update : '{1}'", fb.Key, args.IntValue);
+                    if (sender is IntFeedback)
+                        Debug.Console(1, feedback, "Received {0} Update : '{1}'", fb.Key, args.IntValue);
 
-                        if (sender is StringFeedback)
-                            Debug.Console(1, feedback, "Received {0} Update : '{1}'", fb.Key, args.StringValue);
-                    };
+                    if (sender is StringFeedback)
+                        Debug.Console(1, feedback, "Received {0} Update : '{1}'", fb.Key, args.StringValue);
+                };
             }
         }
 
@@ -66,9 +67,9 @@ namespace NvxEpi.Services.Utilities
             if (device.HdmiIn == null)
                 return;
 
-            foreach (var item in device.HdmiIn)
+            foreach (HdmiInWithColorSpaceMode item in device.HdmiIn)
             {
-                var input = item;
+                HdmiInWithColorSpaceMode input = item;
                 input.StreamChange += (stream, args) =>
                     Debug.Console(2,
                         keyed,
@@ -150,7 +151,7 @@ namespace NvxEpi.Services.Utilities
         {
             try
             {
-                if (!( device is DmNvx35x ))
+                if (!(device is DmNvx35x))
                     return;
 
                 if (device.SecondaryAudio == null)

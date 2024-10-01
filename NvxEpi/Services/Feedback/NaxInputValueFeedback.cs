@@ -9,7 +9,7 @@ namespace NvxEpi.Services.Feedback
 
         public static IntFeedback GetFeedback(DmNvxBaseClass device)
         {
-            var feedback = new IntFeedback(Key, () => (int)device.Control.ActiveDmNaxAudioSourceFeedback);
+            IntFeedback feedback = new IntFeedback(Key, () => (int)device.Control.ActiveDmNaxAudioSourceFeedback);
 
             device.BaseEvent += (@base, args) => feedback.FireUpdate();
             return feedback;

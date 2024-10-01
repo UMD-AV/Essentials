@@ -14,7 +14,7 @@ namespace NvxEpi.Services.Feedback
             if (device.UsbInput == null)
                 return new StringFeedback(() => string.Empty);
 
-            var feedback = new StringFeedback(Key, () => device.UsbInput.LocalDeviceIdFeedback.StringValue);
+            StringFeedback feedback = new StringFeedback(Key, () => device.UsbInput.LocalDeviceIdFeedback.StringValue);
 
             device.UsbInput.UsbInputChange += (sender, args) => feedback.FireUpdate();
 

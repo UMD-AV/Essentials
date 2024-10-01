@@ -42,7 +42,7 @@ namespace NvxEpi.Enums
 
         public override bool Equals(object obj)
         {
-            var otherValue = obj as Enumeration<TEnum>;
+            Enumeration<TEnum> otherValue = obj as Enumeration<TEnum>;
 
             if (otherValue == null)
                 return false;
@@ -57,7 +57,7 @@ namespace NvxEpi.Enums
         {
             if (other == null) return 1;
 
-            var otherEnum = other as Enumeration<TEnum>;
+            Enumeration<TEnum> otherEnum = other as Enumeration<TEnum>;
             if (otherEnum != null)
                 return Value.CompareTo(otherEnum.Value);
 
@@ -73,22 +73,22 @@ namespace NvxEpi.Enums
         {
             try
             {
-                var baseType = typeof (TEnum).GetCType();
-                var a = baseType.Assembly;
+                CType baseType = typeof(TEnum).GetCType();
+                Assembly a = baseType.Assembly;
 
                 Debug.Console(2, "Base type: {0}", baseType.Name);
                 IEnumerable<CType> enumTypes = a.GetTypes().Where(baseType.IsAssignableFrom);
 
-                var options = new List<TEnum>();
+                List<TEnum> options = new List<TEnum>();
                 foreach (CType enumType in enumTypes)
                 {
                     Debug.Console(2, "Found enum type: {0}", enumType.Name);
-                    var fields =
+                    IEnumerable<TEnum> fields =
                         enumType.GetFields(BindingFlags.Static | BindingFlags.Public | BindingFlags.DeclaredOnly)
                             .Select(x => x.GetValue(null))
                             .Cast<TEnum>();
 
-                    foreach (var field in fields.Where(field => field != null))
+                    foreach (TEnum field in fields.Where(field => field != null))
                     {
                         Debug.Console(2, "Adding field to this enum:{0} - {1}", field.Name, enumType.Name);
                         if (options.Contains(field))
@@ -102,7 +102,7 @@ namespace NvxEpi.Enums
             }
             catch (Exception ex)
             {
-                var error = "Error getting all options -" +
+                string error = "Error getting all options -" +
                                string.Format("{0}\r{1}\r{2}", ex.Message, ex.InnerException, ex.StackTrace);
                 Debug.Console(0, error);
                 throw;
@@ -125,13 +125,13 @@ namespace NvxEpi.Enums
 
         public static TEnum FromName(string name, bool ignoreCase)
         {
-            if (String.IsNullOrEmpty(name))
+            if (string.IsNullOrEmpty(name))
                 throw new ArgumentNullException(name);
 
             CheckAll();
             if (ignoreCase)
             {
-                var result = _all.FirstOrDefault(x => x.Name.Equals(name));
+                TEnum result = _all.FirstOrDefault(x => x.Name.Equals(name));
                 if (result == null)
                     throw new ArgumentNullException(name);
 
@@ -139,7 +139,7 @@ namespace NvxEpi.Enums
             }
             else
             {
-                var result = _all.FirstOrDefault(x => x.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+                TEnum result = _all.FirstOrDefault(x => x.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
                 if (result == null)
                     throw new ArgumentNullException(name);
 
@@ -173,8 +173,8 @@ namespace NvxEpi.Enums
 
             result = null;
 
-            var nameToCheck = name.Replace(" ", "");
-            foreach (var item in _all)
+            string nameToCheck = name.Replace(" ", "");
+            foreach (TEnum item in _all)
             {
                 string itemNameToCheck = item.Name.Replace(" ", "");
                 if (!nameToCheck.Equals(itemNameToCheck, StringComparison.OrdinalIgnoreCase))
@@ -190,7 +190,7 @@ namespace NvxEpi.Enums
         public static TEnum FromValue(int value)
         {
             CheckAll();
-            var result = _all.FirstOrDefault(x => x.Value == value);
+            TEnum result = _all.FirstOrDefault(x => x.Value == value);
             if (result == null)
                 throw new ArgumentNullException(value.ToString(CultureInfo.InvariantCulture));
 

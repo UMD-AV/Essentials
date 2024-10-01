@@ -4,15 +4,14 @@ using PepperDash.Core;
 
 namespace PepperDash.Essentials.Core
 {
-
     /// <summary>
     /// The handler type for a Room's SourceInfoChange
     /// </summary>
-    public delegate void SourceInfoChangeHandler(/*EssentialsRoomBase room,*/ SourceListItem info, ChangeType type);
+    public delegate void SourceInfoChangeHandler( /*EssentialsRoomBase room,*/ SourceListItem info, ChangeType type);
 
 
-	//*******************************************************************************************
-	// Interfaces
+    //*******************************************************************************************
+    // Interfaces
 
     /// <summary>
     /// For rooms with a single presentation source, change event
@@ -24,65 +23,62 @@ namespace PepperDash.Essentials.Core
         event SourceInfoChangeHandler CurrentSourceChange;
     }
 
-	/// <summary>
-	/// Defines a class that has a collection of RoutingInputPorts
-	/// </summary>
-	public interface IRoutingInputs : IKeyed
-	{
-		RoutingPortCollection<RoutingInputPort> InputPorts { get; }
-	}
+    /// <summary>
+    /// Defines a class that has a collection of RoutingInputPorts
+    /// </summary>
+    public interface IRoutingInputs : IKeyed
+    {
+        RoutingPortCollection<RoutingInputPort> InputPorts { get; }
+    }
 
-	/// <summary>
-	/// Defines a class that has a collection of RoutingOutputPorts
-	/// </summary>
-
-	public interface IRoutingOutputs : IKeyed
-	{
-		RoutingPortCollection<RoutingOutputPort> OutputPorts { get; }
-	}
+    /// <summary>
+    /// Defines a class that has a collection of RoutingOutputPorts
+    /// </summary>
+    public interface IRoutingOutputs : IKeyed
+    {
+        RoutingPortCollection<RoutingOutputPort> OutputPorts { get; }
+    }
 
     /// <summary>
     /// For fixed-source endpoint devices
     /// </summary>
     public interface IRoutingSink : IRoutingInputs, IHasCurrentSourceInfoChange
     {
-
     }
- 
-	/// <summary>
-	/// For fixed-source endpoint devices
-	/// </summary>
+
+    /// <summary>
+    /// For fixed-source endpoint devices
+    /// </summary>
     [Obsolete("Please switch to IRoutingSink")]
     public interface IRoutingSinkNoSwitching : IRoutingSink
-	{
+    {
+    }
 
-	}
-
-	/// <summary>
-	/// Endpoint device like a display, that selects inputs
-	/// </summary>
+    /// <summary>
+    /// Endpoint device like a display, that selects inputs
+    /// </summary>
     public interface IRoutingSinkWithSwitching : IRoutingSink
-	{
-		//void ClearRoute();
-		void ExecuteSwitch(object inputSelector);
-	}
+    {
+        //void ClearRoute();
+        void ExecuteSwitch(object inputSelector);
+    }
 
-	/// <summary>
-	/// For devices like RMCs, baluns, other devices with no switching.
-	/// </summary>
-	public interface IRoutingInputsOutputs : IRoutingInputs, IRoutingOutputs
-	{
-	}
+    /// <summary>
+    /// For devices like RMCs, baluns, other devices with no switching.
+    /// </summary>
+    public interface IRoutingInputsOutputs : IRoutingInputs, IRoutingOutputs
+    {
+    }
 
-	/// <summary>
-	/// Defines a midpoint device as have internal routing.  Any devices in the middle of the
-	/// signal chain, that do switching, must implement this for routing to work otherwise
-	/// the routing algorithm will treat the IRoutingInputsOutputs device as a passthrough
-	/// device.
-	/// </summary>
-	public interface IRouting : IRoutingInputsOutputs
-	{
-		void ExecuteSwitch(object inputSelector, object outputSelector, eRoutingSignalType signalType);
+    /// <summary>
+    /// Defines a midpoint device as have internal routing.  Any devices in the middle of the
+    /// signal chain, that do switching, must implement this for routing to work otherwise
+    /// the routing algorithm will treat the IRoutingInputsOutputs device as a passthrough
+    /// device.
+    /// </summary>
+    public interface IRouting : IRoutingInputsOutputs
+    {
+        void ExecuteSwitch(object inputSelector, object outputSelector, eRoutingSignalType signalType);
     }
 
     public interface IRoutingWithClear : IRouting
@@ -130,11 +126,11 @@ namespace PepperDash.Essentials.Core
     }
 
     /// <summary>
-	/// Defines an IRoutingOutputs devices as being a source - the start of the chain
-	/// </summary>
-	public interface IRoutingSource : IRoutingOutputs
-	{
-	}
+    /// Defines an IRoutingOutputs devices as being a source - the start of the chain
+    /// </summary>
+    public interface IRoutingSource : IRoutingOutputs
+    {
+    }
 
     /// <summary>
     /// Defines an event structure for reporting output route data
@@ -157,12 +153,10 @@ namespace PepperDash.Essentials.Core
     /// </summary>
     public interface IRoutingWithFeedback : IRouting, IRoutingFeedback
     {
-        
     }
 
     public class RoutingNumericEventArgs : EventArgs
     {
-
         public uint? Output { get; set; }
         public uint? Input { get; set; }
 
@@ -170,7 +164,8 @@ namespace PepperDash.Essentials.Core
         public RoutingInputPort InputPort { get; set; }
         public RoutingOutputPort OutputPort { get; set; }
 
-        public RoutingNumericEventArgs(uint output, uint input, eRoutingSignalType sigType) : this(output, input, null, null, sigType)
+        public RoutingNumericEventArgs(uint output, uint input, eRoutingSignalType sigType) : this(output, input, null,
+            null, sigType)
         {
         }
 
@@ -183,7 +178,6 @@ namespace PepperDash.Essentials.Core
         public RoutingNumericEventArgs()
             : this(null, null, null, null, 0)
         {
- 
         }
 
         public RoutingNumericEventArgs(uint? output, uint? input, RoutingOutputPort outputPort,

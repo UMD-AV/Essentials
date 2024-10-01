@@ -4,10 +4,13 @@ using Crestron.SimplSharpPro;
 
 namespace PepperDash.Essentials.Core
 {
-
     public class StringFeedback : Feedback
     {
-        public override string StringValue { get { return _StringValue; } } // ValueFunc.Invoke(); } }
+        public override string StringValue
+        {
+            get { return _StringValue; }
+        } // ValueFunc.Invoke(); } }
+
         string _StringValue;
 
         /// <summary>
@@ -19,6 +22,7 @@ namespace PepperDash.Essentials.Core
         /// Evaluated on FireUpdate
         /// </summary>
         public Func<string> ValueFunc { get; private set; }
+
         List<StringInputSig> LinkedInputSigs = new List<StringInputSig>();
 
         /// <summary>
@@ -56,7 +60,7 @@ namespace PepperDash.Essentials.Core
 
         public override void FireUpdate()
         {
-            var newValue = InTestMode ? TestValue : ValueFunc.Invoke();
+            string newValue = InTestMode ? TestValue : ValueFunc.Invoke();
             if (newValue != _StringValue)
             {
                 _StringValue = newValue;

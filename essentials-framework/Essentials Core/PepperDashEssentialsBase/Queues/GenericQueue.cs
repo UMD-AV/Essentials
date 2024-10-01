@@ -30,10 +30,7 @@ namespace PepperDash.Essentials.Core.Queues
         /// </summary>
         public int QueueCapacity
         {
-            get
-            {
-                return _queue.Size;
-            }
+            get { return _queue.Size; }
         }
 
         /// <summary>
@@ -41,10 +38,7 @@ namespace PepperDash.Essentials.Core.Queues
         /// </summary>    
         public int QueueCount
         {
-            get
-            {
-                return _queue.Count;
-            }
+            get { return _queue.Count; }
         }
 
         /// <summary>
@@ -118,7 +112,7 @@ namespace PepperDash.Essentials.Core.Queues
         /// <param name="capacity"></param>
         public GenericQueue(string key, int pacing, Thread.eThreadPriority priority, int capacity)
             : this(key, priority, capacity, pacing)
-        {           
+        {
         }
 
         /// <summary>
@@ -136,6 +130,7 @@ namespace PepperDash.Essentials.Core.Queues
             {
                 cap = capacity; // overrides default
             }
+
             _queue = new CrestronQueue<IQueueMessage>(cap);
             _worker = new Thread(ProcessQueue, null, Thread.eThreadStartOptions.Running)
             {
@@ -177,6 +172,7 @@ namespace PepperDash.Essentials.Core.Queues
                     if (item == null)
                         break;
                 }
+
                 if (item != null)
                 {
                     try
@@ -189,7 +185,9 @@ namespace PepperDash.Essentials.Core.Queues
                     }
                     catch (Exception ex)
                     {
-                        Debug.Console(0, this, Debug.ErrorLogLevel.Error, "Caught an exception in the Queue {0}\r{1}\r{2}", ex.Message, ex.InnerException, ex.StackTrace);
+                        Debug.Console(0, this, Debug.ErrorLogLevel.Error,
+                            "Caught an exception in the Queue {0}\r{1}\r{2}", ex.Message, ex.InnerException,
+                            ex.StackTrace);
                     }
                 }
                 else _waitHandle.Wait();
@@ -202,7 +200,8 @@ namespace PepperDash.Essentials.Core.Queues
         {
             if (Disposed)
             {
-                Debug.Console(1, this, "I've been disposed so you can't enqueue any messages.  Are you trying to dispatch a message while the program is stopping?");
+                Debug.Console(1, this,
+                    "I've been disposed so you can't enqueue any messages.  Are you trying to dispatch a message while the program is stopping?");
                 return;
             }
 
@@ -238,6 +237,7 @@ namespace PepperDash.Essentials.Core.Queues
                     _queue.Clear();
                     Enqueue(null);
                 }
+
                 _worker.Abort();
                 _waitHandle.Close();
             }
@@ -288,10 +288,7 @@ namespace PepperDash_Essentials_Core.Queues
         /// </summary>
         public int QueueCapacity
         {
-            get
-            {
-                return _queue.Size;
-            }
+            get { return _queue.Size; }
         }
 
         /// <summary>
@@ -299,10 +296,7 @@ namespace PepperDash_Essentials_Core.Queues
         /// </summary>    
         public int QueueCount
         {
-            get
-            {
-                return _queue.Count;
-            }
+            get { return _queue.Count; }
         }
 
         /// <summary>
@@ -394,6 +388,7 @@ namespace PepperDash_Essentials_Core.Queues
             {
                 cap = capacity; // overrides default
             }
+
             _queue = new CrestronQueue<IQueueMessage>(cap);
             _worker = new Thread(ProcessQueue, null, Thread.eThreadStartOptions.Running)
             {
@@ -434,6 +429,7 @@ namespace PepperDash_Essentials_Core.Queues
                     if (item == null)
                         break;
                 }
+
                 if (item != null)
                 {
                     try
@@ -446,7 +442,9 @@ namespace PepperDash_Essentials_Core.Queues
                     }
                     catch (Exception ex)
                     {
-                        Debug.Console(0, this, Debug.ErrorLogLevel.Error, "Caught an exception in the Queue {0}\r{1}\r{2}", ex.Message, ex.InnerException, ex.StackTrace);
+                        Debug.Console(0, this, Debug.ErrorLogLevel.Error,
+                            "Caught an exception in the Queue {0}\r{1}\r{2}", ex.Message, ex.InnerException,
+                            ex.StackTrace);
                     }
                 }
                 else _waitHandle.Wait();
@@ -489,6 +487,7 @@ namespace PepperDash_Essentials_Core.Queues
                     _queue.Clear();
                     Enqueue(null);
                 }
+
                 _worker.Abort();
                 _waitHandle.Close();
             }

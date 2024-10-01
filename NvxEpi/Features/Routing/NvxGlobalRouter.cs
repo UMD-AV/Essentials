@@ -57,11 +57,14 @@ namespace NvxEpi.Features.Routing
 #endif
         }
 
-        public static NvxGlobalRouter Instance { get { return _instance; } }
+        public static NvxGlobalRouter Instance
+        {
+            get { return _instance; }
+        }
 
         private static void BuildTieLines()
         {
-            var transmitters = DeviceManager
+            List<INvxDevice> transmitters = DeviceManager
                 .AllDevices
                 .OfType<INvxDevice>()
                 .Where(t => t.IsTransmitter)
@@ -69,7 +72,7 @@ namespace NvxEpi.Features.Routing
 
             TieLineConnector.AddTieLinesForTransmitters(transmitters);
 
-            var receivers = DeviceManager
+            List<INvxDevice> receivers = DeviceManager
                 .AllDevices
                 .OfType<INvxDevice>()
                 .Where(t => !t.IsTransmitter)
@@ -77,14 +80,14 @@ namespace NvxEpi.Features.Routing
 
             TieLineConnector.AddTieLinesForReceivers(receivers);
 
-            var audioTransmitters = DeviceManager
+            List<INvxDevice> audioTransmitters = DeviceManager
                 .AllDevices
                 .OfType<INvxDevice>()
                 .ToList();
 
             TieLineConnector.AddTieLinesForAudioTransmitters(audioTransmitters);
 
-            var audioReceivers = DeviceManager
+            List<INvxDevice> audioReceivers = DeviceManager
                 .AllDevices
                 .OfType<INvxDevice>()
                 .ToList();

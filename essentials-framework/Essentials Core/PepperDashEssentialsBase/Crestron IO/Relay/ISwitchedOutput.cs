@@ -7,7 +7,7 @@ namespace PepperDash.Essentials.Core.CrestronIO
     /// </summary>
     public interface ISwitchedOutput
     {
-        BoolFeedback OutputIsOnFeedback {get;}
+        BoolFeedback OutputIsOnFeedback { get; }
 
         void On();
         void Off();

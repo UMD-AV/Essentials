@@ -106,10 +106,19 @@ namespace NvxEpi.Features.Hdmi.Input
             get { return new ReadOnlyDictionary<uint, StringFeedback>(_audioFormat); }
         }
 
-        public ReadOnlyDictionary<uint, StringFeedback> ColorSpace { get { return new ReadOnlyDictionary<uint, StringFeedback>(_colorSpace); } }
+        public ReadOnlyDictionary<uint, StringFeedback> ColorSpace
+        {
+            get { return new ReadOnlyDictionary<uint, StringFeedback>(_colorSpace); }
+        }
 
-        public ReadOnlyDictionary<uint, StringFeedback> HdrType { get { return new ReadOnlyDictionary<uint, StringFeedback>(_hdrType); } }
+        public ReadOnlyDictionary<uint, StringFeedback> HdrType
+        {
+            get { return new ReadOnlyDictionary<uint, StringFeedback>(_hdrType); }
+        }
 
-        public ReadOnlyDictionary<uint, StringFeedback> HdcpSupport { get { return new ReadOnlyDictionary<uint, StringFeedback>(_hdcpSupport); } }
+        public ReadOnlyDictionary<uint, StringFeedback> HdcpSupport
+        {
+            get { return new ReadOnlyDictionary<uint, StringFeedback>(_hdcpSupport); }
+        }
     }
 }

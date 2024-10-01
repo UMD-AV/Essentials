@@ -23,15 +23,16 @@ namespace PepperDash.Essentials.Core.Shades
 
         public override bool CustomActivate()
         {
-            foreach (var shadeConfig in Config.Shades)
+            foreach (ShadeControllerConfigProperties.ShadeConfig shadeConfig in Config.Shades)
             {
-                var shade = DeviceManager.GetDeviceForKey(shadeConfig.Key) as ShadeBase;
+                ShadeBase shade = DeviceManager.GetDeviceForKey(shadeConfig.Key) as ShadeBase;
 
                 if (shade != null)
                 {
                     AddShade(shade);
                 }
             }
+
             return base.CustomActivate();
         }
 
@@ -62,10 +63,11 @@ namespace PepperDash.Essentials.Core.Shades
         public override EssentialsDevice BuildDevice(DeviceConfig dc)
         {
             Debug.Console(1, "Factory Attempting to create new ShadeController Device");
-            var props = Newtonsoft.Json.JsonConvert.DeserializeObject<Core.Shades.ShadeControllerConfigProperties>(dc.Properties.ToString());
+            ShadeControllerConfigProperties props =
+                Newtonsoft.Json.JsonConvert.DeserializeObject<Core.Shades.ShadeControllerConfigProperties>(
+                    dc.Properties.ToString());
 
             return new Core.Shades.ShadeController(dc.Key, dc.Name, props);
         }
     }
-
 }

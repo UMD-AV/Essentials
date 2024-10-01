@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using Crestron.SimplSharpPro.Fusion;
-
 using PepperDash.Core;
 
 namespace PepperDash.Essentials.Core.Fusion
@@ -35,7 +34,8 @@ namespace PepperDash.Essentials.Core.Fusion
             OccupancyAsset = new FusionOccupancySensorAsset();
         }
 
-        public FusionRoomGuids(string roomName, uint ipId, string roomGuid, Dictionary<int, FusionAsset> staticAssets, FusionOccupancySensorAsset occAsset)
+        public FusionRoomGuids(string roomName, uint ipId, string roomGuid, Dictionary<int, FusionAsset> staticAssets,
+            FusionOccupancySensorAsset occAsset)
         {
             RoomName = roomName;
             IpId = ipId;
@@ -69,11 +69,12 @@ namespace PepperDash.Essentials.Core.Fusion
         /// <returns></returns>
         public FusionAsset AddStaticAsset(FusionRoom room, int uid, string assetName, string type, string instanceId)
         {
-            var slotNum = GetNextAvailableAssetNumber(room);
+            uint slotNum = GetNextAvailableAssetNumber(room);
 
-            Debug.Console(2, "Adding Fusion Asset: {0} of Type: {1} at Slot Number: {2} with GUID: {3}", assetName, type, slotNum, instanceId);
+            Debug.Console(2, "Adding Fusion Asset: {0} of Type: {1} at Slot Number: {2} with GUID: {3}", assetName,
+                type, slotNum, instanceId);
 
-            var tempAsset = new FusionAsset(slotNum, assetName, type, instanceId);
+            FusionAsset tempAsset = new FusionAsset(slotNum, assetName, type, instanceId);
 
             StaticAssets.Add(uid, tempAsset);
 
@@ -89,9 +90,9 @@ namespace PepperDash.Essentials.Core.Fusion
         {
             uint slotNum = 0;
 
-            foreach (var item in room.UserConfigurableAssetDetails)
+            foreach (CustomFusionAssetData item in room.UserConfigurableAssetDetails)
             {
-                if(item.Number > slotNum)
+                if (item.Number > slotNum)
                     slotNum = item.Number;
             }
 
@@ -106,15 +107,22 @@ namespace PepperDash.Essentials.Core.Fusion
 
             return slotNum;
         }
-
     }
 
     public class FusionOccupancySensorAsset
     {
         // SlotNumber fixed at 4
 
-        public uint SlotNumber { get { return 4; } }
-        public string Name { get { return "Occupancy Sensor"; } }
+        public uint SlotNumber
+        {
+            get { return 4; }
+        }
+
+        public string Name
+        {
+            get { return "Occupancy Sensor"; }
+        }
+
         public eAssetType Type { get; set; }
         public string InstanceId { get; set; }
 
@@ -134,12 +142,11 @@ namespace PepperDash.Essentials.Core.Fusion
     {
         public uint SlotNumber { get; set; }
         public string Name { get; set; }
-        public string Type { get;  set; }
-        public string InstanceId { get;set; }
+        public string Type { get; set; }
+        public string InstanceId { get; set; }
 
         public FusionAsset()
         {
-
         }
 
         public FusionAsset(uint slotNum, string assetName, string type, string instanceId)
@@ -189,10 +196,13 @@ namespace PepperDash.Essentials.Core.Fusion
     {
         //[XmlElement(ElementName = "RequestID")]
         public string RequestID { get; set; }
+
         //[XmlElement(ElementName = "RoomID")]
         public string RoomID { get; set; }
+
         //[XmlElement(ElementName = "Start")]
         public DateTime Start { get; set; }
+
         //[XmlElement(ElementName = "HourSpan")]
         public double HourSpan { get; set; }
 
@@ -211,10 +221,13 @@ namespace PepperDash.Essentials.Core.Fusion
     {
         //[XmlElement(ElementName = "RequestID")]
         public string RequestID { get; set; }
+
         //[XmlElement(ElementName = "RoomID")]
         public string RoomID { get; set; }
+
         //[XmlElement(ElementName = "ActionID")]
         public string ActionID { get; set; }
+
         //[XmlElement(ElementName = "Parameters")]
         public List<Parameter> Parameters { get; set; }
 
@@ -231,8 +244,10 @@ namespace PepperDash.Essentials.Core.Fusion
     {
         //[XmlElement(ElementName = "RequestID")]
         public string RequestID { get; set; }
+
         //[XmlElement(ElementName = "ActionID")]
         public string ActionID { get; set; }
+
         //[XmlElement(ElementName = "Parameters")]
         public List<Parameter> Parameters { get; set; }
     }
@@ -242,6 +257,7 @@ namespace PepperDash.Essentials.Core.Fusion
     {
         //[XmlAttribute(AttributeName = "ID")]
         public string ID { get; set; }
+
         //[XmlAttribute(AttributeName = "Value")]
         public string Value { get; set; }
     }
@@ -261,10 +277,13 @@ namespace PepperDash.Essentials.Core.Fusion
     {
         //[XmlElement(ElementName = "RequestID")]
         public string RequestID { get; set; }
+
         //[XmlElement(ElementName = "RoomID")]
         public string RoomID { get; set; }
+
         //[XmlElement(ElementName = "RoomName")]
         public string RoomName { get; set; }
+
         //[XmlElement("Event")]
         public List<Event> Events { get; set; }
 
@@ -279,46 +298,67 @@ namespace PepperDash.Essentials.Core.Fusion
     {
         //[XmlElement(ElementName = "MeetingID")]
         public string MeetingID { get; set; }
+
         //[XmlElement(ElementName = "RVMeetingID")]
         public string RVMeetingID { get; set; }
+
         //[XmlElement(ElementName = "Recurring")]
         public string Recurring { get; set; }
+
         //[XmlElement(ElementName = "InstanceID")]
         public string InstanceID { get; set; }
+
         //[XmlElement(ElementName = "dtStart")]
         public DateTime dtStart { get; set; }
+
         //[XmlElement(ElementName = "dtEnd")]
         public DateTime dtEnd { get; set; }
+
         //[XmlElement(ElementName = "Organizer")]
         public string Organizer { get; set; }
+
         //[XmlElement(ElementName = "Attendees")]
         public Attendees Attendees { get; set; }
+
         //[XmlElement(ElementName = "Resources")]
         public Resources Resources { get; set; }
+
         //[XmlElement(ElementName = "IsEvent")]
         public string IsEvent { get; set; }
+
         //[XmlElement(ElementName = "IsRoomViewMeeting")]
         public string IsRoomViewMeeting { get; set; }
+
         //[XmlElement(ElementName = "IsPrivate")]
         public string IsPrivate { get; set; }
+
         //[XmlElement(ElementName = "IsExchangePrivate")]
         public string IsExchangePrivate { get; set; }
+
         //[XmlElement(ElementName = "MeetingTypes")]
         public MeetingTypes MeetingTypes { get; set; }
+
         //[XmlElement(ElementName = "ParticipantCode")]
         public string ParticipantCode { get; set; }
+
         //[XmlElement(ElementName = "PhoneNo")]
         public string PhoneNo { get; set; }
+
         //[XmlElement(ElementName = "WelcomeMsg")]
         public string WelcomeMsg { get; set; }
+
         //[XmlElement(ElementName = "Subject")]
         public string Subject { get; set; }
+
         //[XmlElement(ElementName = "LiveMeeting")]
         public LiveMeeting LiveMeeting { get; set; }
+
         //[XmlElement(ElementName = "ShareDocPath")]
         public string ShareDocPath { get; set; }
+
         //[XmlElement(ElementName = "HaveAttendees")]
         public string HaveAttendees { get; set; }
+
         //[XmlElement(ElementName = "HaveResources")]
         public string HaveResources { get; set; }
 
@@ -331,7 +371,7 @@ namespace PepperDash.Essentials.Core.Fusion
             {
                 string duration;
 
-                var timeSpan = dtEnd.Subtract(dtStart);
+                TimeSpan timeSpan = dtEnd.Subtract(dtStart);
                 int hours = timeSpan.Hours;
                 double minutes = timeSpan.Minutes;
                 double roundedMinutes = Math.Round(minutes);
@@ -355,13 +395,13 @@ namespace PepperDash.Essentials.Core.Fusion
         {
             get
             {
-                var now = DateTime.Now;
+                DateTime now = DateTime.Now;
 
                 string remainingTime;
 
                 if (GetInProgress())
                 {
-                    var timeSpan = dtEnd.Subtract(now);
+                    TimeSpan timeSpan = dtEnd.Subtract(now);
                     int hours = timeSpan.Hours;
                     double minutes = timeSpan.Minutes;
                     double roundedMinutes = Math.Round(minutes);
@@ -379,7 +419,6 @@ namespace PepperDash.Essentials.Core.Fusion
                 else
                     return null;
             }
-
         }
 
         /// <summary>
@@ -387,10 +426,7 @@ namespace PepperDash.Essentials.Core.Fusion
         /// </summary>
         public bool isInProgress
         {
-            get
-            {
-                return GetInProgress();
-            }
+            get { return GetInProgress(); }
         }
 
         /// <summary>
@@ -399,7 +435,7 @@ namespace PepperDash.Essentials.Core.Fusion
         /// <returns>Returns true if in progress</returns>
         bool GetInProgress()
         {
-            var now = DateTime.Now;
+            DateTime now = DateTime.Now;
 
             if (now > dtStart && now < dtEnd)
             {
@@ -429,8 +465,10 @@ namespace PepperDash.Essentials.Core.Fusion
     {
         //[XmlElement(ElementName = "Name")]
         public string Name { get; set; }
+
         //[XmlElement(ElementName = "ID")]
         public string ID { get; set; }
+
         //[XmlElement(ElementName = "MPType")]
         public string MPType { get; set; }
     }
@@ -440,6 +478,7 @@ namespace PepperDash.Essentials.Core.Fusion
     {
         //[XmlElement(ElementName = "Required")]
         public Required Required { get; set; }
+
         //[XmlElement(ElementName = "Optional")]
         public Optional Optional { get; set; }
     }
@@ -463,6 +502,7 @@ namespace PepperDash.Essentials.Core.Fusion
     {
         //[XmlAttribute(AttributeName = "ID")]
         public string ID { get; set; }
+
         //[XmlAttribute(AttributeName = "Value")]
         public string Value { get; set; }
     }
@@ -479,10 +519,13 @@ namespace PepperDash.Essentials.Core.Fusion
     {
         //[XmlElement(ElementName = "URL")]
         public string URL { get; set; }
+
         //[XmlElement(ElementName = "ID")]
         public string ID { get; set; }
+
         //[XmlElement(ElementName = "Key")]
         public string Key { get; set; }
+
         //[XmlElement(ElementName = "Subject")]
         public string Subject { get; set; }
     }

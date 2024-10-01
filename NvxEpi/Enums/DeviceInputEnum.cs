@@ -4,7 +4,6 @@
     {
         private DeviceInputEnum(int value, string name) : base(value, name)
         {
-            
         }
 
         public static readonly DeviceInputEnum Stream = new DeviceInputEnum(0, "Stream");

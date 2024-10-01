@@ -10,7 +10,7 @@ namespace NvxEpi.Factories
         public NvxMockDeviceFactory()
         {
             MinimumEssentialsFrameworkVersion = MinumumEssentialsVersion;
-            TypeNames = new List<string> {"MockNvxDevice"};
+            TypeNames = new List<string> { "MockNvxDevice" };
         }
 
         public override EssentialsDevice BuildDevice(DeviceConfig dc)

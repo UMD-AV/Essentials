@@ -2,12 +2,9 @@
 using System.Collections.Generic;
 using Crestron.SimplSharpPro;
 using Crestron.SimplSharpPro.DeviceSupport;
-
 using PepperDash.Core;
 using PepperDash.Essentials.Core.Config;
 using PepperDash.Essentials.Core.Bridges;
-
-
 using Newtonsoft.Json;
 
 namespace PepperDash.Essentials.Core.CrestronIO
@@ -23,10 +20,7 @@ namespace PepperDash.Essentials.Core.CrestronIO
 
         Func<bool> InputStateFeedbackFunc
         {
-            get
-            {
-                return () => InputPort.DigitalIn;
-            }
+            get { return () => InputPort.DigitalIn; }
         }
 
         public GenericVersiportDigitalInputDevice(string key, string name, IOPortConfig config) :
@@ -43,15 +37,17 @@ namespace PepperDash.Essentials.Core.CrestronIO
                     InputPort.DisablePullUpResistor = true;
 
                 InputPort.VersiportChange += InputPort_VersiportChange;
-                Debug.Console(0, this, "Created GenericVersiportDigitalInputDevice on port '{0}'.  DisablePullUpResistor: '{1}'. Current State: {2}", config.PortNumber, InputPort.DisablePullUpResistor, InputPort.DigitalIn);
+                Debug.Console(0, this,
+                    "Created GenericVersiportDigitalInputDevice on port '{0}'.  DisablePullUpResistor: '{1}'. Current State: {2}",
+                    config.PortNumber, InputPort.DisablePullUpResistor, InputPort.DigitalIn);
             });
         }
 
         void InputPort_VersiportChange(Versiport port, VersiportEventArgs args)
         {
-			Debug.Console(1, this, "Versiport change: {0}", args.Event);
+            Debug.Console(1, this, "Versiport change: {0}", args.Event);
 
-            if(args.Event == eVersiportEvent.DigitalInChange)
+            if (args.Event == eVersiportEvent.DigitalInChange)
                 InputStateFeedback.FireUpdate();
         }
 
@@ -60,9 +56,9 @@ namespace PepperDash.Essentials.Core.CrestronIO
 
         public override void LinkToApi(BasicTriList trilist, uint joinStart, string joinMapKey, EiscApiAdvanced bridge)
         {
-            var joinMap = new IDigitalInputJoinMap(joinStart);
+            IDigitalInputJoinMap joinMap = new IDigitalInputJoinMap(joinStart);
 
-            var joinMapSerialized = JoinMapHelper.GetSerializedJoinMapForDevice(joinMapKey);
+            string joinMapSerialized = JoinMapHelper.GetSerializedJoinMapForDevice(joinMapKey);
 
             if (!string.IsNullOrEmpty(joinMapSerialized))
                 joinMap = JsonConvert.DeserializeObject<IDigitalInputJoinMap>(joinMapSerialized);
@@ -73,7 +69,8 @@ namespace PepperDash.Essentials.Core.CrestronIO
             }
             else
             {
-                Debug.Console(0, this, "Please update config to use 'eiscapiadvanced' to get all join map features for this device.");
+                Debug.Console(0, this,
+                    "Please update config to use 'eiscapiadvanced' to get all join map features for this device.");
             }
 
             try
@@ -94,7 +91,7 @@ namespace PepperDash.Essentials.Core.CrestronIO
 
 
         public static Versiport GetVersiportDigitalInput(IOPortConfig dc)
-        {         
+        {
             IIOPorts ioPortDevice;
 
             if (dc.PortDeviceKey.Equals("processor"))
@@ -104,27 +101,32 @@ namespace PepperDash.Essentials.Core.CrestronIO
                     Debug.Console(0, "GetVersiportDigitalInput: Processor does not support Versiports");
                     return null;
                 }
+
                 ioPortDevice = Global.ControlSystem;
             }
             else
             {
-                var ioPortDev = DeviceManager.GetDeviceForKey(dc.PortDeviceKey) as IIOPorts;
+                IIOPorts ioPortDev = DeviceManager.GetDeviceForKey(dc.PortDeviceKey) as IIOPorts;
                 if (ioPortDev == null)
                 {
                     Debug.Console(0, "GetVersiportDigitalInput: Device {0} is not a valid device", dc.PortDeviceKey);
                     return null;
                 }
+
                 ioPortDevice = ioPortDev;
             }
+
             if (ioPortDevice == null)
             {
-                Debug.Console(0, "GetVersiportDigitalInput: Device '0' is not a valid IIOPorts Device", dc.PortDeviceKey);
+                Debug.Console(0, "GetVersiportDigitalInput: Device '0' is not a valid IIOPorts Device",
+                    dc.PortDeviceKey);
                 return null;
             }
 
             if (dc.PortNumber > ioPortDevice.NumberOfVersiPorts)
             {
-                Debug.Console(0, "GetVersiportDigitalInput: Device {0} does not contain a port {1}", dc.PortDeviceKey, dc.PortNumber);
+                Debug.Console(0, "GetVersiportDigitalInput: Device {0} does not contain a port {1}", dc.PortDeviceKey,
+                    dc.PortNumber);
             }
 
             return ioPortDevice.VersiPorts[dc.PortNumber];
@@ -142,11 +144,11 @@ namespace PepperDash.Essentials.Core.CrestronIO
         {
             Debug.Console(1, "Factory Attempting to create new Generic Versiport Device");
 
-            var props = JsonConvert.DeserializeObject<IOPortConfig>(dc.Properties.ToString());
+            IOPortConfig props = JsonConvert.DeserializeObject<IOPortConfig>(dc.Properties.ToString());
 
             if (props == null) return null;
 
-            var portDevice = new GenericVersiportDigitalInputDevice(dc.Key, dc.Name, props);
+            GenericVersiportDigitalInputDevice portDevice = new GenericVersiportDigitalInputDevice(dc.Key, dc.Name, props);
 
             return portDevice;
         }

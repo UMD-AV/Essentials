@@ -7,19 +7,19 @@ using Crestron.SimplSharpPro.DM.Endpoints;
 using Crestron.SimplSharpPro.DM.Endpoints.Transmitters;
 using Newtonsoft.Json;
 using PepperDash.Core;
-
 using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Bridges;
 using PepperDash.Essentials.DM.Config;
 using PepperDash.Essentials.Core.Config;
+using Feedback = PepperDash.Essentials.Core.Feedback;
 
 
 namespace PepperDash.Essentials.DM
 {
-	public class DmTxHelper
-	{
-
-        public static BasicDmTxControllerBase GetDmTxForChassisWithoutIpId(string key, string name, string typeName, DMInput dmInput)
+    public class DmTxHelper
+    {
+        public static BasicDmTxControllerBase GetDmTxForChassisWithoutIpId(string key, string name, string typeName,
+            DMInput dmInput)
         {
             if (typeName.StartsWith("dmtx200"))
                 return new DmTx200Controller(key, name, new DmTx200C2G(dmInput), true);
@@ -47,7 +47,8 @@ namespace PepperDash.Essentials.DM
             return null;
         }
 
-        public static BasicDmTxControllerBase GetDmTxForChassisWithIpId(string key, string name, string typeName, uint ipid, DMInput dmInput)
+        public static BasicDmTxControllerBase GetDmTxForChassisWithIpId(string key, string name, string typeName,
+            uint ipid, DMInput dmInput)
         {
             if (typeName.StartsWith("dmtx200"))
                 return new DmTx200Controller(key, name, new DmTx200C2G(ipid, dmInput), true);
@@ -75,31 +76,32 @@ namespace PepperDash.Essentials.DM
             return null;
         }
 
-		/// <summary>
-		/// A factory method for various DmTxControllers
-		/// </summary>
-		/// <param name="key"></param>
-		/// <param name="name"></param>
-		/// <param name="props"></param>
-		/// <returns></returns>
-        public static BasicDmTxControllerBase GetDmTxController(string key, string name, string typeName, DmTxPropertiesConfig props)
-		{
-			// switch on type name... later...
+        /// <summary>
+        /// A factory method for various DmTxControllers
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="name"></param>
+        /// <param name="props"></param>
+        /// <returns></returns>
+        public static BasicDmTxControllerBase GetDmTxController(string key, string name, string typeName,
+            DmTxPropertiesConfig props)
+        {
+            // switch on type name... later...
 
-	        typeName = typeName.ToLower();
-	        //uint ipid = Convert.ToUInt16(props.Id, 16);
-	        var ipid = props.Control.IpIdInt;
-	        var pKey = props.ParentDeviceKey.ToLower();
+            typeName = typeName.ToLower();
+            //uint ipid = Convert.ToUInt16(props.Id, 16);
+            uint ipid = props.Control.IpIdInt;
+            string pKey = props.ParentDeviceKey.ToLower();
 
             if (pKey == "processor")
-	        {
-				// Catch constructor failures, mainly dues to IPID
-				try
-				{
-                    if(typeName.StartsWith("dmtx200"))
+            {
+                // Catch constructor failures, mainly dues to IPID
+                try
+                {
+                    if (typeName.StartsWith("dmtx200"))
                         return new DmTx200Controller(key, name, new DmTx200C2G(ipid, Global.ControlSystem), false);
-					if (typeName.StartsWith("dmtx201c"))
-						return new DmTx201CController(key, name, new DmTx201C(ipid, Global.ControlSystem), false);
+                    if (typeName.StartsWith("dmtx201c"))
+                        return new DmTx201CController(key, name, new DmTx201C(ipid, Global.ControlSystem), false);
                     if (typeName.StartsWith("dmtx201s"))
                         return new DmTx201SController(key, name, new DmTx201S(ipid, Global.ControlSystem), false);
                     if (typeName.StartsWith("dmtx4k202"))
@@ -110,36 +112,37 @@ namespace PepperDash.Essentials.DM
                         return new DmTx4k302CController(key, name, new DmTx4k302C(ipid, Global.ControlSystem), false);
                     if (typeName.StartsWith("dmtx4kz302"))
                         return new DmTx4kz302CController(key, name, new DmTx4kz302C(ipid, Global.ControlSystem), false);
-					if (typeName.StartsWith("dmtx401"))
+                    if (typeName.StartsWith("dmtx401"))
                         return new DmTx401CController(key, name, new DmTx401C(ipid, Global.ControlSystem), false);
-					Debug.Console(0, "{1} WARNING: Cannot create DM-TX of type: '{0}'", typeName, key);
-				}
-				catch (Exception e)
-				{
-					Debug.Console(0, "[{0}] WARNING: Cannot create DM-TX device: {1}", key, e);
-				}
-                return null;
-			}
+                    Debug.Console(0, "{1} WARNING: Cannot create DM-TX of type: '{0}'", typeName, key);
+                }
+                catch (Exception e)
+                {
+                    Debug.Console(0, "[{0}] WARNING: Cannot create DM-TX device: {1}", key, e);
+                }
 
-            var parentDev = DeviceManager.GetDeviceForKey(pKey);
+                return null;
+            }
+
+            IKeyed parentDev = DeviceManager.GetDeviceForKey(pKey);
             DMInput dmInput;
             BasicDmTxControllerBase tx;
             bool useChassisForOfflineFeedback = false;
 
-		    if (parentDev is DmChassisController)
+            if (parentDev is DmChassisController)
             {
                 // Get the Crestron chassis and link stuff up
-			    var switchDev = (parentDev as DmChassisController);
-			    var chassis = switchDev.Chassis;
+                DmChassisController switchDev = (parentDev as DmChassisController);
+                Switch chassis = switchDev.Chassis;
 
                 //Check that the input is within range of this chassis' possible inputs
-			    var num = props.ParentInputNumber;
-			    if (num <= 0 || num > chassis.NumberOfInputs)
-			    {
-				    Debug.Console(0, "Cannot create DM device '{0}'. Input number '{1}' is out of range",
-					    key, num);
-				    return null;
-			    }
+                uint num = props.ParentInputNumber;
+                if (num <= 0 || num > chassis.NumberOfInputs)
+                {
+                    Debug.Console(0, "Cannot create DM device '{0}'. Input number '{1}' is out of range",
+                        key, num);
+                    return null;
+                }
 
                 switchDev.TxDictionary.Add(num, key);
                 dmInput = chassis.Inputs[num];
@@ -157,7 +160,8 @@ namespace PepperDash.Essentials.DM
                         if (typeName == "hdbasettx")
                         {
                             useChassisForOfflineFeedback = false;
-                            Debug.Console(0, "DM endpoint input {0} does not support online feedback on a DM chassis", num);
+                            Debug.Console(0, "DM endpoint input {0} does not support online feedback on a DM chassis",
+                                num);
                             tx.IsOnline.SetValueFunc(() => true);
                         }
                         else
@@ -171,23 +175,28 @@ namespace PepperDash.Essentials.DM
                         if (typeName == "hdbasettx" || typeName == "dmtx4k100c1g")
                         {
                             useChassisForOfflineFeedback = false;
-                            Debug.Console(0, "DM endpoint input {0} does not support online feedback on a legacy DM chassis", num);
+                            Debug.Console(0,
+                                "DM endpoint input {0} does not support online feedback on a legacy DM chassis", num);
                             tx.IsOnline.SetValueFunc(() => true);
-                        }                        
+                        }
                     }
+
                     if (useChassisForOfflineFeedback)
                     {
-                        Debug.Console(0, "DM endpoint input {0} does not have direct online feedback, changing online feedback to chassis", num);
+                        Debug.Console(0,
+                            "DM endpoint input {0} does not have direct online feedback, changing online feedback to chassis",
+                            num);
                         tx.IsOnline.SetValueFunc(() => switchDev.InputEndpointOnlineFeedbacks[num].BoolValue);
                         switchDev.InputEndpointOnlineFeedbacks[num].OutputChange += (o, a) =>
                         {
-                            foreach (var feedback in tx.Feedbacks)
+                            foreach (Feedback feedback in tx.Feedbacks)
                             {
                                 if (feedback != null)
                                     feedback.FireUpdate();
                             }
-                        }; 
+                        };
                     }
+
                     return tx;
                 }
                 catch (Exception e)
@@ -196,14 +205,14 @@ namespace PepperDash.Essentials.DM
                     return null;
                 }
             }
-            else if(parentDev is DmpsRoutingController)
+            else if (parentDev is DmpsRoutingController)
             {
                 // Get the DMPS chassis and link stuff up
-                var dmpsDev = (parentDev as DmpsRoutingController);
-                var chassis = dmpsDev.Dmps;
+                DmpsRoutingController dmpsDev = (parentDev as DmpsRoutingController);
+                CrestronControlSystem chassis = dmpsDev.Dmps;
 
                 //Check that the input is within range of this chassis' possible inputs
-                var num = props.ParentInputNumber;
+                uint num = props.ParentInputNumber;
                 if (num <= 0 || num > chassis.SwitcherInputs.Count)
                 {
                     Debug.Console(0, "Cannot create DMPS device '{0}'. Input number '{1}' is out of range",
@@ -225,7 +234,7 @@ namespace PepperDash.Essentials.DM
 
                 try
                 {
-                    if(Global.ControlSystemIsDmps4kType)
+                    if (Global.ControlSystemIsDmps4kType)
                     {
                         tx = GetDmTxForChassisWithoutIpId(key, name, typeName, dmInput);
                         useChassisForOfflineFeedback = true;
@@ -238,90 +247,98 @@ namespace PepperDash.Essentials.DM
                             useChassisForOfflineFeedback = false;
                             Debug.Console(0, "DM endpoint input {0} does not support online feedback on a DMPS3", num);
                             tx.IsOnline.SetValueFunc(() => true);
-                        }                        
+                        }
                     }
+
                     if (useChassisForOfflineFeedback)
                     {
-                        Debug.Console(0, "DM endpoint input {0} does not have direct online feedback, changing online feedback to chassis", num);
+                        Debug.Console(0,
+                            "DM endpoint input {0} does not have direct online feedback, changing online feedback to chassis",
+                            num);
                         try
                         {
                             tx.IsOnline.SetValueFunc(() => dmpsDev.InputEndpointOnlineFeedbacks[num].BoolValue);
                             dmpsDev.InputEndpointOnlineFeedbacks[num].OutputChange += (o, a) =>
                             {
-                                foreach (var feedback in tx.Feedbacks)
+                                foreach (Feedback feedback in tx.Feedbacks)
                                 {
                                     if (feedback != null)
                                         feedback.FireUpdate();
                                 }
                             };
                         }
-                        catch(Exception ex)
+                        catch (Exception ex)
                         {
-                            Debug.Console(0, "DM endpoint input {0} not able to set online feedback: {1}", num, ex.Message);
+                            Debug.Console(0, "DM endpoint input {0} not able to set online feedback: {1}", num,
+                                ex.Message);
                         }
                     }
+
                     return tx;
                 }
                 catch (Exception e)
                 {
                     Debug.Console(0, "[{0}] WARNING: Cannot create DM-TX device for dmps: {1}", key, e);
                     return null;
-                }                
+                }
             }
 
             else
             {
-			    Debug.Console(0, "Cannot create DM device '{0}'. '{1}' is not a processor, DM Chassis or DMPS.", key, pKey);
-			    return null;
-			}
-		}
-	}
+                Debug.Console(0, "Cannot create DM device '{0}'. '{1}' is not a processor, DM Chassis or DMPS.", key,
+                    pKey);
+                return null;
+            }
+        }
+    }
 
     public abstract class BasicDmTxControllerBase : CrestronGenericBridgeableBaseDevice
     {
         protected BasicDmTxControllerBase(string key, string name, GenericBase hardware)
             : base(key, name, hardware)
         {
-
         }
     }
 
-	/// <summary>
-	/// 
-	/// </summary>
+    /// <summary>
+    /// 
+    /// </summary>
     [Description("Wrapper class for all DM-TX variants")]
-	public abstract class DmTxControllerBase : BasicDmTxControllerBase
-	{
-        public virtual void SetPortHdcpCapability(eHdcpCapabilityType hdcpMode, uint port) { }
+    public abstract class DmTxControllerBase : BasicDmTxControllerBase
+    {
+        public virtual void SetPortHdcpCapability(eHdcpCapabilityType hdcpMode, uint port)
+        {
+        }
+
         public virtual eHdcpCapabilityType HdcpSupportCapability { get; protected set; }
         public abstract StringFeedback ActiveVideoInputFeedback { get; protected set; }
         public RoutingInputPortWithVideoStatuses AnyVideoInput { get; protected set; }
         public IntFeedback HdcpStateFeedback { get; protected set; }
 
-	    protected DmTxControllerBase(string key, string name, EndpointTransmitterBase hardware)
-			: base(key, name, hardware) 
-		{
+        protected DmTxControllerBase(string key, string name, EndpointTransmitterBase hardware)
+            : base(key, name, hardware)
+        {
             AddToFeedbackList(ActiveVideoInputFeedback);
 
             IsOnline.OutputChange += (currentDevice, args) =>
             {
-                foreach (var feedback in Feedbacks)
+                foreach (Feedback feedback in Feedbacks)
                 {
                     if (feedback != null)
                         feedback.FireUpdate();
                 }
             };
-		}
+        }
 
-	    protected DmTxControllerBase(string key, string name, DmHDBasedTEndPoint hardware) : base(key, name, hardware)
-	    {
-	    }
+        protected DmTxControllerBase(string key, string name, DmHDBasedTEndPoint hardware) : base(key, name, hardware)
+        {
+        }
 
         protected DmTxControllerJoinMap GetDmTxJoinMap(uint joinStart, string joinMapKey)
         {
-            var joinMap = new DmTxControllerJoinMap(joinStart);
+            DmTxControllerJoinMap joinMap = new DmTxControllerJoinMap(joinStart);
 
-            var joinMapSerialized = JoinMapHelper.GetSerializedJoinMapForDevice(joinMapKey);
+            string joinMapSerialized = JoinMapHelper.GetSerializedJoinMapForDevice(joinMapKey);
 
             if (!string.IsNullOrEmpty(joinMapSerialized))
                 joinMap = JsonConvert.DeserializeObject<DmTxControllerJoinMap>(joinMapSerialized);
@@ -329,23 +346,28 @@ namespace PepperDash.Essentials.DM
             return joinMap;
         }
 
-	    protected void LinkDmTxToApi(DmTxControllerBase tx, BasicTriList trilist, DmTxControllerJoinMap joinMap, EiscApiAdvanced bridge)
-	    {
+        protected void LinkDmTxToApi(DmTxControllerBase tx, BasicTriList trilist, DmTxControllerJoinMap joinMap,
+            EiscApiAdvanced bridge)
+        {
             if (bridge != null)
             {
                 bridge.AddJoinMap(Key, joinMap);
             }
             else
             {
-                Debug.Console(0, this, "Please update config to use 'eiscapiadvanced' to get all join map features for this device.");
+                Debug.Console(0, this,
+                    "Please update config to use 'eiscapiadvanced' to get all join map features for this device.");
             }
 
-	        Debug.Console(1, tx, "Linking to Trilist '{0}'", trilist.ID.ToString("X"));
+            Debug.Console(1, tx, "Linking to Trilist '{0}'", trilist.ID.ToString("X"));
 
             tx.IsOnline.LinkInputSig(trilist.BooleanInput[joinMap.IsOnline.JoinNumber]);
-            tx.AnyVideoInput.VideoStatus.VideoSyncFeedback.LinkInputSig(trilist.BooleanInput[joinMap.VideoSyncStatus.JoinNumber]);
-            tx.AnyVideoInput.VideoStatus.VideoResolutionFeedback.LinkInputSig(trilist.StringInput[joinMap.CurrentInputResolution.JoinNumber]);
-            trilist.UShortInput[joinMap.HdcpSupportCapability.JoinNumber].UShortValue = (ushort)tx.HdcpSupportCapability;
+            tx.AnyVideoInput.VideoStatus.VideoSyncFeedback.LinkInputSig(
+                trilist.BooleanInput[joinMap.VideoSyncStatus.JoinNumber]);
+            tx.AnyVideoInput.VideoStatus.VideoResolutionFeedback.LinkInputSig(
+                trilist.StringInput[joinMap.CurrentInputResolution.JoinNumber]);
+            trilist.UShortInput[joinMap.HdcpSupportCapability.JoinNumber].UShortValue =
+                (ushort)tx.HdcpSupportCapability;
             trilist.StringInput[joinMap.Name.JoinNumber].StringValue = tx.Name;
 
             bool hdcpTypeSimple;
@@ -357,7 +379,7 @@ namespace PepperDash.Essentials.DM
 
             if (tx is ITxRouting)
             {
-                var txR = tx as ITxRouting;
+                ITxRouting txR = tx as ITxRouting;
 
                 trilist.SetUShortSigAction(joinMap.VideoInput.JoinNumber,
                     i => txR.ExecuteNumericSwitch(i, 0, eRoutingSignalType.Video));
@@ -367,22 +389,23 @@ namespace PepperDash.Essentials.DM
                 txR.VideoSourceNumericFeedback.LinkInputSig(trilist.UShortInput[joinMap.VideoInput.JoinNumber]);
                 txR.AudioSourceNumericFeedback.LinkInputSig(trilist.UShortInput[joinMap.AudioInput.JoinNumber]);
 
-                trilist.UShortInput[joinMap.HdcpSupportCapability.JoinNumber].UShortValue = (ushort)tx.HdcpSupportCapability;
+                trilist.UShortInput[joinMap.HdcpSupportCapability.JoinNumber].UShortValue =
+                    (ushort)tx.HdcpSupportCapability;
 
                 if (txR.InputPorts[DmPortName.HdmiIn] != null)
                 {
-                    var inputPort = txR.InputPorts[DmPortName.HdmiIn];
+                    RoutingInputPort inputPort = txR.InputPorts[DmPortName.HdmiIn];
 
                     if (tx.Feedbacks["HdmiInHdcpCapability"] != null)
                     {
-                        var intFeedback = tx.Feedbacks["HdmiInHdcpCapability"] as IntFeedback;
+                        IntFeedback intFeedback = tx.Feedbacks["HdmiInHdcpCapability"] as IntFeedback;
                         if (intFeedback != null)
                             intFeedback.LinkInputSig(trilist.UShortInput[joinMap.Port1HdcpState.JoinNumber]);
                     }
 
                     if (inputPort.ConnectionType == eRoutingPortConnectionType.Hdmi && inputPort.Port != null)
                     {
-                        var port = inputPort.Port as EndpointHdmiInput;
+                        EndpointHdmiInput port = inputPort.Port as EndpointHdmiInput;
 
                         SetHdcpCapabilityAction(hdcpTypeSimple, port, joinMap.Port1HdcpState.JoinNumber, trilist);
                     }
@@ -390,18 +413,18 @@ namespace PepperDash.Essentials.DM
 
                 if (txR.InputPorts[DmPortName.HdmiIn1] != null)
                 {
-                    var inputPort = txR.InputPorts[DmPortName.HdmiIn1];
+                    RoutingInputPort inputPort = txR.InputPorts[DmPortName.HdmiIn1];
 
                     if (tx.Feedbacks["HdmiIn1HdcpCapability"] != null)
                     {
-                        var intFeedback = tx.Feedbacks["HdmiIn1HdcpCapability"] as IntFeedback;
+                        IntFeedback intFeedback = tx.Feedbacks["HdmiIn1HdcpCapability"] as IntFeedback;
                         if (intFeedback != null)
                             intFeedback.LinkInputSig(trilist.UShortInput[joinMap.Port1HdcpState.JoinNumber]);
                     }
 
                     if (inputPort.ConnectionType == eRoutingPortConnectionType.Hdmi && inputPort.Port != null)
                     {
-                        var port = inputPort.Port as EndpointHdmiInput;
+                        EndpointHdmiInput port = inputPort.Port as EndpointHdmiInput;
 
                         SetHdcpCapabilityAction(hdcpTypeSimple, port, joinMap.Port1HdcpState.JoinNumber, trilist);
                     }
@@ -409,33 +432,32 @@ namespace PepperDash.Essentials.DM
 
                 if (txR.InputPorts[DmPortName.HdmiIn2] != null)
                 {
-                    var inputPort = txR.InputPorts[DmPortName.HdmiIn2];
+                    RoutingInputPort inputPort = txR.InputPorts[DmPortName.HdmiIn2];
 
                     if (tx.Feedbacks["HdmiIn2HdcpCapability"] != null)
                     {
-                        var intFeedback = tx.Feedbacks["HdmiIn2HdcpCapability"] as IntFeedback;
+                        IntFeedback intFeedback = tx.Feedbacks["HdmiIn2HdcpCapability"] as IntFeedback;
                         if (intFeedback != null)
                             intFeedback.LinkInputSig(trilist.UShortInput[joinMap.Port1HdcpState.JoinNumber]);
                     }
 
                     if (inputPort.ConnectionType == eRoutingPortConnectionType.Hdmi && inputPort.Port != null)
                     {
-                        var port = inputPort.Port as EndpointHdmiInput;
+                        EndpointHdmiInput port = inputPort.Port as EndpointHdmiInput;
 
                         SetHdcpCapabilityAction(hdcpTypeSimple, port, joinMap.Port2HdcpState.JoinNumber, trilist);
                     }
                 }
-
             }
 
-            var txFreeRun = tx as IHasFreeRun;
+            IHasFreeRun txFreeRun = tx as IHasFreeRun;
             if (txFreeRun != null)
             {
                 txFreeRun.FreeRunEnabledFeedback.LinkInputSig(trilist.BooleanInput[joinMap.FreeRunEnabled.JoinNumber]);
                 trilist.SetBoolSigAction(joinMap.FreeRunEnabled.JoinNumber, txFreeRun.SetFreeRunEnabled);
             }
 
-            var txVga = tx as IVgaBrightnessContrastControls;
+            IVgaBrightnessContrastControls txVga = tx as IVgaBrightnessContrastControls;
             {
                 if (txVga == null) return;
 
@@ -447,7 +469,8 @@ namespace PepperDash.Essentials.DM
             }
         }
 
-        private void SetHdcpCapabilityAction(bool hdcpTypeSimple, EndpointHdmiInput port, uint join, BasicTriList trilist)
+        private void SetHdcpCapabilityAction(bool hdcpTypeSimple, EndpointHdmiInput port, uint join,
+            BasicTriList trilist)
         {
             if (hdcpTypeSimple)
             {
@@ -467,33 +490,32 @@ namespace PepperDash.Essentials.DM
             else
             {
                 trilist.SetUShortSigAction(join,
-                        s =>
-                        {
-                            port.HdcpCapability = (eHdcpCapabilityType)s;
-                        });
+                    s => { port.HdcpCapability = (eHdcpCapabilityType)s; });
             }
         }
-	}
+    }
 
     public class DmTxControllerFactory : EssentialsDeviceFactory<DmTxControllerBase>
     {
         public DmTxControllerFactory()
         {
-            TypeNames = new List<string>() { "dmtx200c", "dmtx201c", "dmtx201s", "dmtx4k100c", "dmtx4k202c", "dmtx4kz202c", "dmtx4k302c", "dmtx4kz302c",
-                "dmtx401c", "dmtx401s", "dmtx4k100c1g", "dmtx4kz100c1g", "hdbasettx" };
+            TypeNames = new List<string>()
+            {
+                "dmtx200c", "dmtx201c", "dmtx201s", "dmtx4k100c", "dmtx4k202c", "dmtx4kz202c", "dmtx4k302c",
+                "dmtx4kz302c",
+                "dmtx401c", "dmtx401s", "dmtx4k100c1g", "dmtx4kz100c1g", "hdbasettx"
+            };
         }
 
         public override EssentialsDevice BuildDevice(DeviceConfig dc)
         {
-            var type = dc.Type.ToLower();
+            string type = dc.Type.ToLower();
 
             Debug.Console(1, "Factory Attempting to create new DM-TX Device");
 
-            var props = JsonConvert.DeserializeObject
+            DmTxPropertiesConfig props = JsonConvert.DeserializeObject
                 <PepperDash.Essentials.DM.Config.DmTxPropertiesConfig>(dc.Properties.ToString());
             return PepperDash.Essentials.DM.DmTxHelper.GetDmTxController(dc.Key, dc.Name, type, props);
         }
     }
-
 }
-

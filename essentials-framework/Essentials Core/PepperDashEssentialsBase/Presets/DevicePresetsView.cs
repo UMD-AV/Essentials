@@ -3,53 +3,55 @@ using Crestron.SimplSharpPro.DeviceSupport;
 
 namespace PepperDash.Essentials.Core.Presets
 {
-	public class DevicePresetsView
-	{
-		public bool ShowNumbers { get; set; }
-		public bool ShowName { get; set; }
-		public bool ShowIcon { get; set; }
+    public class DevicePresetsView
+    {
+        public bool ShowNumbers { get; set; }
+        public bool ShowName { get; set; }
+        public bool ShowIcon { get; set; }
 
         public SubpageReferenceList SRL { get; private set; }
-		public DevicePresetsModel Model { get; private set; }
+        public DevicePresetsModel Model { get; private set; }
 
-		public DevicePresetsView(BasicTriListWithSmartObject tl, DevicePresetsModel model)
-		{
-			if (model == null)
-			{
-				throw new ArgumentNullException("model", "DevicePresetsView Cannot be instantiated with null model");
-			}
-			ShowIcon = true;
-			ShowName = true;
+        public DevicePresetsView(BasicTriListWithSmartObject tl, DevicePresetsModel model)
+        {
+            if (model == null)
+            {
+                throw new ArgumentNullException("model", "DevicePresetsView Cannot be instantiated with null model");
+            }
 
-			Model = model;
+            ShowIcon = true;
+            ShowName = true;
 
-			SRL = new SubpageReferenceList(tl, 10012, 3, 0, 4);
-			Model.PresetsLoaded += new EventHandler(Model_PresetsLoaded);
-		}
+            Model = model;
 
-		public void Attach()
-		{
-			if (Model.PresetsAreLoaded)
-			{
-				uint index = 1;
-				foreach (var p in Model.PresetsList)
-				{
-					SRL.AddItem(new PresetsListSubpageReferenceListItem(p, index, SRL, this));
-					index++;
-				}
-				SRL.Count = (ushort)Model.PresetsList.Count;
-			}
-		}
+            SRL = new SubpageReferenceList(tl, 10012, 3, 0, 4);
+            Model.PresetsLoaded += new EventHandler(Model_PresetsLoaded);
+        }
 
-		public void Detach()
-		{
-			SRL.Clear();
-		}
+        public void Attach()
+        {
+            if (Model.PresetsAreLoaded)
+            {
+                uint index = 1;
+                foreach (PresetChannel p in Model.PresetsList)
+                {
+                    SRL.AddItem(new PresetsListSubpageReferenceListItem(p, index, SRL, this));
+                    index++;
+                }
 
-		void Model_PresetsLoaded(object sender, EventArgs e)
-		{
-			Detach();
-			Attach();
-		}
-	}
+                SRL.Count = (ushort)Model.PresetsList.Count;
+            }
+        }
+
+        public void Detach()
+        {
+            SRL.Clear();
+        }
+
+        void Model_PresetsLoaded(object sender, EventArgs e)
+        {
+            Detach();
+            Attach();
+        }
+    }
 }

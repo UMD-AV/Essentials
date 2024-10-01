@@ -17,10 +17,9 @@ namespace PepperDash.Essentials
     {
         public BridgeFactory()
         {
-            var eiscApiAdvancedFactory = new EiscApiAdvancedFactory() as IDeviceFactory;
+            IDeviceFactory eiscApiAdvancedFactory = new EiscApiAdvancedFactory() as IDeviceFactory;
             eiscApiAdvancedFactory.LoadTypeFactories();
         }
-
     }
 
     public class CommBridge : Device
@@ -40,15 +39,15 @@ namespace PepperDash.Essentials
             // Create EiscApis 
             if (Properties.Eiscs != null)
             {
-                foreach (var eisc in Properties.Eiscs)
+                foreach (EiscBridgeProperties.EiscProperties eisc in Properties.Eiscs)
                 {
-                    var ApiEisc = new BridgeApiEisc(eisc.IpId, eisc.Hostname);
+                    BridgeApiEisc ApiEisc = new BridgeApiEisc(eisc.IpId, eisc.Hostname);
                 }
             }
 
-            foreach (var deviceKey in Properties.CommDevices)
+            foreach (string deviceKey in Properties.CommDevices)
             {
-                var device = DeviceManager.GetDeviceForKey(deviceKey);
+                IKeyed device = DeviceManager.GetDeviceForKey(deviceKey);
 
                 if (device != null)
                 {
@@ -89,7 +88,10 @@ namespace PepperDash.Essentials
         public List<string> CommDevices { get; set; }
     }
 
-    public enum eApiType { Eisc = 0 }
+    public enum eApiType
+    {
+        Eisc = 0
+    }
 
     public class BridgeApiEisc
     {
@@ -98,17 +100,19 @@ namespace PepperDash.Essentials
 
         public BridgeApiEisc(string ipid, string hostname)
         {
-            Ipid = (UInt32)int.Parse(ipid, System.Globalization.NumberStyles.HexNumber);
+            Ipid = (uint)int.Parse(ipid, System.Globalization.NumberStyles.HexNumber);
             Eisc = new ThreeSeriesTcpIpEthernetIntersystemCommunications(Ipid, hostname, Global.ControlSystem);
             Eisc.Register();
             Eisc.SigChange += Eisc_SigChange;
             Debug.Console(0, "BridgeApiEisc Created at Ipid {0}", ipid);
         }
+
         void Eisc_SigChange(object currentDevice, Crestron.SimplSharpPro.SigEventArgs args)
         {
             if (Debug.Level >= 1)
-                Debug.Console(1, "BridgeApiEisc change: {0} {1}={2}", args.Sig.Type, args.Sig.Number, args.Sig.StringValue);
-            var uo = args.Sig.UserObject;
+                Debug.Console(1, "BridgeApiEisc change: {0} {1}={2}", args.Sig.Type, args.Sig.Number,
+                    args.Sig.StringValue);
+            object uo = args.Sig.UserObject;
             if (uo is Action<bool>)
                 (uo as Action<bool>)(args.Sig.BoolValue);
             else if (uo is Action<ushort>)

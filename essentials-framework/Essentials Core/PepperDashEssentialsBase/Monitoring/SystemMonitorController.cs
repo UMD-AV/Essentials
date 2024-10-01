@@ -62,13 +62,13 @@ namespace PepperDash.Essentials.Core.Monitoring
             SerialNumberFeedback = new StringFeedback(() => CrestronEnvironment.SystemInfo.SerialNumber);
             ModelFeedback = new StringFeedback(() => InitialParametersClass.ControllerPromptName);
             UptimeFeedback = new StringFeedback(() => _uptime);
-            LastStartFeedback = new StringFeedback(()=> _lastStart);
+            LastStartFeedback = new StringFeedback(() => _lastStart);
 
             ProgramStatusFeedbackCollection = new Dictionary<uint, ProgramStatusFeedbacks>();
 
-            foreach (var prog in SystemMonitor.ProgramCollection)
+            foreach (Program prog in SystemMonitor.ProgramCollection)
             {
-                var program = new ProgramStatusFeedbacks(prog);
+                ProgramStatusFeedbacks program = new ProgramStatusFeedbacks(prog);
                 ProgramStatusFeedbackCollection.Add(prog.Number, program);
             }
 
@@ -76,7 +76,7 @@ namespace PepperDash.Essentials.Core.Monitoring
             UpdateEthernetStatusFeeedbacks();
 
             pollCount = 0;
-            _uptimePollTimer = new CTimer(PollUptime,null,0, UptimePollTime);
+            _uptimePollTimer = new CTimer(PollUptime, null, 0, UptimePollTime);
 
             SystemMonitor.ProgramChange += SystemMonitor_ProgramChange;
             SystemMonitor.TimeZoneInformation.TimeZoneChange += TimeZoneInformation_TimeZoneChange;
@@ -95,7 +95,7 @@ namespace PepperDash.Essentials.Core.Monitoring
 
         private void PollUptime(object obj)
         {
-            var consoleResponse = string.Empty;
+            string consoleResponse = string.Empty;
 
             CrestronConsole.SendControlSystemCommand("uptime", ref consoleResponse);
 
@@ -114,19 +114,19 @@ namespace PepperDash.Essentials.Core.Monitoring
 
         private void ParseUptime(string response)
         {
-            var splitString = response.Trim().Split('\r', '\n');
+            string[] splitString = response.Trim().Split('\r', '\n');
 
-            var lastStartRaw = splitString.FirstOrDefault(o => o.Contains("started"));
-            var uptimeRaw = splitString.FirstOrDefault(o => o.Contains("running"));
+            string lastStartRaw = splitString.FirstOrDefault(o => o.Contains("started"));
+            string uptimeRaw = splitString.FirstOrDefault(o => o.Contains("running"));
 
-            if (!String.IsNullOrEmpty(lastStartRaw))
+            if (!string.IsNullOrEmpty(lastStartRaw))
             {
-                var lastStartIndex = lastStartRaw.IndexOf(':');
+                int lastStartIndex = lastStartRaw.IndexOf(':');
                 _lastStart = lastStartRaw.Substring(lastStartIndex + 1).Trim();
             }
 
-            if (String.IsNullOrEmpty(uptimeRaw)) return;
-            var forIndex = uptimeRaw.IndexOf("for", StringComparison.Ordinal);
+            if (string.IsNullOrEmpty(uptimeRaw)) return;
+            int forIndex = uptimeRaw.IndexOf("for", StringComparison.Ordinal);
 
             //4 => "for " to get what's on the right
             _uptime = uptimeRaw.Substring(forIndex + 4);
@@ -136,7 +136,7 @@ namespace PepperDash.Essentials.Core.Monitoring
         {
             if (ethernetEventArgs.EthernetEventType != eEthernetEventType.LinkUp) return;
 
-            foreach (var fb in EthernetStatusFeedbackCollection)
+            foreach (KeyValuePair<short, EthernetStatusFeedbacks> fb in EthernetStatusFeedbackCollection)
             {
                 fb.Value.UpdateEthernetStatus();
             }
@@ -151,14 +151,14 @@ namespace PepperDash.Essentials.Core.Monitoring
             for (short i = 0; i < InitialParametersClass.NumberOfEthernetInterfaces; i++)
             {
                 Debug.Console(2, "Creating EthernetStatusFeedback for Interface {0}", i);
-                var ethernetInterface = new EthernetStatusFeedbacks(i);
+                EthernetStatusFeedbacks ethernetInterface = new EthernetStatusFeedbacks(i);
                 EthernetStatusFeedbackCollection.Add(i, ethernetInterface);
             }
         }
 
         private void UpdateEthernetStatusFeeedbacks()
         {
-            foreach (var iface in EthernetStatusFeedbackCollection)
+            foreach (KeyValuePair<short, EthernetStatusFeedbacks> iface in EthernetStatusFeedbackCollection)
             {
                 iface.Value.CurrentIpAddressFeedback.FireUpdate();
                 iface.Value.CurrentSubnetMaskFeedback.FireUpdate();
@@ -196,7 +196,7 @@ namespace PepperDash.Essentials.Core.Monitoring
             UptimeFeedback.FireUpdate();
             LastStartFeedback.FireUpdate();
             UpdateEthernetStatusFeeedbacks();
-            foreach(var p in ProgramStatusFeedbackCollection)
+            foreach (KeyValuePair<uint, ProgramStatusFeedbacks> p in ProgramStatusFeedbackCollection)
             {
                 p.Value.ProgramCompileTimeFeedback.FireUpdate();
                 p.Value.ProgramNameFeedback.FireUpdate();
@@ -208,7 +208,7 @@ namespace PepperDash.Essentials.Core.Monitoring
 
         private void OnSystemMonitorPropertiesChanged()
         {
-            var handler = SystemMonitorPropertiesChanged;
+            EventHandler<EventArgs> handler = SystemMonitorPropertiesChanged;
             if (handler != null)
             {
                 handler(this, new EventArgs());
@@ -224,9 +224,9 @@ namespace PepperDash.Essentials.Core.Monitoring
 
         public override void LinkToApi(BasicTriList trilist, uint joinStart, string joinMapKey, EiscApiAdvanced bridge)
         {
-            var joinMap = new SystemMonitorJoinMap(joinStart);
+            SystemMonitorJoinMap joinMap = new SystemMonitorJoinMap(joinStart);
 
-            var joinMapSerialized = JoinMapHelper.GetSerializedJoinMapForDevice(joinMapKey);
+            string joinMapSerialized = JoinMapHelper.GetSerializedJoinMapForDevice(joinMapKey);
 
             if (!string.IsNullOrEmpty(joinMapSerialized))
                 joinMap = JsonConvert.DeserializeObject<SystemMonitorJoinMap>(joinMapSerialized);
@@ -237,7 +237,8 @@ namespace PepperDash.Essentials.Core.Monitoring
             }
             else
             {
-                Debug.Console(0, this, "Please update config to use 'eiscapiadvanced' to get all join map features for this device.");
+                Debug.Console(0, this,
+                    "Please update config to use 'eiscapiadvanced' to get all join map features for this device.");
             }
 
             Debug.Console(1, "Linking to Trilist '{0}'", trilist.ID.ToString("X"));
@@ -263,22 +264,34 @@ namespace PepperDash.Essentials.Core.Monitoring
             LinkEthernetInfoJoins(this, trilist, joinMap);
         }
 
-        private static void LinkEthernetInfoJoins(SystemMonitorController systemMonitorController, BasicTriList trilist, SystemMonitorJoinMap joinMap)
+        private static void LinkEthernetInfoJoins(SystemMonitorController systemMonitorController, BasicTriList trilist,
+            SystemMonitorJoinMap joinMap)
         {
             uint ethernetSlotJoinStart = 0;
-            foreach (var fb in systemMonitorController.EthernetStatusFeedbackCollection)
+            foreach (KeyValuePair<short, EthernetStatusFeedbacks> fb in systemMonitorController.EthernetStatusFeedbackCollection)
             {
-                fb.Value.CurrentIpAddressFeedback.LinkInputSig(trilist.StringInput[ethernetSlotJoinStart + joinMap.CurrentIpAddress.JoinNumber]);
-                fb.Value.CurrentSubnetMaskFeedback.LinkInputSig(trilist.StringInput[ethernetSlotJoinStart + joinMap.CurrentSubnetMask.JoinNumber]);
-                fb.Value.CurrentDefaultGatewayFeedback.LinkInputSig(trilist.StringInput[ethernetSlotJoinStart + joinMap.CurrentDefaultGateway.JoinNumber]);
-                fb.Value.StaticIpAddressFeedback.LinkInputSig(trilist.StringInput[ethernetSlotJoinStart + joinMap.StaticIpAddress.JoinNumber]);
-                fb.Value.StaticSubnetMaskFeedback.LinkInputSig(trilist.StringInput[ethernetSlotJoinStart + joinMap.StaticSubnetMask.JoinNumber]);
-                fb.Value.StaticDefaultGatewayFeedback.LinkInputSig(trilist.StringInput[ethernetSlotJoinStart + joinMap.StaticDefaultGateway.JoinNumber]);
-                fb.Value.HostNameFeedback.LinkInputSig(trilist.StringInput[ethernetSlotJoinStart + joinMap.HostName.JoinNumber]);
-                fb.Value.MacAddressFeedback.LinkInputSig(trilist.StringInput[ethernetSlotJoinStart + joinMap.MacAddress.JoinNumber]);
-                fb.Value.DomainFeedback.LinkInputSig(trilist.StringInput[ethernetSlotJoinStart + joinMap.Domain.JoinNumber]);
-                fb.Value.DnsServerFeedback.LinkInputSig(trilist.StringInput[ethernetSlotJoinStart + joinMap.DnsServer.JoinNumber]);
-                fb.Value.DhcpStatusFeedback.LinkInputSig(trilist.StringInput[ethernetSlotJoinStart + joinMap.DhcpStatus.JoinNumber]);
+                fb.Value.CurrentIpAddressFeedback.LinkInputSig(
+                    trilist.StringInput[ethernetSlotJoinStart + joinMap.CurrentIpAddress.JoinNumber]);
+                fb.Value.CurrentSubnetMaskFeedback.LinkInputSig(
+                    trilist.StringInput[ethernetSlotJoinStart + joinMap.CurrentSubnetMask.JoinNumber]);
+                fb.Value.CurrentDefaultGatewayFeedback.LinkInputSig(
+                    trilist.StringInput[ethernetSlotJoinStart + joinMap.CurrentDefaultGateway.JoinNumber]);
+                fb.Value.StaticIpAddressFeedback.LinkInputSig(
+                    trilist.StringInput[ethernetSlotJoinStart + joinMap.StaticIpAddress.JoinNumber]);
+                fb.Value.StaticSubnetMaskFeedback.LinkInputSig(
+                    trilist.StringInput[ethernetSlotJoinStart + joinMap.StaticSubnetMask.JoinNumber]);
+                fb.Value.StaticDefaultGatewayFeedback.LinkInputSig(
+                    trilist.StringInput[ethernetSlotJoinStart + joinMap.StaticDefaultGateway.JoinNumber]);
+                fb.Value.HostNameFeedback.LinkInputSig(
+                    trilist.StringInput[ethernetSlotJoinStart + joinMap.HostName.JoinNumber]);
+                fb.Value.MacAddressFeedback.LinkInputSig(
+                    trilist.StringInput[ethernetSlotJoinStart + joinMap.MacAddress.JoinNumber]);
+                fb.Value.DomainFeedback.LinkInputSig(
+                    trilist.StringInput[ethernetSlotJoinStart + joinMap.Domain.JoinNumber]);
+                fb.Value.DnsServerFeedback.LinkInputSig(
+                    trilist.StringInput[ethernetSlotJoinStart + joinMap.DnsServer.JoinNumber]);
+                fb.Value.DhcpStatusFeedback.LinkInputSig(
+                    trilist.StringInput[ethernetSlotJoinStart + joinMap.DhcpStatus.JoinNumber]);
 
                 ethernetSlotJoinStart += joinMap.EthernetOffsetJoin.JoinNumber;
             }
@@ -289,29 +302,34 @@ namespace PepperDash.Essentials.Core.Monitoring
         {
             uint programSlotJoinStart = 0;
 
-            foreach (var p in systemMonitorController.ProgramStatusFeedbackCollection)
+            foreach (KeyValuePair<uint, ProgramStatusFeedbacks> p in systemMonitorController.ProgramStatusFeedbackCollection)
             {
-                var programNumber = p.Value.Program.Number;
+                uint programNumber = p.Value.Program.Number;
 
                 trilist.SetBoolSigAction(programSlotJoinStart + joinMap.ProgramStart.JoinNumber,
                     b => SystemMonitor.ProgramCollection[programNumber].OperatingState = eProgramOperatingState.Start);
-                p.Value.ProgramStartedFeedback.LinkInputSig(trilist.BooleanInput[programSlotJoinStart + joinMap.ProgramStart.JoinNumber]);
+                p.Value.ProgramStartedFeedback.LinkInputSig(
+                    trilist.BooleanInput[programSlotJoinStart + joinMap.ProgramStart.JoinNumber]);
 
                 trilist.SetBoolSigAction(programSlotJoinStart + joinMap.ProgramStop.JoinNumber,
                     b => SystemMonitor.ProgramCollection[programNumber].OperatingState = eProgramOperatingState.Stop);
-                p.Value.ProgramStoppedFeedback.LinkInputSig(trilist.BooleanInput[programSlotJoinStart + joinMap.ProgramStop.JoinNumber]);
+                p.Value.ProgramStoppedFeedback.LinkInputSig(
+                    trilist.BooleanInput[programSlotJoinStart + joinMap.ProgramStop.JoinNumber]);
 
                 trilist.SetBoolSigAction(programSlotJoinStart + joinMap.ProgramRegister.JoinNumber,
-                    b => SystemMonitor.ProgramCollection[programNumber].RegistrationState = eProgramRegistrationState.Register);
+                    b => SystemMonitor.ProgramCollection[programNumber].RegistrationState =
+                        eProgramRegistrationState.Register);
                 p.Value.ProgramRegisteredFeedback.LinkInputSig(
                     trilist.BooleanInput[programSlotJoinStart + joinMap.ProgramRegister.JoinNumber]);
 
                 trilist.SetBoolSigAction(programSlotJoinStart + joinMap.ProgramUnregister.JoinNumber,
-                    b => SystemMonitor.ProgramCollection[programNumber].RegistrationState = eProgramRegistrationState.Unregister);
+                    b => SystemMonitor.ProgramCollection[programNumber].RegistrationState =
+                        eProgramRegistrationState.Unregister);
                 p.Value.ProgramUnregisteredFeedback.LinkInputSig(
                     trilist.BooleanInput[programSlotJoinStart + joinMap.ProgramUnregister.JoinNumber]);
 
-                p.Value.ProgramNameFeedback.LinkInputSig(trilist.StringInput[programSlotJoinStart + joinMap.ProgramName.JoinNumber]);
+                p.Value.ProgramNameFeedback.LinkInputSig(
+                    trilist.StringInput[programSlotJoinStart + joinMap.ProgramName.JoinNumber]);
                 p.Value.ProgramCompileTimeFeedback.LinkInputSig(
                     trilist.StringInput[programSlotJoinStart + joinMap.ProgramCompiledTime.JoinNumber]);
                 p.Value.CrestronDataBaseVersionFeedback.LinkInputSig(
@@ -341,7 +359,7 @@ namespace PepperDash.Essentials.Core.Monitoring
             Debug.Console(2, this, "Program Change Detected for slot: {0}", sender.Number);
             Debug.Console(2, this, "Event Type: {0}", args.EventType);
 
-            var program = ProgramStatusFeedbackCollection[sender.Number];
+            ProgramStatusFeedbacks program = ProgramStatusFeedbackCollection[sender.Number];
 
             switch (args.EventType)
             {
@@ -356,6 +374,7 @@ namespace PepperDash.Essentials.Core.Monitoring
                         program.AggregatedProgramInfoFeedback.FireUpdate();
                         program.OnProgramInfoChanged();
                     }
+
                     break;
                 case eProgramChangeEventType.RegistrationState:
                     program.ProgramRegisteredFeedback.FireUpdate();
@@ -390,7 +409,7 @@ namespace PepperDash.Essentials.Core.Monitoring
             public StringFeedback CurrentIpAddressFeedback { get; protected set; }
             public StringFeedback CurrentSubnetMaskFeedback { get; protected set; }
             public StringFeedback CurrentDefaultGatewayFeedback { get; protected set; }
-            
+
             public StringFeedback StaticIpAddressFeedback { get; protected set; }
             public StringFeedback StaticSubnetMaskFeedback { get; protected set; }
             public StringFeedback StaticDefaultGatewayFeedback { get; protected set; }
@@ -400,22 +419,31 @@ namespace PepperDash.Essentials.Core.Monitoring
                 Debug.Console(2, "Ethernet Information for interface {0}", adapterIndex);
                 Debug.Console(2, "Adapter Index: {1} Hostname: {0}", CrestronEthernetHelper.GetEthernetParameter(
                     CrestronEthernetHelper.ETHERNET_PARAMETER_TO_GET.GET_HOSTNAME, adapterIndex), adapterIndex);
-                Debug.Console(2, "Adapter Index: {1} Current IP Address: {0}", CrestronEthernetHelper.GetEthernetParameter(
-                    CrestronEthernetHelper.ETHERNET_PARAMETER_TO_GET.GET_CURRENT_IP_ADDRESS, adapterIndex), adapterIndex);
-                Debug.Console(2, "Adapter Index: {1} Current Subnet Mask: {0}", CrestronEthernetHelper.GetEthernetParameter(
-                    CrestronEthernetHelper.ETHERNET_PARAMETER_TO_GET.GET_CURRENT_IP_MASK, adapterIndex), adapterIndex);
+                Debug.Console(2, "Adapter Index: {1} Current IP Address: {0}",
+                    CrestronEthernetHelper.GetEthernetParameter(
+                        CrestronEthernetHelper.ETHERNET_PARAMETER_TO_GET.GET_CURRENT_IP_ADDRESS, adapterIndex),
+                    adapterIndex);
+                Debug.Console(2, "Adapter Index: {1} Current Subnet Mask: {0}",
+                    CrestronEthernetHelper.GetEthernetParameter(
+                        CrestronEthernetHelper.ETHERNET_PARAMETER_TO_GET.GET_CURRENT_IP_MASK, adapterIndex),
+                    adapterIndex);
                 Debug.Console(2, "Adapter Index: {1} Current Router: {0}", CrestronEthernetHelper.GetEthernetParameter(
                     CrestronEthernetHelper.ETHERNET_PARAMETER_TO_GET.GET_CURRENT_ROUTER, adapterIndex), adapterIndex);
-                Debug.Console(2, "Adapter Index: {1} Static IP Address: {0}", CrestronEthernetHelper.GetEthernetParameter(
-                    CrestronEthernetHelper.ETHERNET_PARAMETER_TO_GET.GET_STATIC_IPADDRESS, adapterIndex), adapterIndex);
-                Debug.Console(2, "Adapter Index: {1} Static Subnet Mask: {0}", CrestronEthernetHelper.GetEthernetParameter(
-                    CrestronEthernetHelper.ETHERNET_PARAMETER_TO_GET.GET_STATIC_IPMASK, adapterIndex), adapterIndex);
+                Debug.Console(2, "Adapter Index: {1} Static IP Address: {0}",
+                    CrestronEthernetHelper.GetEthernetParameter(
+                        CrestronEthernetHelper.ETHERNET_PARAMETER_TO_GET.GET_STATIC_IPADDRESS, adapterIndex),
+                    adapterIndex);
+                Debug.Console(2, "Adapter Index: {1} Static Subnet Mask: {0}",
+                    CrestronEthernetHelper.GetEthernetParameter(
+                        CrestronEthernetHelper.ETHERNET_PARAMETER_TO_GET.GET_STATIC_IPMASK, adapterIndex),
+                    adapterIndex);
                 Debug.Console(2, "Adapter Index: {1} Static Router: {0}", CrestronEthernetHelper.GetEthernetParameter(
                     CrestronEthernetHelper.ETHERNET_PARAMETER_TO_GET.GET_STATIC_ROUTER, adapterIndex), adapterIndex);
                 Debug.Console(2, "Adapter Index: {1} DNS Servers: {0}", CrestronEthernetHelper.GetEthernetParameter(
                     CrestronEthernetHelper.ETHERNET_PARAMETER_TO_GET.GET_DNS_SERVER, adapterIndex), adapterIndex);
                 Debug.Console(2, "Adapter Index: {1} DHCP State: {0}", CrestronEthernetHelper.GetEthernetParameter(
-                    CrestronEthernetHelper.ETHERNET_PARAMETER_TO_GET.GET_CURRENT_DHCP_STATE, adapterIndex), adapterIndex);
+                        CrestronEthernetHelper.ETHERNET_PARAMETER_TO_GET.GET_CURRENT_DHCP_STATE, adapterIndex),
+                    adapterIndex);
                 Debug.Console(2, "Adapter Index: {1} Domain Name: {0}", CrestronEthernetHelper.GetEthernetParameter(
                     CrestronEthernetHelper.ETHERNET_PARAMETER_TO_GET.GET_DOMAIN_NAME, adapterIndex), adapterIndex);
                 Debug.Console(2, "Adapter Index: {1} MAC Address: {0}", CrestronEthernetHelper.GetEthernetParameter(
@@ -510,7 +538,9 @@ namespace PepperDash.Essentials.Core.Monitoring
 
             public StringFeedback ProgramNameFeedback;
             public StringFeedback ProgramCompileTimeFeedback;
+
             public StringFeedback CrestronDataBaseVersionFeedback;
+
             // SIMPL windows version
             public StringFeedback EnvironmentVersionFeedback;
             public StringFeedback AggregatedProgramInfoFeedback;
@@ -561,7 +591,8 @@ namespace PepperDash.Essentials.Core.Monitoring
 
                 string response = null;
 
-                if (Program.RegistrationState == eProgramRegistrationState.Unregister || Program.OperatingState == eProgramOperatingState.Stop)
+                if (Program.RegistrationState == eProgramRegistrationState.Unregister ||
+                    Program.OperatingState == eProgramOperatingState.Stop)
                 {
                     Debug.Console(2, "Program {0} not registered. Setting default values for program information.",
                         Program.Number);
@@ -575,7 +606,7 @@ namespace PepperDash.Essentials.Core.Monitoring
                     return;
                 }
 
-                var success = CrestronConsole.SendControlSystemCommand(
+                bool success = CrestronConsole.SendControlSystemCommand(
                     string.Format("progcomments:{0}", Program.Number), ref response);
 
                 if (!success)
@@ -630,6 +661,7 @@ namespace PepperDash.Essentials.Core.Monitoring
                     ProgramInfo.Environment = ParseConsoleData(response, "Source Env", ": ", "\n");
                     ProgramInfo.Programmer = ParseConsoleData(response, "Programmer", ": ", "\n");
                 }
+
                 Debug.Console(2, "Program info for slot {0} successfully updated", Program.Number);
 
                 UpdateFeedbacks();
@@ -650,7 +682,7 @@ namespace PepperDash.Essentials.Core.Monitoring
             public void OnProgramInfoChanged()
             {
                 //Debug.Console(1, "Firing ProgramInfoChanged for slot: {0}", Program.Number);
-                var handler = ProgramInfoChanged;
+                EventHandler<ProgramInfoEventArgs> handler = ProgramInfoChanged;
                 if (handler != null)
                 {
                     handler(this, new ProgramInfoEventArgs(ProgramInfo));
@@ -659,17 +691,17 @@ namespace PepperDash.Essentials.Core.Monitoring
 
             private string ParseConsoleData(string data, string line, string startString, string endString)
             {
-                var outputData = "";
+                string outputData = "";
 
                 if (data.Length <= 0) return outputData;
 
                 try
                 {
                     //Debug.Console(2, "ParseConsoleData Data: {0}, Line {1}, startStirng {2}, endString {3}", data, line, startString, endString);
-                    var linePosition = data.IndexOf(line, StringComparison.Ordinal);
-                    var startPosition = data.IndexOf(startString, linePosition, StringComparison.Ordinal) +
+                    int linePosition = data.IndexOf(line, StringComparison.Ordinal);
+                    int startPosition = data.IndexOf(startString, linePosition, StringComparison.Ordinal) +
                                         startString.Length;
-                    var endPosition = data.IndexOf(endString, startPosition, StringComparison.Ordinal);
+                    int endPosition = data.IndexOf(endString, startPosition, StringComparison.Ordinal);
                     outputData = data.Substring(startPosition, endPosition - startPosition).Trim();
                     //Debug.Console(2, "ParseConsoleData Return: {0}", outputData);
                 }
@@ -690,58 +722,44 @@ namespace PepperDash.Essentials.Core.Monitoring
     {
         // Shared properties
 
-        [JsonProperty("programNumber")]
-        public uint ProgramNumber { get; private set; }
+        [JsonProperty("programNumber")] public uint ProgramNumber { get; private set; }
 
-        [JsonConverter(typeof (StringEnumConverter))]
+        [JsonConverter(typeof(StringEnumConverter))]
         [JsonProperty("operatingState")]
         public eProgramOperatingState OperatingState { get; set; }
 
-        [JsonConverter(typeof (StringEnumConverter))]
+        [JsonConverter(typeof(StringEnumConverter))]
         [JsonProperty("registrationState")]
         public eProgramRegistrationState RegistrationState { get; set; }
 
-        [JsonProperty("programFile")]
-        public string ProgramFile { get; set; }
+        [JsonProperty("programFile")] public string ProgramFile { get; set; }
 
-        [JsonProperty("friendlyName")]
-        public string FriendlyName { get; set; }
+        [JsonProperty("friendlyName")] public string FriendlyName { get; set; }
 
-        [JsonProperty("compilerRevision")]
-        public string CompilerRevision { get; set; }
+        [JsonProperty("compilerRevision")] public string CompilerRevision { get; set; }
 
-        [JsonProperty("compileTime")]
-        public string CompileTime { get; set; }
+        [JsonProperty("compileTime")] public string CompileTime { get; set; }
 
-        [JsonProperty("include4Dat")]
-        public string Include4Dat { get; set; }
+        [JsonProperty("include4Dat")] public string Include4Dat { get; set; }
 
         // SIMPL Windows properties
-        [JsonProperty("systemName")]
-        public string SystemName { get; set; }
+        [JsonProperty("systemName")] public string SystemName { get; set; }
 
-        [JsonProperty("crestronDb")]
-        public string CrestronDb { get; set; }
+        [JsonProperty("crestronDb")] public string CrestronDb { get; set; }
 
-        [JsonProperty("environment")]
-        public string Environment { get; set; }
+        [JsonProperty("environment")] public string Environment { get; set; }
 
-        [JsonProperty("programmer")]
-        public string Programmer { get; set; }
+        [JsonProperty("programmer")] public string Programmer { get; set; }
 
 
         // SSP Properties
-        [JsonProperty("applicationName")]
-        public string ApplicationName { get; set; }
+        [JsonProperty("applicationName")] public string ApplicationName { get; set; }
 
-        [JsonProperty("programTool")]
-        public string ProgramTool { get; set; }
+        [JsonProperty("programTool")] public string ProgramTool { get; set; }
 
-        [JsonProperty("minFirmwareVersion")]
-        public string MinFirmwareVersion { get; set; }
+        [JsonProperty("minFirmwareVersion")] public string MinFirmwareVersion { get; set; }
 
-        [JsonProperty("plugInVersion")]
-        public string PlugInVersion { get; set; }
+        [JsonProperty("plugInVersion")] public string PlugInVersion { get; set; }
 
         public ProgramInfo(uint number)
         {

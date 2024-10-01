@@ -14,16 +14,16 @@ namespace NvxEpi.Factories
         public NvxDirectorFactory()
         {
             TypeNames = new List<string>
-                {
-                    "xiodirector",
-                    "xiodirector80",
-                    "xiodirector160",
-                };
+            {
+                "xiodirector",
+                "xiodirector80",
+                "xiodirector160",
+            };
         }
 
         public override EssentialsDevice BuildDevice(DeviceConfig dc)
         {
-            var config = JsonConvert.DeserializeObject<NvxDirectorConfig>(dc.Properties.ToString());
+            NvxDirectorConfig config = JsonConvert.DeserializeObject<NvxDirectorConfig>(dc.Properties.ToString());
 
             DmXioDirectorBase xio;
             switch (dc.Type.ToLower())

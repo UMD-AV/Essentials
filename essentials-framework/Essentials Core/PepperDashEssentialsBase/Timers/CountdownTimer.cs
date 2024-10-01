@@ -1,11 +1,10 @@
 ﻿using System;
 using Crestron.SimplSharp;
-
 using PepperDash.Core;
 
 namespace PepperDash.Essentials.Core
 {
-    public class SecondsCountdownTimer: IKeyed
+    public class SecondsCountdownTimer : IKeyed
     {
         public event EventHandler<EventArgs> HasStarted;
         public event EventHandler<EventArgs> HasFinished;
@@ -25,10 +24,10 @@ namespace PepperDash.Essentials.Core
         /// The number of seconds to countdown
         /// </summary>
         public int SecondsToCount { get; set; }
-        
+
         public DateTime StartTime { get; private set; }
         public DateTime FinishTime { get; private set; }
- 
+
         private CTimer _secondTimer;
 
         /// <summary>
@@ -41,31 +40,32 @@ namespace PepperDash.Essentials.Core
             IsRunningFeedback = new BoolFeedback(() => _isRunning);
 
             TimeRemainingFeedback = new StringFeedback(() =>
+            {
+                // Need to handle up and down here.
+
+                TimeSpan timeSpan = FinishTime - DateTime.Now;
+
+                Debug.Console(2, this,
+                    "timeSpan.Minutes == {0}, timeSpan.Seconds == {1}, timeSpan.TotalSeconds == {2}",
+                    timeSpan.Minutes, timeSpan.Seconds, timeSpan.TotalSeconds);
+
+                if (Math.Floor(timeSpan.TotalSeconds) < 60 &&
+                    Math.Floor(timeSpan.TotalSeconds) >= 0) //ignore milliseconds
                 {
-                    // Need to handle up and down here.
+                    return string.Format("{0:00}", timeSpan.Seconds);
+                }
 
-                    var timeSpan = FinishTime - DateTime.Now;
-
-                    Debug.Console(2, this,
-                        "timeSpan.Minutes == {0}, timeSpan.Seconds == {1}, timeSpan.TotalSeconds == {2}",
-                        timeSpan.Minutes, timeSpan.Seconds, timeSpan.TotalSeconds);
-
-                    if (Math.Floor(timeSpan.TotalSeconds) < 60 && Math.Floor(timeSpan.TotalSeconds) >= 0) //ignore milliseconds
-                    {
-                        return String.Format("{0:00}", timeSpan.Seconds);
-                    }
-
-                    return Math.Floor(timeSpan.TotalSeconds) < 0
-                        ? "00"
-                        : String.Format("{0:00}:{1:00}", timeSpan.Minutes, timeSpan.Seconds);
-                });
+                return Math.Floor(timeSpan.TotalSeconds) < 0
+                    ? "00"
+                    : string.Format("{0:00}:{1:00}", timeSpan.Minutes, timeSpan.Seconds);
+            });
 
             PercentFeedback =
                 new IntFeedback(
                     () =>
                         (int)
-                            (Math.Floor((FinishTime - DateTime.Now).TotalSeconds)/
-                             Math.Floor((FinishTime - StartTime).TotalSeconds)*100));
+                        (Math.Floor((FinishTime - DateTime.Now).TotalSeconds) /
+                            Math.Floor((FinishTime - StartTime).TotalSeconds) * 100));
         }
 
         /// <summary>
@@ -84,7 +84,7 @@ namespace PepperDash.Essentials.Core
             _isRunning = true;
             IsRunningFeedback.FireUpdate();
 
-            var handler = HasStarted;
+            EventHandler<EventArgs> handler = HasStarted;
             if (handler != null)
                 handler(this, new EventArgs());
         }
@@ -104,8 +104,8 @@ namespace PepperDash.Essentials.Core
         public void Cancel()
         {
             StopHelper();
-            
-            var handler = WasCancelled;
+
+            EventHandler<EventArgs> handler = WasCancelled;
             if (handler != null)
                 handler(this, new EventArgs());
         }
@@ -117,7 +117,7 @@ namespace PepperDash.Essentials.Core
         {
             StopHelper();
 
-            var handler = HasFinished;
+            EventHandler<EventArgs> handler = HasFinished;
             if (handler != null)
                 handler(this, new EventArgs());
         }
@@ -127,7 +127,7 @@ namespace PepperDash.Essentials.Core
             if (_secondTimer != null)
                 _secondTimer.Stop();
             _isRunning = false;
-            IsRunningFeedback.FireUpdate(); 
+            IsRunningFeedback.FireUpdate();
         }
 
         void SecondElapsedTimerCallback(object o)

@@ -2,10 +2,8 @@
 using System.Collections.Generic;
 using Crestron.SimplSharp;
 using Crestron.SimplSharpPro.CrestronThread;
-
 using PepperDash.Core;
 using PepperDash.Essentials.Core.Config;
-
 using Newtonsoft.Json;
 
 namespace PepperDash.Essentials.Core.Utilities
@@ -27,14 +25,15 @@ namespace PepperDash.Essentials.Core.Utilities
         public ActionSequence(string key, DeviceConfig config)
             : base(key, config.Name)
         {
-            var props = config.Properties.ToObject<ActionSequencePropertiesConfig>();
+            ActionSequencePropertiesConfig props = config.Properties.ToObject<ActionSequencePropertiesConfig>();
             _propertiesConfig = props;
 
             if (_propertiesConfig != null)
             {
                 if (_propertiesConfig.ActionSequence.Count > 0)
                 {
-                    _actionQueue = new CrestronQueue<SequencedDeviceActionWrapper>(_propertiesConfig.ActionSequence.Count);
+                    _actionQueue =
+                        new CrestronQueue<SequencedDeviceActionWrapper>(_propertiesConfig.ActionSequence.Count);
                 }
             }
         }
@@ -44,7 +43,7 @@ namespace PepperDash.Essentials.Core.Utilities
         /// </summary>
         public void StartSequence()
         {
-            if (_worker !=null && _worker.ThreadState == Thread.eThreadStates.ThreadRunning)
+            if (_worker != null && _worker.ThreadState == Thread.eThreadStates.ThreadRunning)
             {
                 Debug.Console(1, this, "Thread already running.  Cannot Start Sequence");
                 return;
@@ -120,8 +119,7 @@ namespace PepperDash.Essentials.Core.Utilities
     /// </summary>
     public class ActionSequencePropertiesConfig
     {
-        [JsonProperty("actionSequence")]
-        public List<SequencedDeviceActionWrapper> ActionSequence { get; set; }
+        [JsonProperty("actionSequence")] public List<SequencedDeviceActionWrapper> ActionSequence { get; set; }
 
         public ActionSequencePropertiesConfig()
         {
@@ -131,8 +129,7 @@ namespace PepperDash.Essentials.Core.Utilities
 
     public class SequencedDeviceActionWrapper : DeviceActionWrapper
     {
-        [JsonProperty("delayMs")]
-        public int DelayMs { get; set; }
+        [JsonProperty("delayMs")] public int DelayMs { get; set; }
     }
 
     /// <summary>
@@ -152,5 +149,4 @@ namespace PepperDash.Essentials.Core.Utilities
             return new ActionSequence(dc.Key, dc);
         }
     }
-
 }

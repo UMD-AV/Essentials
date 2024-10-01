@@ -9,7 +9,7 @@ namespace NvxEpi.Services.Feedback
 
         public static IntFeedback GetFeedback(DmNvxBaseClass device)
         {
-            var feedback = new IntFeedback(() => 0);
+            IntFeedback feedback = new IntFeedback(() => 0);
 
             if (device.Control.DanteAes67Name != null)
             {

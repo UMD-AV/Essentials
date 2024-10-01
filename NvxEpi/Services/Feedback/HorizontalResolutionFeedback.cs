@@ -12,7 +12,8 @@ namespace NvxEpi.Services.Feedback
             if (device.HdmiOut == null)
                 return new IntFeedback(Key, () => 0);
 
-            var feedback = new IntFeedback(Key, () => device.HdmiOut.VideoAttributes.HorizontalResolutionFeedback.UShortValue);
+            IntFeedback feedback = new IntFeedback(Key,
+                () => device.HdmiOut.VideoAttributes.HorizontalResolutionFeedback.UShortValue);
             device.HdmiOut.VideoAttributes.AttributeChange += (sender, args) => feedback.FireUpdate();
 
             return feedback;

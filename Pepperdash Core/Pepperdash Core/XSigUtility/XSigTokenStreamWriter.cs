@@ -23,7 +23,9 @@ namespace PepperDash.Core.XSigUtility
         /// <exception cref="T:System.ArgumentNullException">Stream is null.</exception>
         /// <exception cref="T:System.ArgumentException">Stream cannot be written to.</exception>
         public XSigTokenStreamWriter(Stream stream)
-            : this(stream, false) { }
+            : this(stream, false)
+        {
+        }
 
         /// <summary>
         /// XSigToken stream writer constructor.
@@ -62,7 +64,7 @@ namespace PepperDash.Core.XSigUtility
             if (xSigSerialization == null)
                 throw new ArgumentNullException("xSigSerialization");
 
-            var tokens = xSigSerialization.Serialize();
+            IEnumerable<XSigToken> tokens = xSigSerialization.Serialize();
             WriteXSigData(tokens, offset);
         }
 
@@ -115,10 +117,10 @@ namespace PepperDash.Core.XSigUtility
 
             if (tokens != null)
             {
-                foreach (var token in tokens)
+                foreach (XSigToken token in tokens)
                 {
                     if (token == null) continue;
-                    var bytes = token.GetTokenWithOffset(offset).GetBytes();
+                    byte[] bytes = token.GetTokenWithOffset(offset).GetBytes();
                     _stream.Write(bytes, 0, bytes.Length);
                 }
             }

@@ -9,6 +9,7 @@ namespace PepperDash.Essentials.Core
     public class CrestronLocalSecretsProvider : ISecretProvider
     {
         public string Key { get; set; }
+
         //Added for reference
         public string Description { get; private set; }
 
@@ -16,13 +17,14 @@ namespace PepperDash.Essentials.Core
         public CrestronLocalSecretsProvider(string key)
         {
             Key = key;
-            Description = String.Format("Default secret provider serving Essentials Application {0}", InitialParametersClass.ApplicationNumber);
+            Description = string.Format("Default secret provider serving Essentials Application {0}",
+                InitialParametersClass.ApplicationNumber);
         }
 
         static CrestronLocalSecretsProvider()
         {
             //Added for future encrypted reference
-            var secureSupported = CrestronSecureStorage.Supported;
+            bool secureSupported = CrestronSecureStorage.Supported;
 
             CrestronDataStoreStatic.InitCrestronDataStore();
             if (secureSupported)
@@ -38,10 +40,10 @@ namespace PepperDash.Essentials.Core
         /// <param name="value">Secret Value</param>
         public bool SetSecret(string key, object value)
         {
-            var secret = value as string;
+            string secret = value as string;
             CrestronDataStore.CDS_ERROR returnCode;
 
-            if (String.IsNullOrEmpty(secret))
+            if (string.IsNullOrEmpty(secret))
             {
                 returnCode = CrestronDataStoreStatic.clearLocal(key);
                 if (returnCode == CrestronDataStore.CDS_ERROR.CDS_SUCCESS)
@@ -51,7 +53,7 @@ namespace PepperDash.Essentials.Core
                 }
             }
 
-            else  
+            else
             {
                 returnCode = CrestronDataStoreStatic.SetLocalStringValue(key, secret);
                 if (returnCode == CrestronDataStore.CDS_ERROR.CDS_SUCCESS)
@@ -61,8 +63,9 @@ namespace PepperDash.Essentials.Core
                 }
             }
 
-            Debug.Console(0, this, Debug.ErrorLogLevel.Notice, "Unable to set secret for {0}:{1} - {2}", Key, key, returnCode.ToString());
-            return false; 
+            Debug.Console(0, this, Debug.ErrorLogLevel.Notice, "Unable to set secret for {0}:{1} - {2}", Key, key,
+                returnCode.ToString());
+            return false;
         }
 
         /// <summary>
@@ -73,7 +76,7 @@ namespace PepperDash.Essentials.Core
         public ISecret GetSecret(string key)
         {
             string mySecret;
-            var getErrorCode = CrestronDataStoreStatic.GetLocalStringValue(key, out mySecret);
+            CrestronDataStore.CDS_ERROR getErrorCode = CrestronDataStoreStatic.GetLocalStringValue(key, out mySecret);
 
             switch (getErrorCode)
             {
@@ -95,8 +98,8 @@ namespace PepperDash.Essentials.Core
         public bool TestSecret(string key)
         {
             string mySecret;
-            return CrestronDataStoreStatic.GetLocalStringValue(key, out mySecret) == CrestronDataStore.CDS_ERROR.CDS_SUCCESS;
+            return CrestronDataStoreStatic.GetLocalStringValue(key, out mySecret) ==
+                   CrestronDataStore.CDS_ERROR.CDS_SUCCESS;
         }
     }
-
 }

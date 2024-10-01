@@ -22,7 +22,9 @@ namespace PepperDash.Core.XSigUtility
         /// <exception cref="T:System.ArgumentNullException">Stream is null.</exception>
         /// <exception cref="T:System.ArgumentException">Stream cannot be read from.</exception>
         public XSigTokenStreamReader(Stream stream)
-            : this(stream, false) { }
+            : this(stream, false)
+        {
+        }
 
         /// <summary>
         /// XSigToken stream reader constructor.
@@ -54,7 +56,7 @@ namespace PepperDash.Core.XSigUtility
             if (stream.Length < 2)
                 return false;
 
-            var buffer = new byte[2];
+            byte[] buffer = new byte[2];
             stream.Read(buffer, 0, 2);
             value = (ushort)((buffer[0] << 8) | buffer[1]);
             return true;
@@ -73,16 +75,16 @@ namespace PepperDash.Core.XSigUtility
 
             if ((prefix & 0xF880) == 0xC800) // Serial data
             {
-                var index = ((prefix & 0x0700) >> 1) | (prefix & 0x7F);
-                var n = 0;
+                int index = ((prefix & 0x0700) >> 1) | (prefix & 0x7F);
+                int n = 0;
                 const int maxSerialDataLength = 252;
-                var chars = new char[maxSerialDataLength];
+                char[] chars = new char[maxSerialDataLength];
                 int ch;
                 while ((ch = _stream.ReadByte()) != 0xFF)
                 {
                     if (ch == -1) // Reached end of stream without end of data marker
                         return null;
-                    
+
                     chars[n++] = (char)ch;
                 }
 
@@ -95,15 +97,15 @@ namespace PepperDash.Core.XSigUtility
                 if (!TryReadUInt16BE(_stream, out data))
                     return null;
 
-                var index = ((prefix & 0x0700) >> 1) | (prefix & 0x7F);
-                var value = ((prefix & 0x3000) << 2) | ((data & 0x7F00) >> 1) | (data & 0x7F);
+                int index = ((prefix & 0x0700) >> 1) | (prefix & 0x7F);
+                int value = ((prefix & 0x3000) << 2) | ((data & 0x7F00) >> 1) | (data & 0x7F);
                 return new XSigAnalogToken((ushort)(index + 1), (ushort)value);
             }
 
             if ((prefix & 0xC080) == 0x8000) // Digital data
             {
-                var index = ((prefix & 0x1F00) >> 1) | (prefix & 0x7F);
-                var value = (prefix & 0x2000) == 0;
+                int index = ((prefix & 0x1F00) >> 1) | (prefix & 0x7F);
+                bool value = (prefix & 0x2000) == 0;
                 return new XSigDigitalToken((ushort)(index + 1), value);
             }
 
@@ -116,7 +118,7 @@ namespace PepperDash.Core.XSigUtility
         /// <returns>XSigToken collection.</returns>
         public IEnumerable<XSigToken> ReadAllXSigTokens()
         {
-            var tokens = new List<XSigToken>();
+            List<XSigToken> tokens = new List<XSigToken>();
             XSigToken token;
             while ((token = ReadXSigToken()) != null)
                 tokens.Add(token);

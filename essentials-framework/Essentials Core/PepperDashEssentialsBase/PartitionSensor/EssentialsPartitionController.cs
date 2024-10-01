@@ -17,7 +17,8 @@ namespace PepperDash.Essentials.Core
 
         private bool partitionPresent;
 
-        public EssentialsPartitionController(string key, string name, IPartitionStateProvider sensor, bool defaultToManualMode, List<string> adjacentRoomKeys)
+        public EssentialsPartitionController(string key, string name, IPartitionStateProvider sensor,
+            bool defaultToManualMode, List<string> adjacentRoomKeys)
         {
             Key = key;
 

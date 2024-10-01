@@ -1,7 +1,4 @@
-﻿
-
-
-//using System;
+﻿//using System;
 //using System.Collections.Generic;
 //using System.Linq;
 //using System.Text;
@@ -140,7 +137,7 @@
 //            // Assign a source selection action to the appropriate button's UserObject - on release
 //            owner.GetBoolFeedbackSig(index, ButtonPressJoin).UserObject = new Action<bool>(b => 
 //                { if (!b) sourceSelectCallback(index); });
-			
+
 //            // hook up the video icon
 //            var videoDev = srcDevice as IAttachVideoStatus;
 //            if (videoDev != null)
@@ -165,3 +162,4 @@
 //        }
 //    }
 //}
+
