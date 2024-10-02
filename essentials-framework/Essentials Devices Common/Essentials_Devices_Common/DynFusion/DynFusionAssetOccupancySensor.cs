@@ -1,15 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Crestron.SimplSharp;
-using Crestron.SimplSharpPro.DeviceSupport;
+﻿using Crestron.SimplSharpPro.DeviceSupport;
 using Crestron.SimplSharpPro.Fusion;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using PepperDash.Essentials.Core;
-using PepperDash.Essentials.Core.Bridges;
-using PepperDash.Core;
 using PepperDash.Core;
 
 namespace DynFusion.Assets
@@ -68,7 +60,8 @@ namespace DynFusion.Assets
 
         public void LinkApi(BasicTriList trilist, uint joinStart)
         {
-            DynFusionAssetOccupancySensorJoinMap joinMap = new DynFusionAssetOccupancySensorJoinMap(_joinNumber + joinStart - 1);
+            DynFusionAssetOccupancySensorJoinMap joinMap =
+                new DynFusionAssetOccupancySensorJoinMap(_joinNumber + joinStart - 1);
 
             _fusionSymbol.FusionAssetStateChange += (s, a) =>
             {

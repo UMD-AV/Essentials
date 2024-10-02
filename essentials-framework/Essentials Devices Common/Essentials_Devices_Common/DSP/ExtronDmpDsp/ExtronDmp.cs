@@ -1,16 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.RegularExpressions;
 using Crestron.SimplSharp;
-using Crestron.SimplSharp.Reflection;
 using Crestron.SimplSharpPro.DeviceSupport;
-using Newtonsoft.Json;
-using PepperDash.Core;
 using PepperDash.Core;
 using PepperDash.Essentials.Core;
-using PepperDash.Essentials.Core.Config;
-using PepperDash.Essentials.Core.Devices;
 using PepperDash.Essentials.Core.Bridges;
 
 namespace ExtronDmp
@@ -260,7 +254,8 @@ namespace ExtronDmp
                     else
                     {
                         //This is for mute feedback
-                        foreach (KeyValuePair<int, ExtronDmpLevelControl> x in LevelControlPoints.Where(n => n.Value.MuteGroup == group))
+                        foreach (KeyValuePair<int, ExtronDmpLevelControl> x in LevelControlPoints.Where(n =>
+                                     n.Value.MuteGroup == group))
                         {
                             x.Value.ParseResponse(command, args.Text);
                         }

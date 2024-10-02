@@ -84,6 +84,7 @@
         </Reference>
         <Reference Include="System"/>
         <Reference Include="System.Core"/>
+        <Reference Include="system.data"/>
     </ItemGroup>
     <ItemGroup>
         <Compile Include="Bridges\BridgeFactory.cs"/>
@@ -114,10 +115,6 @@
             <Project>{9199CE8A-0C9F-4952-8672-3EED798B284F}</Project>
             <Name>PepperDash_Essentials_DM</Name>
         </ProjectReference>
-        <ProjectReference Include="..\NvxEpi\NvxEpi.csproj">
-            <Project>{C6706558-3482-422B-936D-0AB38A3D239D}</Project>
-            <Name>NvxEpi</Name>
-        </ProjectReference>
         <ProjectReference Include="..\Pepperdash Core\Pepperdash Core\PepperDash_Core.csproj">
             <Project>{87e29b4c-569b-4368-a4ed-984ac1440c96}</Project>
             <Name>PepperDash_Core</Name>
@@ -137,16 +134,6 @@
     <PropertyGroup>
         <PostBuildEvent>rem S# Pro preparation will execute after these operations</PostBuildEvent>
     </PropertyGroup>
-    <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
-        <PropertyGroup>
-            <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them. For more information, see http://go.microsoft.com/fwlink/?LinkID=322105.The missing file is {0}.</ErrorText>
-        </PropertyGroup>
-        <Error Condition="!Exists('..\packages\Crestron.SimplSharp.SDK.SandboxLibrary.2.19.16-beta1\build\Crestron.SimplSharp.SDK.SandboxLibrary.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Crestron.SimplSharp.SDK.SandboxLibrary.2.19.16-beta1\build\Crestron.SimplSharp.SDK.SandboxLibrary.props'))"/>
-        <Error Condition="!Exists('..\packages\Crestron.SimplSharp.SDK.SandboxLibrary.2.19.16-beta1\build\Crestron.SimplSharp.SDK.SandboxLibrary.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Crestron.SimplSharp.SDK.SandboxLibrary.2.19.16-beta1\build\Crestron.SimplSharp.SDK.SandboxLibrary.targets'))"/>
-        <Error Condition="!Exists('..\packages\Crestron.SimplSharp.SDK.Library.2.20.66\build\Crestron.SimplSharp.SDK.Library.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Crestron.SimplSharp.SDK.Library.2.20.66\build\Crestron.SimplSharp.SDK.Library.targets'))"/>
-        <Error Condition="!Exists('..\packages\Crestron.SimplSharp.SDK.ProgramLibrary.2.20.66\build\Crestron.SimplSharp.SDK.ProgramLibrary.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Crestron.SimplSharp.SDK.ProgramLibrary.2.20.66\build\Crestron.SimplSharp.SDK.ProgramLibrary.targets'))"/>
-        <Error Condition="!Exists('..\packages\Crestron.SimplSharp.SDK.Program.2.20.66\build\Crestron.SimplSharp.SDK.Program.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Crestron.SimplSharp.SDK.Program.2.20.66\build\Crestron.SimplSharp.SDK.Program.targets'))"/>
-    </Target>
     <Import Project="..\packages\Crestron.SimplSharp.SDK.SandboxLibrary.2.19.16-beta1\build\Crestron.SimplSharp.SDK.SandboxLibrary.targets" Condition="Exists('..\packages\Crestron.SimplSharp.SDK.SandboxLibrary.2.19.16-beta1\build\Crestron.SimplSharp.SDK.SandboxLibrary.targets')"/>
     <Import Project="..\packages\Crestron.SimplSharp.SDK.Library.2.20.66\build\Crestron.SimplSharp.SDK.Library.targets" Condition="Exists('..\packages\Crestron.SimplSharp.SDK.Library.2.20.66\build\Crestron.SimplSharp.SDK.Library.targets')"/>
     <Import Project="..\packages\Crestron.SimplSharp.SDK.ProgramLibrary.2.20.66\build\Crestron.SimplSharp.SDK.ProgramLibrary.targets" Condition="Exists('..\packages\Crestron.SimplSharp.SDK.ProgramLibrary.2.20.66\build\Crestron.SimplSharp.SDK.ProgramLibrary.targets')"/>

@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using Crestron.SimplSharp;
-using PepperDash.Core;
 using PepperDash.Core;
 using PepperDash.Essentials.Devices.Common.Codec;
 
@@ -238,7 +235,8 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec
 
                         foreach (ContactMethod m in c.ContactMethod)
                         {
-                            Codec.ContactMethod tempContactMethod = new PepperDash.Essentials.Devices.Common.Codec.ContactMethod();
+                            Codec.ContactMethod tempContactMethod =
+                                new PepperDash.Essentials.Devices.Common.Codec.ContactMethod();
 
                             eContactMethodCallType callType = eContactMethodCallType.Unknown;
                             if (!string.IsNullOrEmpty(m.CallType.Value))

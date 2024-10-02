@@ -9,7 +9,6 @@ using System.Text.RegularExpressions;
 using Newtonsoft.Json;
 using PepperDash.Essentials.Core.Config;
 using Crestron.SimplSharpPro.DeviceSupport;
-using PepperDash.Core;
 using Tesira_DSP_EPI.Bridge.JoinMaps;
 using PepperDash.Essentials.Core.Bridges;
 using Tesira_DSP_EPI.Interfaces;
@@ -276,7 +275,8 @@ namespace Tesira_DSP_EPI
         {
             Debug.Console(2, "Creating DSP Objects");
 
-            TesiraDspPropertiesConfig props = JsonConvert.DeserializeObject<TesiraDspPropertiesConfig>(_dc.Properties.ToString());
+            TesiraDspPropertiesConfig props =
+                JsonConvert.DeserializeObject<TesiraDspPropertiesConfig>(_dc.Properties.ToString());
 
             ResubsriptionString = !string.IsNullOrEmpty(props.ResubscribeString)
                 ? props.ResubscribeString
@@ -376,7 +376,8 @@ namespace Tesira_DSP_EPI
         private void CreateRoomCombiners(TesiraDspPropertiesConfig props)
         {
             if (props.RoomCombinerControlBlocks == null) return;
-            foreach (KeyValuePair<string, TesiraRoomCombinerBlockConfig> roomCombiner in props.RoomCombinerControlBlocks)
+            foreach (KeyValuePair<string, TesiraRoomCombinerBlockConfig> roomCombiner in
+                     props.RoomCombinerControlBlocks)
             {
                 string key = roomCombiner.Key;
                 TesiraRoomCombinerBlockConfig value = roomCombiner.Value;
@@ -502,7 +503,8 @@ namespace Tesira_DSP_EPI
             if (props.SourceSelectorControlBlocks == null) return;
             Debug.Console(2, this, "sourceSelectorControlBlocks is not null - There are {0} of them",
                 props.SourceSelectorControlBlocks.Count());
-            foreach (KeyValuePair<string, TesiraSourceSelectorControlBlockConfig> block in props.SourceSelectorControlBlocks)
+            foreach (KeyValuePair<string, TesiraSourceSelectorControlBlockConfig> block in props
+                         .SourceSelectorControlBlocks)
             {
                 string key = block.Key;
                 Debug.Console(2, this, "Source Selector ControlBlock Key - {0}", key);
@@ -1128,7 +1130,8 @@ namespace Tesira_DSP_EPI
             TesiraSwitcherJoinMapAdvanced switcherJoinMap = new TesiraSwitcherJoinMapAdvanced(joinStart);
             TesiraPresetJoinMapAdvanced presetJoinMap = new TesiraPresetJoinMapAdvanced(joinStart);
             TesiraMeterJoinMapAdvanced meterJoinMap = new TesiraMeterJoinMapAdvanced(joinStart);
-            TesiraCrosspointStateJoinMapAdvanced crosspointStateJoinMap = new TesiraCrosspointStateJoinMapAdvanced(joinStart);
+            TesiraCrosspointStateJoinMapAdvanced crosspointStateJoinMap =
+                new TesiraCrosspointStateJoinMapAdvanced(joinStart);
             TesiraRoomCombinerJoinMapAdvanced roomCombinerJoinMap = new TesiraRoomCombinerJoinMapAdvanced(joinStart);
 
             if (bridge != null)

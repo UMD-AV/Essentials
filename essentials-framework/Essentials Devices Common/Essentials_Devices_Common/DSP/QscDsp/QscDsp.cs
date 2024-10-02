@@ -1,17 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text.RegularExpressions;
 using Crestron.SimplSharp;
 using Crestron.SimplSharp.Reflection;
 using Crestron.SimplSharpPro.DeviceSupport;
 using Newtonsoft.Json;
 using PepperDash.Core;
-using PepperDash.Core;
 using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Bridges;
 using PepperDash.Essentials.Core.Config;
-using PepperDash.Essentials.Core.Devices;
 
 namespace QscQsysDspPlugin
 {
@@ -68,7 +65,8 @@ namespace QscQsysDspPlugin
             : base(key, name)
         {
             _Dc = dc;
-            QscDspPropertiesConfig props = JsonConvert.DeserializeObject<QscDspPropertiesConfig>(dc.Properties.ToString());
+            QscDspPropertiesConfig props =
+                JsonConvert.DeserializeObject<QscDspPropertiesConfig>(dc.Properties.ToString());
             Debug.Console(2, this, "Made it to device constructor");
 
             CommandQueue = new CrestronQueue(100);
@@ -139,7 +137,8 @@ namespace QscQsysDspPlugin
 
         public void CreateDspObjects()
         {
-            QscDspPropertiesConfig props = JsonConvert.DeserializeObject<QscDspPropertiesConfig>(_Dc.Properties.ToString());
+            QscDspPropertiesConfig props =
+                JsonConvert.DeserializeObject<QscDspPropertiesConfig>(_Dc.Properties.ToString());
 
             LevelControlPoints.Clear();
             PresetList.Clear();

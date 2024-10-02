@@ -1,13 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using Crestron.SimplSharp;
 using PepperDash.Core;
 using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Config;
-using System.Text.RegularExpressions;
-using PepperDash.Core;
 
 
 namespace PepperDash.Essentials.Devices.Common
@@ -243,8 +239,9 @@ namespace PepperDash.Essentials.Devices.Common
         {
             Debug.Console(1, "Factory Attempting to create new TVOneCorio Device");
             IBasicCommunication comm = CommFactory.CreateCommForDevice(dc);
-            TVOneCorioPropertiesConfig props = Newtonsoft.Json.JsonConvert.DeserializeObject<TVOneCorioPropertiesConfig>(
-                dc.Properties.ToString());
+            TVOneCorioPropertiesConfig props =
+                Newtonsoft.Json.JsonConvert.DeserializeObject<TVOneCorioPropertiesConfig>(
+                    dc.Properties.ToString());
             return new TVOneCorio(dc.Key, dc.Name, comm, props);
         }
     }

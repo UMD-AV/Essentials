@@ -1,19 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using Crestron.SimplSharp;
 using Crestron.SimplSharpPro.DeviceSupport;
 using PepperDash.Core;
 using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Bridges;
 using PepperDash.Essentials.Core.Config;
-using PepperDash.Essentials.Devices.Common.Codec;
-using System.Text.RegularExpressions;
-using Crestron.SimplSharp.Reflection;
 using Crestron.SimplSharp.Onvif;
-using Newtonsoft.Json;
-using PepperDash.Core;
 
 namespace PepperDash.Essentials.Devices.Common.Cameras
 {
@@ -276,8 +269,9 @@ namespace PepperDash.Essentials.Devices.Common.Cameras
         {
             Debug.Console(1, "Factory Attempting to create new CameraOnvif Device");
             IBasicCommunication comm = CommFactory.CreateCommForDevice(dc);
-            CameraOnvifPropertiesConfig props = Newtonsoft.Json.JsonConvert.DeserializeObject<Cameras.CameraOnvifPropertiesConfig>(
-                dc.Properties.ToString());
+            CameraOnvifPropertiesConfig props =
+                Newtonsoft.Json.JsonConvert.DeserializeObject<Cameras.CameraOnvifPropertiesConfig>(
+                    dc.Properties.ToString());
             return new Cameras.CameraOnvif(dc.Key, dc.Name, comm, props);
         }
     }

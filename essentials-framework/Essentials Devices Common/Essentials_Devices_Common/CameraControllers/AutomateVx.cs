@@ -13,7 +13,6 @@ using PepperDash.Essentials.Core.Config;
 using PepperDash.Essentials.Core.Bridges;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using PepperDash.Core;
 
 namespace PepperDash.Essentials.Devices.Common.ImageProcessors
 {
@@ -582,8 +581,9 @@ namespace PepperDash.Essentials.Devices.Common.ImageProcessors
         public override EssentialsDevice BuildDevice(DeviceConfig dc)
         {
             Debug.Console(1, "Factory attempting to create new AutomateVx Device");
-            AutomateVxPropertiesConfig props = Newtonsoft.Json.JsonConvert.DeserializeObject<AutomateVxPropertiesConfig>(
-                dc.Properties.ToString());
+            AutomateVxPropertiesConfig props =
+                Newtonsoft.Json.JsonConvert.DeserializeObject<AutomateVxPropertiesConfig>(
+                    dc.Properties.ToString());
             return new AutomateVx(dc.Key, dc.Name, props);
         }
     }

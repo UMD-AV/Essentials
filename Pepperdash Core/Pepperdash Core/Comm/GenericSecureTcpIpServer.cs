@@ -1,16 +1,4 @@
-﻿/*PepperDash Technology Corp.
-JAG
-Copyright:		2017
-------------------------------------
-***Notice of Ownership and Copyright***
-The material in which this notice appears is the property of PepperDash Technology Corporation,
-which claims copyright under the laws of the United States of America in the entire body of material
-and in all parts thereof, regardless of the use to which it is being put.  Any use, in whole or in part,
-of this material by another party without the express written permission of PepperDash Technology Corporation is prohibited.
-PepperDash Technology Corporation reserves all rights under applicable laws.
------------------------------------- */
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;

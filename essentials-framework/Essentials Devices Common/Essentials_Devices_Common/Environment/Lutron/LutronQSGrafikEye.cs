@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using Crestron.SimplSharp;
 using Crestron.SimplSharpPro.DeviceSupport;
 using PepperDash.Core;
 using PepperDash.Essentials.Core;
@@ -10,9 +8,6 @@ using PepperDash.Essentials.Core.Config;
 using PepperDash.Essentials.Core.Bridges;
 using PepperDash.Essentials.Core.Lighting;
 using LightingBase = PepperDash.Essentials.Core.Lighting.LightingBase;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using PepperDash.Core;
 
 namespace PepperDash.Essentials.Devices.Common.Environment.Lutron
 {

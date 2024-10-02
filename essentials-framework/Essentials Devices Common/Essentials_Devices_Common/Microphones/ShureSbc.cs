@@ -1,13 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text.RegularExpressions;
 using Newtonsoft.Json;
 using Crestron.SimplSharp;
-using Crestron.SimplSharpPro.CrestronThread;
-using Crestron.SimplSharpPro;
 using Crestron.SimplSharpPro.DeviceSupport;
-using PepperDash.Core;
 using PepperDash.Core;
 using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Bridges;
@@ -152,7 +148,8 @@ namespace PepperDash.Essentials.Devices.Common.ShureSbc
             }
 
             _comms = comms;
-            CommunicationGather commsGather = new CommunicationGather(_comms, CommsDelimiter) { IncludeDelimiter = true };
+            CommunicationGather commsGather = new CommunicationGather(_comms, CommsDelimiter)
+                { IncludeDelimiter = true };
             commsGather.LineReceived += Handle_LineRecieved;
             _commsMonitor = new GenericCommunicationMonitor(this, _comms, 30000, 180000, 300000, Poll);
             _commsQueue = new GenericQueue(key + "-queue");

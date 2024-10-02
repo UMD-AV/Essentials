@@ -1,21 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using Crestron.SimplSharp;
 using Crestron.SimplSharpPro.CrestronThread;
-using Crestron.SimplSharpPro;
 using Crestron.SimplSharpPro.DeviceSupport;
 using PepperDash.Core;
 using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Bridges;
 using PepperDash.Essentials.Core.Config;
-using PepperDash.Essentials.Core.Routing;
-using Feedback = PepperDash.Essentials.Core.Feedback;
-using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
-using Crestron.SimplSharpPro.DM.Endpoints.Receivers;
-using PepperDash.Core;
 
 namespace PepperDash.Essentials.Devices.Displays
 {

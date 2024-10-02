@@ -8,32 +8,30 @@ using PepperDash.Core;
 namespace PepperDash.Essentials
 {
     /// <summary>
-    /// Responsible for loading all of the device types for this library
+    /// Responsible for loading all the device types for this library
     /// </summary>
     public class DeviceFactory
     {
         public DeviceFactory()
         {
-            Assembly assy = Assembly.GetExecutingAssembly();
-            PluginLoader.SetEssentialsAssembly(assy.GetName().Name, assy);
+            Assembly assembly = Assembly.GetExecutingAssembly();
+            PluginLoader.SetEssentialsAssembly(assembly.GetName().Name, assembly);
 
-            IEnumerable<CType> types = assy.GetTypes().Where(ct =>
+            IEnumerable<CType> types = assembly.GetTypes().Where(ct =>
                 typeof(IDeviceFactory).IsAssignableFrom(ct) && !ct.IsInterface && !ct.IsAbstract);
 
-            if (types != null)
+            foreach (CType type in types)
             {
-                foreach (CType type in types)
+                try
                 {
-                    try
-                    {
-                        IDeviceFactory factory = (IDeviceFactory)Crestron.SimplSharp.Reflection.Activator.CreateInstance(type);
-                        factory.LoadTypeFactories();
-                    }
-                    catch (Exception e)
-                    {
-                        Debug.Console(0, Debug.ErrorLogLevel.Error, "Unable to load type: '{1}' DeviceFactory: {0}", e,
-                            type.Name);
-                    }
+                    IDeviceFactory factory =
+                        (IDeviceFactory)Crestron.SimplSharp.Reflection.Activator.CreateInstance(type);
+                    factory.LoadTypeFactories();
+                }
+                catch (Exception e)
+                {
+                    Debug.Console(0, Debug.ErrorLogLevel.Error, "Unable to load type: '{1}' DeviceFactory: {0}", e,
+                        type.Name);
                 }
             }
         }

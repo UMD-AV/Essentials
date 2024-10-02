@@ -14,14 +14,11 @@ using Crestron.SimplSharpPro.Fusion;
 using Crestron.SimplSharpPro;
 using Crestron.SimplSharp.CrestronXml;
 using Crestron.SimplSharp.CrestronXml.Serialization;
-using Crestron.SimplSharp.CrestronXmlLinq;
 using DynFusion.Assets;
 using Crestron.SimplSharp;
 using PepperDash_Essentials_Core.Extensions;
 using System.Text.RegularExpressions;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using PepperDash.Core;
 using PepperDash.Essentials.Devices.Common.ShureSbc;
 using PepperDash.Essentials.Devices.Common.ShureUlxd;
 
@@ -199,7 +196,8 @@ namespace DynFusion
                         {
                             if (customAttrConfig.CustomProperties.DigitalProperties != null)
                             {
-                                foreach (FusionCustomProperty att in customAttrConfig.CustomProperties.DigitalProperties)
+                                foreach (FusionCustomProperty att in
+                                         customAttrConfig.CustomProperties.DigitalProperties)
                                 {
                                     DigitalAttributesFromFusion.Add(att.JoinNumber,
                                         new DynFusionDigitalAttribute(att.ID, att.JoinNumber));
@@ -286,7 +284,8 @@ namespace DynFusion
                             continue;
                         }
 
-                        ShureSbcDevice sbcDevice = device as PepperDash.Essentials.Devices.Common.ShureSbc.ShureSbcDevice;
+                        ShureSbcDevice sbcDevice =
+                            device as PepperDash.Essentials.Devices.Common.ShureSbc.ShureSbcDevice;
                         if (sbcDevice != null)
                         {
                             for (uint i = 1; i <= sbcDevice.SbcSize; i++)
@@ -300,7 +299,8 @@ namespace DynFusion
                             continue;
                         }
 
-                        ShureUlxdDevice ulxdDevice = device as PepperDash.Essentials.Devices.Common.ShureUlxd.ShureUlxdDevice;
+                        ShureUlxdDevice ulxdDevice =
+                            device as PepperDash.Essentials.Devices.Common.ShureUlxd.ShureUlxdDevice;
                         if (ulxdDevice != null)
                         {
                             for (uint i = 1; i <= ulxdDevice.UlxdSize; i++)
@@ -927,7 +927,8 @@ namespace DynFusion
                             XmlReader roomInfo = new XmlReader(e.OuterXml);
 
                             RoomInformation = CrestronXMLSerialization.DeSerializeObject<RoomInformation>(roomInfo);
-                            KeyValuePair<uint, DynFusionSerialAttribute> attirbute = SerialAttributesFromFusion.SingleOrDefault(x => x.Value.Name == "Name");
+                            KeyValuePair<uint, DynFusionSerialAttribute> attirbute =
+                                SerialAttributesFromFusion.SingleOrDefault(x => x.Value.Name == "Name");
 
                             Debug.Console(1, "Got fusion room name: {0}", RoomInformation.Name);
 
@@ -956,7 +957,8 @@ namespace DynFusion
                                 }
                                 else if (type == "Integer")
                                 {
-                                    KeyValuePair<uint, DynFusionAnalogAttribute> attribute = AnalogAttributesFromFusion.SingleOrDefault(x => x.Value.Name == id);
+                                    KeyValuePair<uint, DynFusionAnalogAttribute> attribute =
+                                        AnalogAttributesFromFusion.SingleOrDefault(x => x.Value.Name == id);
 
                                     if (attribute.Value != null)
                                     {
@@ -965,7 +967,8 @@ namespace DynFusion
                                 }
                                 else if (type == "String" || type == "Text" || type == "URL")
                                 {
-                                    KeyValuePair<uint, DynFusionSerialAttribute> attribute = SerialAttributesFromFusion.SingleOrDefault(x => x.Value.Name == id);
+                                    KeyValuePair<uint, DynFusionSerialAttribute> attribute =
+                                        SerialAttributesFromFusion.SingleOrDefault(x => x.Value.Name == id);
 
                                     if (attribute.Value != null)
                                     {

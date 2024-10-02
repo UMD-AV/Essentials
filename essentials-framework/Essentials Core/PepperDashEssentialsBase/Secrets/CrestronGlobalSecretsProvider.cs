@@ -1,5 +1,4 @@
-﻿using System;
-using Crestron.SimplSharp;
+﻿using Crestron.SimplSharp;
 using Crestron.SimplSharp.CrestronDataStore;
 using PepperDash.Core;
 

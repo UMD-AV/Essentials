@@ -1,17 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Crestron.SimplSharp;
-using Crestron.SimplSharpPro;
+﻿using System.Collections.Generic;
 using Crestron.SimplSharpPro.DeviceSupport;
 using PepperDash.Core;
 using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Config;
 using PepperDash.Essentials.Core.Bridges;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using PepperDash.Core;
 using PepperDash.Essentials.Core.CrestronIO;
 using PepperDash.Essentials.Core.Bridges.JoinMaps;
 
@@ -69,7 +62,8 @@ namespace PepperDash.Essentials.Devices.Common.Environment
         {
             Debug.Console(1, "Factory Attempting to create new Generic Partition Input Device");
 
-            GenericPartitionInputConfig props = JsonConvert.DeserializeObject<GenericPartitionInputConfig>(dc.Properties.ToString());
+            GenericPartitionInputConfig props =
+                JsonConvert.DeserializeObject<GenericPartitionInputConfig>(dc.Properties.ToString());
 
             if (props == null) return null;
 

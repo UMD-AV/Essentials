@@ -3,14 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Crestron.SimplSharp.CrestronIO;
-using Crestron.SimplSharp.Reflection;
-using Crestron.SimplSharp.Ssh;
 using Crestron.SimplSharpPro.DeviceSupport;
 using Crestron.SimplSharp;
 using PepperDash.Core;
 using PepperDash.Core.XSigUtility;
 using PepperDash.Core.XSigUtility.Tokens;
-using PepperDash.Core.WebApi.Presets;
 using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Bridges;
 using PepperDash.Essentials.Core.Config;
@@ -1451,7 +1448,8 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec
             int digitalIndex = maxAnalogs * maxCalls;
             int arrayIndex = 0;
 
-            XSigToken[] tokenArray = new XSigToken[maxCalls * offset]; //set array size for number of calls * pieces of info
+            XSigToken[]
+                tokenArray = new XSigToken[maxCalls * offset]; //set array size for number of calls * pieces of info
 
             foreach (CodecActiveCallItem call in ActiveCalls)
             {
@@ -1858,7 +1856,8 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec
                 _selectedRecentCallItemIndex = (int)(u - 1);
                 trilist.SetUshort(joinMap.SelectRecentCallItem.JoinNumber, u);
 
-                CodecCallHistory.CallHistoryEntry _selectedRecentCallItem = codec.CallHistory.RecentCalls[_selectedRecentCallItemIndex];
+                CodecCallHistory.CallHistoryEntry _selectedRecentCallItem =
+                    codec.CallHistory.RecentCalls[_selectedRecentCallItemIndex];
 
                 if (_selectedRecentCallItem != null)
                 {

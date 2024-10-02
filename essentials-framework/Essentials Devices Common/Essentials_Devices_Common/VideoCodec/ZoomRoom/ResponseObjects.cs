@@ -1,15 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.ComponentModel;
-using System.Runtime.CompilerServices;
-using Crestron.SimplSharp;
 using PepperDash.Core;
 using PepperDash.Essentials.Devices.Common.Codec;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using PepperDash.Core;
 using PepperDash.Essentials.Devices.Common.VideoCodec.Interfaces;
 
 namespace PepperDash.Essentials.Devices.Common.VideoCodec.ZoomRoom
@@ -268,7 +263,8 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.ZoomRoom
 
                     foreach (Contact c in zoomContacts)
                     {
-                        InvitableDirectoryContact contact = new InvitableDirectoryContact { Name = c.ScreenName, ContactId = c.Jid };
+                        InvitableDirectoryContact contact = new InvitableDirectoryContact
+                            { Name = c.ScreenName, ContactId = c.Jid };
 
                         contact.ContactMethods.Add(new ContactMethod()
                         {

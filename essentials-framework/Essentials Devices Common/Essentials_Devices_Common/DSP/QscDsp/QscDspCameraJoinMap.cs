@@ -1,5 +1,3 @@
-using Crestron.SimplSharpPro.DeviceSupport;
-using PepperDash.Core;
 using PepperDash.Essentials.Core;
 
 namespace QscQsysDspPlugin

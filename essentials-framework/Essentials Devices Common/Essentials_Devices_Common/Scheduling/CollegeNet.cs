@@ -5,16 +5,13 @@ using System.Text;
 using Crestron.SimplSharp;
 using Crestron.SimplSharpPro.DeviceSupport;
 using System.Text.RegularExpressions;
-using Crestron.SimplSharp.Net.Http;
 using Crestron.SimplSharp.Net.Https;
-using Crestron.SimplSharpPro.CrestronThread;
 using PepperDash.Core;
 using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Config;
 using PepperDash.Essentials.Core.Bridges;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using PepperDash.Core;
 
 namespace PepperDash.Essentials.Devices.Common.Scheduling
 {
@@ -541,7 +538,8 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
                             try
                             {
                                 bool matchExists = false;
-                                List<Meeting> matchesStart = Meetings.FindAll(m => m.Start == reservation.reservation_start_dt);
+                                List<Meeting> matchesStart =
+                                    Meetings.FindAll(m => m.Start == reservation.reservation_start_dt);
                                 if (matchesStart.Count > 0)
                                 {
                                     matchExists = matchesStart.Exists(m => m.End == reservation.reservation_end_dt);
@@ -722,8 +720,9 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
         public override EssentialsDevice BuildDevice(DeviceConfig dc)
         {
             Debug.Console(1, "Factory attempting to create new CollegeNet Device");
-            CollegeNetPropertiesConfig props = Newtonsoft.Json.JsonConvert.DeserializeObject<CollegeNetPropertiesConfig>(
-                dc.Properties.ToString());
+            CollegeNetPropertiesConfig props =
+                Newtonsoft.Json.JsonConvert.DeserializeObject<CollegeNetPropertiesConfig>(
+                    dc.Properties.ToString());
             return new CollegeNet(dc.Key, dc.Name, props);
         }
     }

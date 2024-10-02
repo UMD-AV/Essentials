@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using Crestron.SimplSharp;
 using Crestron.SimplSharpPro.DeviceSupport;
 using Crestron.SimplSharpPro.CrestronThread;
@@ -12,8 +10,6 @@ using PepperDash.Essentials.Core.Bridges;
 using PepperDash.Essentials.Core.Lighting;
 using LightingBase = PepperDash.Essentials.Core.Lighting.LightingBase;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using PepperDash.Core;
 
 namespace PepperDash.Essentials.Devices.Common.Environment.Generic
 {

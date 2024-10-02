@@ -2,13 +2,11 @@
 using System.Text;
 using System.Linq;
 using System.Collections.Generic;
-using Crestron.SimplSharpPro.CrestronThread;
 using Crestron.SimplSharpPro.DeviceSupport;
 using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Bridges;
 using PepperDash.Core;
 using Crestron.SimplSharp;
-using PepperDash.Core;
 
 namespace VaddioBridgePlugin
 {

@@ -219,6 +219,162 @@
         <Compile Include="Microphones\ShureUlxd.cs"/>
         <Compile Include="Microphones\ShureSbc.cs"/>
         <Compile Include="Microphones\ShureMxa.cs"/>
+        <Compile Include="NVX\Abstractions\Dante\IDanteAudio.cs"/>
+        <Compile Include="NVX\Abstractions\Device\IDeviceId.cs"/>
+        <Compile Include="NVX\Abstractions\Device\IDeviceMode.cs"/>
+        <Compile Include="NVX\Abstractions\Device\IMulticastAddress.cs"/>
+        <Compile Include="NVX\Abstractions\Device\ITransmitterReceiver.cs"/>
+        <Compile Include="NVX\Abstractions\Hardware\INvx35XHardware.cs"/>
+        <Compile Include="NVX\Abstractions\Hardware\INvx36XHardware.cs"/>
+        <Compile Include="NVX\Abstractions\Hardware\INvxD3XHardware.cs"/>
+        <Compile Include="NVX\Abstractions\Hardware\INvxD8XHardware.cs"/>
+        <Compile Include="NVX\Abstractions\Hardware\INvxE3XHardware.cs"/>
+        <Compile Include="NVX\Abstractions\Hardware\INvxE76XHardware.cs"/>
+        <Compile Include="NVX\Abstractions\Hardware\INvxHardware.cs"/>
+        <Compile Include="NVX\Abstractions\HdmiInput\IHdmiInput.cs"/>
+        <Compile Include="NVX\Abstractions\HdmiOutput\IHdmiOutput.cs"/>
+        <Compile Include="NVX\Abstractions\HdmiOutput\IVideowallMode.cs"/>
+        <Compile Include="NVX\Abstractions\InputSwitching\ICurrentAudioInput.cs"/>
+        <Compile Include="NVX\Abstractions\InputSwitching\ICurrentDanteInput.cs"/>
+        <Compile Include="NVX\Abstractions\InputSwitching\ICurrentNaxInput.cs"/>
+        <Compile Include="NVX\Abstractions\InputSwitching\ICurrentVideoInput.cs"/>
+        <Compile Include="NVX\Abstractions\INvx35xDeviceWithHardware.cs"/>
+        <Compile Include="NVX\Abstractions\INvx36XDeviceWithHardware.cs"/>
+        <Compile Include="NVX\Abstractions\INvxD3XDeviceWithHardware.cs"/>
+        <Compile Include="NVX\Abstractions\INvxDevice.cs"/>
+        <Compile Include="NVX\Abstractions\INvxDeviceWithHardware.cs"/>
+        <Compile Include="NVX\Abstractions\INvxE3xDeviceWithHardware.cs"/>
+        <Compile Include="NVX\Abstractions\SecondaryAudio\ICurrentSecondaryAudioStream.cs"/>
+        <Compile Include="NVX\Abstractions\SecondaryAudio\ISecondaryAudioAddress.cs"/>
+        <Compile Include="NVX\Abstractions\SecondaryAudio\ISecondaryAudioStream.cs"/>
+        <Compile Include="NVX\Abstractions\SecondaryAudio\ISecondaryAudioStreamWithHardware.cs"/>
+        <Compile Include="NVX\Abstractions\Stream\ICurrentStream.cs"/>
+        <Compile Include="NVX\Abstractions\Stream\IStream.cs"/>
+        <Compile Include="NVX\Abstractions\Stream\IStreamWithHardware.cs"/>
+        <Compile Include="NVX\Abstractions\Usb\IUsbStream.cs"/>
+        <Compile Include="NVX\Application\Builder\INvxApplicationBuilder.cs"/>
+        <Compile Include="NVX\Application\Builder\NvxApplicationBuilder.cs"/>
+        <Compile Include="NVX\Application\Config\NvxApplicationConfig.cs"/>
+        <Compile Include="NVX\Application\Entities\NvxApplicationAudioReceiver.cs"/>
+        <Compile Include="NVX\Application\Entities\NvxApplicationAudioTransmitter.cs"/>
+        <Compile Include="NVX\Application\Entities\NvxApplicationVideoReceiver.cs"/>
+        <Compile Include="NVX\Application\Entities\NvxApplicationVideoTransmitter.cs"/>
+        <Compile Include="NVX\Application\Factories\NvxApplicationFactory.cs"/>
+        <Compile Include="NVX\Application\JoinMap\NvxApplicationJoinMap.cs"/>
+        <Compile Include="NVX\Application\NvxApplication.cs"/>
+        <Compile Include="NVX\Application\Services\AudioFollowsVideoHandler.cs"/>
+        <Compile Include="NVX\Devices\Nvx35x.cs"/>
+        <Compile Include="NVX\Devices\Nvx36X.cs"/>
+        <Compile Include="NVX\Devices\NvxBaseDevice.cs"/>
+        <Compile Include="NVX\Devices\NvxD3X.cs"/>
+        <Compile Include="NVX\Devices\NvxE3X.cs"/>
+        <Compile Include="NVX\Devices\NvxMockDevice.cs"/>
+        <Compile Include="NVX\Devices\NvxXioDirector.cs"/>
+        <Compile Include="NVX\Enums\DeviceInputEnum.cs"/>
+        <Compile Include="NVX\Enums\Enumeration.cs"/>
+        <Compile Include="NVX\Extensions\AudioInputExtensions.cs"/>
+        <Compile Include="NVX\Extensions\DanteInputExtensions.cs"/>
+        <Compile Include="NVX\Extensions\HdmiInputExtensions.cs"/>
+        <Compile Include="NVX\Extensions\HdmiOutputExtensions.cs"/>
+        <Compile Include="NVX\Extensions\NaxInputExtensions.cs"/>
+        <Compile Include="NVX\Extensions\SecondaryAudioExtensions.cs"/>
+        <Compile Include="NVX\Extensions\StreamExtensions.cs"/>
+        <Compile Include="NVX\Extensions\UsbStreamExtensions.cs"/>
+        <Compile Include="NVX\Extensions\VideoInputExtensions.cs"/>
+        <Compile Include="NVX\Factories\DeviceFactory.cs"/>
+        <Compile Include="NVX\Factories\Nvx35XDeviceFactory.cs"/>
+        <Compile Include="NVX\Factories\Nvx36XDeviceFactory.cs"/>
+        <Compile Include="NVX\Factories\NvxBaseDeviceFactory.cs"/>
+        <Compile Include="NVX\Factories\NvxD3XDeviceFactory.cs"/>
+        <Compile Include="NVX\Factories\NvxDirectorFactory.cs"/>
+        <Compile Include="NVX\Factories\NvxE3XDeviceFactory.cs"/>
+        <Compile Include="NVX\Factories\NvxMockDeviceFactory.cs"/>
+        <Compile Include="NVX\Features\Audio\Nvx36xAudio.cs"/>
+        <Compile Include="NVX\Features\AutomaticRouting\AutomaticInputRouter.cs"/>
+        <Compile Include="NVX\Features\Config\NvxDeviceProperties.cs"/>
+        <Compile Include="NVX\Features\Config\NvxDirectorConfig.cs"/>
+        <Compile Include="NVX\Features\Hdmi\Input\HdmiInput.cs"/>
+        <Compile Include="NVX\Features\Hdmi\Input\HdmiInputBase.cs"/>
+        <Compile Include="NVX\Features\Hdmi\Output\HdmiOutput.cs"/>
+        <Compile Include="NVX\Features\Hdmi\Output\VideowallModeOutput.cs"/>
+        <Compile Include="NVX\Features\InputSwitching\AudioInputSwitcher.cs"/>
+        <Compile Include="NVX\Features\InputSwitching\DanteInputSwitcher.cs"/>
+        <Compile Include="NVX\Features\InputSwitching\NaxInputSwitcher.cs"/>
+        <Compile Include="NVX\Features\InputSwitching\VideoInputSwitcher.cs"/>
+        <Compile Include="NVX\Features\Monitor\NvxCommunicationMonitor.cs"/>
+        <Compile Include="NVX\Features\Routing\NvxGlobalRouter.cs"/>
+        <Compile Include="NVX\Features\Routing\PrimaryStreamRouter.cs"/>
+        <Compile Include="NVX\Features\Routing\SecondaryAudioRouter.cs"/>
+        <Compile Include="NVX\Features\Routing\UsbRouter.cs"/>
+        <Compile Include="NVX\Features\Streams\Audio\CurrentSecondaryAudioStream.cs"/>
+        <Compile Include="NVX\Features\Streams\Audio\SecondaryAudioStream.cs"/>
+        <Compile Include="NVX\Features\Streams\Usb\UsbStream.cs"/>
+        <Compile Include="NVX\Features\Streams\Video\CurrentVideoStream.cs"/>
+        <Compile Include="NVX\Features\Streams\Video\VideoStream.cs"/>
+        <Compile Include="NVX\JoinMaps\NvxDeviceJoinMap.cs"/>
+        <Compile Include="NVX\Services\Bridge\NvxDeviceBridge.cs"/>
+        <Compile Include="NVX\Services\Feedback\AudioInputFeedback.cs"/>
+        <Compile Include="NVX\Services\Feedback\AudioInputValueFeedback.cs"/>
+        <Compile Include="NVX\Services\Feedback\AudioRxAddressFeedback.cs"/>
+        <Compile Include="NVX\Services\Feedback\AudioTxAddressFeedback.cs"/>
+        <Compile Include="NVX\Services\Feedback\DanteInputFeedback.cs"/>
+        <Compile Include="NVX\Services\Feedback\DanteInputValueFeedback.cs"/>
+        <Compile Include="NVX\Services\Feedback\DeviceHostnameFeedback.cs"/>
+        <Compile Include="NVX\Services\Feedback\DeviceIpFeedback.cs"/>
+        <Compile Include="NVX\Services\Feedback\DeviceModeFeedback.cs"/>
+        <Compile Include="NVX\Services\Feedback\DeviceModeNameFeedback.cs"/>
+        <Compile Include="NVX\Services\Feedback\DeviceNameFeedback.cs"/>
+        <Compile Include="NVX\Services\Feedback\DmHdcpCapabilityValueFeedback.cs"/>
+        <Compile Include="NVX\Services\Feedback\DmSyncDetectedFeedback.cs"/>
+        <Compile Include="NVX\Services\Feedback\Hdmi1HdcpCapabilityFeedback.cs"/>
+        <Compile Include="NVX\Services\Feedback\Hdmi1HdcpCapabilityValueFeedback.cs"/>
+        <Compile Include="NVX\Services\Feedback\Hdmi1SyncDetectedFeedback.cs"/>
+        <Compile Include="NVX\Services\Feedback\Hdmi2HdcpCapabilityFeedback.cs"/>
+        <Compile Include="NVX\Services\Feedback\Hdmi2HdcpCapabilityValueFeedback.cs"/>
+        <Compile Include="NVX\Services\Feedback\Hdmi2SyncDetectedFeedback.cs"/>
+        <Compile Include="NVX\Services\Feedback\HdmiInputFeedbacks.cs"/>
+        <Compile Include="NVX\Services\Feedback\HdmiOutputDisabledFeedback.cs"/>
+        <Compile Include="NVX\Services\Feedback\HdmiOutputResolutionFeedback.cs"/>
+        <Compile Include="NVX\Services\Feedback\HorizontalResolutionFeedback.cs"/>
+        <Compile Include="NVX\Services\Feedback\IsStreamingSecondaryAudioFeedback.cs"/>
+        <Compile Include="NVX\Services\Feedback\IsStreamingVideoFeedback.cs"/>
+        <Compile Include="NVX\Services\Feedback\MulticastAddressFeedback.cs"/>
+        <Compile Include="NVX\Services\Feedback\NaxInputFeedback.cs"/>
+        <Compile Include="NVX\Services\Feedback\NaxInputValueFeedback.cs"/>
+        <Compile Include="NVX\Services\Feedback\SecondaryAudioAddressFeedback.cs"/>
+        <Compile Include="NVX\Services\Feedback\SecondaryAudioNameFeedback.cs"/>
+        <Compile Include="NVX\Services\Feedback\SecondaryAudioStatusFeedback.cs"/>
+        <Compile Include="NVX\Services\Feedback\StreamNameFeedback.cs"/>
+        <Compile Include="NVX\Services\Feedback\StreamUrlFeedback.cs"/>
+        <Compile Include="NVX\Services\Feedback\UsbLocalAddressFeedback.cs"/>
+        <Compile Include="NVX\Services\Feedback\UsbModeFeedback.cs"/>
+        <Compile Include="NVX\Services\Feedback\UsbRemoteAddressFeedback.cs"/>
+        <Compile Include="NVX\Services\Feedback\UsbRouteFeedback.cs"/>
+        <Compile Include="NVX\Services\Feedback\UsbStatusFeedback.cs"/>
+        <Compile Include="NVX\Services\Feedback\VideoAspectRatioModeFeedback.cs"/>
+        <Compile Include="NVX\Services\Feedback\VideoInputFeedback.cs"/>
+        <Compile Include="NVX\Services\Feedback\VideoInputValueFeedback.cs"/>
+        <Compile Include="NVX\Services\Feedback\VideoStreamStatusFeedback.cs"/>
+        <Compile Include="NVX\Services\Feedback\VideowallModeFeedback.cs"/>
+        <Compile Include="NVX\Services\InputPorts\AnalogAudioInput.cs"/>
+        <Compile Include="NVX\Services\InputPorts\AutomaticInput.cs"/>
+        <Compile Include="NVX\Services\InputPorts\HdmiInput1Port.cs"/>
+        <Compile Include="NVX\Services\InputPorts\HdmiInput2Port.cs"/>
+        <Compile Include="NVX\Services\InputPorts\NoSwitchInput.cs"/>
+        <Compile Include="NVX\Services\InputPorts\PrimaryAudioInput.cs"/>
+        <Compile Include="NVX\Services\InputPorts\SecondaryAudioInput.cs"/>
+        <Compile Include="NVX\Services\InputPorts\StreamInput.cs"/>
+        <Compile Include="NVX\Services\InputSwitching\IHandleInputSwitch.cs"/>
+        <Compile Include="NVX\Services\InputSwitching\SwitcherForAnalogAudioOutput.cs"/>
+        <Compile Include="NVX\Services\InputSwitching\SwitcherForHdmiOutput.cs"/>
+        <Compile Include="NVX\Services\InputSwitching\SwitcherForSecondaryAudioOutput.cs"/>
+        <Compile Include="NVX\Services\InputSwitching\SwitcherForStreamOutput.cs"/>
+        <Compile Include="NVX\Services\Messages\BuildNvxDeviceMessage.cs"/>
+        <Compile Include="NVX\Services\TieLines\TieLineConnector.cs"/>
+        <Compile Include="NVX\Services\Utilities\DeviceConsole.cs"/>
+        <Compile Include="NVX\Services\Utilities\DeviceDebug.cs"/>
+        <Compile Include="NVX\Services\Utilities\DeviceDefaults.cs"/>
+        <Compile Include="NVX\Services\Utilities\EnumExtensions.cs"/>
         <Compile Include="Recorders\EpiphanPearl\EpiphanPearlClient.cs"/>
         <Compile Include="Recorders\EpiphanPearl\EpiphanPearlController.cs"/>
         <Compile Include="Recorders\EpiphanPearl\EpiphanPearlControllerConfiguration.cs"/>
@@ -264,7 +420,7 @@
         <Compile Include="DynFusion\DynFusionDevice.cs"/>
         <Compile Include="DynFusion\DynFusionDeviceUsage.cs"/>
         <Compile Include="DynFusion\DynFusionJoinMap.cs"/>
-        <Compile Include="DynFusion\DynFusionPluginFactoryTemplate.cs"/>
+        <Compile Include="DynFusion\DynFusionFactoryTemplate.cs"/>
         <Compile Include="DynFusion\FeedbackExtensions.cs"/>
         <Compile Include="DynFusion\Scheduling.cs"/>
         <Compile Include="DynFusion\SchedulingConfig.cs"/>
@@ -343,10 +499,6 @@
         <None Include="Properties\ControlSystem.cfg"/>
     </ItemGroup>
     <ItemGroup>
-        <ProjectReference Include="..\..\..\NvxEpi\NvxEpi.csproj">
-            <Project>{C6706558-3482-422B-936D-0AB38A3D239D}</Project>
-            <Name>NvxEpi</Name>
-        </ProjectReference>
         <ProjectReference Include="..\..\..\Pepperdash Core\Pepperdash Core\PepperDash_Core.csproj">
             <Project>{87e29b4c-569b-4368-a4ed-984ac1440c96}</Project>
             <Name>PepperDash_Core</Name>
@@ -361,6 +513,9 @@
             <Name>PepperDash_Essentials_DM</Name>
         </ProjectReference>
     </ItemGroup>
+    <ItemGroup>
+        <Folder Include="NVX\"/>
+    </ItemGroup>
     <Import Project="$(MSBuildBinPath)\Microsoft.CompactFramework.CSharp.targets"/>
     <ProjectExtensions>
         <VisualStudio>
@@ -369,15 +524,6 @@
     <PropertyGroup>
         <PostBuildEvent>rem S# Pro preparation will execute after these operations</PostBuildEvent>
     </PropertyGroup>
-    <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
-        <PropertyGroup>
-            <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them. For more information, see http://go.microsoft.com/fwlink/?LinkID=322105.The missing file is {0}.</ErrorText>
-        </PropertyGroup>
-        <Error Condition="!Exists('..\..\..\packages\Crestron.SimplSharp.SDK.SandboxLibrary.2.19.16-beta1\build\Crestron.SimplSharp.SDK.SandboxLibrary.props')" Text="$([System.String]::Format('$(ErrorText)', '..\..\..\packages\Crestron.SimplSharp.SDK.SandboxLibrary.2.19.16-beta1\build\Crestron.SimplSharp.SDK.SandboxLibrary.props'))"/>
-        <Error Condition="!Exists('..\..\..\packages\Crestron.SimplSharp.SDK.SandboxLibrary.2.19.16-beta1\build\Crestron.SimplSharp.SDK.SandboxLibrary.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\..\packages\Crestron.SimplSharp.SDK.SandboxLibrary.2.19.16-beta1\build\Crestron.SimplSharp.SDK.SandboxLibrary.targets'))"/>
-        <Error Condition="!Exists('..\..\..\packages\Crestron.SimplSharp.SDK.Library.2.20.66\build\Crestron.SimplSharp.SDK.Library.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\..\packages\Crestron.SimplSharp.SDK.Library.2.20.66\build\Crestron.SimplSharp.SDK.Library.targets'))"/>
-        <Error Condition="!Exists('..\..\..\packages\Crestron.SimplSharp.SDK.ProgramLibrary.2.20.66\build\Crestron.SimplSharp.SDK.ProgramLibrary.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\..\packages\Crestron.SimplSharp.SDK.ProgramLibrary.2.20.66\build\Crestron.SimplSharp.SDK.ProgramLibrary.targets'))"/>
-    </Target>
     <Import Project="..\..\..\packages\Crestron.SimplSharp.SDK.SandboxLibrary.2.19.16-beta1\build\Crestron.SimplSharp.SDK.SandboxLibrary.targets" Condition="Exists('..\..\..\packages\Crestron.SimplSharp.SDK.SandboxLibrary.2.19.16-beta1\build\Crestron.SimplSharp.SDK.SandboxLibrary.targets')"/>
     <Import Project="..\..\..\packages\Crestron.SimplSharp.SDK.Library.2.20.66\build\Crestron.SimplSharp.SDK.Library.targets" Condition="Exists('..\..\..\packages\Crestron.SimplSharp.SDK.Library.2.20.66\build\Crestron.SimplSharp.SDK.Library.targets')"/>
     <Import Project="..\..\..\packages\Crestron.SimplSharp.SDK.ProgramLibrary.2.20.66\build\Crestron.SimplSharp.SDK.ProgramLibrary.targets" Condition="Exists('..\..\..\packages\Crestron.SimplSharp.SDK.ProgramLibrary.2.20.66\build\Crestron.SimplSharp.SDK.ProgramLibrary.targets')"/>

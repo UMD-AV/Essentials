@@ -1,12 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Crestron.SimplSharp;
 using PepperDash.Core;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using PepperDash.Core;
 
 
 namespace PepperDash.Essentials.Devices.Common.VideoCodec.Cisco

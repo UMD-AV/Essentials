@@ -8,7 +8,6 @@ using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Bridges;
 using PepperDash.Essentials.Devices.Common.Codec;
 using System.Text.RegularExpressions;
-using PepperDash.Core;
 using Tesira_DSP_EPI.Bridge.JoinMaps;
 using Feedback = PepperDash.Essentials.Core.Feedback;
 

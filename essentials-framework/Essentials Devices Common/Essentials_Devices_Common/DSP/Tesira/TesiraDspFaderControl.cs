@@ -8,7 +8,6 @@ using Crestron.SimplSharpPro.DeviceSupport;
 using PepperDash.Essentials.Core.Bridges;
 using Tesira_DSP_EPI.Bridge.JoinMaps;
 using System.Collections.Generic;
-using PepperDash.Core;
 using Tesira_DSP_EPI.Extensions;
 using Tesira_DSP_EPI.Interfaces;
 using Feedback = PepperDash.Essentials.Core.Feedback;

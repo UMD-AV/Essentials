@@ -9,7 +9,6 @@ using Crestron.SimplSharpPro.DeviceSupport;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using PepperDash.Core;
-using PepperDash.Core;
 using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Bridges;
 using PepperDash.Essentials.Core.Config;
@@ -18,7 +17,6 @@ using PepperDash.Essentials.Core.Routing;
 using PepperDash.Essentials.Core.Queues;
 using PepperDash.Essentials.Devices.Common.Cameras;
 using PepperDash.Essentials.Devices.Common.Codec;
-using PepperDash.Essentials.Devices.Common.VideoCodec.Cisco;
 using PepperDash.Essentials.Devices.Common.VideoCodec.Interfaces;
 
 namespace PepperDash.Essentials.Devices.Common.VideoCodec.ZoomRoom
@@ -394,7 +392,8 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.ZoomRoom
                 return;
             }
 
-            CameraBase camera = Cameras.FirstOrDefault(c => c.Key.IndexOf(key, StringComparison.OrdinalIgnoreCase) > -1);
+            CameraBase camera =
+                Cameras.FirstOrDefault(c => c.Key.IndexOf(key, StringComparison.OrdinalIgnoreCase) > -1);
             if (camera != null)
             {
                 Debug.Console(1, this, "Selected Camera with key: '{0}'", camera.Key);
@@ -1307,7 +1306,8 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.ZoomRoom
 
                                                     if (index > -1)
                                                     {
-                                                        zCommand.ListParticipant existingParticipant = Status.Call.Participants[index];
+                                                        zCommand.ListParticipant existingParticipant =
+                                                            Status.Call.Participants[index];
                                                         switch (participant.Event)
                                                         {
                                                             case "ZRCUserChangedEventLeftMeeting":
@@ -1358,7 +1358,8 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.ZoomRoom
 
                                                     if (index > -1)
                                                     {
-                                                        zCommand.ListParticipant existingParticipant = Status.Call.Participants[index];
+                                                        zCommand.ListParticipant existingParticipant =
+                                                            Status.Call.Participants[index];
                                                         Debug.Console(1, this,
                                                             "[DeserializeResponse] zCommands.listparticipantresult - participant.event: {0} ...updating matching UserId participant with UserId: {1} UserName: {2}",
                                                             participant.Event, participant.UserId,
@@ -1487,8 +1488,9 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.ZoomRoom
                                     _syncState.LastQueryResponseReceived();
                                 }
 
-                                List<zCommand.BookingsListResult> codecBookings = JsonConvert.DeserializeObject<List<zCommand.BookingsListResult>>(
-                                    responseObj.ToString());
+                                List<zCommand.BookingsListResult> codecBookings =
+                                    JsonConvert.DeserializeObject<List<zCommand.BookingsListResult>>(
+                                        responseObj.ToString());
 
                                 if (codecBookings != null && codecBookings.Count > 0)
                                 {
@@ -1581,7 +1583,8 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.ZoomRoom
                                 {
                                     if (ActiveCalls.Count > 0)
                                     {
-                                        CodecActiveCallItem activeCall = ActiveCalls.FirstOrDefault(c => c.IsActiveCall);
+                                        CodecActiveCallItem activeCall =
+                                            ActiveCalls.FirstOrDefault(c => c.IsActiveCall);
 
                                         if (activeCall != null)
                                         {
@@ -1636,7 +1639,8 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.ZoomRoom
 
                                     if (ActiveCalls.Count > 0)
                                     {
-                                        CodecActiveCallItem activeCall = ActiveCalls.FirstOrDefault(c => c.IsActiveCall);
+                                        CodecActiveCallItem activeCall =
+                                            ActiveCalls.FirstOrDefault(c => c.IsActiveCall);
 
                                         if (activeCall != null)
                                         {
@@ -1728,7 +1732,8 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.ZoomRoom
                             }
                             case "pinstatusofscreennotification":
                             {
-                                zEvent.PinStatusOfScreenNotification status = responseObj.ToObject<zEvent.PinStatusOfScreenNotification>();
+                                zEvent.PinStatusOfScreenNotification status =
+                                    responseObj.ToObject<zEvent.PinStatusOfScreenNotification>();
 
                                 Debug.Console(1, this, "Pin Status notification for UserId: {0}, ScreenIndex: {1}",
                                     status.PinnedUserId,
@@ -2101,7 +2106,8 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.ZoomRoom
                 }
                 else
                 {
-                    CodecActiveCallItem existingCall = ActiveCalls.FirstOrDefault(c => !c.Status.Equals(eCodecCallStatus.Ringing));
+                    CodecActiveCallItem existingCall =
+                        ActiveCalls.FirstOrDefault(c => !c.Status.Equals(eCodecCallStatus.Ringing));
 
                     switch (callStatus)
                     {
@@ -2575,7 +2581,8 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.ZoomRoom
                 {
                     try
                     {
-                        zConfiguration.eLayoutStyle style = (zConfiguration.eLayoutStyle)Enum.Parse(typeof(zConfiguration.eLayoutStyle), s,
+                        zConfiguration.eLayoutStyle style = (zConfiguration.eLayoutStyle)Enum.Parse(
+                            typeof(zConfiguration.eLayoutStyle), s,
                             true);
                         SetLayout(style);
                     }
@@ -2608,8 +2615,10 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.ZoomRoom
                 {
                     try
                     {
-                        zConfiguration.eLayoutSize size = (zConfiguration.eLayoutSize)Enum.Parse(typeof(zConfiguration.eLayoutSize), s, true);
-                        CodecCommandWithLabel cmd = SelfviewPipSizes.FirstOrDefault(c => c.Command.Equals(size.ToString()));
+                        zConfiguration.eLayoutSize size =
+                            (zConfiguration.eLayoutSize)Enum.Parse(typeof(zConfiguration.eLayoutSize), s, true);
+                        CodecCommandWithLabel cmd =
+                            SelfviewPipSizes.FirstOrDefault(c => c.Command.Equals(size.ToString()));
                         SelfviewPipSizeSet(cmd);
                     }
                     catch (Exception e)

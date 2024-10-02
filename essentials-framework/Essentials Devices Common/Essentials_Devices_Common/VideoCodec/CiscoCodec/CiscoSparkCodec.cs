@@ -4,11 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using Crestron.SimplSharp;
-using Crestron.SimplSharpPro.CrestronThread;
 using Crestron.SimplSharpPro.DeviceSupport;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using PepperDash.Core;
 using PepperDash.Core;
 using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Bridges;
@@ -17,7 +15,6 @@ using PepperDash.Essentials.Core.DeviceTypeInterfaces;
 using PepperDash.Essentials.Core.Routing;
 using PepperDash.Essentials.Devices.Common.Cameras;
 using PepperDash.Essentials.Devices.Common.Codec;
-using PepperDash.Essentials.Devices.Common.VideoCodec;
 using PepperDash.Essentials.Core.Queues;
 
 namespace PepperDash.Essentials.Devices.Common.VideoCodec.Cisco
@@ -1090,7 +1087,8 @@ ConnectorID: {2}"
                             CiscoCodecStatus.RoomPreset preset = camPreset as CiscoCodecStatus.RoomPreset;
                             if (preset == null) continue;
                             // First fine the existing preset that matches the id
-                            CiscoCodecStatus.RoomPreset existingPreset = existingRoomPresets.FirstOrDefault(p => p.id.Equals(preset.id));
+                            CiscoCodecStatus.RoomPreset existingPreset =
+                                existingRoomPresets.FirstOrDefault(p => p.id.Equals(preset.id));
                             if (existingPreset != null)
                             {
                                 Debug.Console(1, this, "Existing Room Preset with ID: {0} found. Updating.",
@@ -2301,7 +2299,8 @@ ConnectorID: {2}"
 
         public void SelectCamera(string key)
         {
-            CameraBase camera = Cameras.FirstOrDefault(c => c.Key.IndexOf(key, StringComparison.OrdinalIgnoreCase) > -1);
+            CameraBase camera =
+                Cameras.FirstOrDefault(c => c.Key.IndexOf(key, StringComparison.OrdinalIgnoreCase) > -1);
             if (camera != null)
             {
                 Debug.Console(2, this, "Selected Camera with key: '{0}'", camera.Key);

@@ -1,13 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text.RegularExpressions;
 using Newtonsoft.Json;
 using Crestron.SimplSharp;
 using Crestron.SimplSharpPro.CrestronThread;
-using Crestron.SimplSharpPro;
 using Crestron.SimplSharpPro.DeviceSupport;
-using PepperDash.Core;
 using PepperDash.Core;
 using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Bridges;
@@ -618,7 +615,8 @@ namespace PepperDash.Essentials.Devices.Common.ShureMxa
             LedUnmutedColorNameFeedback = new StringFeedback(() => LedUnmutedColorName);
 
             _comms = comms;
-            CommunicationGather commsGather = new CommunicationGather(_comms, CommsDelimiter) { IncludeDelimiter = true };
+            CommunicationGather commsGather = new CommunicationGather(_comms, CommsDelimiter)
+                { IncludeDelimiter = true };
             commsGather.LineReceived += Handle_LineRecieved;
             _commsMonitor = new GenericCommunicationMonitor(this, _comms, 30000, 180000, 300000, Poll);
             _commsQueue = new GenericQueue(key + "-queue");
@@ -650,7 +648,8 @@ namespace PepperDash.Essentials.Devices.Common.ShureMxa
         {
             if (_config.DspObjectKey != null)
             {
-                IBasicVolumeWithFeedback dspObject = DeviceManager.GetDeviceForKey(_config.DspObjectKey) as IBasicVolumeWithFeedback;
+                IBasicVolumeWithFeedback dspObject =
+                    DeviceManager.GetDeviceForKey(_config.DspObjectKey) as IBasicVolumeWithFeedback;
                 if (dspObject != null)
                 {
                     Debug.Console(1, this, "Linking {0} to dsp object", this.Name, _config.DspObjectKey);

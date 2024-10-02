@@ -1,12 +1,9 @@
 ﻿using System;
 using Crestron.SimplSharp.Net.Http;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using PepperDash.Core;
 using PepperDash.Essentials.EpiphanPearl.Interfaces;
 using PepperDash.Essentials.EpiphanPearl.Utilities;
-using System.Text;
-using PepperDash.Core;
 
 namespace PepperDash.Essentials.EpiphanPearl
 {

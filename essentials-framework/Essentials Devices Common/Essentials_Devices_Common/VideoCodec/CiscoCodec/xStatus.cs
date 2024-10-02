@@ -1,14 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Crestron.SimplSharp;
-using Crestron.SimplSharp.CrestronXml.Serialization;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using PepperDash.Core;
-using PepperDash.Core;
-using PepperDash.Essentials.Devices.Common.VideoCodec.CiscoCodec;
 using PepperDash.Essentials.Core.Presets;
 
 namespace PepperDash.Essentials.Devices.Common.VideoCodec.Cisco
@@ -2161,7 +2153,8 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.Cisco
             {
                 try
                 {
-                    CodecRoomPreset preset = new CodecRoomPreset(ushort.Parse(id), Description.Value, Defined.BoolValue, true);
+                    CodecRoomPreset preset =
+                        new CodecRoomPreset(ushort.Parse(id), Description.Value, Defined.BoolValue, true);
 
                     Debug.Console(2, "Preset ID {0} Converted from Cisco Codec Preset to Essentials Preset");
 

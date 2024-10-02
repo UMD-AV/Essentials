@@ -1,5 +1,4 @@
-﻿using System;
-using Crestron.SimplSharpProInternal;
+﻿using Crestron.SimplSharpProInternal;
 
 namespace PepperDash.Essentials.Core.CrestronIO.Cards
 {

@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Crestron.SimplSharp;
-
-namespace PepperDash.Essentials.Devices.Common.VideoCodec.Cisco
+﻿namespace PepperDash.Essentials.Devices.Common.VideoCodec.Cisco
 {
     /// <summary>
     /// This class exists to capture serialized data sent back by a Cisco codec in JSON output mode

@@ -3,10 +3,8 @@ using System.Collections.Generic;
 using PepperDash.Core;
 using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Bridges;
-using Newtonsoft.Json;
 using PepperDash.Essentials.Core.Config;
 using Crestron.SimplSharpPro.DeviceSupport;
-using PepperDash.Core;
 
 namespace PepperDash.Essentials.Devices.Common.Oppo
 {
@@ -175,7 +173,8 @@ namespace PepperDash.Essentials.Devices.Common.Oppo
                     bridge.AddJoinMap(Key, joinMap);
                 }
 
-                Dictionary<string, JoinData> joinMapSerialized = JoinMapHelper.TryGetJoinMapAdvancedForDevice(joinMapKey);
+                Dictionary<string, JoinData> joinMapSerialized =
+                    JoinMapHelper.TryGetJoinMapAdvancedForDevice(joinMapKey);
                 if (joinMapSerialized != null)
                 {
                     joinMap.SetCustomJoinData(joinMapSerialized);

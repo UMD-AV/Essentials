@@ -1,13 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using Crestron.SimplSharp;
 using PepperDash.Core;
 using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Config;
-using System.Text.RegularExpressions;
-using PepperDash.Core;
 
 
 namespace PepperDash.Essentials.Devices.Common
@@ -244,8 +240,9 @@ namespace PepperDash.Essentials.Devices.Common
         {
             Debug.Console(1, "Factory Attempting to create new AnalogWayLiveCore Device");
             IBasicCommunication comm = CommFactory.CreateCommForDevice(dc);
-            AnalogWayLiveCorePropertiesConfig props = Newtonsoft.Json.JsonConvert.DeserializeObject<AnalogWayLiveCorePropertiesConfig>(
-                dc.Properties.ToString());
+            AnalogWayLiveCorePropertiesConfig props =
+                Newtonsoft.Json.JsonConvert.DeserializeObject<AnalogWayLiveCorePropertiesConfig>(
+                    dc.Properties.ToString());
             return new AnalogWayLiveCore(dc.Key, dc.Name, comm, props);
         }
     }

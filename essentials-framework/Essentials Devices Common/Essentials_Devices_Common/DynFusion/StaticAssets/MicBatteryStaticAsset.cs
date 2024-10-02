@@ -1,16 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Crestron.SimplSharp;
-using Crestron.SimplSharpPro;
-using Crestron.SimplSharpPro.DeviceSupport;
+﻿using Crestron.SimplSharpPro;
 using Crestron.SimplSharpPro.Fusion;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using PepperDash.Essentials.Core;
-using PepperDash.Essentials.Core.Bridges;
-using PepperDash.Core;
 using PepperDash.Core;
 using PepperDash.Essentials.Devices.Common.ShureSbc;
 

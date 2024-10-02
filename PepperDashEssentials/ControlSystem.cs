@@ -14,7 +14,6 @@ using PepperDash.Essentials.DM;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Text;
-using System.Net.Sockets;
 using DynFusion;
 using PepperDash.Essentials.Core.Touchpanels;
 using PepperDash.Essentials.DM.Config;
@@ -23,7 +22,6 @@ namespace PepperDash.Essentials
 {
     public class ControlSystem : CrestronControlSystem
     {
-        private CTimer _startTimer;
         private CEvent _initializeEvent;
         private const long StartupTime = 500;
 
@@ -48,7 +46,7 @@ namespace PepperDash.Essentials
             if (preventInitializationComplete)
             {
                 Debug.Console(1, "******************* InitializeSystem() Entering **********************");
-                _startTimer = new CTimer(StartSystem, true, StartupTime);
+                CTimer cTimer = new CTimer(StartSystem, true, StartupTime);
                 _initializeEvent = new CEvent(true, false);
                 DeviceManager.AllDevicesRegistered += (o, a) => { _initializeEvent.Set(); };
                 _initializeEvent.Wait(30000);
@@ -57,7 +55,7 @@ namespace PepperDash.Essentials
             }
             else
             {
-                _startTimer = new CTimer(StartSystem, false, StartupTime);
+                CTimer cTimer = new CTimer(StartSystem, false, StartupTime);
             }
         }
 
@@ -135,7 +133,7 @@ namespace PepperDash.Essentials
 
                 char dirSeparator = Global.DirectorySeparator;
 
-                string directoryPrefix = Crestron.SimplSharp.CrestronIO.Directory.GetApplicationRootDirectory();
+                string directoryPrefix = Directory.GetApplicationRootDirectory();
 
                 object[] fullVersion = Assembly.GetExecutingAssembly()
                     .GetCustomAttributes(typeof(AssemblyInformationalVersionAttribute), false);

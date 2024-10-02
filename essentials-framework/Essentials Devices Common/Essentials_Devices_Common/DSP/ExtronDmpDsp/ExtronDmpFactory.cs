@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using PepperDash.Core;
-using PepperDash.Core;
 using PepperDash.Essentials.Core;
 
 namespace ExtronDmp

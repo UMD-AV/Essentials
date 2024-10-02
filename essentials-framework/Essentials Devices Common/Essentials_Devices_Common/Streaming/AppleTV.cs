@@ -1,13 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using Crestron.SimplSharp;
 using Crestron.SimplSharp.Reflection;
 using Crestron.SimplSharpPro;
 using Crestron.SimplSharpPro.DeviceSupport;
 using Newtonsoft.Json;
-using PepperDash.Core;
 using PepperDash.Core;
 using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Config;
@@ -45,7 +41,8 @@ namespace PepperDash.Essentials.Devices.Common
 
         public void PrintExpectedIrCommands()
         {
-            FieldInfo[] cmds = typeof(AppleTvIrCommands).GetCType().GetFields(BindingFlags.Public | BindingFlags.Static);
+            FieldInfo[] cmds = typeof(AppleTvIrCommands).GetCType()
+                .GetFields(BindingFlags.Public | BindingFlags.Static);
 
             foreach (string value in cmds.Select(cmd => cmd.GetValue(null)).OfType<string>())
             {

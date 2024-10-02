@@ -1,6 +1,4 @@
-﻿using System;
-using Crestron.SimplSharp;
-using PepperDash.Essentials.Devices.Common.DSP;
+﻿using PepperDash.Essentials.Devices.Common.DSP;
 
 namespace QscQsysDspPlugin
 {

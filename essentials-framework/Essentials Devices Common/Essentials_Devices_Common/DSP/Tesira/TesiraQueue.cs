@@ -1,7 +1,5 @@
-﻿using System;
-using PepperDash.Core;
+﻿using PepperDash.Core;
 using Crestron.SimplSharp;
-using PepperDash.Core;
 using Tesira_DSP_EPI.Interfaces;
 
 namespace Tesira_DSP_EPI

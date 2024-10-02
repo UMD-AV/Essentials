@@ -1,15 +1,4 @@
-﻿using System;
-using System.Text;
-using System.Collections.Generic;
-using Crestron.SimplSharp;
-using Crestron.SimplSharpPro.DeviceSupport;
-using Crestron.SimplSharpPro.CrestronThread;
-using PepperDash.Essentials.Core;
-using PepperDash.Essentials.Core.Bridges;
-using Crestron.SimplSharp.Net.Http;
-using Crestron.SimplSharp.Net.Https;
-using PepperDash.Core;
-using PepperDash.Essentials.Core.Config;
+﻿using PepperDash.Core;
 using ViscaCameraPlugin;
 
 namespace CrestronCameraPlugin
