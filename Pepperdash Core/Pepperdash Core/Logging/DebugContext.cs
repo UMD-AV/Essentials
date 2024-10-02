@@ -20,14 +20,14 @@ namespace PepperDash.Core
         ///// </summary>
         //string FileName = string.Format(@"\nvram\debug\app{0}Debug.json", InitialParametersClass.ApplicationNumber);
 
-        DebugContextSaveData SaveData;
+        private DebugContextSaveData SaveData;
 
-        int SaveTimeoutMs = 30000;
+        private int SaveTimeoutMs = 30000;
 
-        CTimer SaveTimer;
+        private CTimer SaveTimer;
 
 
-        static List<DebugContext> Contexts = new List<DebugContext>();
+        private static List<DebugContext> Contexts = new List<DebugContext>();
 
         /// <summary>
         /// Creates or gets a debug context
@@ -53,7 +53,7 @@ namespace PepperDash.Core
         {
         }
 
-        DebugContext(string key)
+        private DebugContext(string key)
         {
             Key = key;
             if (CrestronEnvironment.RuntimeEnvironment == eRuntimeEnvironment.SimplSharpPro)
@@ -73,7 +73,7 @@ namespace PepperDash.Core
         /// Used to save memory when shutting down
         /// </summary>
         /// <param name="programEventType"></param>
-        void CrestronEnvironment_ProgramStatusEventHandler(eProgramStatusEventType programEventType)
+        private void CrestronEnvironment_ProgramStatusEventHandler(eProgramStatusEventType programEventType)
         {
             if (programEventType == eProgramStatusEventType.Stopping)
             {
@@ -191,7 +191,7 @@ namespace PepperDash.Core
         /// <summary>
         /// Writes the memory object after timeout
         /// </summary>
-        void SaveMemoryOnTimeout()
+        private void SaveMemoryOnTimeout()
         {
             if (SaveTimer == null)
                 SaveTimer = new CTimer(o =>
@@ -206,7 +206,7 @@ namespace PepperDash.Core
         /// <summary>
         /// Writes the memory - use SaveMemoryOnTimeout
         /// </summary>
-        void SaveMemory()
+        private void SaveMemory()
         {
             using (StreamWriter sw = new StreamWriter(GetMemoryFileName()))
             {
@@ -219,7 +219,7 @@ namespace PepperDash.Core
         /// <summary>
         /// 
         /// </summary>
-        void LoadMemory()
+        private void LoadMemory()
         {
             string file = GetMemoryFileName();
             if (File.Exists(file))
@@ -242,7 +242,7 @@ namespace PepperDash.Core
         /// <summary>
         /// Helper to get the file path for this app's debug memory
         /// </summary>
-        string GetMemoryFileName()
+        private string GetMemoryFileName()
         {
             return string.Format(@"\NVRAM\debugSettings\program{0}-{1}", InitialParametersClass.ApplicationNumber, Key);
         }

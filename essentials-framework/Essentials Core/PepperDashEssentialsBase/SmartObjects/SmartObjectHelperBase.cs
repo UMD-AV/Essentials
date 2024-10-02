@@ -67,7 +67,7 @@ namespace PepperDash.Essentials.Core.SmartObjects
         /// </summary>
         /// <param name="currentDevice"></param>
         /// <param name="args"></param>
-        void SmartObject_SigChange(GenericBase currentDevice, SmartObjectEventArgs args)
+        private void SmartObject_SigChange(GenericBase currentDevice, SmartObjectEventArgs args)
         {
             object uo = args.Sig.UserObject;
             if (uo is Action<bool>)

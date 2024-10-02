@@ -7,8 +7,8 @@ namespace PepperDash.Essentials.Core.PageManagers
     /// </summary>
     public class SinglePageManager : PageManager
     {
-        BasicTriList TriList;
-        uint BackingPageJoin;
+        private BasicTriList TriList;
+        private uint BackingPageJoin;
 
         public SinglePageManager(uint pageJoin, BasicTriList trilist)
         {

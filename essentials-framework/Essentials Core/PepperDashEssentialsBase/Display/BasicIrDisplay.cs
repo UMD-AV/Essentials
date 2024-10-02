@@ -31,9 +31,9 @@ namespace PepperDash.Essentials.Core
             get { return () => _IsWarmingUp; }
         }
 
-        bool _PowerIsOn;
-        bool _IsWarmingUp;
-        bool _IsCoolingDown;
+        private bool _PowerIsOn;
+        private bool _IsWarmingUp;
+        private bool _IsCoolingDown;
 
         public BasicIrDisplay(string key, string name, IROutputPort port, string irDriverFilepath)
             : base(key, name)
@@ -140,7 +140,7 @@ namespace PepperDash.Essentials.Core
 
         #endregion
 
-        void StartWarmingTimer()
+        private void StartWarmingTimer()
         {
             _IsWarmingUp = true;
             IsWarmingUpFeedback.FireUpdate();
@@ -151,7 +151,7 @@ namespace PepperDash.Essentials.Core
             }, 10000);
         }
 
-        void StartCoolingTimer()
+        private void StartCoolingTimer()
         {
             _IsCoolingDown = true;
             IsCoolingDownFeedback.FireUpdate();

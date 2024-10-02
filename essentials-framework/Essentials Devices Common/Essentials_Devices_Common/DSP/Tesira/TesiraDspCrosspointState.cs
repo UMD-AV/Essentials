@@ -23,7 +23,7 @@ namespace Tesira_DSP_EPI
 
         private const string Pattern = "[^ ]* (.*)";
 
-        bool _state;
+        private bool _state;
 
         private CTimer _pollTimer;
 

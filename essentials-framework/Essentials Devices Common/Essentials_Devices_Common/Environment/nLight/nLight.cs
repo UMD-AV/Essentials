@@ -16,10 +16,10 @@ namespace PepperDash.Essentials.Devices.Common.Environment.NLight
     {
         public IBasicCommunication Communication { get; private set; }
         public StatusMonitorBase CommunicationMonitor { get; private set; }
-        readonly nLightQueue _cmdQueue;
-        CMutex _CommandMutex;
-        NLightPropertiesConfig _props;
-        bool _readyForNextCommand;
+        private readonly nLightQueue _cmdQueue;
+        private CMutex _CommandMutex;
+        private NLightPropertiesConfig _props;
+        private bool _readyForNextCommand;
 
         public NLight(string key, string name, IBasicCommunication comm, NLightPropertiesConfig props)
             : base(key, name)
@@ -59,7 +59,7 @@ namespace PepperDash.Essentials.Devices.Common.Environment.NLight
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="args"></param>
-        void Communication_BytesReceived(object sender, GenericCommMethodReceiveBytesArgs args)
+        private void Communication_BytesReceived(object sender, GenericCommMethodReceiveBytesArgs args)
         {
             Debug.Console(2, this, "Received new bytes:{0}", ComTextHelper.GetEscapedText(args.Bytes));
             try

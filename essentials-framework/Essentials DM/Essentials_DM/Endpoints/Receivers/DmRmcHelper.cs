@@ -63,7 +63,8 @@ namespace PepperDash.Essentials.DM
             }
         }
 
-        void HdmiOutput_OutputStreamChange(EndpointOutputStream outputStream, EndpointOutputStreamEventArgs args)
+        private void HdmiOutput_OutputStreamChange(EndpointOutputStream outputStream,
+            EndpointOutputStreamEventArgs args)
         {
             if (args.EventId == EndpointOutputStreamEventIds.BlankEnabledFeedbackEventId)
             {

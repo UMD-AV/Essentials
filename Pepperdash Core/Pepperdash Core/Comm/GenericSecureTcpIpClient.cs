@@ -171,7 +171,7 @@ namespace PepperDash.Core
         /// <summary>
         /// Flag Set only when the disconnect method is called.
         /// </summary>
-        bool DisconnectCalledByUser;
+        private bool DisconnectCalledByUser;
 
         /// <summary>
         /// 
@@ -220,7 +220,7 @@ namespace PepperDash.Core
         /// <summary>
         /// Semaphore on connect method
         /// </summary>
-        bool IsTryingToConnect;
+        private bool IsTryingToConnect;
 
         /// <summary>
         /// Bool showing if socket is ready for communication after shared key exchange
@@ -268,20 +268,20 @@ namespace PepperDash.Core
             set { HeartbeatInterval = (value * 1000); }
         }
 
-        CTimer HeartbeatSendTimer;
-        CTimer HeartbeatAckTimer;
+        private CTimer HeartbeatSendTimer;
+        private CTimer HeartbeatAckTimer;
 
         // Used to force disconnection on a dead connect attempt
-        CTimer ConnectFailTimer;
-        CTimer WaitForSharedKey;
+        private CTimer ConnectFailTimer;
+        private CTimer WaitForSharedKey;
         private int ConnectionCount;
 
-        bool ProgramIsStopping;
+        private bool ProgramIsStopping;
 
         /// <summary>
         /// Queue lock
         /// </summary>
-        CCriticalSection DequeueLock = new CCriticalSection();
+        private CCriticalSection DequeueLock = new CCriticalSection();
 
         /// <summary>
         /// Receive Queue size. Defaults to 20. Will set to 20 if QueueSize property is less than 20. Use constructor or set queue size property before
@@ -414,7 +414,7 @@ namespace PepperDash.Core
         /// <summary>
         /// Handles closing this up when the program shuts down
         /// </summary>
-        void CrestronEnvironment_ProgramStatusEventHandler(eProgramStatusEventType programEventType)
+        private void CrestronEnvironment_ProgramStatusEventHandler(eProgramStatusEventType programEventType)
         {
             if (programEventType == eProgramStatusEventType.Stopping ||
                 programEventType == eProgramStatusEventType.Paused)
@@ -655,7 +655,7 @@ namespace PepperDash.Core
         /// Called from Connect failure or Socket Status change if 
         /// auto reconnect and socket disconnected (Not disconnected by user)
         /// </summary>
-        void CheckClosedAndTryReconnect()
+        private void CheckClosedAndTryReconnect()
         {
             if (_client != null)
             {
@@ -685,7 +685,7 @@ namespace PepperDash.Core
         /// </summary>
         /// <param name="client"></param>
         /// <param name="numBytes"></param>
-        void Receive(SecureTCPClient client, int numBytes)
+        private void Receive(SecureTCPClient client, int numBytes)
         {
             if (numBytes > 0)
             {
@@ -752,7 +752,7 @@ namespace PepperDash.Core
         /// This method gets spooled up in its own thread an protected by a CCriticalSection to prevent multiple threads from running concurrently.
         /// It will dequeue items as they are enqueued automatically.
         /// </summary>
-        void DequeueEvent()
+        private void DequeueEvent()
         {
             try
             {
@@ -779,7 +779,7 @@ namespace PepperDash.Core
             }
         }
 
-        void HeartbeatStart()
+        private void HeartbeatStart()
         {
             if (HeartbeatEnabled)
             {
@@ -797,7 +797,7 @@ namespace PepperDash.Core
             }
         }
 
-        void HeartbeatStop()
+        private void HeartbeatStop()
         {
             if (HeartbeatSendTimer != null)
             {
@@ -814,14 +814,14 @@ namespace PepperDash.Core
             }
         }
 
-        void SendHeartbeat(object notused)
+        private void SendHeartbeat(object notused)
         {
             this.SendText(HeartbeatString);
             Debug.Console(2, this, "Sending Heartbeat");
         }
 
         //private method to check heartbeat requirements and start or reset timer
-        string checkHeartbeat(string received)
+        private string checkHeartbeat(string received)
         {
             try
             {
@@ -858,7 +858,7 @@ namespace PepperDash.Core
         }
 
 
-        void HeartbeatAckTimerFail(object o)
+        private void HeartbeatAckTimerFail(object o)
         {
             try
             {
@@ -879,7 +879,7 @@ namespace PepperDash.Core
         /// <summary>
         /// 
         /// </summary>
-        void StopWaitForSharedKeyTimer()
+        private void StopWaitForSharedKeyTimer()
         {
             if (WaitForSharedKey != null)
             {
@@ -942,7 +942,7 @@ namespace PepperDash.Core
         /// </summary>
         /// <param name="client"></param>
         /// <param name="clientSocketStatus"></param>
-        void Client_SocketStatusChange(SecureTCPClient client, SocketStatus clientSocketStatus)
+        private void Client_SocketStatusChange(SecureTCPClient client, SocketStatus clientSocketStatus)
         {
             if (ProgramIsStopping)
             {
@@ -974,7 +974,7 @@ namespace PepperDash.Core
         /// <summary>
         /// Helper for ConnectionChange event
         /// </summary>
-        void OnConnectionChange()
+        private void OnConnectionChange()
         {
             EventHandler<GenericSocketStatusChageEventArgs> handler = ConnectionChange;
             if (handler == null) return;
@@ -985,7 +985,7 @@ namespace PepperDash.Core
         /// <summary>
         /// Helper to fire ClientReadyForCommunications event
         /// </summary>
-        void OnClientReadyForcommunications(bool isReady)
+        private void OnClientReadyForcommunications(bool isReady)
         {
             IsReadyForCommunication = isReady;
             if (IsReadyForCommunication)

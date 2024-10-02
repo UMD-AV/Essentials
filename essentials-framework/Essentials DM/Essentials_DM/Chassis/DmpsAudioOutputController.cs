@@ -49,7 +49,8 @@ namespace PepperDash.Essentials.DM
             if (card is Card.Dmps3ProgramOutput)
             {
                 Card.Dmps3ProgramOutput programOutput = card as Card.Dmps3ProgramOutput;
-                Dmps3AudioOutputWithMixerBase output = new Dmps3AudioOutputWithMixerBase(card, programOutput.OutputMixer);
+                Dmps3AudioOutputWithMixerBase output =
+                    new Dmps3AudioOutputWithMixerBase(card, programOutput.OutputMixer);
                 MasterVolumeLevel =
                     new DmpsAudioOutputWithMixerAndEq(output, eDmpsLevelType.Master, programOutput.OutputEqualizer);
                 SourceVolumeLevel = new DmpsAudioOutput(output, eDmpsLevelType.Source);
@@ -103,7 +104,7 @@ namespace PepperDash.Essentials.DM
             }
         }
 
-        void BaseDevice_DMOutputChange(Switch device, DMOutputEventArgs args)
+        private void BaseDevice_DMOutputChange(Switch device, DMOutputEventArgs args)
         {
             Debug.Console(2, this, "Dmps Audio Controller Event Output: {0} EventId: {1}", args.Number,
                 args.EventId.ToString());
@@ -257,7 +258,7 @@ namespace PepperDash.Essentials.DM
             }
         }
 
-        static void SetUpDmpsAudioOutputJoins(BasicTriList trilist, DmpsAudioOutput output, uint joinStart)
+        private static void SetUpDmpsAudioOutputJoins(BasicTriList trilist, DmpsAudioOutput output, uint joinStart)
         {
             uint volumeLevelJoin = joinStart;
             uint volumeLevelScaledJoin = joinStart + 1;
@@ -303,7 +304,7 @@ namespace PepperDash.Essentials.DM
 
     public class DmpsAudioOutputWithMixer : DmpsAudioOutput
     {
-        Dmps3AudioOutputWithMixerBase Output;
+        private Dmps3AudioOutputWithMixerBase Output;
 
         public DmpsAudioOutputWithMixer(Dmps3AudioOutputWithMixerBase output, eDmpsLevelType type)
             : base(output, type)
@@ -367,10 +368,10 @@ namespace PepperDash.Essentials.DM
         public IntFeedback VolumeLevelFeedback { get; private set; }
         public IntFeedback VolumeLevelScaledFeedback { get; private set; }
 
-        Action MuteOnAction;
-        Action MuteOffAction;
-        Action<bool> VolumeUpAction;
-        Action<bool> VolumeDownAction;
+        private Action MuteOnAction;
+        private Action MuteOffAction;
+        private Action<bool> VolumeUpAction;
+        private Action<bool> VolumeDownAction;
 
         public DmpsAudioOutput(Dmps3AudioOutputBase output, eDmpsLevelType type)
         {

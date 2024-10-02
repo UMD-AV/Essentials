@@ -19,7 +19,7 @@ using PepperDash.Essentials.Core.Queues;
 
 namespace PepperDash.Essentials.Devices.Common.VideoCodec.Cisco
 {
-    enum eCommandType
+    internal enum eCommandType
     {
         SessionStart,
         SessionEnd,
@@ -254,7 +254,7 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.Cisco
 
         public bool CommDebuggingIsOn;
 
-        string Delimiter = "\r\n";
+        private string Delimiter = "\r\n";
 
         public IntFeedback PresentationSourceFeedback { get; private set; }
 
@@ -491,7 +491,7 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.Cisco
         /// Creates the fake OSD source, and connects it's AudioVideo output to the CodecOsdIn input
         /// to enable routing 
         /// </summary>
-        void CreateOsdSource()
+        private void CreateOsdSource()
         {
             OsdSource = new DummyRoutingInputsDevice(Key + "[osd]");
             DeviceManager.AddDevice(OsdSource);
@@ -615,7 +615,7 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.Cisco
             return base.CustomActivate();
         }
 
-        void PhonebookSyncState_InitialSyncCompleted(object sender, EventArgs e)
+        private void PhonebookSyncState_InitialSyncCompleted(object sender, EventArgs e)
         {
             OnDirectoryResultReturned(DirectoryRoot);
         }
@@ -664,7 +664,7 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.Cisco
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        void SyncState_InitialSyncCompleted(object sender, EventArgs e)
+        private void SyncState_InitialSyncCompleted(object sender, EventArgs e)
         {
             RegisterPeripheral();
             // Check for camera config info first
@@ -751,7 +751,7 @@ ConnectorID: {2}"
             }
         }
 
-        void socket_ConnectionChange(object sender, GenericSocketStatusChageEventArgs e)
+        private void socket_ConnectionChange(object sender, GenericSocketStatusChageEventArgs e)
         {
             Debug.Console(1, this, "Socket status change {0}", e.Client.ClientStatus);
             if (e.Client.IsConnected)
@@ -778,7 +778,7 @@ ConnectorID: {2}"
             }
         }
 
-        void DisconnectClientAndReconnect()
+        private void DisconnectClientAndReconnect()
         {
             Debug.Console(1, this, "Retrying connection to codec.");
 
@@ -797,7 +797,7 @@ ConnectorID: {2}"
         /// </summary>
         /// <param name="dev"></param>
         /// <param name="args"></param>
-        void Port_LineReceived(object dev, GenericCommMethodReceiveTextArgs args)
+        private void Port_LineReceived(object dev, GenericCommMethodReceiveTextArgs args)
         {
             if (CommDebuggingIsOn)
             {
@@ -909,7 +909,7 @@ ConnectorID: {2}"
             Communication.SendText(command + Delimiter);
         }
 
-        void DeserializeResponse(string response)
+        private void DeserializeResponse(string response)
         {
             try
             {
@@ -1332,7 +1332,7 @@ ConnectorID: {2}"
         /// Call when directory results are updated
         /// </summary>
         /// <param name="result"></param>
-        void OnDirectoryResultReturned(CodecDirectory result)
+        private void OnDirectoryResultReturned(CodecDirectory result)
         {
             CurrentDirectoryResultIsNotDirectoryRoot.FireUpdate();
 
@@ -1355,7 +1355,7 @@ ConnectorID: {2}"
         /// Evaluates an event received from the codec
         /// </summary>
         /// <param name="eventReceived"></param>
-        void EvalutateDisconnectEvent(CiscoCodecEvents.RootObject eventReceived)
+        private void EvalutateDisconnectEvent(CiscoCodecEvents.RootObject eventReceived)
         {
             if (eventReceived.Event.CallDisconnect != null)
             {
@@ -1584,7 +1584,7 @@ ConnectorID: {2}"
         /// Prints the directory to console
         /// </summary>
         /// <param name="directory"></param>
-        void PrintDirectory(CodecDirectory directory)
+        private void PrintDirectory(CodecDirectory directory)
         {
             if (Debug.Level > 0)
             {
@@ -1982,7 +1982,7 @@ ConnectorID: {2}"
         /// <summary>
         /// Sets SelfView Mode based on config
         /// </summary>
-        void SetSelfViewMode()
+        private void SetSelfViewMode()
         {
             if (!IsInCall)
             {
@@ -2112,7 +2112,7 @@ ConnectorID: {2}"
         /// <summary>
         /// Calculates the current selfview PIP position
         /// </summary>
-        void ComputeSelfviewPipStatus()
+        private void ComputeSelfviewPipStatus()
         {
             _currentSelfviewPipPosition = SelfviewPipPositions.FirstOrDefault(p =>
                 p.Command.ToLower().Equals(CodecStatus.Status.Video.Selfview.PIPPosition.Value.ToLower()));
@@ -2124,7 +2124,7 @@ ConnectorID: {2}"
         /// <summary>
         /// Calculates the current local Layout
         /// </summary>
-        void ComputeLocalLayout()
+        private void ComputeLocalLayout()
         {
             _currentLocalLayout = LocalLayouts.FirstOrDefault(l =>
                 l.Command.ToLower().Equals(CodecStatus.Status.Video.Layout.LayoutFamily.Local.Value.ToLower()));
@@ -2179,7 +2179,7 @@ ConnectorID: {2}"
         /// <summary>
         /// Builds the cameras List.  Could later be modified to build from config data
         /// </summary>
-        void SetUpCameras(List<CameraInfo> cameraInfo)
+        private void SetUpCameras(List<CameraInfo> cameraInfo)
         {
             // Add the internal camera
             Cameras = new List<CameraBase>();
@@ -2662,7 +2662,7 @@ ConnectorID: {2}"
     /// </summary>
     public class CodecSyncState : IKeyed
     {
-        bool _InitialSyncComplete;
+        private bool _InitialSyncComplete;
         private readonly CiscoSparkCodec _parent;
 
         public event EventHandler<EventArgs> InitialSyncCompleted;
@@ -2765,7 +2765,7 @@ ConnectorID: {2}"
             InitialSyncComplete = false;
         }
 
-        void CheckSyncStatus()
+        private void CheckSyncStatus()
         {
             if (LoginMessageWasReceived && JsonResponseModeSet && InitialConfigurationMessageWasReceived &&
                 InitialStatusMessageWasReceived && FeedbackWasRegistered)

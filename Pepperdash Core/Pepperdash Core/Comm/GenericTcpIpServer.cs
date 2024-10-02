@@ -46,23 +46,23 @@ namespace PepperDash.Core
         /// <summary>
         /// 
         /// </summary>
-        CCriticalSection ServerCCSection = new CCriticalSection();
+        private CCriticalSection ServerCCSection = new CCriticalSection();
 
 
         /// <summary>
         /// A bandaid client that monitors whether the server is reachable
         /// </summary>
-        GenericTcpIpClient_ForServer MonitorClient;
+        private GenericTcpIpClient_ForServer MonitorClient;
 
         /// <summary>
         /// Timer to operate the bandaid monitor client in a loop.
         /// </summary>
-        CTimer MonitorClientTimer;
+        private CTimer MonitorClientTimer;
 
         /// <summary>
         /// 
         /// </summary>
-        int MonitorClientFailureCount;
+        private int MonitorClientFailureCount;
 
         /// <summary>
         /// 3 by default
@@ -229,12 +229,12 @@ namespace PepperDash.Core
         public string HeartbeatStringToMatch { get; set; }
 
         //private timers for Heartbeats per client
-        Dictionary<uint, CTimer> HeartbeatTimerDictionary = new Dictionary<uint, CTimer>();
+        private Dictionary<uint, CTimer> HeartbeatTimerDictionary = new Dictionary<uint, CTimer>();
 
         //flags to show the secure server is waiting for client at index to send the shared key
-        List<uint> WaitingForSharedKey = new List<uint>();
+        private List<uint> WaitingForSharedKey = new List<uint>();
 
-        List<uint> ClientReadyAfterKeyExchange = new List<uint>();
+        private List<uint> ClientReadyAfterKeyExchange = new List<uint>();
 
         //Store the connected client indexes
         public List<uint> ConnectedClientsIndexes = new List<uint>();
@@ -250,12 +250,12 @@ namespace PepperDash.Core
         private bool ServerStopped { get; set; }
 
         //Servers
-        TCPServer myTcpServer;
+        private TCPServer myTcpServer;
 
         /// <summary>
         /// 
         /// </summary>
-        bool ProgramIsStopping;
+        private bool ProgramIsStopping;
 
         #endregion
 
@@ -563,7 +563,7 @@ namespace PepperDash.Core
         }
 
         //private method to check heartbeat requirements and start or reset timer
-        string checkHeartbeat(uint clientIndex, string received)
+        private string checkHeartbeat(uint clientIndex, string received)
         {
             try
             {
@@ -634,7 +634,7 @@ namespace PepperDash.Core
 
         #region Methods - HeartbeatTimer Callback
 
-        void HeartbeatTimer_CallbackFunction(object o)
+        private void HeartbeatTimer_CallbackFunction(object o)
         {
             uint clientIndex = 99999;
             string address = string.Empty;
@@ -681,7 +681,7 @@ namespace PepperDash.Core
         /// <param name="mySecureTCPServer"></param>
         /// <param name="clientIndex"></param>
         /// <param name="serverSocketStatus"></param>
-        void TcpServer_SocketStatusChange(TCPServer server, uint clientIndex, SocketStatus serverSocketStatus)
+        private void TcpServer_SocketStatusChange(TCPServer server, uint clientIndex, SocketStatus serverSocketStatus)
         {
             try
             {
@@ -725,7 +725,7 @@ namespace PepperDash.Core
         /// </summary>
         /// <param name="mySecureTCPServer"></param>
         /// <param name="clientIndex"></param>
-        void TcpConnectCallback(TCPServer server, uint clientIndex)
+        private void TcpConnectCallback(TCPServer server, uint clientIndex)
         {
             try
             {
@@ -811,7 +811,8 @@ namespace PepperDash.Core
         /// <param name="mySecureTCPServer"></param>
         /// <param name="clientIndex"></param>
         /// <param name="numberOfBytesReceived"></param>
-        void TcpServerReceivedDataAsyncCallback(TCPServer myTCPServer, uint clientIndex, int numberOfBytesReceived)
+        private void TcpServerReceivedDataAsyncCallback(TCPServer myTCPServer, uint clientIndex,
+            int numberOfBytesReceived)
         {
             if (numberOfBytesReceived > 0)
             {
@@ -870,7 +871,7 @@ namespace PepperDash.Core
         #region Methods - EventHelpers/Callbacks
 
         //Private Helper method to call the Connection Change Event
-        void onConnectionChange(uint clientIndex, SocketStatus clientStatus)
+        private void onConnectionChange(uint clientIndex, SocketStatus clientStatus)
         {
             if (clientIndex != 0) //0 is error not valid client change
             {
@@ -884,7 +885,7 @@ namespace PepperDash.Core
         }
 
         //Private Helper method to call the Connection Change Event
-        void OnConnectionChange()
+        private void OnConnectionChange()
         {
             if (ProgramIsStopping)
             {
@@ -899,7 +900,7 @@ namespace PepperDash.Core
         }
 
         //Private Helper Method to call the Text Received Event
-        void onTextReceived(string text, uint clientIndex)
+        private void onTextReceived(string text, uint clientIndex)
         {
             EventHandler<GenericTcpServerCommMethodReceiveTextArgs> handler = TextReceived;
             if (handler != null)
@@ -907,7 +908,7 @@ namespace PepperDash.Core
         }
 
         //Private Helper Method to call the Server State Change Event
-        void OnServerStateChange(ServerState state)
+        private void OnServerStateChange(ServerState state)
         {
             if (ProgramIsStopping)
             {
@@ -925,7 +926,7 @@ namespace PepperDash.Core
         /// Private Event Handler method to handle the closing of connections when the program stops
         /// </summary>
         /// <param name="programEventType"></param>
-        void CrestronEnvironment_ProgramStatusEventHandler(eProgramStatusEventType programEventType)
+        private void CrestronEnvironment_ProgramStatusEventHandler(eProgramStatusEventType programEventType)
         {
             if (programEventType == eProgramStatusEventType.Stopping)
             {
@@ -942,7 +943,7 @@ namespace PepperDash.Core
         }
 
         //Private event handler method to raise the event that the server is ready to send data after a successful client shared key negotiation
-        void OnServerClientReadyForCommunications(uint clientIndex)
+        private void OnServerClientReadyForCommunications(uint clientIndex)
         {
             ClientReadyAfterKeyExchange.Add(clientIndex);
             EventHandler<GenericTcpServerSocketStatusChangeEventArgs> handler = ServerClientReadyForCommunications;
@@ -958,7 +959,7 @@ namespace PepperDash.Core
         /// <summary>
         /// Starts the monitor client cycle. Timed wait, then call RunMonitorClient
         /// </summary>
-        void StartMonitorClient()
+        private void StartMonitorClient()
         {
             if (MonitorClientTimer != null)
             {
@@ -971,7 +972,7 @@ namespace PepperDash.Core
         /// <summary>
         /// 
         /// </summary>
-        void RunMonitorClient()
+        private void RunMonitorClient()
         {
             MonitorClient = new GenericTcpIpClient_ForServer(Key + "-MONITOR", "127.0.0.1", Port, 2000);
             MonitorClient.SharedKeyRequired = this.SharedKeyRequired;
@@ -989,7 +990,7 @@ namespace PepperDash.Core
         /// <summary>
         /// 
         /// </summary>
-        void StopMonitorClient()
+        private void StopMonitorClient()
         {
             if (MonitorClient == null)
                 return;
@@ -1002,7 +1003,8 @@ namespace PepperDash.Core
         /// <summary>
         /// On monitor connect, restart the operation
         /// </summary>
-        void MonitorClient_IsReadyForComm(object sender, GenericTcpServerClientReadyForcommunicationsEventArgs args)
+        private void MonitorClient_IsReadyForComm(object sender,
+            GenericTcpServerClientReadyForcommunicationsEventArgs args)
         {
             if (args.IsReady)
             {
@@ -1020,7 +1022,7 @@ namespace PepperDash.Core
         /// <summary>
         /// If the client hangs, add to counter and maybe fire the choke event
         /// </summary>
-        void MonitorClientHasHungCallback()
+        private void MonitorClientHasHungCallback()
         {
             MonitorClientFailureCount++;
             MonitorClientTimer.Stop();

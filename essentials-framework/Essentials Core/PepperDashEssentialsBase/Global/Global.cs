@@ -133,7 +133,7 @@ namespace PepperDash.Essentials.Core
             FilePathPrefix = prefix;
         }
 
-        static string _AssemblyVersion;
+        private static string _AssemblyVersion;
 
         /// <summary>
         /// Gets the Assembly Version of Essentials
@@ -230,32 +230,6 @@ namespace PepperDash.Essentials.Core
 
             Debug.Console(2, "Running Local Build.  Bypassing Dependency Check.");
             return true;
-
-            /*
-            var minVersion = Regex.Match(minimumVersion, @"^(\d*).(\d*).(\d*)$");
-
-            if(!minVersion.Success)
-            {
-
-            }
-
-            var minVersionMajor = Int16.Parse(minVersion.Groups[1].Value);
-            var minVersionMinor = Int16.Parse(minVersion.Groups[2].Value);
-            var minVersionBuild = Int16.Parse(minVersion.Groups[3].Value);
-
-
-
-            if (minVersionMajor > runtimeVersionMajor)
-                return false;
-
-            if (minVersionMinor > runtimeVersionMinor)
-                return false;
-
-            if (minVersionBuild > runtimeVersionBuild)
-                return false;
-
-            return true;
-             */
         }
 
         static Global()

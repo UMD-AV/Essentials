@@ -394,7 +394,7 @@ namespace PepperDash.Essentials.DM.Chassis
 
         #region Events
 
-        void Chassis_OnlineStatusChange(Crestron.SimplSharpPro.GenericBase currentDevice,
+        private void Chassis_OnlineStatusChange(Crestron.SimplSharpPro.GenericBase currentDevice,
             Crestron.SimplSharpPro.OnlineOfflineEventArgs args)
         {
             IsOnline.FireUpdate();
@@ -407,7 +407,7 @@ namespace PepperDash.Essentials.DM.Chassis
             }
         }
 
-        void Chassis_DMOutputChange(Switch device, DMOutputEventArgs args)
+        private void Chassis_DMOutputChange(Switch device, DMOutputEventArgs args)
         {
             switch (args.EventId)
             {
@@ -429,7 +429,8 @@ namespace PepperDash.Essentials.DM.Chassis
 
                     RoutingInputPort inPort = InputPorts.FirstOrDefault(p =>
                         p.FeedbackMatchObject == _Chassis.Outputs[output].VideoOutFeedback);
-                    RoutingOutputPort outPort = OutputPorts.FirstOrDefault(p => p.FeedbackMatchObject == _Chassis.Outputs[output]);
+                    RoutingOutputPort outPort =
+                        OutputPorts.FirstOrDefault(p => p.FeedbackMatchObject == _Chassis.Outputs[output]);
 
                     feedback.FireUpdate();
                     OnSwitchChange(new RoutingNumericEventArgs(output, inputNumber, outPort, inPort,
@@ -454,7 +455,8 @@ namespace PepperDash.Essentials.DM.Chassis
 
                     RoutingInputPort inPort = InputPorts.FirstOrDefault(p =>
                         p.FeedbackMatchObject == _Chassis.Outputs[output].AudioOutFeedback);
-                    RoutingOutputPort outPort = OutputPorts.FirstOrDefault(p => p.FeedbackMatchObject == _Chassis.Outputs[output]);
+                    RoutingOutputPort outPort =
+                        OutputPorts.FirstOrDefault(p => p.FeedbackMatchObject == _Chassis.Outputs[output]);
 
                     feedback.FireUpdate();
                     OnSwitchChange(new RoutingNumericEventArgs(output, inputNumber, outPort, inPort,
@@ -482,7 +484,7 @@ namespace PepperDash.Essentials.DM.Chassis
             }
         }
 
-        void Chassis_DMInputChange(Switch device, DMInputEventArgs args)
+        private void Chassis_DMInputChange(Switch device, DMInputEventArgs args)
         {
             switch (args.EventId)
             {
@@ -533,7 +535,8 @@ namespace PepperDash.Essentials.DM.Chassis
             {
                 Debug.Console(1, "Factory Attempting to create new DM-MD6xN Device");
 
-                DMChassisPropertiesConfig props = JsonConvert.DeserializeObject<DMChassisPropertiesConfig>(dc.Properties.ToString());
+                DMChassisPropertiesConfig props =
+                    JsonConvert.DeserializeObject<DMChassisPropertiesConfig>(dc.Properties.ToString());
 
                 string type = dc.Type.ToLower();
                 ControlPropertiesConfig control = props.Control;

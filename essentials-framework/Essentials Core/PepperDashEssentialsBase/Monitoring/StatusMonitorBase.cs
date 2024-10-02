@@ -42,7 +42,7 @@ namespace PepperDash.Essentials.Core
             }
         }
 
-        MonitorStatus _Status;
+        private MonitorStatus _Status;
 
         public string Message
         {
@@ -55,12 +55,12 @@ namespace PepperDash.Essentials.Core
             }
         }
 
-        string _Message;
+        private string _Message;
 
         public long WarningTime;
         public long ErrorTime;
-        CTimer WarningTimer;
-        CTimer ErrorTimer;
+        private CTimer WarningTimer;
+        private CTimer ErrorTimer;
 
         public StatusMonitorBase(IKeyed parent, long warningTime, long errorTime)
         {

@@ -12,8 +12,8 @@ namespace PepperDash.Essentials.DM
 
         public BoolFeedback MuteFeedback { get; private set; }
 
-        ushort PreMuteVolumeLevel;
-        bool IsMuted;
+        private ushort PreMuteVolumeLevel;
+        private bool IsMuted;
 
         public DmCardAudioOutputController(Audio.Output output)
         {

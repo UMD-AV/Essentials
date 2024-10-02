@@ -12,8 +12,8 @@ namespace Tesira_DSP_EPI
 {
     public class TesiraDspStateControl : TesiraDspControlPoint, IPrivacy
     {
-        bool _state;
-        int _tagForSubscription;
+        private bool _state;
+        private int _tagForSubscription;
 
         private const string KeyFormatter = "{0}--{1}";
 

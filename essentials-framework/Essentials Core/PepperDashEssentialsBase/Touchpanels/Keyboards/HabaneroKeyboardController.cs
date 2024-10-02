@@ -28,13 +28,13 @@ namespace PepperDash.Essentials.Core.Touchpanels.Keyboards
 
         public bool SecondaryButtonVisible { get; set; }
 
-        int ShiftMode = 0;
+        private int ShiftMode = 0;
 
-        StringBuilder Output;
+        private StringBuilder Output;
 
         public Action HideAction { get; set; }
 
-        CTimer BackspaceTimer;
+        private CTimer BackspaceTimer;
 
         /// <summary>
         /// 
@@ -164,7 +164,7 @@ namespace PepperDash.Essentials.Core.Touchpanels.Keyboards
             TriList.SetBool(GoButtonEnableJoin, false);
         }
 
-        void ResetShift()
+        private void ResetShift()
         {
             if (ShiftMode == 1)
             {
@@ -178,132 +178,132 @@ namespace PepperDash.Essentials.Core.Touchpanels.Keyboards
             }
         }
 
-        char A(int i)
+        private char A(int i)
         {
             return new char[] { 'a', 'A', '?', '?' }[i];
         }
 
-        char B(int i)
+        private char B(int i)
         {
             return new char[] { 'b', 'B', ':', ':' }[i];
         }
 
-        char C(int i)
+        private char C(int i)
         {
             return new char[] { 'c', 'C', '>', '>' }[i];
         }
 
-        char D(int i)
+        private char D(int i)
         {
             return new char[] { 'd', 'D', '_', '_' }[i];
         }
 
-        char E(int i)
+        private char E(int i)
         {
             return new char[] { 'e', 'E', '3', '#' }[i];
         }
 
-        char F(int i)
+        private char F(int i)
         {
             return new char[] { 'f', 'F', '=', '=' }[i];
         }
 
-        char G(int i)
+        private char G(int i)
         {
             return new char[] { 'g', 'G', '+', '+' }[i];
         }
 
-        char H(int i)
+        private char H(int i)
         {
             return new char[] { 'h', 'H', '[', '[' }[i];
         }
 
-        char I(int i)
+        private char I(int i)
         {
             return new char[] { 'i', 'I', '8', '*' }[i];
         }
 
-        char J(int i)
+        private char J(int i)
         {
             return new char[] { 'j', 'J', ']', ']' }[i];
         }
 
-        char K(int i)
+        private char K(int i)
         {
             return new char[] { 'k', 'K', '/', '/' }[i];
         }
 
-        char L(int i)
+        private char L(int i)
         {
             return new char[] { 'l', 'L', '\\', '\\' }[i];
         }
 
-        char M(int i)
+        private char M(int i)
         {
             return new char[] { 'm', 'M', '"', '"' }[i];
         }
 
-        char N(int i)
+        private char N(int i)
         {
             return new char[] { 'n', 'N', '\'', '\'' }[i];
         }
 
-        char O(int i)
+        private char O(int i)
         {
             return new char[] { 'o', 'O', '9', '(' }[i];
         }
 
-        char P(int i)
+        private char P(int i)
         {
             return new char[] { 'p', 'P', '0', ')' }[i];
         }
 
-        char Q(int i)
+        private char Q(int i)
         {
             return new char[] { 'q', 'Q', '1', '!' }[i];
         }
 
-        char R(int i)
+        private char R(int i)
         {
             return new char[] { 'r', 'R', '4', '$' }[i];
         }
 
-        char S(int i)
+        private char S(int i)
         {
             return new char[] { 's', 'S', '-', '-' }[i];
         }
 
-        char T(int i)
+        private char T(int i)
         {
             return new char[] { 't', 'T', '5', '%' }[i];
         }
 
-        char U(int i)
+        private char U(int i)
         {
             return new char[] { 'u', 'U', '7', '&' }[i];
         }
 
-        char V(int i)
+        private char V(int i)
         {
             return new char[] { 'v', 'V', ';', ';' }[i];
         }
 
-        char W(int i)
+        private char W(int i)
         {
             return new char[] { 'w', 'W', '2', '@' }[i];
         }
 
-        char X(int i)
+        private char X(int i)
         {
             return new char[] { 'x', 'X', '<', '<' }[i];
         }
 
-        char Y(int i)
+        private char Y(int i)
         {
             return new char[] { 'y', 'Y', '6', '^' }[i];
         }
 
-        char Z(int i)
+        private char Z(int i)
         {
             return new char[] { 'z', 'Z', ',', ',' }[i];
         }
@@ -311,7 +311,7 @@ namespace PepperDash.Essentials.Core.Touchpanels.Keyboards
         /// <summary>
         /// Does what it says
         /// </summary>
-        void StartBackspaceRepeat()
+        private void StartBackspaceRepeat()
         {
             if (BackspaceTimer == null)
             {
@@ -322,7 +322,7 @@ namespace PepperDash.Essentials.Core.Touchpanels.Keyboards
         /// <summary>
         /// Does what it says
         /// </summary>
-        void StopBackspaceRepeat()
+        private void StopBackspaceRepeat()
         {
             if (BackspaceTimer != null)
             {
@@ -331,7 +331,7 @@ namespace PepperDash.Essentials.Core.Touchpanels.Keyboards
             }
         }
 
-        void Backspace()
+        private void Backspace()
         {
             OnKeyPress(KeyboardSpecialKey.Backspace);
 
@@ -342,7 +342,7 @@ namespace PepperDash.Essentials.Core.Touchpanels.Keyboards
             }
         }
 
-        void Clear()
+        private void Clear()
         {
             OnKeyPress(KeyboardSpecialKey.Clear);
 
@@ -384,7 +384,7 @@ namespace PepperDash.Essentials.Core.Touchpanels.Keyboards
          *
          *      - Tapping any key will go back to mode 2
          */
-        void Shift()
+        private void Shift()
         {
             if (ShiftMode == 0)
                 ShiftMode = 1;
@@ -398,7 +398,7 @@ namespace PepperDash.Essentials.Core.Touchpanels.Keyboards
             ShowKeys();
         }
 
-        void NumShift()
+        private void NumShift()
         {
             if (ShiftMode == 0 || ShiftMode == 1)
                 ShiftMode = 2;
@@ -407,7 +407,7 @@ namespace PepperDash.Essentials.Core.Touchpanels.Keyboards
             ShowKeys();
         }
 
-        void ShowKeys()
+        private void ShowKeys()
         {
             TriList.SetString(2921, A(ShiftMode).ToString());
             TriList.SetString(2922, B(ShiftMode).ToString());
@@ -445,7 +445,7 @@ namespace PepperDash.Essentials.Core.Touchpanels.Keyboards
         /// Event fire helper for text 
         /// </summary>
         /// <param name="text"></param>
-        void OnKeyPress(string text)
+        private void OnKeyPress(string text)
         {
             EventHandler<KeyboardControllerPressEventArgs> handler = KeyPress;
             if (handler != null)
@@ -456,7 +456,7 @@ namespace PepperDash.Essentials.Core.Touchpanels.Keyboards
         /// event helper for special keys
         /// </summary>
         /// <param name="key"></param>
-        void OnKeyPress(KeyboardSpecialKey key)
+        private void OnKeyPress(KeyboardSpecialKey key)
         {
             EventHandler<KeyboardControllerPressEventArgs> handler = KeyPress;
             if (handler != null)

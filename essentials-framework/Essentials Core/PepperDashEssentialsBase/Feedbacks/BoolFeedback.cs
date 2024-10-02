@@ -18,7 +18,7 @@ namespace PepperDash.Essentials.Core
             get { return _BoolValue; }
         }
 
-        bool _BoolValue;
+        private bool _BoolValue;
 
         /// <summary>
         /// Fake value to be used in test mode
@@ -30,10 +30,10 @@ namespace PepperDash.Essentials.Core
         /// </summary>
         public Func<bool> ValueFunc { get; private set; }
 
-        List<BoolInputSig> LinkedInputSigs = new List<BoolInputSig>();
-        List<BoolInputSig> LinkedComplementInputSigs = new List<BoolInputSig>();
+        private List<BoolInputSig> LinkedInputSigs = new List<BoolInputSig>();
+        private List<BoolInputSig> LinkedComplementInputSigs = new List<BoolInputSig>();
 
-        List<Crestron.SimplSharpPro.DeviceSupport.Feedback> LinkedCrestronFeedbacks =
+        private List<Crestron.SimplSharpPro.DeviceSupport.Feedback> LinkedCrestronFeedbacks =
             new List<Crestron.SimplSharpPro.DeviceSupport.Feedback>();
 
         /// <summary>
@@ -154,17 +154,17 @@ namespace PepperDash.Essentials.Core
             FireUpdate();
         }
 
-        void UpdateSig(BoolInputSig sig)
+        private void UpdateSig(BoolInputSig sig)
         {
             sig.BoolValue = _BoolValue;
         }
 
-        void UpdateComplementSig(BoolInputSig sig)
+        private void UpdateComplementSig(BoolInputSig sig)
         {
             sig.BoolValue = !_BoolValue;
         }
 
-        void UpdateCrestronFeedback(Crestron.SimplSharpPro.DeviceSupport.Feedback feedback)
+        private void UpdateCrestronFeedback(Crestron.SimplSharpPro.DeviceSupport.Feedback feedback)
         {
             feedback.State = _BoolValue;
         }

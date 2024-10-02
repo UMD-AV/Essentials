@@ -287,7 +287,7 @@ namespace PepperDash.Essentials.Devices.Common.ImageProcessors
             PostData("", "RoomConfigStatus");
         }
 
-        void UpdateLayoutFeedback(string layout)
+        private void UpdateLayoutFeedback(string layout)
         {
             if (LayoutNames != null)
             {

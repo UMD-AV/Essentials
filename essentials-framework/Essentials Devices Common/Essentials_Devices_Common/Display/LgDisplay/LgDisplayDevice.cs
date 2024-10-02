@@ -16,7 +16,7 @@ namespace Epi.Display.Lg
     public class LgDisplayController : TwoWayDisplayBase, IBasicVolumeWithFeedback, ICommunicationMonitor,
         IBridgeAdvanced
     {
-        GenericQueue ReceiveQueue;
+        private GenericQueue ReceiveQueue;
 
         public const int InputPowerOn = 101;
         public const int InputPowerOff = 102;

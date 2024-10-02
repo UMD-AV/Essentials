@@ -39,7 +39,7 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.ZoomRoom
 
         private CTimer ContinueTimer;
 
-        eZoomRoomCameraAction LastAction;
+        private eZoomRoomCameraAction LastAction;
 
         private bool isPanning;
 
@@ -67,25 +67,25 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.ZoomRoom
         /// </summary>
         /// <param name="state"></param>
         /// <param name="action"></param>
-        void SendCommand(eZoomRoomCameraState state, eZoomRoomCameraAction action)
+        private void SendCommand(eZoomRoomCameraState state, eZoomRoomCameraAction action)
         {
             LastAction = action;
             ParentCodec.SendText(string.Format("zCommand Call CameraControl Id: {0} State: {1} Action: {2}", Id, state,
                 action));
         }
 
-        void StartContinueTimer()
+        private void StartContinueTimer()
         {
             if (ContinueTimer == null)
                 ContinueTimer = new CTimer((o) => SendContinueAction(LastAction), null, ContinueTime, ContinueTime);
         }
 
-        void SendContinueAction(eZoomRoomCameraAction action)
+        private void SendContinueAction(eZoomRoomCameraAction action)
         {
             SendCommand(eZoomRoomCameraState.Continue, action);
         }
 
-        void StopContinueTimer()
+        private void StopContinueTimer()
         {
             if (ContinueTimer == null)
             {

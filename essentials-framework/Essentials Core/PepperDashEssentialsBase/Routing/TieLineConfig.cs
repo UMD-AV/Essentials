@@ -95,7 +95,7 @@ namespace PepperDash.Essentials.Core.Config
             return new TieLine(sourceOutputPort, destinationInputPort);
         }
 
-        void LogError(string msg)
+        private void LogError(string msg)
         {
             Debug.Console(1, "WARNING: Cannot create tie line: {0}:\r   {1}", msg, this);
         }

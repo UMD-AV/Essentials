@@ -35,14 +35,14 @@ namespace PepperDash.Core
         /// <summary>
         ///	For receive buffer
         /// </summary>
-        StringBuilder ReceiveBuffer = new StringBuilder();
+        private StringBuilder ReceiveBuffer = new StringBuilder();
 
         /// <summary>
         /// Delimiter, like it says!
         /// </summary>
-        char Delimiter;
+        private char Delimiter;
 
-        string[] StringDelimiters;
+        private string[] StringDelimiters;
 
         /// <summary>
         /// Fires up a gather, given a IBasicCommunicaion port and char for de
@@ -86,7 +86,7 @@ namespace PepperDash.Core
         /// <summary>
         /// Handler for raw data coming from port 
         /// </summary>
-        void Port_TextReceived(object sender, GenericCommMethodReceiveTextArgs args)
+        private void Port_TextReceived(object sender, GenericCommMethodReceiveTextArgs args)
         {
             EventHandler<GenericCommMethodReceiveTextArgs> handler = LineReceived;
             if (handler != null)
@@ -116,7 +116,7 @@ namespace PepperDash.Core
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="args"></param>
-        void Port_TextReceivedStringDelimiter(object sender, GenericCommMethodReceiveTextArgs args)
+        private void Port_TextReceivedStringDelimiter(object sender, GenericCommMethodReceiveTextArgs args)
         {
             EventHandler<GenericCommMethodReceiveTextArgs> handler = LineReceived;
             if (handler != null)

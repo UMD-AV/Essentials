@@ -58,7 +58,7 @@ namespace PepperDash.Essentials.DM
         public DmpsMicrophoneController Microphones { get; private set; }
 
         public const int RouteOffTime = 500;
-        Dictionary<PortNumberType, CTimer> RouteOffTimers = new Dictionary<PortNumberType, CTimer>();
+        private Dictionary<PortNumberType, CTimer> RouteOffTimers = new Dictionary<PortNumberType, CTimer>();
 
         /// <summary>
         /// Text that represents when an output has no source routed to it
@@ -540,7 +540,7 @@ namespace PepperDash.Essentials.DM
         /// <summary>
         /// Iterate the SwitcherOutputs collection to setup feedbacks and add routing ports
         /// </summary>
-        void SetupOutputCards()
+        private void SetupOutputCards()
         {
             foreach (ICardInputOutputType card in Dmps.SwitcherOutputs)
             {
@@ -706,7 +706,7 @@ namespace PepperDash.Essentials.DM
         /// <summary>
         /// Iterate the SwitcherInputs collection to setup feedbacks and add routing ports
         /// </summary>
-        void SetupInputCards()
+        private void SetupInputCards()
         {
             foreach (ICardInputOutputType card in Dmps.SwitcherInputs)
             {
@@ -767,7 +767,8 @@ namespace PepperDash.Essentials.DM
         {
             if (inputCard is Card.Dmps3HdmiInputWithoutAnalogAudio)
             {
-                Card.Dmps3HdmiInputWithoutAnalogAudio hdmiInputCard = inputCard as Card.Dmps3HdmiInputWithoutAnalogAudio;
+                Card.Dmps3HdmiInputWithoutAnalogAudio
+                    hdmiInputCard = inputCard as Card.Dmps3HdmiInputWithoutAnalogAudio;
 
                 Dmps3HdmiInputPort cecPort = hdmiInputCard.HdmiInputPort;
 
@@ -864,15 +865,16 @@ namespace PepperDash.Essentials.DM
         /// <summary>
         /// Adds InputPort and sets Port as ICec object
         /// </summary>
-        void AddInputPortWithDebug(uint cardNum, string portName, eRoutingSignalType sigType,
+        private void AddInputPortWithDebug(uint cardNum, string portName, eRoutingSignalType sigType,
             eRoutingPortConnectionType portType, ICec cecPort)
         {
             string portKey = string.Format("inputCard{0}--{1}", cardNum, portName);
             Debug.Console(2, this, "Adding input port '{0}'", portKey);
-            RoutingInputPort inputPort = new RoutingInputPort(portKey, sigType, portType, Dmps.SwitcherInputs[cardNum], this)
-            {
-                FeedbackMatchObject = Dmps.SwitcherInputs[cardNum]
-            };
+            RoutingInputPort inputPort =
+                new RoutingInputPort(portKey, sigType, portType, Dmps.SwitcherInputs[cardNum], this)
+                {
+                    FeedbackMatchObject = Dmps.SwitcherInputs[cardNum]
+                };
 
             if (cecPort != null)
                 inputPort.Port = cecPort;
@@ -936,7 +938,8 @@ namespace PepperDash.Essentials.DM
                 AddDmOutputPort(number);
                 AddAudioOnlyOutputPort(number, "Program");
 
-                DmpsAudioOutputController audioOutput = new DmpsAudioOutputController(string.Format("processor-programAudioOutput", number),
+                DmpsAudioOutputController audioOutput = new DmpsAudioOutputController(
+                    string.Format("processor-programAudioOutput", number),
                     string.Format("Program Audio Output {0}", number), hdmiOutputCard,
                     hdmiOutputCard.AudioOutputStream);
                 DeviceManager.AddDevice(audioOutput);
@@ -949,7 +952,8 @@ namespace PepperDash.Essentials.DM
             {
                 AddAudioOnlyOutputPort(number, "Program");
 
-                DmpsAudioOutputController programOutput = new DmpsAudioOutputController(string.Format("processor-programAudioOutput"),
+                DmpsAudioOutputController programOutput = new DmpsAudioOutputController(
+                    string.Format("processor-programAudioOutput"),
                     "Program Audio Output", outputCard as Card.Dmps3ProgramOutput);
                 Card.Dmps3ProgramOutput test = outputCard as Card.Dmps3ProgramOutput;
                 DeviceManager.AddDevice(programOutput);
@@ -962,7 +966,8 @@ namespace PepperDash.Essentials.DM
                     {
                         AddAudioOnlyOutputPort(number, "Aux1");
 
-                        DmpsAudioOutputController aux1Output = new DmpsAudioOutputController(string.Format("processor-aux1AudioOutput"),
+                        DmpsAudioOutputController aux1Output = new DmpsAudioOutputController(
+                            string.Format("processor-aux1AudioOutput"),
                             "Aux1 Audio Output", outputCard as Card.Dmps3Aux1Output);
 
                         DeviceManager.AddDevice(aux1Output);
@@ -972,7 +977,8 @@ namespace PepperDash.Essentials.DM
                     {
                         AddAudioOnlyOutputPort(number, "Aux2");
 
-                        DmpsAudioOutputController aux2Output = new DmpsAudioOutputController(string.Format("processor-aux2AudioOutput"),
+                        DmpsAudioOutputController aux2Output = new DmpsAudioOutputController(
+                            string.Format("processor-aux2AudioOutput"),
                             "Aux2 Audio Output", outputCard as Card.Dmps3Aux2Output);
 
                         DeviceManager.AddDevice(aux2Output);
@@ -1031,7 +1037,7 @@ namespace PepperDash.Essentials.DM
         /// Adds an Audio only output port
         /// </summary>
         /// <param name="number"></param>
-        void AddAudioOnlyOutputPort(uint number, string portName)
+        private void AddAudioOnlyOutputPort(uint number, string portName)
         {
             AddOutputPortWithDebug(number, portName, eRoutingSignalType.Audio, eRoutingPortConnectionType.LineAudio,
                 Dmps.SwitcherOutputs[number]);
@@ -1042,7 +1048,7 @@ namespace PepperDash.Essentials.DM
         /// </summary>
         /// <param name="number"></param>
         /// <param name="cecPort"></param>
-        void AddHdmiOutputPort(uint number, ICec cecPort)
+        private void AddHdmiOutputPort(uint number, ICec cecPort)
         {
             AddOutputPortWithDebug(number, string.Format("hdmiOut{0}", number),
                 eRoutingSignalType.Audio | eRoutingSignalType.Video, eRoutingPortConnectionType.Hdmi,
@@ -1053,7 +1059,7 @@ namespace PepperDash.Essentials.DM
         /// Adds a DM output port
         /// </summary>
         /// <param name="number"></param>
-        void AddDmOutputPort(uint number)
+        private void AddDmOutputPort(uint number)
         {
             AddOutputPortWithDebug(number, string.Format("dmOut{0}", number),
                 eRoutingSignalType.Audio | eRoutingSignalType.Video, eRoutingPortConnectionType.DmCat,
@@ -1063,7 +1069,7 @@ namespace PepperDash.Essentials.DM
         /// <summary>
         /// Adds OutputPort
         /// </summary>
-        void AddOutputPortWithDebug(uint cardNum, string portName, eRoutingSignalType sigType,
+        private void AddOutputPortWithDebug(uint cardNum, string portName, eRoutingSignalType sigType,
             eRoutingPortConnectionType portType, object selector)
         {
             AddOutputPortWithDebug(cardNum, portName, sigType, portType, selector, null);
@@ -1072,7 +1078,7 @@ namespace PepperDash.Essentials.DM
         /// <summary>
         /// Adds OutputPort and sets Port as ICec object
         /// </summary>
-        void AddOutputPortWithDebug(uint cardNum, string portName, eRoutingSignalType sigType,
+        private void AddOutputPortWithDebug(uint cardNum, string portName, eRoutingSignalType sigType,
             eRoutingPortConnectionType portType, object selector, ICec cecPort)
         {
             string portKey = string.Format("outputCard{0}--{1}", cardNum, portName);
@@ -1091,12 +1097,12 @@ namespace PepperDash.Essentials.DM
         /// <summary>
         /// 
         /// </summary>
-        void AddVolumeControl(uint number, Audio.Output audio)
+        private void AddVolumeControl(uint number, Audio.Output audio)
         {
             VolumeControls.Add(number, new DmCardAudioOutputController(audio));
         }
 
-        void Dmps_DMInputChange(Switch device, DMInputEventArgs args)
+        private void Dmps_DMInputChange(Switch device, DMInputEventArgs args)
         {
             Debug.Console(2, this, "DMInputChange Input: {0} EventId: {1}", args.Number, args.EventId.ToString());
             try
@@ -1150,7 +1156,7 @@ namespace PepperDash.Essentials.DM
             }
         }
 
-        void Dmps_DMOutputChange(Switch device, DMOutputEventArgs args)
+        private void Dmps_DMOutputChange(Switch device, DMOutputEventArgs args)
         {
             if (args.EventId == DMOutputEventIds.OutputVuFeedBackEventId)
             {
@@ -1263,7 +1269,7 @@ namespace PepperDash.Essentials.DM
             }
         }
 
-        void Dmps_DMSystemChange(Switch device, DMSystemEventArgs args)
+        private void Dmps_DMSystemChange(Switch device, DMSystemEventArgs args)
         {
             switch (args.EventId)
             {
@@ -1288,7 +1294,7 @@ namespace PepperDash.Essentials.DM
         /// 
         /// </summary>
         /// <param name="pnt"></param>
-        void StartOffTimer(PortNumberType pnt)
+        private void StartOffTimer(PortNumberType pnt)
         {
             if (RouteOffTimers.ContainsKey(pnt))
                 return;

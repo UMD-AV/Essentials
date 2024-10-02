@@ -144,7 +144,7 @@ namespace PepperDash.Essentials.Core
             }
         }
 
-        void Hardware_OnlineStatusChange(GenericBase currentDevice, OnlineOfflineEventArgs args)
+        private void Hardware_OnlineStatusChange(GenericBase currentDevice, OnlineOfflineEventArgs args)
         {
             Debug.Console(2, this, "OnlineStatusChange Event.  Online = {0}", args.DeviceOnLine);
 

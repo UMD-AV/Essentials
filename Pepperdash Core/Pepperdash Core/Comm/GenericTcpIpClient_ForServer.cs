@@ -95,7 +95,7 @@ namespace PepperDash.Core
         /// <summary>
         /// Semaphore on connect method
         /// </summary>
-        bool IsTryingToConnect;
+        private bool IsTryingToConnect;
 
         /// <summary>
         /// Bool showing if socket is connected
@@ -185,12 +185,12 @@ namespace PepperDash.Core
         /// <summary>
         /// Flag Set only when the disconnect method is called.
         /// </summary>
-        bool DisconnectCalledByUser;
+        private bool DisconnectCalledByUser;
 
         /// <summary>
         /// private Timer for auto reconnect
         /// </summary>
-        CTimer RetryTimer;
+        private CTimer RetryTimer;
 
 
         public bool HeartbeatEnabled { get; set; }
@@ -203,23 +203,23 @@ namespace PepperDash.Core
 
         public string HeartbeatString = "heartbeat";
         public int HeartbeatInterval = 50000;
-        CTimer HeartbeatSendTimer;
-        CTimer HeartbeatAckTimer;
+        private CTimer HeartbeatSendTimer;
+        private CTimer HeartbeatAckTimer;
 
         /// <summary>
         /// Used to force disconnection on a dead connect attempt
         /// </summary>
-        CTimer ConnectFailTimer;
+        private CTimer ConnectFailTimer;
 
-        CTimer WaitForSharedKey;
+        private CTimer WaitForSharedKey;
         private int ConnectionCount;
 
         /// <summary>
         /// Internal secure client
         /// </summary>
-        TCPClient Client;
+        private TCPClient Client;
 
-        bool ProgramIsStopping;
+        private bool ProgramIsStopping;
 
         #endregion
 
@@ -262,7 +262,7 @@ namespace PepperDash.Core
         /// <summary>
         /// Handles closing this up when the program shuts down
         /// </summary>
-        void CrestronEnvironment_ProgramStatusEventHandler(eProgramStatusEventType programEventType)
+        private void CrestronEnvironment_ProgramStatusEventHandler(eProgramStatusEventType programEventType)
         {
             if (programEventType == eProgramStatusEventType.Stopping ||
                 programEventType == eProgramStatusEventType.Paused)
@@ -439,7 +439,7 @@ namespace PepperDash.Core
         /// <summary>
         ///  Internal call to close up client. ALWAYS use this when disconnecting.
         /// </summary>
-        void Cleanup()
+        private void Cleanup()
         {
             IsTryingToConnect = false;
 
@@ -465,7 +465,7 @@ namespace PepperDash.Core
         /// Called from Connect failure or Socket Status change if 
         /// auto reconnect and socket disconnected (Not disconnected by user)
         /// </summary>
-        void CheckClosedAndTryReconnect()
+        private void CheckClosedAndTryReconnect()
         {
             if (Client != null)
             {
@@ -493,7 +493,7 @@ namespace PepperDash.Core
         /// </summary>
         /// <param name="client"></param>
         /// <param name="numBytes"></param>
-        void Receive(TCPClient client, int numBytes)
+        private void Receive(TCPClient client, int numBytes)
         {
             if (numBytes > 0)
             {
@@ -538,7 +538,7 @@ namespace PepperDash.Core
                 client.ReceiveDataAsync(Receive);
         }
 
-        void HeartbeatStart()
+        private void HeartbeatStart()
         {
             if (HeartbeatEnabled)
             {
@@ -556,7 +556,7 @@ namespace PepperDash.Core
             }
         }
 
-        void HeartbeatStop()
+        private void HeartbeatStop()
         {
             if (HeartbeatSendTimer != null)
             {
@@ -573,14 +573,14 @@ namespace PepperDash.Core
             }
         }
 
-        void SendHeartbeat(object notused)
+        private void SendHeartbeat(object notused)
         {
             this.SendText(HeartbeatString);
             Debug.Console(2, this, "Sending Heartbeat");
         }
 
         //private method to check heartbeat requirements and start or reset timer
-        string checkHeartbeat(string received)
+        private string checkHeartbeat(string received)
         {
             try
             {
@@ -617,7 +617,7 @@ namespace PepperDash.Core
         }
 
 
-        void HeartbeatAckTimerFail(object o)
+        private void HeartbeatAckTimerFail(object o)
         {
             try
             {
@@ -638,7 +638,7 @@ namespace PepperDash.Core
         /// <summary>
         /// 
         /// </summary>
-        void StopWaitForSharedKeyTimer()
+        private void StopWaitForSharedKeyTimer()
         {
             if (WaitForSharedKey != null)
             {
@@ -701,7 +701,7 @@ namespace PepperDash.Core
         /// </summary>
         /// <param name="client"></param>
         /// <param name="clientSocketStatus"></param>
-        void Client_SocketStatusChange(TCPClient client, SocketStatus clientSocketStatus)
+        private void Client_SocketStatusChange(TCPClient client, SocketStatus clientSocketStatus)
         {
             if (ProgramIsStopping)
             {
@@ -734,7 +734,7 @@ namespace PepperDash.Core
         /// <summary>
         /// Helper for ConnectionChange event
         /// </summary>
-        void OnConnectionChange()
+        private void OnConnectionChange()
         {
             EventHandler<GenericTcpServerSocketStatusChangeEventArgs> handler = ConnectionChange;
             if (handler != null)
@@ -744,7 +744,7 @@ namespace PepperDash.Core
         /// <summary>
         /// Helper to fire ClientReadyForCommunications event
         /// </summary>
-        void OnClientReadyForcommunications(bool isReady)
+        private void OnClientReadyForcommunications(bool isReady)
         {
             IsReadyForCommunication = isReady;
             if (this.IsReadyForCommunication)

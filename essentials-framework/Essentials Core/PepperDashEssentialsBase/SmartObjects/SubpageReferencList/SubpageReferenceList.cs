@@ -33,7 +33,7 @@ namespace PepperDash.Essentials.Core
         public ushort MaxDefinedItems { get; private set; }
 
         public UShortInputSig ScrollToItemSig { get; private set; }
-        UShortInputSig SetNumberOfItemsSig;
+        private UShortInputSig SetNumberOfItemsSig;
         public uint BoolIncrement { get; protected set; }
         public uint UShortIncrement { get; protected set; }
         public uint StringIncrement { get; protected set; }
@@ -206,37 +206,37 @@ namespace PepperDash.Essentials.Core
 
         // Helpers to get signal names
 
-        string GetBoolFeedbackSigName(uint index, uint sigNum)
+        private string GetBoolFeedbackSigName(uint index, uint sigNum)
         {
             uint num = (index - 1) * BoolIncrement + sigNum;
             return string.Format("press{0}", num);
         }
 
-        string GetUShortOutputSigName(uint index, uint sigNum)
+        private string GetUShortOutputSigName(uint index, uint sigNum)
         {
             uint num = (index - 1) * UShortIncrement + sigNum;
             return string.Format("an_act{0}", num);
         }
 
-        string GetStringOutputSigName(uint index, uint sigNum)
+        private string GetStringOutputSigName(uint index, uint sigNum)
         {
             uint num = (index - 1) * StringIncrement + sigNum;
             return string.Format("text-i{0}", num);
         }
 
-        string GetBoolInputSigName(uint index, uint sigNum)
+        private string GetBoolInputSigName(uint index, uint sigNum)
         {
             uint num = (index - 1) * BoolIncrement + sigNum;
             return string.Format("fb{0}", num);
         }
 
-        string GetUShortInputSigName(uint index, uint sigNum)
+        private string GetUShortInputSigName(uint index, uint sigNum)
         {
             uint num = (index - 1) * UShortIncrement + sigNum;
             return string.Format("an_fb{0}", num);
         }
 
-        string GetStringInputSigName(uint index, uint sigNum)
+        private string GetStringInputSigName(uint index, uint sigNum)
         {
             uint num = (index - 1) * StringIncrement + sigNum;
             return string.Format("text-o{0}", num);

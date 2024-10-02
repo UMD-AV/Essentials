@@ -1,6 +1,6 @@
 ﻿namespace PepperDash.Essentials.EpiphanPearl.Interfaces
 {
-    interface IEpiphanPearlClient
+    internal interface IEpiphanPearlClient
     {
         string Delete(string path);
         T Get<T>(string path) where T : class;

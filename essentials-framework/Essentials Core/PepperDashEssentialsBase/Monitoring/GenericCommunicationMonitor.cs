@@ -27,10 +27,10 @@ namespace PepperDash.Essentials.Core
             get { return Client is ISocketStatus; }
         }
 
-        long PollTime;
-        CTimer PollTimer;
-        string PollString;
-        Action PollAction;
+        private long PollTime;
+        private CTimer PollTimer;
+        private string PollString;
+        private Action PollAction;
 
         /// <summary>
         /// 
@@ -132,7 +132,7 @@ namespace PepperDash.Essentials.Core
             SetMonitorBytesReceived(monitorBytesReceived);
         }
 
-        void SetMonitorBytesReceived(bool monitorBytesReceived)
+        private void SetMonitorBytesReceived(bool monitorBytesReceived)
         {
             MonitorBytesReceived = monitorBytesReceived;
         }
@@ -155,7 +155,7 @@ namespace PepperDash.Essentials.Core
             }
         }
 
-        void socket_ConnectionChange(object sender, GenericSocketStatusChageEventArgs e)
+        private void socket_ConnectionChange(object sender, GenericSocketStatusChageEventArgs e)
         {
             if (!e.Client.IsConnected)
             {
@@ -198,7 +198,7 @@ namespace PepperDash.Essentials.Core
             }
         }
 
-        void Client_TextReceived(object sender, GenericCommMethodReceiveTextArgs e)
+        private void Client_TextReceived(object sender, GenericCommMethodReceiveTextArgs e)
         {
             DataReceived();
         }
@@ -208,18 +208,18 @@ namespace PepperDash.Essentials.Core
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        void Client_BytesReceived(object sender, GenericCommMethodReceiveBytesArgs e)
+        private void Client_BytesReceived(object sender, GenericCommMethodReceiveBytesArgs e)
         {
             DataReceived();
         }
 
-        void DataReceived()
+        private void DataReceived()
         {
             Status = MonitorStatus.IsOk;
             ResetErrorTimers();
         }
 
-        void Poll()
+        private void Poll()
         {
             StartErrorTimers();
             if (Client.IsConnected)

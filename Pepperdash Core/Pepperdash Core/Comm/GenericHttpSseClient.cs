@@ -19,8 +19,8 @@ namespace PepperDash.Core
 
         public string Url { get; set; }
 
-        HttpClient Client;
-        HttpClientRequest Request;
+        private HttpClient Client;
+        private HttpClientRequest Request;
 
         public GenericHttpSseClient(string key, string name)
         {
@@ -144,7 +144,7 @@ namespace PepperDash.Core
             }
         }
 
-        void DataConnection_OnBytesReceived(object sender, EventArgs e)
+        private void DataConnection_OnBytesReceived(object sender, EventArgs e)
         {
             Debug.Console(1, this, "DataConnection OnBytesReceived Fired");
         }

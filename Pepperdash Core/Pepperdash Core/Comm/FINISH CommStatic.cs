@@ -9,7 +9,7 @@ namespace PepperDash.Core
     /// </summary>
     public static class CommStatic
     {
-        static List<ISocketStatus> Sockets = new List<ISocketStatus>();
+        private static List<ISocketStatus> Sockets = new List<ISocketStatus>();
 
         /// <summary>
         /// Sets up the backing class. Adds console commands for S#Pro programs
@@ -24,7 +24,7 @@ namespace PepperDash.Core
             }
         }
 
-        static void SocketCommand(string s)
+        private static void SocketCommand(string s)
         {
             //          0            1        2       
             //socket command number/key/all param
@@ -66,7 +66,7 @@ namespace PepperDash.Core
         /// <summary>
         /// Helper for socket list, to show types
         /// </summary>
-        static string GetSocketType(ISocketStatus sock)
+        private static string GetSocketType(ISocketStatus sock)
         {
             if (sock is GenericSshClient)
                 return "SSH";

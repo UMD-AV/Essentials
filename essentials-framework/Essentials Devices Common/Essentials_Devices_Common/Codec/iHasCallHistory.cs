@@ -33,7 +33,7 @@ namespace PepperDash.Essentials.Devices.Common.Codec
         /// <summary>
         /// Item that gets added to the list when there are no recent calls in history
         /// </summary>
-        CallHistoryEntry ListEmptyEntry;
+        private CallHistoryEntry ListEmptyEntry;
 
         public CodecCallHistory()
         {
@@ -44,7 +44,7 @@ namespace PepperDash.Essentials.Devices.Common.Codec
             RecentCalls.Add(ListEmptyEntry);
         }
 
-        void OnRecentCallsListChange()
+        private void OnRecentCallsListChange()
         {
             EventHandler<EventArgs> handler = RecentCallsListHasChanged;
             if (handler != null)

@@ -18,7 +18,7 @@ namespace PepperDash.Essentials.Core
             get { return true; }
         }
 
-        ICec Port;
+        private ICec Port;
 
         public CecPortController(string key, Func<EssentialsControlPropertiesConfig, ICec> postActivationFunc,
             EssentialsControlPropertiesConfig config) : base(key)
@@ -41,7 +41,7 @@ namespace PepperDash.Essentials.Core
             Port.StreamCec.CecChange += new CecChangeEventHandler(StreamCec_CecChange);
         }
 
-        void StreamCec_CecChange(Cec cecDevice, CecEventArgs args)
+        private void StreamCec_CecChange(Cec cecDevice, CecEventArgs args)
         {
             if (args.EventId == CecEventIds.CecMessageReceivedEventId)
                 OnDataReceived(cecDevice.Received.StringValue);
@@ -50,7 +50,7 @@ namespace PepperDash.Essentials.Core
                     Debug.Console(2, this, "CEC NAK Error");
         }
 
-        void OnDataReceived(string s)
+        private void OnDataReceived(string s)
         {
             EventHandler<GenericCommMethodReceiveBytesArgs> bytesHandler = BytesReceived;
             if (bytesHandler != null)

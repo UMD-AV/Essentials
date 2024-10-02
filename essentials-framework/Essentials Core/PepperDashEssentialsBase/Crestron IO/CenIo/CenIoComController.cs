@@ -51,7 +51,7 @@ namespace PepperDash.Essentials.Core.CrestronIO
             return new CenIoComController(dc.Key, GetCenIoComDevice, dc);
         }
 
-        static CenIoCom GetCenIoComDevice(DeviceConfig dc)
+        private static CenIoCom GetCenIoComDevice(DeviceConfig dc)
         {
             EssentialsControlPropertiesConfig control = CommFactory.GetControlPropertiesConfig(dc);
             uint ipid = control.IpIdInt;

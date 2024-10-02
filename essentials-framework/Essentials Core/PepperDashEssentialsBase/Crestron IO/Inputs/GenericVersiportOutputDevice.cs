@@ -20,7 +20,7 @@ namespace PepperDash.Essentials.Core.CrestronIO
         public BoolFeedback OutputIsOnFeedback { get; private set; }
         private CTimer OutputHoldTimer;
 
-        Func<bool> OutputStateFeedbackFunc
+        private Func<bool> OutputStateFeedbackFunc
         {
             get { return () => OutputPort.DigitalOut; }
         }
@@ -51,7 +51,7 @@ namespace PepperDash.Essentials.Core.CrestronIO
             });
         }
 
-        void OutputPort_VersiportChange(Versiport port, VersiportEventArgs args)
+        private void OutputPort_VersiportChange(Versiport port, VersiportEventArgs args)
         {
             Debug.Console(1, this, "Versiport change: {0}", args.Event);
 
@@ -61,7 +61,7 @@ namespace PepperDash.Essentials.Core.CrestronIO
 
         #region Events
 
-        void OutputTimerCallback(object o)
+        private void OutputTimerCallback(object o)
         {
             OutputPort.DigitalOut = false;
         }
@@ -225,7 +225,8 @@ namespace PepperDash.Essentials.Core.CrestronIO
 
             if (props == null) return null;
 
-            GenericVersiportDigitalOutputDevice portDevice = new GenericVersiportDigitalOutputDevice(dc.Key, dc.Name, props);
+            GenericVersiportDigitalOutputDevice portDevice =
+                new GenericVersiportDigitalOutputDevice(dc.Key, dc.Name, props);
 
             return portDevice;
         }

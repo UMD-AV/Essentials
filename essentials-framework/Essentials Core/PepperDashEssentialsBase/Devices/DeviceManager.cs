@@ -21,7 +21,7 @@ namespace PepperDash.Essentials.Core
         //public static List<Device> Devices { get { return _Devices; } }
         //static List<Device> _Devices = new List<Device>();
 
-        static readonly Dictionary<string, IKeyed> Devices =
+        private static readonly Dictionary<string, IKeyed> Devices =
             new Dictionary<string, IKeyed>(StringComparer.OrdinalIgnoreCase);
 
         /// <summary>
@@ -407,8 +407,10 @@ namespace PepperDash.Essentials.Core
             IKeyed device = GetDeviceForKey(s);
 
             if (device == null) return;
-            RoutingPortCollection<RoutingInputPort> inputPorts = ((device as IRoutingInputs) != null) ? (device as IRoutingInputs).InputPorts : null;
-            RoutingPortCollection<RoutingOutputPort> outputPorts = ((device as IRoutingOutputs) != null) ? (device as IRoutingOutputs).OutputPorts : null;
+            RoutingPortCollection<RoutingInputPort> inputPorts =
+                ((device as IRoutingInputs) != null) ? (device as IRoutingInputs).InputPorts : null;
+            RoutingPortCollection<RoutingOutputPort> outputPorts =
+                ((device as IRoutingOutputs) != null) ? (device as IRoutingOutputs).OutputPorts : null;
             if (inputPorts != null)
             {
                 Debug.Console(0, "Device {0} has {1} Input Ports:", s, inputPorts.Count);

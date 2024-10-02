@@ -53,9 +53,9 @@ namespace PepperDash.Essentials.Devices.Common.Denon
         #endregion
 
         private uint pollCount;
-        readonly DenonQueue _cmdQueue;
-        CMutex _CommandMutex;
-        DeviceConfig _Dc;
+        private readonly DenonQueue _cmdQueue;
+        private CMutex _CommandMutex;
+        private DeviceConfig _Dc;
         private bool _readyForNextCommand;
         private string _lastCommand;
 
@@ -162,7 +162,7 @@ namespace PepperDash.Essentials.Devices.Common.Denon
             }
         }
 
-        void socket_ConnectionChange(object sender, GenericSocketStatusChageEventArgs e)
+        private void socket_ConnectionChange(object sender, GenericSocketStatusChageEventArgs e)
         {
             Debug.Console(2, this, "Socket Status Change: {0}", e.Client.ClientStatus.ToString());
 
@@ -450,7 +450,7 @@ namespace PepperDash.Essentials.Devices.Common.Denon
         }
 
         public BoolFeedback PowerIsOnFeedback { get; set; }
-        bool _PowerIsOn;
+        private bool _PowerIsOn;
 
         #endregion
 

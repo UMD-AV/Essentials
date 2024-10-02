@@ -320,7 +320,7 @@ namespace PepperDash.Essentials.DM.Chassis
 
         #region Events
 
-        void Chassis_OnlineStatusChange(Crestron.SimplSharpPro.GenericBase currentDevice,
+        private void Chassis_OnlineStatusChange(Crestron.SimplSharpPro.GenericBase currentDevice,
             Crestron.SimplSharpPro.OnlineOfflineEventArgs args)
         {
             Debug.Console(1, this, "Online status change: {0}", args.DeviceOnLine);
@@ -381,7 +381,7 @@ namespace PepperDash.Essentials.DM.Chassis
                 AutoRouteFeedback.FireUpdate();
         }
 
-        void Chassis_DMOutputChange(Switch device, DMOutputEventArgs args)
+        private void Chassis_DMOutputChange(Switch device, DMOutputEventArgs args)
         {
             switch (args.EventId)
             {
@@ -427,7 +427,7 @@ namespace PepperDash.Essentials.DM.Chassis
             }
         }
 
-        void Chassis_DMInputChange(Switch device, DMInputEventArgs args)
+        private void Chassis_DMInputChange(Switch device, DMInputEventArgs args)
         {
             switch (args.EventId)
             {

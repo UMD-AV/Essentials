@@ -10,7 +10,7 @@ namespace PepperDash.Essentials.Core
     {
         public uint TimeoutMs { get; set; }
         public BoolFeedback Feedback { get; private set; }
-        CTimer Timer;
+        private CTimer Timer;
 
         /// <summary>
         /// When set to true, will cause Feedback to go high, and cancel the timer.
@@ -45,7 +45,7 @@ namespace PepperDash.Essentials.Core
             }
         }
 
-        bool _BoolValue;
+        private bool _BoolValue;
 
         /// <summary>
         /// Constructor
@@ -67,7 +67,7 @@ namespace PepperDash.Essentials.Core
             ClearFeedback();
         }
 
-        void ClearFeedback()
+        private void ClearFeedback()
         {
             _BoolValue = false;
             Feedback.FireUpdate();

@@ -107,7 +107,7 @@ namespace PepperDash.Essentials
             Debug.Console(0, "BridgeApiEisc Created at Ipid {0}", ipid);
         }
 
-        void Eisc_SigChange(object currentDevice, Crestron.SimplSharpPro.SigEventArgs args)
+        private void Eisc_SigChange(object currentDevice, Crestron.SimplSharpPro.SigEventArgs args)
         {
             if (Debug.Level >= 1)
                 Debug.Console(1, "BridgeApiEisc change: {0} {1}={2}", args.Sig.Type, args.Sig.Number,

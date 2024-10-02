@@ -66,7 +66,8 @@ namespace PepperDash.Essentials.DM
             HdmiOut.Port = _rmc.HdmiOutput;
         }
 
-        void HdmiOutput_OutputStreamChange(EndpointOutputStream outputStream, EndpointOutputStreamEventArgs args)
+        private void HdmiOutput_OutputStreamChange(EndpointOutputStream outputStream,
+            EndpointOutputStreamEventArgs args)
         {
             if (args.EventId == EndpointOutputStreamEventIds.HorizontalResolutionFeedbackEventId ||
                 args.EventId == EndpointOutputStreamEventIds.VerticalResolutionFeedbackEventId ||
@@ -76,7 +77,7 @@ namespace PepperDash.Essentials.DM
             }
         }
 
-        void ConnectedDevice_DeviceInformationChange(ConnectedDeviceInformation connectedDevice,
+        private void ConnectedDevice_DeviceInformationChange(ConnectedDeviceInformation connectedDevice,
             ConnectedDeviceEventArgs args)
         {
             switch (args.EventId)

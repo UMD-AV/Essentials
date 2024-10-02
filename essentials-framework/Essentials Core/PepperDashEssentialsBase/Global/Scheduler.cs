@@ -31,7 +31,7 @@ namespace PepperDash.Essentials.Core
         /// Clears (deletes) all events from a group
         /// </summary>
         /// <param name="groupName"></param>
-        static void ClearEventsFromGroup(string groupName)
+        private static void ClearEventsFromGroup(string groupName)
         {
             if (!EventGroups.ContainsKey(groupName))
             {
@@ -55,7 +55,7 @@ namespace PepperDash.Essentials.Core
                     groupName);
         }
 
-        static void ListAllEventGroups(string command)
+        private static void ListAllEventGroups(string command)
         {
             Debug.Console(0, "Event Groups:");
             foreach (KeyValuePair<string, ScheduledEventGroup> group in EventGroups)
@@ -64,7 +64,7 @@ namespace PepperDash.Essentials.Core
             }
         }
 
-        static void ListAllEventsForGroup(string args)
+        private static void ListAllEventsForGroup(string args)
         {
             Debug.Console(0, "Getting events for group {0}...", args);
 

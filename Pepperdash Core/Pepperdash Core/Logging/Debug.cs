@@ -156,7 +156,7 @@ namespace PepperDash.Core
         /// Used to save memory when shutting down
         /// </summary>
         /// <param name="programEventType"></param>
-        static void CrestronEnvironment_ProgramStatusEventHandler(eProgramStatusEventType programEventType)
+        private static void CrestronEnvironment_ProgramStatusEventHandler(eProgramStatusEventType programEventType)
         {
             if (programEventType == eProgramStatusEventType.Stopping)
             {
@@ -473,7 +473,7 @@ namespace PepperDash.Core
         /// <summary>
         /// Writes the memory object after timeout
         /// </summary>
-        static void SaveMemoryOnTimeout()
+        private static void SaveMemoryOnTimeout()
         {
             Console(0, "Saving debug settings");
             if (_saveTimer == null)
@@ -489,7 +489,7 @@ namespace PepperDash.Core
         /// <summary>
         /// Writes the memory - use SaveMemoryOnTimeout
         /// </summary>
-        static void SaveMemory()
+        private static void SaveMemory()
         {
             //var dir = @"\NVRAM\debug";
             //if (!Directory.Exists(dir))
@@ -506,7 +506,7 @@ namespace PepperDash.Core
         /// <summary>
         /// 
         /// </summary>
-        static void LoadMemory()
+        private static void LoadMemory()
         {
             string file = GetMemoryFileName();
             if (File.Exists(file))
@@ -530,7 +530,7 @@ namespace PepperDash.Core
         /// <summary>
         /// Helper to get the file path for this app's debug memory
         /// </summary>
-        static string GetMemoryFileName()
+        private static string GetMemoryFileName()
         {
             CheckForMigration();
             return string.Format(@"\user\debugSettings\program{0}", InitialParametersClass.ApplicationNumber);

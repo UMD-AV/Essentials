@@ -49,7 +49,7 @@ namespace PepperDash.Essentials.Core
             return true;
         }
 
-        void SendLine(string s)
+        private void SendLine(string s)
         {
             //if (Debug.Level == 2)
             //    Debug.Console(2, this, "    Send '{0}'", ComTextHelper.GetEscapedText(s));
@@ -79,8 +79,9 @@ namespace PepperDash.Essentials.Core
         {
             Debug.Console(1, "Factory Attempting to create new Comm Mock Device");
             IBasicCommunication comm = CommFactory.CreateCommForDevice(dc);
-            ConsoleCommMockDevicePropertiesConfig props = Newtonsoft.Json.JsonConvert.DeserializeObject<ConsoleCommMockDevicePropertiesConfig>(
-                dc.Properties.ToString());
+            ConsoleCommMockDevicePropertiesConfig props =
+                Newtonsoft.Json.JsonConvert.DeserializeObject<ConsoleCommMockDevicePropertiesConfig>(
+                    dc.Properties.ToString());
             return new ConsoleCommMockDevice(dc.Key, dc.Name, props, comm);
         }
     }

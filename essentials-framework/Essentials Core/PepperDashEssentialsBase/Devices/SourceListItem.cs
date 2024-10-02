@@ -37,7 +37,7 @@ namespace PepperDash.Essentials.Core
             }
         }
 
-        Device _SourceDevice;
+        private Device _SourceDevice;
 
         /// <summary>
         /// Gets either the source's Name or this AlternateName property, if 

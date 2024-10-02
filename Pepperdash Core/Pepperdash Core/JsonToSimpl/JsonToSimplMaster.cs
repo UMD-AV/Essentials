@@ -44,7 +44,7 @@ namespace PepperDash.Core.JsonToSimpl
             }
         }
 
-        string _DebugName = "";
+        private string _DebugName = "";
 
         /// <summary>
         /// This will be prepended to all paths to allow path swapping or for more organized
@@ -141,7 +141,8 @@ namespace PepperDash.Core.JsonToSimpl
         {
             public static JObject ParseObject(string json)
             {
-                using (JsonTextReader reader = new JsonTextReader(new Crestron.SimplSharp.CrestronIO.StringReader(json)))
+                using (JsonTextReader reader =
+                       new JsonTextReader(new Crestron.SimplSharp.CrestronIO.StringReader(json)))
                 {
                     int startDepth = reader.Depth;
                     JObject obj = JObject.Load(reader);
@@ -153,7 +154,8 @@ namespace PepperDash.Core.JsonToSimpl
 
             public static JArray ParseArray(string json)
             {
-                using (JsonTextReader reader = new JsonTextReader(new Crestron.SimplSharp.CrestronIO.StringReader(json)))
+                using (JsonTextReader reader =
+                       new JsonTextReader(new Crestron.SimplSharp.CrestronIO.StringReader(json)))
                 {
                     int startDepth = reader.Depth;
                     JArray obj = JArray.Load(reader);

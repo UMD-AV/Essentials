@@ -6,7 +6,7 @@ using PepperDash.Core;
 namespace PepperDash.Essentials.Core.Devices
 {
     /// <summary>
-    /// This DVD class should cover most IR, one-way DVD and Bluray fuctions
+    /// 
     /// </summary>
     public class InRoomPc : EssentialsDevice, IHasFeedback, IRoutingOutputs, IAttachVideoStatus, IUiDisplayInfo,
         IUsageTracking

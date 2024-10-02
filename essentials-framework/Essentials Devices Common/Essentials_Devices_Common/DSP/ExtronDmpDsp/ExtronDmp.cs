@@ -16,8 +16,8 @@ namespace ExtronDmp
     /// </remarks>
     public class ExtronDmp : EssentialsBridgeableDevice, ICommunicationMonitor, IOnline
     {
-        const string connectedPrompt = "(c) Copyright";
-        const string passwordPrompt = "Password:";
+        private const string connectedPrompt = "(c) Copyright";
+        private const string passwordPrompt = "Password:";
 
         /// <summary>
         /// Communication object
@@ -170,7 +170,7 @@ namespace ExtronDmp
         /// <summary>
         /// Initiates the subscription process to the DSP
         /// </summary>
-        void InitializeDspObjects()
+        private void InitializeDspObjects()
         {
             SendLine(string.Format("{0}3CV\x0D", '\x1B')); //Set verbose mode 3
             CrestronEnvironment.Sleep(250);
@@ -202,7 +202,7 @@ namespace ExtronDmp
         /// </summary>
         /// <param name="dev"></param>
         /// <param name="args"></param>
-        void ResponseReceived(object dev, GenericCommMethodReceiveTextArgs args)
+        private void ResponseReceived(object dev, GenericCommMethodReceiveTextArgs args)
         {
             HeartbeatTracker = 0;
             if (args.Text.Length <= 1)

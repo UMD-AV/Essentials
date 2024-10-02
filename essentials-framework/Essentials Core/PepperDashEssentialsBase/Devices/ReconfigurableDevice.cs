@@ -41,7 +41,7 @@ namespace PepperDash.Essentials.Core.Devices
             }
         }
 
-        void SetNameHelper(DeviceConfig config)
+        private void SetNameHelper(DeviceConfig config)
         {
             if (!string.IsNullOrEmpty(config.Name))
                 Name = config.Name;

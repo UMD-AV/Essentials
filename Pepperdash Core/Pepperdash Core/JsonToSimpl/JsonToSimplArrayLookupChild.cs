@@ -9,7 +9,7 @@ namespace PepperDash.Core.JsonToSimpl
         public string SearchPropertyName { get; set; }
         public string SearchPropertyValue { get; set; }
 
-        int ArrayIndex;
+        private int ArrayIndex;
 
         /// <summary>
         /// For <2.4.1 array lookups
@@ -75,7 +75,7 @@ namespace PepperDash.Core.JsonToSimpl
         /// Provides the path append for GetFullPath
         /// </summary>
         /// <returns></returns>
-        string GetPathAppend(string a)
+        private string GetPathAppend(string a)
         {
             if (string.IsNullOrEmpty(a))
             {
@@ -96,7 +96,7 @@ namespace PepperDash.Core.JsonToSimpl
         /// 
         /// </summary>
         /// <returns></returns>
-        bool FindInArray()
+        private bool FindInArray()
         {
             if (Master == null)
                 throw new InvalidOperationException("Cannot do operations before master is linked");

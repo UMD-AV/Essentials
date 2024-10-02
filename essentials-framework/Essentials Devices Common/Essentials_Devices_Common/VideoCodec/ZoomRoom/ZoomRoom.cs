@@ -2716,7 +2716,7 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.ZoomRoom
             }
         }
 
-        void SetSharingStateJoins(zStatus.Sharing state, BasicTriList trilist, ZoomRoomJoinMap joinMap)
+        private void SetSharingStateJoins(zStatus.Sharing state, BasicTriList trilist, ZoomRoomJoinMap joinMap)
         {
             trilist.SetBool(joinMap.IsSharingAirplay.JoinNumber, state.isAirHostClientConnected);
             trilist.SetBool(joinMap.IsSharingHdmi.JoinNumber,
@@ -3631,7 +3631,8 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.ZoomRoom
             Dial(_lastDialedMeetingNumber, password);
         }
 
-        void OnPasswordRequired(bool lastAttemptIncorrect, bool loginFailed, bool loginCancelled, string message)
+        private void OnPasswordRequired(bool lastAttemptIncorrect, bool loginFailed, bool loginCancelled,
+            string message)
         {
             EventHandler<PasswordPromptEventArgs> handler = PasswordRequired;
             if (handler != null)
@@ -3640,7 +3641,7 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.ZoomRoom
             }
         }
 
-        void ClearPasswordPrompt()
+        private void ClearPasswordPrompt()
         {
             OnPasswordRequired(false, false, true, "");
         }
@@ -3736,7 +3737,7 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.ZoomRoom
 
         public BoolFeedback MeetingIsRecordingFeedback { get; private set; }
 
-        bool _recordConsentPromptIsVisible;
+        private bool _recordConsentPromptIsVisible;
 
         public BoolFeedback RecordConsentPromptIsVisible { get; private set; }
 
@@ -3806,7 +3807,7 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.ZoomRoom
             get { return Status.Sharing; }
         }
 
-        void OnShareInfoChanged(zStatus.Sharing status)
+        private void OnShareInfoChanged(zStatus.Sharing status)
         {
             Debug.Console(2, this,
                 @"ShareInfoChanged:

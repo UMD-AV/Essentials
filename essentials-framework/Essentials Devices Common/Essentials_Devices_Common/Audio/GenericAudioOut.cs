@@ -34,7 +34,7 @@ namespace PepperDash.Essentials.Devices.Common
             }
         }
 
-        SourceListItem _CurrentSourceInfo;
+        private SourceListItem _CurrentSourceInfo;
 
         public RoutingInputPort AnyAudioIn { get; private set; }
 

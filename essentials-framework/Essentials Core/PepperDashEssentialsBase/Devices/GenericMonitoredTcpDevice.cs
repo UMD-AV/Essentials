@@ -6,7 +6,7 @@ namespace PepperDash.Essentials.Core.Devices
 {
     public class GenericCommunicationMonitoredDevice : Device, ICommunicationMonitor
     {
-        IBasicCommunication Client;
+        private IBasicCommunication Client;
 
         public StatusMonitorBase CommunicationMonitor { get; private set; }
 

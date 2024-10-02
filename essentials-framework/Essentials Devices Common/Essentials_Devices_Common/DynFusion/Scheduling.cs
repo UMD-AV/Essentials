@@ -18,17 +18,17 @@ namespace DynFusion
         public event EventHandler<EventArgs> NextMeetingChanged;
         public event EventHandler<EventArgs> MeetingInProgressChanged;
 
-        DynFusionDevice _DynFusion;
-        CTimer getScheduleTimeOut;
-        CTimer getScheduleTimer;
-        CTimer updateCurrentMeeting;
-        SchedulingConfig _Config;
-        ScheduleResponse _scheduleResponse;
-        ushort nextMeetingIndex;
+        private DynFusionDevice _DynFusion;
+        private CTimer getScheduleTimeOut;
+        private CTimer getScheduleTimer;
+        private CTimer updateCurrentMeeting;
+        private SchedulingConfig _Config;
+        private ScheduleResponse _scheduleResponse;
+        private ushort nextMeetingIndex;
 
         private uint scheduleFailCount;
 
-        List<ScheduleResponse> RoomAvailabilityScheduleResponse = new List<ScheduleResponse>();
+        private List<ScheduleResponse> RoomAvailabilityScheduleResponse = new List<ScheduleResponse>();
 
         private BoolWithFeedback RegisteredForPush = new BoolWithFeedback();
         private BoolWithFeedback ScheduleBusy = new BoolWithFeedback();
@@ -118,12 +118,12 @@ namespace DynFusion
             return true;
         }
 
-        void _DynFusion_RoomInformationUpdated(object sender, EventArgs e)
+        private void _DynFusion_RoomInformationUpdated(object sender, EventArgs e)
         {
             GetRoomSchedule(null);
         }
 
-        void FusionSymbolStatusChange(object o, OnlineOfflineEventArgs e)
+        private void FusionSymbolStatusChange(object o, OnlineOfflineEventArgs e)
         {
             Debug.Console(1, this, "FusionSymbolStatusChange {0}", e.DeviceOnLine);
             fusionOnline = e.DeviceOnLine;
@@ -133,7 +133,7 @@ namespace DynFusion
             }
         }
 
-        void GetPushSchedule()
+        private void GetPushSchedule()
         {
             try
             {
@@ -177,7 +177,7 @@ namespace DynFusion
             }
         }
 
-        void UpdateCurrentMeetingCallback(object unused)
+        private void UpdateCurrentMeetingCallback(object unused)
         {
             Debug.Console(1, this, "Checking for current meeting");
             Event _currentMeetingTemp = null;
@@ -242,7 +242,7 @@ namespace DynFusion
             }
         }
 
-        void GetRoomSchedule(object unused)
+        private void GetRoomSchedule(object unused)
         {
             //If using push model, only update once a day
             if (RegisteredForPush.value)
@@ -323,12 +323,12 @@ namespace DynFusion
             }
         }
 
-        void FusionRoomAttributeExtenderSigChange(DeviceExtender currentDeviceExtender, SigEventArgs args)
+        private void FusionRoomAttributeExtenderSigChange(DeviceExtender currentDeviceExtender, SigEventArgs args)
         {
             Debug.Console(1, this, string.Format("RoomAttributeQuery Response: {0}", args.Sig.StringValue));
         }
 
-        void FusionRoomDataExtenderSigChange(DeviceExtender currentDeviceExtender, SigEventArgs args)
+        private void FusionRoomDataExtenderSigChange(DeviceExtender currentDeviceExtender, SigEventArgs args)
         {
             try
             {
@@ -438,7 +438,7 @@ namespace DynFusion
             }
         }
 
-        void FusionScheduleExtenderSigChange(DeviceExtender currentDeviceExtender, SigEventArgs args)
+        private void FusionScheduleExtenderSigChange(DeviceExtender currentDeviceExtender, SigEventArgs args)
         {
             try
             {
@@ -1051,7 +1051,7 @@ namespace DynFusion
             get { return GetInProgress(); }
         }
 
-        bool GetInProgress()
+        private bool GetInProgress()
         {
             DateTime now = DateTime.Now;
 

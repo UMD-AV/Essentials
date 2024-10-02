@@ -159,7 +159,7 @@ namespace PepperDash.Essentials.DM
             VideoSourceFeedback = new IntFeedback(() => (int)TxRxPair.HdmiOutputs[1].VideoOutFeedback.Number);
         }
 
-        void TxRxPair_DMSystemChange(Switch device, DMSystemEventArgs args)
+        private void TxRxPair_DMSystemChange(Switch device, DMSystemEventArgs args)
         {
             if (args.EventId == DMSystemEventIds.RemoteEndDetectedEventId)
                 RemoteEndDetectedFeedback.FireUpdate();
@@ -171,13 +171,13 @@ namespace PepperDash.Essentials.DM
                 InputOnScreenDisplayEnabledFeedback.FireUpdate();
         }
 
-        void TxRxPair_DMOutputChange(Switch device, DMOutputEventArgs args)
+        private void TxRxPair_DMOutputChange(Switch device, DMOutputEventArgs args)
         {
             if (args.EventId == DMOutputEventIds.VideoOutEventId)
                 VideoSourceFeedback.FireUpdate();
         }
 
-        void TxRxPair_DMInputChange(Switch device, DMInputEventArgs args)
+        private void TxRxPair_DMInputChange(Switch device, DMInputEventArgs args)
         {
             if (args.EventId == DMInputEventIds.VideoDetectedEventId)
                 SyncDetectedFeedbacks[args.Number].FireUpdate();

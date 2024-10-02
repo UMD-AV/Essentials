@@ -110,7 +110,7 @@ namespace Tesira_DSP_EPI
         private bool WatchDogSniffer { get; set; }
         public bool WatchdogSuspend { get; private set; }
 
-        readonly DeviceConfig _dc;
+        private readonly DeviceConfig _dc;
 
         public bool ShowHexResponse { get; set; }
 
@@ -254,7 +254,7 @@ namespace Tesira_DSP_EPI
             }
         }
 
-        void CrestronEnvironment_ProgramStatusEventHandler(eProgramStatusEventType programEventType)
+        private void CrestronEnvironment_ProgramStatusEventHandler(eProgramStatusEventType programEventType)
         {
             if (programEventType != eProgramStatusEventType.Stopping) return;
 
@@ -549,7 +549,7 @@ namespace Tesira_DSP_EPI
 
         #region Communications
 
-        void CommunicationMonitor_StatusChange(object sender, MonitorStatusChangeEventArgs e)
+        private void CommunicationMonitor_StatusChange(object sender, MonitorStatusChangeEventArgs e)
         {
             Debug.Console(2, this, "Communication monitor state: {0}", CommunicationMonitor.Status);
             if (e.Status == MonitorStatus.IsOk)
@@ -562,7 +562,7 @@ namespace Tesira_DSP_EPI
             }
         }
 
-        void socket_ConnectionChange(object sender, GenericSocketStatusChageEventArgs e)
+        private void socket_ConnectionChange(object sender, GenericSocketStatusChageEventArgs e)
         {
             Debug.Console(2, this, "Socket Status Change: {0}", e.Client.ClientStatus.ToString());
 

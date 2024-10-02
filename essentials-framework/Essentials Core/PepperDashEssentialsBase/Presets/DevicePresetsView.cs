@@ -48,7 +48,7 @@ namespace PepperDash.Essentials.Core.Presets
             SRL.Clear();
         }
 
-        void Model_PresetsLoaded(object sender, EventArgs e)
+        private void Model_PresetsLoaded(object sender, EventArgs e)
         {
             Detach();
             Attach();

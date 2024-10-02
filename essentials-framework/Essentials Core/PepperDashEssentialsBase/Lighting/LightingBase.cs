@@ -152,7 +152,7 @@ namespace PepperDash.Essentials.Core.Lighting
         [JsonProperty("portNumber", NullValueHandling = NullValueHandling.Ignore)]
         public uint PortNumber { get; set; }
 
-        bool _IsActive;
+        private bool _IsActive;
 
         [JsonProperty("isActive", NullValueHandling = NullValueHandling.Ignore)]
         public bool IsActive

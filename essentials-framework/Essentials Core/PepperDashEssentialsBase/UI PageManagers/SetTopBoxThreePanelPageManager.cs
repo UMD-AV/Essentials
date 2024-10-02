@@ -42,7 +42,7 @@ namespace PepperDash.Essentials.Core.PageManagers
         /// <summary>
         /// The joins for the switchable panel in position 5
         /// </summary>
-        Dictionary<uint, uint> Position5SubpageJoins = new Dictionary<uint, uint>
+        private Dictionary<uint, uint> Position5SubpageJoins = new Dictionary<uint, uint>
         {
             { 1, 10053 },
             { 2, 10054 }
@@ -77,7 +77,7 @@ namespace PepperDash.Essentials.Core.PageManagers
             }
         }
 
-        void tabSo_SigChange(Crestron.SimplSharpPro.GenericBase currentDevice,
+        private void tabSo_SigChange(Crestron.SimplSharpPro.GenericBase currentDevice,
             Crestron.SimplSharpPro.SmartObjectEventArgs args)
         {
             object uo = args.Sig.UserObject;
@@ -100,7 +100,7 @@ namespace PepperDash.Essentials.Core.PageManagers
             }
         }
 
-        void ShowTab(uint number)
+        private void ShowTab(uint number)
         {
             // Ignore re-presses
             if (CurrentVisiblePosition5Item == number) return;
@@ -116,8 +116,8 @@ namespace PepperDash.Essentials.Core.PageManagers
 
     public class SetTopBoxThreePanelPageManager : ThreePanelPlusOnePageManager
     {
-        ISetTopBoxControls SetTopBox;
-        DevicePresetsView PresetsView;
+        private ISetTopBoxControls SetTopBox;
+        private DevicePresetsView PresetsView;
 
         public uint DpadSmartObjectId { get; set; }
         public uint NumberPadSmartObjectId { get; set; }

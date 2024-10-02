@@ -11,7 +11,7 @@ namespace PepperDash.Essentials.Core
             get { return _IntValue; }
         } // ValueFunc.Invoke(); } }
 
-        int _IntValue;
+        private int _IntValue;
 
         public ushort UShortValue
         {
@@ -25,9 +25,9 @@ namespace PepperDash.Essentials.Core
         /// <summary>
         /// Func evaluated on FireUpdate
         /// </summary>
-        Func<int> ValueFunc;
+        private Func<int> ValueFunc;
 
-        List<UShortInputSig> LinkedInputSigs = new List<UShortInputSig>();
+        private List<UShortInputSig> LinkedInputSigs = new List<UShortInputSig>();
 
         /// <summary>
         /// Creates the feedback with the Func as described.
@@ -101,7 +101,7 @@ namespace PepperDash.Essentials.Core
             FireUpdate();
         }
 
-        void UpdateSig(UShortInputSig sig)
+        private void UpdateSig(UShortInputSig sig)
         {
             sig.UShortValue = UShortValue;
         }

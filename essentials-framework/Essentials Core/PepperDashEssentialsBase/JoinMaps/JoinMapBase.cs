@@ -102,19 +102,22 @@ namespace PepperDash.Essentials.Core
 
             // Get the joins of each type and print them
             Debug.Console(0, "Digitals:");
-            Dictionary<string, JoinMetadata> digitals = Joins.Where(j => (j.Value.JoinType & eJoinType.Digital) == eJoinType.Digital)
+            Dictionary<string, JoinMetadata> digitals = Joins
+                .Where(j => (j.Value.JoinType & eJoinType.Digital) == eJoinType.Digital)
                 .ToDictionary(j => j.Key, j => j.Value);
             Debug.Console(2, "Found {0} Digital Joins", digitals.Count);
             PrintJoinList(GetSortedJoins(digitals));
 
             Debug.Console(0, "Analogs:");
-            Dictionary<string, JoinMetadata> analogs = Joins.Where(j => (j.Value.JoinType & eJoinType.Analog) == eJoinType.Analog)
+            Dictionary<string, JoinMetadata> analogs = Joins
+                .Where(j => (j.Value.JoinType & eJoinType.Analog) == eJoinType.Analog)
                 .ToDictionary(j => j.Key, j => j.Value);
             Debug.Console(2, "Found {0} Analog Joins", analogs.Count);
             PrintJoinList(GetSortedJoins(analogs));
 
             Debug.Console(0, "Serials:");
-            Dictionary<string, JoinMetadata> serials = Joins.Where(j => (j.Value.JoinType & eJoinType.Serial) == eJoinType.Serial)
+            Dictionary<string, JoinMetadata> serials = Joins
+                .Where(j => (j.Value.JoinType & eJoinType.Serial) == eJoinType.Serial)
                 .ToDictionary(j => j.Key, j => j.Value);
             Debug.Console(2, "Found {0} Serial Joins", serials.Count);
             PrintJoinList(GetSortedJoins(serials));
@@ -125,7 +128,7 @@ namespace PepperDash.Essentials.Core
         /// </summary>
         /// <param name="joins"></param>
         /// <returns></returns>
-        List<KeyValuePair<string, JoinMetadata>> GetSortedJoins(Dictionary<string, JoinMetadata> joins)
+        private List<KeyValuePair<string, JoinMetadata>> GetSortedJoins(Dictionary<string, JoinMetadata> joins)
         {
             List<KeyValuePair<string, JoinMetadata>> sortedJoins = joins.ToList();
 
@@ -134,7 +137,7 @@ namespace PepperDash.Essentials.Core
             return sortedJoins;
         }
 
-        void PrintJoinList(List<KeyValuePair<string, JoinMetadata>> joins)
+        private void PrintJoinList(List<KeyValuePair<string, JoinMetadata>> joins)
         {
             foreach (KeyValuePair<string, JoinMetadata> join in joins)
             {
@@ -240,19 +243,22 @@ namespace PepperDash.Essentials.Core
 
             // Get the joins of each type and print them
             Debug.Console(0, "Digitals:");
-            Dictionary<string, JoinDataComplete> digitals = Joins.Where(j => (j.Value.Metadata.JoinType & eJoinType.Digital) == eJoinType.Digital)
+            Dictionary<string, JoinDataComplete> digitals = Joins
+                .Where(j => (j.Value.Metadata.JoinType & eJoinType.Digital) == eJoinType.Digital)
                 .ToDictionary(j => j.Key, j => j.Value);
             Debug.Console(2, "Found {0} Digital Joins", digitals.Count);
             PrintJoinList(GetSortedJoins(digitals));
 
             Debug.Console(0, "Analogs:");
-            Dictionary<string, JoinDataComplete> analogs = Joins.Where(j => (j.Value.Metadata.JoinType & eJoinType.Analog) == eJoinType.Analog)
+            Dictionary<string, JoinDataComplete> analogs = Joins
+                .Where(j => (j.Value.Metadata.JoinType & eJoinType.Analog) == eJoinType.Analog)
                 .ToDictionary(j => j.Key, j => j.Value);
             Debug.Console(2, "Found {0} Analog Joins", analogs.Count);
             PrintJoinList(GetSortedJoins(analogs));
 
             Debug.Console(0, "Serials:");
-            Dictionary<string, JoinDataComplete> serials = Joins.Where(j => (j.Value.Metadata.JoinType & eJoinType.Serial) == eJoinType.Serial)
+            Dictionary<string, JoinDataComplete> serials = Joins
+                .Where(j => (j.Value.Metadata.JoinType & eJoinType.Serial) == eJoinType.Serial)
                 .ToDictionary(j => j.Key, j => j.Value);
             Debug.Console(2, "Found {0} Serial Joins", serials.Count);
             PrintJoinList(GetSortedJoins(serials));
@@ -274,7 +280,8 @@ namespace PepperDash.Essentials.Core
             sb.AppendLine();
             sb.AppendLine("## Digitals");
             // Get the joins of each type and print them
-            Dictionary<string, JoinDataComplete> digitals = Joins.Where(j => (j.Value.Metadata.JoinType & eJoinType.Digital) == eJoinType.Digital)
+            Dictionary<string, JoinDataComplete> digitals = Joins
+                .Where(j => (j.Value.Metadata.JoinType & eJoinType.Digital) == eJoinType.Digital)
                 .ToDictionary(j => j.Key, j => j.Value);
             Debug.Console(2, "Found {0} Digital Joins", digitals.Count);
             StringBuilder digitalSb = AppendJoinList(GetSortedJoins(digitals));
@@ -282,7 +289,8 @@ namespace PepperDash.Essentials.Core
             digitalSb.AppendLine();
 
             Debug.Console(0, "Analogs:");
-            Dictionary<string, JoinDataComplete> analogs = Joins.Where(j => (j.Value.Metadata.JoinType & eJoinType.Analog) == eJoinType.Analog)
+            Dictionary<string, JoinDataComplete> analogs = Joins
+                .Where(j => (j.Value.Metadata.JoinType & eJoinType.Analog) == eJoinType.Analog)
                 .ToDictionary(j => j.Key, j => j.Value);
             Debug.Console(2, "Found {0} Analog Joins", analogs.Count);
             StringBuilder analogSb = AppendJoinList(GetSortedJoins(analogs));
@@ -290,7 +298,8 @@ namespace PepperDash.Essentials.Core
             analogSb.AppendLine();
 
             Debug.Console(0, "Serials:");
-            Dictionary<string, JoinDataComplete> serials = Joins.Where(j => (j.Value.Metadata.JoinType & eJoinType.Serial) == eJoinType.Serial)
+            Dictionary<string, JoinDataComplete> serials = Joins
+                .Where(j => (j.Value.Metadata.JoinType & eJoinType.Serial) == eJoinType.Serial)
                 .ToDictionary(j => j.Key, j => j.Value);
             Debug.Console(2, "Found {0} Serial Joins", serials.Count);
             StringBuilder serialSb = AppendJoinList(GetSortedJoins(serials));
@@ -319,7 +328,7 @@ namespace PepperDash.Essentials.Core
         /// </summary>
         /// <param name="joins"></param>
         /// <returns></returns>
-        List<KeyValuePair<string, JoinDataComplete>> GetSortedJoins(Dictionary<string, JoinDataComplete> joins)
+        private List<KeyValuePair<string, JoinDataComplete>> GetSortedJoins(Dictionary<string, JoinDataComplete> joins)
         {
             List<KeyValuePair<string, JoinDataComplete>> sortedJoins = joins.ToList();
 
@@ -328,7 +337,7 @@ namespace PepperDash.Essentials.Core
             return sortedJoins;
         }
 
-        void PrintJoinList(List<KeyValuePair<string, JoinDataComplete>> joins)
+        private void PrintJoinList(List<KeyValuePair<string, JoinDataComplete>> joins)
         {
             foreach (KeyValuePair<string, JoinDataComplete> join in joins)
             {
@@ -345,7 +354,7 @@ namespace PepperDash.Essentials.Core
             }
         }
 
-        static StringBuilder AppendJoinList(List<KeyValuePair<string, JoinDataComplete>> joins)
+        private static StringBuilder AppendJoinList(List<KeyValuePair<string, JoinDataComplete>> joins)
         {
             StringBuilder sb = new StringBuilder();
             const string stringFormatter = "| {0} | {1} | {2} | {3} | {4} |";
@@ -665,7 +674,8 @@ namespace PepperDash.Essentials.Core
         public string GetNameAttribute(MemberInfo memberInfo)
         {
             string name = string.Empty;
-            JoinNameAttribute attribute = (JoinNameAttribute)CAttribute.GetCustomAttribute(memberInfo, typeof(JoinNameAttribute));
+            JoinNameAttribute attribute =
+                (JoinNameAttribute)CAttribute.GetCustomAttribute(memberInfo, typeof(JoinNameAttribute));
 
             if (attribute == null) return name;
 

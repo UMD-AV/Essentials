@@ -18,7 +18,7 @@ namespace PepperDash.Essentials.Devices.Common.Environment.Lutron
         public StatusMonitorBase CommunicationMonitor { get; private set; }
         private const string ResponseHeader = ":ss";
 
-        LutronGrafikEyePropertiesConfig _props;
+        private LutronGrafikEyePropertiesConfig _props;
         private uint _controlUnit = 0;
 
         public uint ControlUnit
@@ -71,7 +71,7 @@ namespace PepperDash.Essentials.Devices.Common.Environment.Lutron
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="args"></param>
-        void PortGather_LineReceived(object sender, GenericCommMethodReceiveTextArgs args)
+        private void PortGather_LineReceived(object sender, GenericCommMethodReceiveTextArgs args)
         {
             Debug.Console(2, this, "Line Received: '{0}'", args.Text);
             try

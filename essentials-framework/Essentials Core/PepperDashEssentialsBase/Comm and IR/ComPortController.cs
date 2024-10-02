@@ -19,8 +19,8 @@ namespace PepperDash.Essentials.Core
             get { return true; }
         }
 
-        ComPort Port;
-        ComPort.ComPortSpec Spec;
+        private ComPort Port;
+        private ComPort.ComPortSpec Spec;
 
         public ComPortController(string key, Func<EssentialsControlPropertiesConfig, ComPort> postActivationFunc,
             ComPort.ComPortSpec spec, EssentialsControlPropertiesConfig config) : base(key)
@@ -87,12 +87,12 @@ namespace PepperDash.Essentials.Core
             Port.SerialDataReceived -= Port_SerialDataReceived;
         }
 
-        void Port_SerialDataReceived(ComPort ReceivingComPort, ComPortSerialDataEventArgs args)
+        private void Port_SerialDataReceived(ComPort ReceivingComPort, ComPortSerialDataEventArgs args)
         {
             OnDataReceived(args.SerialData);
         }
 
-        void OnDataReceived(string s)
+        private void OnDataReceived(string s)
         {
             EventHandler<GenericCommMethodReceiveBytesArgs> bytesHandler = BytesReceived;
             if (bytesHandler != null)

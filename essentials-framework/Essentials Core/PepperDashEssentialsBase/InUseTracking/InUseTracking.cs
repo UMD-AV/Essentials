@@ -17,7 +17,7 @@ namespace PepperDash.Essentials.Core
             get { return new List<InUseTrackingObject>(_Users); }
         }
 
-        List<InUseTrackingObject> _Users = new List<InUseTrackingObject>();
+        private List<InUseTrackingObject> _Users = new List<InUseTrackingObject>();
 
         /// <summary>
         /// Feedback that changes when this goes in/out of use

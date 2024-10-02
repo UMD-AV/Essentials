@@ -332,7 +332,7 @@ namespace DynFusion
             }
         }
 
-        void DeviceUsageFactory()
+        private void DeviceUsageFactory()
         {
             if (_Config.DeviceUsage != null)
             {
@@ -393,7 +393,7 @@ namespace DynFusion
             }
         }
 
-        void CreateStandardJoin(JoinDataComplete join, BooleanSigDataFixedName Sig)
+        private void CreateStandardJoin(JoinDataComplete join, BooleanSigDataFixedName Sig)
         {
             if (join.Metadata.JoinCapabilities == eJoinCapabilities.ToFromSIMPL ||
                 join.Metadata.JoinCapabilities == eJoinCapabilities.ToSIMPL)
@@ -411,7 +411,7 @@ namespace DynFusion
             }
         }
 
-        void CreateStandardJoin(JoinDataComplete join, UShortSigDataFixedName Sig)
+        private void CreateStandardJoin(JoinDataComplete join, UShortSigDataFixedName Sig)
         {
             if (join.Metadata.JoinCapabilities == eJoinCapabilities.ToFromSIMPL ||
                 join.Metadata.JoinCapabilities == eJoinCapabilities.ToSIMPL)
@@ -429,7 +429,7 @@ namespace DynFusion
             }
         }
 
-        void CreateStandardJoin(JoinDataComplete join, StringSigDataFixedName Sig)
+        private void CreateStandardJoin(JoinDataComplete join, StringSigDataFixedName Sig)
         {
             if (join.Metadata.JoinCapabilities == eJoinCapabilities.ToFromSIMPL ||
                 join.Metadata.JoinCapabilities == eJoinCapabilities.ToSIMPL)
@@ -447,7 +447,7 @@ namespace DynFusion
             }
         }
 
-        void CreateStandardJoin(JoinDataComplete join, StringInputSig Sig)
+        private void CreateStandardJoin(JoinDataComplete join, StringInputSig Sig)
         {
             if (join.Metadata.JoinCapabilities == eJoinCapabilities.ToFromSIMPL ||
                 join.Metadata.JoinCapabilities == eJoinCapabilities.ToSIMPL)
@@ -465,7 +465,8 @@ namespace DynFusion
             }
         }
 
-        void FusionSymbol_RoomDataDeviceExtenderSigChange(DeviceExtender currentDeviceExtender, SigEventArgs args)
+        private void FusionSymbol_RoomDataDeviceExtenderSigChange(DeviceExtender currentDeviceExtender,
+            SigEventArgs args)
         {
             Debug.Console(2, this,
                 string.Format("DynFusion DeviceExtenderChange {0} {1} {2} {3}", currentDeviceExtender.ToString(),
@@ -498,7 +499,7 @@ namespace DynFusion
             }
         }
 
-        void FusionSymbol_FusionStateChange(FusionBase device, FusionStateEventArgs args)
+        private void FusionSymbol_FusionStateChange(FusionBase device, FusionStateEventArgs args)
         {
             Debug.Console(2, this, "DynFusion FusionStateChange {0} {1}", args.EventId,
                 args.UserConfiguredSigDetail.ToString());
@@ -673,7 +674,7 @@ namespace DynFusion
             }
         }
 
-        void FusionSymbol_FusionAssetStateChange(FusionBase device, FusionAssetStateEventArgs args)
+        private void FusionSymbol_FusionAssetStateChange(FusionBase device, FusionAssetStateEventArgs args)
         {
             Debug.Console(1, this, "DynFusion Asset State Change index:{0}", args.UserConfigurableAssetDetailIndex);
             if (StaticAssets.ContainsKey(args.UserConfigurableAssetDetailIndex))
@@ -682,7 +683,7 @@ namespace DynFusion
             }
         }
 
-        void CrestronEnvironment_EthernetEventHandler(EthernetEventArgs args)
+        private void CrestronEnvironment_EthernetEventHandler(EthernetEventArgs args)
         {
             if (_isInitialized && args.EthernetAdapter == EthernetAdapterType.EthernetLANAdapter)
             {
@@ -699,7 +700,7 @@ namespace DynFusion
             }
         }
 
-        void FusionSymbol_OnlineStatusChange(GenericBase currentDevice, OnlineOfflineEventArgs args)
+        private void FusionSymbol_OnlineStatusChange(GenericBase currentDevice, OnlineOfflineEventArgs args)
         {
             FusionOnlineFeedback.FireUpdate();
             if (args.DeviceOnLine)

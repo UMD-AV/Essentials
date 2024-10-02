@@ -37,7 +37,8 @@ namespace PepperDash.Essentials.Core
                 {
                     try
                     {
-                        IDeviceFactory factory = (IDeviceFactory)Crestron.SimplSharp.Reflection.Activator.CreateInstance(type);
+                        IDeviceFactory factory =
+                            (IDeviceFactory)Crestron.SimplSharp.Reflection.Activator.CreateInstance(type);
                         factory.LoadTypeFactories();
                     }
                     catch (Exception e)
@@ -53,7 +54,7 @@ namespace PepperDash.Essentials.Core
         /// A dictionary of factory methods, keyed by config types, added by plugins.
         /// These methods are looked up and called by GetDevice in this class.
         /// </summary>
-        static Dictionary<string, DeviceFactoryWrapper> FactoryMethods =
+        private static Dictionary<string, DeviceFactoryWrapper> FactoryMethods =
             new Dictionary<string, DeviceFactoryWrapper>(StringComparer.OrdinalIgnoreCase);
 
         /// <summary>

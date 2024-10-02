@@ -33,7 +33,7 @@ namespace PepperDash.Essentials.DM
             dmps.MicrophoneChange += new MicrophoneChangeEventHandler(Dmps_MicrophoneChange);
         }
 
-        void Dmps_MicrophoneChange(MicrophoneBase mic, GenericEventArgs args)
+        private void Dmps_MicrophoneChange(MicrophoneBase mic, GenericEventArgs args)
         {
             if (args.EventId == MicrophoneEventIds.VuFeedBackEventId)
                 return;
@@ -49,7 +49,7 @@ namespace PepperDash.Essentials.DM
 
     public class DmpsMicrophone : EssentialsBridgeableDevice, IBasicVolumeWithFeedback
     {
-        MicrophoneBase Mic;
+        private MicrophoneBase Mic;
 
         private bool EnableVolumeSend;
         private ushort VolumeLevelInput;
@@ -61,8 +61,8 @@ namespace PepperDash.Essentials.DM
         public IntFeedback VolumeLevelScaledFeedback { get; private set; }
         public StringFeedback NameFeedback { get; private set; }
 
-        Action MuteOnAction;
-        Action MuteOffAction;
+        private Action MuteOnAction;
+        private Action MuteOffAction;
 
         public DmpsMicrophone(string key, string name, MicrophoneBase mic) : base(key, name)
         {

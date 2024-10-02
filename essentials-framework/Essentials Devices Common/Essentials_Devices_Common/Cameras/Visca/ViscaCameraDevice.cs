@@ -30,7 +30,7 @@ namespace ViscaCameraPlugin
         protected eViscaCameraCommand _lastInquiry = eViscaCameraCommand.NoFeedback;
 
         private readonly ViscaCameraConfig _config;
-        Dictionary<uint, uint> presetIds;
+        private Dictionary<uint, uint> presetIds;
 
         protected byte _address = 0x81;
         protected byte _feedbackAddress = 0x90;

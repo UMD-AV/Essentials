@@ -64,15 +64,15 @@ namespace Tesira_DSP_EPI
         private Dictionary<string, SubscriptionTrackingObject> SubscriptionTracker { get; set; }
 
 
-        CTimer _volumeUpRepeatTimer;
-        CTimer _volumeDownRepeatTimer;
-        CTimer _volumeUpRepeatDelayTimer;
-        CTimer _volumeDownRepeatDelayTimer;
+        private CTimer _volumeUpRepeatTimer;
+        private CTimer _volumeDownRepeatTimer;
+        private CTimer _volumeUpRepeatDelayTimer;
+        private CTimer _volumeDownRepeatDelayTimer;
 
         //private bool LevelSubscribed { get; set; }
 
-        bool _volDownPressTracker;
-        bool _volUpPressTracker;
+        private bool _volDownPressTracker;
+        private bool _volUpPressTracker;
 
 
         /// <summary>

@@ -9,8 +9,8 @@ namespace PepperDash.Essentials.Core.PageManagers
     /// </summary>
     public class SetTopBoxMediumPageManager : MediumLeftSwitchablePageManager
     {
-        ISetTopBoxControls SetTopBox;
-        DevicePresetsView PresetsView;
+        private ISetTopBoxControls SetTopBox;
+        private DevicePresetsView PresetsView;
 
         public SetTopBoxMediumPageManager(ISetTopBoxControls stb, BasicTriListWithSmartObject trilist)
             : base(stb.DisplayUiType)

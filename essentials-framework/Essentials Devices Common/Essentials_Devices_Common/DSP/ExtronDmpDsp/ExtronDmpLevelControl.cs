@@ -31,11 +31,11 @@ namespace ExtronDmp
         private string _mutePrefix;
         private bool _useSisVolume;
 
-        const ushort _rampResetTime = 30;
-        CTimer _volumeUpRepeatTimer;
-        CTimer _volumeDownRepeatTimer;
-        CMutex _volumeUpLock;
-        CMutex _volumeDownLock;
+        private const ushort _rampResetTime = 30;
+        private CTimer _volumeUpRepeatTimer;
+        private CTimer _volumeDownRepeatTimer;
+        private CMutex _volumeUpLock;
+        private CMutex _volumeDownLock;
         private ushort _volumeUpCount;
         private ushort _volumeDownCount;
 
@@ -439,7 +439,7 @@ namespace ExtronDmp
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
-        double ScaleFull(ushort input)
+        private double ScaleFull(ushort input)
         {
             double scaled = 10 * ((input * (maxLevel - minLevel) / ushort.MaxValue) + minLevel);
             return Math.Round(scaled);
@@ -450,7 +450,7 @@ namespace ExtronDmp
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
-        double ScaleSisFull(ushort input)
+        private double ScaleSisFull(ushort input)
         {
             //Add 2048 to desired dB (dB*10 rounded to nearest integer) to get SIS value
             return ScaleFull(input) + 2048;

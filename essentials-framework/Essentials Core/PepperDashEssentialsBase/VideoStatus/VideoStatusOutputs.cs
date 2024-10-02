@@ -44,7 +44,7 @@ namespace PepperDash.Essentials.Core
             get { return _Default; }
         }
 
-        static VideoStatusOutputs _Default = new VideoStatusOutputs(new VideoStatusFuncsWrapper
+        private static VideoStatusOutputs _Default = new VideoStatusOutputs(new VideoStatusFuncsWrapper
         {
             HasVideoStatusFunc = () => false
         });

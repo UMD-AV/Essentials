@@ -13,7 +13,7 @@ namespace PepperDash.Essentials.Devices.Common.Cameras
     public class CameraOnvif : CameraBase, IHasCameraPtzControl, IHasCameraPresets, IHasPowerControlWithFeedback,
         IBridgeAdvanced, IHasCameraFocusControl, IHasAutoFocusMode
     {
-        CameraOnvifPropertiesConfig PropertiesConfig;
+        private CameraOnvifPropertiesConfig PropertiesConfig;
 
         private OnvifDevice onvifDevice;
         private PTZControl ptzControl;
@@ -28,7 +28,7 @@ namespace PepperDash.Essentials.Devices.Common.Cameras
         //private bool IsMoving;
         private bool IsZooming;
 
-        bool _powerIsOn;
+        private bool _powerIsOn;
 
         public bool PowerIsOn
         {
@@ -44,19 +44,19 @@ namespace PepperDash.Essentials.Devices.Common.Cameras
             }
         }
 
-        const byte ZoomInCmd = 0x02;
-        const byte ZoomOutCmd = 0x03;
-        const byte ZoomStopCmd = 0x00;
+        private const byte ZoomInCmd = 0x02;
+        private const byte ZoomOutCmd = 0x03;
+        private const byte ZoomStopCmd = 0x00;
 
         /// <summary>
         /// Used to determine when to move the camera at a faster speed if a direction is held
         /// </summary>
-        CTimer SpeedTimer;
+        private CTimer SpeedTimer;
         // TODO: Implment speed timer for PTZ controls
 
-        long FastSpeedHoldTimeMs = 2000;
+        private long FastSpeedHoldTimeMs = 2000;
 
-        byte[] IncomingBuffer = new byte[] { };
+        private byte[] IncomingBuffer = new byte[] { };
         public BoolFeedback PowerIsOnFeedback { get; private set; }
 
         public CameraOnvif(string key, string name, IBasicCommunication comm, CameraOnvifPropertiesConfig props) :
@@ -93,7 +93,7 @@ namespace PepperDash.Essentials.Devices.Common.Cameras
         }
 
 
-        void SendPowerQuery()
+        private void SendPowerQuery()
         {
         }
 
@@ -240,7 +240,7 @@ namespace PepperDash.Essentials.Devices.Common.Cameras
 
         #endregion
 
-        void SendAutoFocusQuery()
+        private void SendAutoFocusQuery()
         {
         }
 

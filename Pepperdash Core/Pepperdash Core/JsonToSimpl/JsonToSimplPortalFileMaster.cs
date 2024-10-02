@@ -23,9 +23,9 @@ namespace PepperDash.Core.JsonToSimpl
         /** Privates **/
 
         // To prevent multiple same-file access
-        object StringBuilderLock = new object();
+        private object StringBuilderLock = new object();
 
-        static object FileLock = new object();
+        private static object FileLock = new object();
 
         /*****************************************************************************************/
 
@@ -112,7 +112,7 @@ namespace PepperDash.Core.JsonToSimpl
         /// </summary>
         /// <param name="path"></param>
         /// <returns></returns>
-        FileInfo GetActualFileInfoFromPath(string path)
+        private FileInfo GetActualFileInfoFromPath(string path)
         {
             string dir = Path.GetDirectoryName(path);
             string localFilename = Path.GetFileName(path);

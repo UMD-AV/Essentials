@@ -109,7 +109,7 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.Cisco
         {
             public string valueSpaceRef { get; set; }
 
-            string _Value;
+            private string _Value;
 
             /// <summary>
             /// Sets Value and triggers the action when set

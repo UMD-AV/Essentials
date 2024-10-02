@@ -86,7 +86,7 @@ namespace PepperDash.Core
             }
         }
 
-        SocketStatus _ClientStatus;
+        private SocketStatus _ClientStatus;
 
         /// <summary>
         /// Contains the familiar Simpl analog status values. This drives the ConnectionChange event
@@ -122,11 +122,11 @@ namespace PepperDash.Core
         /// </summary>
         public int AutoReconnectIntervalMs { get; set; }
 
-        SshClient Client;
+        private SshClient Client;
 
-        ShellStream TheStream;
+        private ShellStream TheStream;
 
-        CTimer ReconnectTimer;
+        private CTimer ReconnectTimer;
 
         //Lock object to prevent simulatneous connect/disconnect operations
         private CCriticalSection connectLock = new CCriticalSection();
@@ -188,7 +188,7 @@ namespace PepperDash.Core
         /// <summary>
         /// Handles closing this up when the program shuts down
         /// </summary>
-        void CrestronEnvironment_ProgramStatusEventHandler(eProgramStatusEventType programEventType)
+        private void CrestronEnvironment_ProgramStatusEventHandler(eProgramStatusEventType programEventType)
         {
             if (programEventType == eProgramStatusEventType.Stopping)
             {
@@ -361,7 +361,7 @@ namespace PepperDash.Core
         /// <summary>
         /// Kills the stream
         /// </summary>
-        void KillStream()
+        private void KillStream()
         {
             if (TheStream != null)
             {
@@ -376,7 +376,7 @@ namespace PepperDash.Core
         /// <summary>
         /// Handles the keyboard interactive authentication, should it be required.
         /// </summary>
-        void kauth_AuthenticationPrompt(object sender, AuthenticationPromptEventArgs e)
+        private void kauth_AuthenticationPrompt(object sender, AuthenticationPromptEventArgs e)
         {
             foreach (AuthenticationPrompt prompt in e.Prompts)
                 if (prompt.Request.IndexOf("Password:", StringComparison.InvariantCultureIgnoreCase) != -1)
@@ -386,7 +386,7 @@ namespace PepperDash.Core
         /// <summary>
         /// Handler for data receive on ShellStream.  Passes data across to queue for line parsing.
         /// </summary>
-        void Stream_DataReceived(object sender, Crestron.SimplSharp.Ssh.Common.ShellDataEventArgs e)
+        private void Stream_DataReceived(object sender, Crestron.SimplSharp.Ssh.Common.ShellDataEventArgs e)
         {
             byte[] bytes = e.Data;
             if (bytes.Length > 0)
@@ -420,7 +420,7 @@ namespace PepperDash.Core
         /// Error event handler for client events - disconnect, etc.  Will forward those events via ConnectionChange
         /// event
         /// </summary>
-        void Client_ErrorOccurred(object sender, Crestron.SimplSharp.Ssh.Common.ExceptionEventArgs e)
+        private void Client_ErrorOccurred(object sender, Crestron.SimplSharp.Ssh.Common.ExceptionEventArgs e)
         {
             CrestronInvoke.BeginInvoke(o =>
             {
@@ -451,7 +451,7 @@ namespace PepperDash.Core
         /// <summary>
         /// Helper for ConnectionChange event
         /// </summary>
-        void OnConnectionChange()
+        private void OnConnectionChange()
         {
             if (ConnectionChange != null)
                 ConnectionChange(this, new GenericSocketStatusChageEventArgs(this));

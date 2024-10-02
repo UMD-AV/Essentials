@@ -20,7 +20,7 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec
 
         public class LastUpdated
         {
-            string _value;
+            private string _value;
 
             public DateTime Value
             {

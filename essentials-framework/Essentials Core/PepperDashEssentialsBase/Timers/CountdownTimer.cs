@@ -13,7 +13,7 @@ namespace PepperDash.Essentials.Core
         public string Key { get; private set; }
 
         public BoolFeedback IsRunningFeedback { get; private set; }
-        bool _isRunning;
+        private bool _isRunning;
 
         public IntFeedback PercentFeedback { get; private set; }
         public StringFeedback TimeRemainingFeedback { get; private set; }
@@ -122,7 +122,7 @@ namespace PepperDash.Essentials.Core
                 handler(this, new EventArgs());
         }
 
-        void StopHelper()
+        private void StopHelper()
         {
             if (_secondTimer != null)
                 _secondTimer.Stop();
@@ -130,7 +130,7 @@ namespace PepperDash.Essentials.Core
             IsRunningFeedback.FireUpdate();
         }
 
-        void SecondElapsedTimerCallback(object o)
+        private void SecondElapsedTimerCallback(object o)
         {
             if (DateTime.Now >= FinishTime)
             {

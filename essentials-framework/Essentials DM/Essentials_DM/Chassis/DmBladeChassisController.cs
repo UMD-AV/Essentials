@@ -67,7 +67,7 @@ namespace PepperDash.Essentials.DM
         public Dictionary<uint, DmCardAudioOutputController> VolumeControls { get; private set; }
 
         public const int RouteOffTime = 500;
-        Dictionary<PortNumberType, CTimer> RouteOffTimers = new Dictionary<PortNumberType, CTimer>();
+        private Dictionary<PortNumberType, CTimer> RouteOffTimers = new Dictionary<PortNumberType, CTimer>();
 
         /// <summary>
         /// Factory method to create a new chassis controller from config data. Limited to 8x8 right now
@@ -376,23 +376,23 @@ namespace PepperDash.Essentials.DM
         }
 
 
-        void AddHdmiInBladePorts(uint number, ICec cecPort)
+        private void AddHdmiInBladePorts(uint number, ICec cecPort)
         {
             AddInputPortWithDebug(number, "hdmiIn", eRoutingSignalType.Audio | eRoutingSignalType.Video,
                 eRoutingPortConnectionType.DmCat, cecPort);
         }
 
-        void AddDmInBladePorts(uint number)
+        private void AddDmInBladePorts(uint number)
         {
             AddInputPortWithDebug(number, "dmCIn", eRoutingSignalType.Video, eRoutingPortConnectionType.DmCat);
         }
 
-        void AddDmInMmFiberPorts(uint number)
+        private void AddDmInMmFiberPorts(uint number)
         {
             AddInputPortWithDebug(number, "dmMmIn", eRoutingSignalType.Video, eRoutingPortConnectionType.DmMmFiber);
         }
 
-        void AddDmInSmFiberPorts(uint number)
+        private void AddDmInSmFiberPorts(uint number)
         {
             AddInputPortWithDebug(number, "dmSmIn", eRoutingSignalType.Video, eRoutingPortConnectionType.DmSmFiber);
         }
@@ -459,25 +459,25 @@ namespace PepperDash.Essentials.DM
             }
         }
 
-        void AddHdmiOutBladePorts(uint number)
+        private void AddHdmiOutBladePorts(uint number)
         {
             AddOutputPortWithDebug(number, "hdmiOut", eRoutingSignalType.Video, eRoutingPortConnectionType.Hdmi,
                 Chassis.Outputs[number]);
         }
 
-        void AddDmOutBladePorts(uint number)
+        private void AddDmOutBladePorts(uint number)
         {
             AddOutputPortWithDebug(number, "dmOut", eRoutingSignalType.Video, eRoutingPortConnectionType.DmCat,
                 Chassis.Outputs[number]);
         }
 
-        void AddDmOutMmFiberBladePorts(uint number)
+        private void AddDmOutMmFiberBladePorts(uint number)
         {
             AddOutputPortWithDebug(number, "dmMmOut", eRoutingSignalType.Video, eRoutingPortConnectionType.DmMmFiber,
                 Chassis.Outputs[number]);
         }
 
-        void AddDmOutSmFiberBladePorts(uint number)
+        private void AddDmOutSmFiberBladePorts(uint number)
         {
             AddOutputPortWithDebug(number, "dmSmOut", eRoutingSignalType.Video, eRoutingPortConnectionType.DmSmFiber,
                 Chassis.Outputs[number]);
@@ -487,7 +487,7 @@ namespace PepperDash.Essentials.DM
         /// <summary>
         /// Adds InputPort
         /// </summary>
-        void AddInputPortWithDebug(uint cardNum, string portName, eRoutingSignalType sigType,
+        private void AddInputPortWithDebug(uint cardNum, string portName, eRoutingSignalType sigType,
             eRoutingPortConnectionType portType)
         {
             AddInputPortWithDebug(cardNum, portName, sigType, portType, null);
@@ -525,7 +525,7 @@ namespace PepperDash.Essentials.DM
         /// <summary>
         /// Adds OutputPort
         /// </summary>
-        void AddOutputPortWithDebug(uint cardNum, string portName, eRoutingSignalType sigType,
+        private void AddOutputPortWithDebug(uint cardNum, string portName, eRoutingSignalType sigType,
             eRoutingPortConnectionType portType, object selector)
         {
             try
@@ -548,7 +548,7 @@ namespace PepperDash.Essentials.DM
         /// <summary>
         /// 
         /// </summary>
-        void AddVolumeControl(uint number, Audio.Output audio)
+        private void AddVolumeControl(uint number, Audio.Output audio)
         {
             VolumeControls.Add(number, new DmCardAudioOutputController(audio));
         }
@@ -559,7 +559,7 @@ namespace PepperDash.Essentials.DM
         //}
 
 
-        void Chassis_DMInputChange(Switch device, DMInputEventArgs args)
+        private void Chassis_DMInputChange(Switch device, DMInputEventArgs args)
         {
             switch (args.EventId)
             {
@@ -693,7 +693,7 @@ namespace PepperDash.Essentials.DM
         /// 
         /// </summary>
         /// <param name="pnt"></param>
-        void StartOffTimer(PortNumberType pnt)
+        private void StartOffTimer(PortNumberType pnt)
         {
             if (RouteOffTimers.ContainsKey(pnt))
                 return;
@@ -702,7 +702,7 @@ namespace PepperDash.Essentials.DM
 
 
         // Send out sigs when coming online
-        void IsOnline_OutputChange(object sender, EventArgs e)
+        private void IsOnline_OutputChange(object sender, EventArgs e)
         {
             if (IsOnline.BoolValue)
             {
@@ -815,7 +815,8 @@ namespace PepperDash.Essentials.DM
                 {
                     Debug.Console(2, "Creating Tx Feedbacks {0}", ioSlot);
                     string txKey = TxDictionary[ioSlot];
-                    BasicDmTxControllerBase basicTxDevice = DeviceManager.GetDeviceForKey(txKey) as BasicDmTxControllerBase;
+                    BasicDmTxControllerBase basicTxDevice =
+                        DeviceManager.GetDeviceForKey(txKey) as BasicDmTxControllerBase;
 
                     DmTxControllerBase advancedTxDevice = basicTxDevice as DmTxControllerBase;
 

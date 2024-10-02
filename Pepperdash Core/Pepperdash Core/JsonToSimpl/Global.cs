@@ -9,7 +9,7 @@ namespace PepperDash.Core.JsonToSimpl
 {
     public class J2SGlobal
     {
-        static List<JsonToSimplMaster> Masters = new List<JsonToSimplMaster>();
+        private static List<JsonToSimplMaster> Masters = new List<JsonToSimplMaster>();
 
 
         /// <summary>

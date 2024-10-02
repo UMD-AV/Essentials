@@ -9,14 +9,14 @@ namespace PepperDash.Essentials.Core
     /// </summary>
     public class UshortSigIncrementer
     {
-        UShortInputSig TheSig;
+        private UShortInputSig TheSig;
         public ushort ChangeAmount { get; set; }
         public int MaxValue { get; set; }
         public int MinValue { get; set; }
         public uint RepeatDelay { get; set; }
         public uint RepeatTime { get; set; }
-        bool SignedMode;
-        CTimer Timer;
+        private bool SignedMode;
+        private CTimer Timer;
 
         public UshortSigIncrementer(UShortInputSig sig, ushort changeAmount, int minValue, int maxValue,
             uint repeatDelay, uint repeatTime)
@@ -44,7 +44,7 @@ namespace PepperDash.Essentials.Core
             Go(-ChangeAmount);
         }
 
-        void Go(int change)
+        private void Go(int change)
         {
             int level;
             if (SignedMode) level = TheSig.ShortValue;
@@ -62,7 +62,7 @@ namespace PepperDash.Essentials.Core
                 Timer = new CTimer(o => { Go(change); }, null, RepeatDelay, RepeatTime);
         }
 
-        bool CheckLevel(int levelIn, out int levelOut)
+        private bool CheckLevel(int levelIn, out int levelOut)
         {
             bool IsAtLimit = false;
             if (levelIn > MaxValue)
@@ -88,7 +88,7 @@ namespace PepperDash.Essentials.Core
             Timer = null;
         }
 
-        void SetValue(ushort value)
+        private void SetValue(ushort value)
         {
             //CrestronConsole.PrintLine("Increment level:{0} / {1}", value, (short)value);
             TheSig.UShortValue = value;

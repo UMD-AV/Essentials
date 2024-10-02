@@ -186,34 +186,5 @@ namespace PepperDash.Essentials.Core
         {
             return ParentDevice.Key + ":" + Key;
         }
-
-        ///// <summary>
-        ///// Static method to get a named port from a named device
-        ///// </summary>
-        ///// <returns>Returns null if device or port doesn't exist</returns>
-        //public static RoutingOutputPort GetDevicePort(string deviceKey, string portKey)
-        //{
-        //    var sourceDev = DeviceManager.GetDeviceForKey(deviceKey) as IRoutingOutputs;
-        //    if (sourceDev == null)
-        //        return null;
-        //    var port = sourceDev.OutputPorts[portKey];
-        //    if (port == null)
-        //        Debug.Console(0, "WARNING: Device '{0}' does does not contain output port '{1}'", deviceKey, portKey);
-        //    return port;
-        //}
-
-        ///// <summary>
-        ///// Static method to get a named port from a card in a named ICardPortsDevice device
-        ///// Uses ICardPortsDevice.GetChildOutputPort on that device
-        ///// </summary>
-        ///// <param name="cardKey">'input-N' or 'output-N'</param>
-        ///// <returns>null if device, card or port doesn't exist</returns>
-        //public static RoutingOutputPort GetDeviceCardPort(string deviceKey, string cardKey, string portKey)
-        //{
-        //    var sourceDev = DeviceManager.GetDeviceForKey(deviceKey) as ICardPortsDevice;
-        //    if (sourceDev == null)
-        //        return null;
-        //    var port = sourceDev.GetChildOutputPort(cardKey, portKey);
-        //}
     }
 }

@@ -11,7 +11,7 @@ namespace PepperDash.Essentials.Core
             get { return _StringValue; }
         } // ValueFunc.Invoke(); } }
 
-        string _StringValue;
+        private string _StringValue;
 
         /// <summary>
         /// Used in testing.  Set/Clear functions
@@ -23,7 +23,7 @@ namespace PepperDash.Essentials.Core
         /// </summary>
         public Func<string> ValueFunc { get; private set; }
 
-        List<StringInputSig> LinkedInputSigs = new List<StringInputSig>();
+        private List<StringInputSig> LinkedInputSigs = new List<StringInputSig>();
 
         /// <summary>
         /// Creates the feedback with the Func as described.
@@ -96,7 +96,7 @@ namespace PepperDash.Essentials.Core
             FireUpdate();
         }
 
-        void UpdateSig(StringInputSig sig)
+        private void UpdateSig(StringInputSig sig)
         {
             sig.StringValue = _StringValue;
         }

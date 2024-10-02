@@ -17,11 +17,11 @@ namespace PepperDash.Essentials.Devices.Common.Environment
     /// </summary>
     public class RelayControlledShade : EssentialsBridgeableDevice, IShadesOpenCloseStop
     {
-        RelayControlledShadeConfigProperties Config;
+        private RelayControlledShadeConfigProperties Config;
 
-        List<GenericRelayDevice> OpenShadesRelays;
-        List<GenericRelayDevice> StopShadesRelays;
-        List<GenericRelayDevice> CloseShadesRelays;
+        private List<GenericRelayDevice> OpenShadesRelays;
+        private List<GenericRelayDevice> StopShadesRelays;
+        private List<GenericRelayDevice> CloseShadesRelays;
 
         public RelayControlledShade(string key, string name, RelayControlledShadeConfigProperties config)
             : base(key, name)

@@ -33,7 +33,8 @@ namespace PepperDash.Essentials.Core
         {
             Feedbacks = new FeedbackCollection<Feedback>();
 
-            CrestronRemotePropertiesConfig props = JsonConvert.DeserializeObject<CrestronRemotePropertiesConfig>(config.Properties.ToString());
+            CrestronRemotePropertiesConfig props =
+                JsonConvert.DeserializeObject<CrestronRemotePropertiesConfig>(config.Properties.ToString());
 
             _config = config;
 
@@ -78,7 +79,7 @@ namespace PepperDash.Essentials.Core
             }
         }
 
-        void _gateway_IsReadyEvent(object sender, IsReadyEventArgs e)
+        private void _gateway_IsReadyEvent(object sender, IsReadyEventArgs e)
         {
             if (e.IsReady != true) return;
             _remote = GetHr1x0WirelessRemote(_config);
@@ -86,7 +87,7 @@ namespace PepperDash.Essentials.Core
             RegisterEvents();
         }
 
-        void _remote_BaseEvent(GenericBase device, BaseEventArgs args)
+        private void _remote_BaseEvent(GenericBase device, BaseEventArgs args)
         {
             if (args.EventId == Hr1x0EventIds.BatteryCriticalFeedbackEventId)
                 Feedbacks["BatteryCritical"].FireUpdate();
@@ -107,7 +108,7 @@ namespace PepperDash.Essentials.Core
             _remote.BaseEvent += _remote_BaseEvent;
         }
 
-        void _remote_ButtonStateChange(GenericBase device, ButtonEventArgs args)
+        private void _remote_ButtonStateChange(GenericBase device, ButtonEventArgs args)
         {
             try
             {
@@ -145,7 +146,8 @@ namespace PepperDash.Essentials.Core
 
         private static Hr1x0WirelessRemoteBase GetHr1x0WirelessRemote(DeviceConfig config)
         {
-            CrestronRemotePropertiesConfig props = JsonConvert.DeserializeObject<CrestronRemotePropertiesConfig>(config.Properties.ToString());
+            CrestronRemotePropertiesConfig props =
+                JsonConvert.DeserializeObject<CrestronRemotePropertiesConfig>(config.Properties.ToString());
 
             string type = config.Type;
             uint rfId = (uint)props.Control.InfinetIdInt;
@@ -158,7 +160,8 @@ namespace PepperDash.Essentials.Core
             }
             else
             {
-                CenRfgwController gatewayDev = DeviceManager.GetDeviceForKey(props.GatewayDeviceKey) as CenRfgwController;
+                CenRfgwController gatewayDev =
+                    DeviceManager.GetDeviceForKey(props.GatewayDeviceKey) as CenRfgwController;
                 if (gatewayDev == null)
                 {
                     Debug.Console(0, "GetHr1x0WirelessRemote: Device '{0}' is not a valid device",

@@ -113,6 +113,6 @@ namespace PepperDash.Essentials.Core
             }
         }
 
-        static TieLineCollection _Default;
+        private static TieLineCollection _Default;
     }
 }

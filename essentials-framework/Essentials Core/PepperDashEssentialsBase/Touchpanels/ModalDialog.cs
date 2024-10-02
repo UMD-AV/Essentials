@@ -94,11 +94,11 @@ namespace PepperDash.Essentials.Core
         public bool CanCancel { get; private set; }
 
 
-        BasicTriList TriList;
+        private BasicTriList TriList;
 
-        Action<uint> ModalCompleteAction;
+        private Action<uint> ModalCompleteAction;
 
-        static object CompleteActionLock = new object();
+        private static object CompleteActionLock = new object();
 
         /// <summary>
         /// Creates a new modal to be shown on provided TriList
@@ -212,7 +212,7 @@ namespace PepperDash.Essentials.Core
         }
 
         // When the modal is cleared or times out, clean up the various bits
-        void OnModalComplete(uint buttonNum)
+        private void OnModalComplete(uint buttonNum)
         {
             TriList.BooleanInput[ModalVisibleJoin].BoolValue = false;
 

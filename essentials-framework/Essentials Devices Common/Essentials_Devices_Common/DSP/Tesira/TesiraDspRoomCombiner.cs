@@ -98,15 +98,15 @@ namespace Tesira_DSP_EPI
             get { return InstanceTag1; }
         }
 
-        CTimer _volumeUpRepeatTimer;
-        CTimer _volumeDownRepeatTimer;
-        CTimer _volumeUpRepeatDelayTimer;
-        CTimer _volumeDownRepeatDelayTimer;
+        private CTimer _volumeUpRepeatTimer;
+        private CTimer _volumeDownRepeatTimer;
+        private CTimer _volumeUpRepeatDelayTimer;
+        private CTimer _volumeDownRepeatDelayTimer;
 
-        CTimer _pollTimer;
+        private CTimer _pollTimer;
 
-        bool _volDownPressTracker;
-        bool _volUpPressTracker;
+        private bool _volDownPressTracker;
+        private bool _volUpPressTracker;
 
         /// <summary>
         /// Subscription identifier for Room Combiner

@@ -22,20 +22,21 @@ namespace PepperDash.Essentials
         /// <summary>
         /// The list of assemblies loaded from the plugins folder
         /// </summary>
-        static List<LoadedAssembly> LoadedPluginFolderAssemblies;
+        private static List<LoadedAssembly> LoadedPluginFolderAssemblies;
 
         /// <summary>
         /// The directory to look in for .cplz plugin packages
         /// </summary>
-        static string _pluginDirectory = Global.FilePathPrefix + "plugins";
+        private static string _pluginDirectory = Global.FilePathPrefix + "plugins";
 
         /// <summary>
         /// The directory where plugins will be moved to and loaded from
         /// </summary>
-        static string _loadedPluginsDirectoryPath = _pluginDirectory + Global.DirectorySeparator + "loadedAssemblies";
+        private static string _loadedPluginsDirectoryPath =
+            _pluginDirectory + Global.DirectorySeparator + "loadedAssemblies";
 
         // The temp directory where .cplz archives will be unzipped to
-        static string _tempDirectory = _pluginDirectory + Global.DirectorySeparator + "temp";
+        private static string _tempDirectory = _pluginDirectory + Global.DirectorySeparator + "temp";
 
 
         static PluginLoader()
@@ -119,7 +120,7 @@ namespace PepperDash.Essentials
         /// Loads an assembly via Reflection and adds it to the list of loaded assemblies
         /// </summary>
         /// <param name="fileName"></param>
-        static LoadedAssembly LoadAssembly(string filePath)
+        private static LoadedAssembly LoadAssembly(string filePath)
         {
             Assembly assembly = Assembly.LoadFrom(filePath);
             if (assembly != null)
@@ -145,7 +146,7 @@ namespace PepperDash.Essentials
         /// </summary>
         /// <param name="assembly"></param>
         /// <returns></returns>
-        static string GetAssemblyVersion(Assembly assembly)
+        private static string GetAssemblyVersion(Assembly assembly)
         {
             object[] ver = assembly.GetCustomAttributes(typeof(AssemblyInformationalVersionAttribute), false);
             if (ver != null && ver.Length > 0)
@@ -202,7 +203,7 @@ namespace PepperDash.Essentials
         /// <summary>
         /// Moves any .dll assemblies not already loaded from the plugins folder to loadedPlugins folder
         /// </summary>
-        static void MoveDllAssemblies()
+        private static void MoveDllAssemblies()
         {
             Debug.Console(0, "Looking for .dll assemblies from plugins folder...");
 
@@ -262,7 +263,7 @@ namespace PepperDash.Essentials
         /// <summary>
         /// Unzips each .cplz archive into the temp directory and moves any unloaded files into loadedPlugins
         /// </summary>
-        static void UnzipAndMoveCplzArchives()
+        private static void UnzipAndMoveCplzArchives()
         {
             Debug.Console(0, "Looking for .cplz archives from plugins folder...");
             DirectoryInfo di = new DirectoryInfo(_pluginDirectory);
@@ -334,7 +335,7 @@ namespace PepperDash.Essentials
         /// <summary>
         /// Attempts to load the assemblies from the loadedPlugins folder
         /// </summary>
-        static void LoadPluginAssemblies()
+        private static void LoadPluginAssemblies()
         {
             Debug.Console(0, "Loading assemblies from loadedPlugins folder...");
             DirectoryInfo pluginDi = new DirectoryInfo(_loadedPluginsDirectoryPath);
@@ -355,7 +356,7 @@ namespace PepperDash.Essentials
         /// <summary>
         /// Iterate the loaded assemblies and try to call the LoadPlugin method
         /// </summary>
-        static void LoadCustomPluginTypes()
+        private static void LoadCustomPluginTypes()
         {
             Debug.Console(0, "Loading Custom Plugin Types...");
             foreach (LoadedAssembly loadedAssembly in LoadedPluginFolderAssemblies)
@@ -428,7 +429,7 @@ namespace PepperDash.Essentials
         /// </summary>
         /// <param name="plugin"></param>
         /// <param name="loadedAssembly"></param>
-        static void LoadCustomPlugin(IPluginDeviceFactory plugin, LoadedAssembly loadedAssembly)
+        private static void LoadCustomPlugin(IPluginDeviceFactory plugin, LoadedAssembly loadedAssembly)
         {
             IPluginDevelopmentDeviceFactory developmentPlugin = plugin as IPluginDevelopmentDeviceFactory;
 
@@ -461,7 +462,7 @@ namespace PepperDash.Essentials
         /// </summary>
         /// <param name="type"></param>
         /// <param name="loadPlugin"></param>
-        static void LoadCustomLegacyPlugin(CType type, MethodInfo loadPlugin, LoadedAssembly loadedAssembly)
+        private static void LoadCustomLegacyPlugin(CType type, MethodInfo loadPlugin, LoadedAssembly loadedAssembly)
         {
             Debug.Console(2, "LoadPlugin method found in {0}", type.Name);
 

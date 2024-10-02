@@ -121,7 +121,7 @@ namespace PepperDash.Core.Config
         /// given by propertyName.  Returns a merge of them. Items in the delta array that do not have
         /// a matched item in base array will not be merged. Non keyed system items will replace the template items.
         /// </summary>
-        static JArray MergeArraysOnTopLevelProperty(JArray a1, JArray a2, string propertyName, string path)
+        private static JArray MergeArraysOnTopLevelProperty(JArray a1, JArray a2, string propertyName, string path)
         {
             JArray result = new JArray();
             if (a2 == null || a2.Count == 0) // If the system array is null or empty, return the template array
@@ -165,7 +165,7 @@ namespace PepperDash.Core.Config
         /// <summary>
         /// Helper for using with JTokens.  Converts to JObject 
         /// </summary>
-        static JObject Merge(JToken t1, JToken t2, string path)
+        private static JObject Merge(JToken t1, JToken t2, string path)
         {
             return Merge(JObject.FromObject(t1), JObject.FromObject(t2), path);
         }
@@ -175,7 +175,7 @@ namespace PepperDash.Core.Config
         /// </summary>
         /// <param name="a"></param>
         /// <param name="b"></param>
-        static JObject Merge(JObject o1, JObject o2, string path)
+        private static JObject Merge(JObject o1, JObject o2, string path)
         {
             foreach (KeyValuePair<string, JToken> o2Prop in o2)
             {

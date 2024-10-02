@@ -18,7 +18,6 @@ namespace PepperDash.Essentials.Core
             {
                 return JsonConvert.DeserializeObject<EssentialsControlPropertiesConfig>
                     (deviceConfig.Properties["control"].ToString());
-                //Debug.Console(2, "Control TEST: {0}", JsonConvert.SerializeObject(controlConfig));
             }
             catch (Exception e)
             {
@@ -55,9 +54,16 @@ namespace PepperDash.Essentials.Core
                         break;
                     case eControlMethod.Ssh:
                     {
-                        GenericSshClient ssh = new GenericSshClient(deviceConfig.Key + "-ssh", c.Address, c.Port, c.Username,
-                            c.Password);
-                        ssh.AutoReconnect = c.AutoReconnect;
+                        if (c.Address.Contains("{roomname}"))
+                        {
+                            c.Address = c.Address.Replace("{roomname}", "");
+                        }
+
+                        GenericSshClient ssh =
+                            new GenericSshClient(deviceConfig.Key + "-ssh", c.Address, c.Port, c.Username, c.Password)
+                            {
+                                AutoReconnect = c.AutoReconnect
+                            };
                         if (ssh.AutoReconnect)
                             ssh.AutoReconnectIntervalMs = c.AutoReconnectIntervalMs;
                         comm = ssh;
@@ -65,8 +71,11 @@ namespace PepperDash.Essentials.Core
                     }
                     case eControlMethod.Tcpip:
                     {
-                        GenericTcpIpClient tcp = new GenericTcpIpClient(deviceConfig.Key + "-tcp", c.Address, c.Port, c.BufferSize);
-                        tcp.AutoReconnect = c.AutoReconnect;
+                        GenericTcpIpClient tcp = new GenericTcpIpClient(deviceConfig.Key + "-tcp", c.Address, c.Port,
+                            c.BufferSize)
+                        {
+                            AutoReconnect = c.AutoReconnect
+                        };
                         if (tcp.AutoReconnect)
                             tcp.AutoReconnectIntervalMs = c.AutoReconnectIntervalMs;
                         comm = tcp;
@@ -74,13 +83,15 @@ namespace PepperDash.Essentials.Core
                     }
                     case eControlMethod.Udp:
                     {
-                        GenericUdpServer udp = new GenericUdpServer(deviceConfig.Key + "-udp", c.Address, c.Port, c.BufferSize);
+                        GenericUdpServer udp =
+                            new GenericUdpServer(deviceConfig.Key + "-udp", c.Address, c.Port, c.BufferSize);
                         comm = udp;
                         break;
                     }
                     case eControlMethod.UdpShared:
                     {
-                        SharedUdpServerDevice udpShared = new SharedUdpServerDevice(deviceConfig.Key + "-udp", c.Address, c.Port,
+                        SharedUdpServerDevice udpShared = new SharedUdpServerDevice(deviceConfig.Key + "-udp",
+                            c.Address, c.Port,
                             c.BufferSize);
                         comm = udpShared;
                         break;

@@ -161,7 +161,7 @@ namespace PepperDash.Core
         /// <summary>
         /// Set only when the disconnect method is called
         /// </summary>
-        bool DisconnectCalledByUser;
+        private bool DisconnectCalledByUser;
 
         /// <summary>
         /// 
@@ -239,7 +239,7 @@ namespace PepperDash.Core
         /// <summary>
         /// Handles closing this up when the program shuts down
         /// </summary>
-        void CrestronEnvironment_ProgramStatusEventHandler(eProgramStatusEventType programEventType)
+        private void CrestronEnvironment_ProgramStatusEventHandler(eProgramStatusEventType programEventType)
         {
             if (programEventType == eProgramStatusEventType.Stopping)
             {
@@ -371,7 +371,7 @@ namespace PepperDash.Core
         /// Callback method for connection attempt
         /// </summary>
         /// <param name="c"></param>
-        void ConnectToServerCallback(TCPClient c)
+        private void ConnectToServerCallback(TCPClient c)
         {
             if (c.ClientStatus != SocketStatus.SOCKET_STATUS_CONNECTED)
             {
@@ -387,7 +387,7 @@ namespace PepperDash.Core
         /// <summary>
         /// Disconnects, waits and attemtps to connect again
         /// </summary>
-        void WaitAndTryReconnect()
+        private void WaitAndTryReconnect()
         {
             CrestronInvoke.BeginInvoke(o =>
             {
@@ -413,7 +413,7 @@ namespace PepperDash.Core
         /// </summary>
         /// <param name="client"></param>
         /// <param name="numBytes"></param>
-        void Receive(TCPClient client, int numBytes)
+        private void Receive(TCPClient client, int numBytes)
         {
             if (client != null)
             {
@@ -495,7 +495,7 @@ namespace PepperDash.Core
         /// </summary>
         /// <param name="client"></param>
         /// <param name="clientSocketStatus"></param>
-        void Client_SocketStatusChange(TCPClient client, SocketStatus clientSocketStatus)
+        private void Client_SocketStatusChange(TCPClient client, SocketStatus clientSocketStatus)
         {
             if (clientSocketStatus != SocketStatus.SOCKET_STATUS_CONNECTED)
             {

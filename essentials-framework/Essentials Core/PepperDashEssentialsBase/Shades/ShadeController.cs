@@ -9,7 +9,7 @@ namespace PepperDash.Essentials.Core.Shades
     /// </summary>
     public class ShadeController : EssentialsDevice, IShades
     {
-        ShadeControllerConfigProperties Config;
+        private ShadeControllerConfigProperties Config;
 
         public List<ShadeBase> Shades { get; private set; }
 
@@ -36,7 +36,7 @@ namespace PepperDash.Essentials.Core.Shades
             return base.CustomActivate();
         }
 
-        void AddShade(ShadeBase shade)
+        private void AddShade(ShadeBase shade)
         {
             Shades.Add(shade);
         }

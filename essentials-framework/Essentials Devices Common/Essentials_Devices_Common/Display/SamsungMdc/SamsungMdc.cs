@@ -31,8 +31,8 @@ namespace PepperDash.Essentials.Devices.Displays
         public IntFeedback CurrentLedTemperatureCelsiusFeedback;
         public IntFeedback CurrentLedTemperatureFahrenheitFeedback;
 
-        string videoMuteKey;
-        int videoMuteInput;
+        private string videoMuteKey;
+        private int videoMuteInput;
         private DM.DmRmcControllerBase _scaler;
         public List<BoolFeedback> InputFeedback;
         public IntFeedback InputNumberFeedback;
@@ -55,9 +55,9 @@ namespace PepperDash.Essentials.Devices.Displays
         private ActionIncrementer _volumeIncrementer;
         private bool _volumeIsRamping;
         private ushort _volumeLevelForSig;
-        ushort _RequestedPowerState; // 0:none 1:on 2:off
-        ushort _RequestedInputState; // 0:none 1-4:inputs 1-4 
-        CMutex _PowerMutex;
+        private ushort _RequestedPowerState; // 0:none 1:on 2:off
+        private ushort _RequestedInputState; // 0:none 1-4:inputs 1-4 
+        private CMutex _PowerMutex;
         private ushort _defaultVolume;
         private bool _showVolumeControls;
 

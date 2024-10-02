@@ -96,7 +96,7 @@ namespace PepperDash.Essentials.Devices.Common.AudioCodec
 
     public class MockAudioCodecInfo : AudioCodecInfo
     {
-        string _phoneNumber;
+        private string _phoneNumber;
 
         public override string PhoneNumber
         {

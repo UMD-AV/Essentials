@@ -39,7 +39,7 @@ namespace PepperDash.Essentials.Core
             }
         }
 
-        SourceListItem _CurrentSourceInfo;
+        private SourceListItem _CurrentSourceInfo;
 
         public BoolFeedback IsCoolingDownFeedback { get; protected set; }
         public BoolFeedback IsWarmingUpFeedback { get; private set; }
@@ -281,7 +281,7 @@ namespace PepperDash.Essentials.Core
             }
         }
 
-        static MockDisplay _DefaultDisplay;
+        private static MockDisplay _DefaultDisplay;
 
         public TwoWayDisplayBase(string key, string name)
             : base(key, name)
@@ -299,7 +299,7 @@ namespace PepperDash.Essentials.Core
             PowerIsOnFeedback.OutputChange += PowerIsOnFeedback_OutputChange;
         }
 
-        void PowerIsOnFeedback_OutputChange(object sender, EventArgs e)
+        private void PowerIsOnFeedback_OutputChange(object sender, EventArgs e)
         {
             if (UsageTracker != null)
             {

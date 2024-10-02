@@ -14,7 +14,7 @@ namespace PepperDash.Essentials.Core
     {
         public IKeyed Parent { get; private set; }
 
-        List<IStatusMonitor> Monitors = new List<IStatusMonitor>();
+        private List<IStatusMonitor> Monitors = new List<IStatusMonitor>();
 
         #region IStatusMonitor Members
 
@@ -39,7 +39,7 @@ namespace PepperDash.Essentials.Core
         }
 
 
-        void ProcessStatuses()
+        private void ProcessStatuses()
         {
             IEnumerable<IStatusMonitor> InError = Monitors.Where(m => m.Status == MonitorStatus.InError);
             IEnumerable<IStatusMonitor> InWarning = Monitors.Where(m => m.Status == MonitorStatus.InWarning);
@@ -95,7 +95,7 @@ namespace PepperDash.Essentials.Core
         }
 
 
-        void mon_StatusChange(object sender, MonitorStatusChangeEventArgs e)
+        private void mon_StatusChange(object sender, MonitorStatusChangeEventArgs e)
         {
             ProcessStatuses();
         }

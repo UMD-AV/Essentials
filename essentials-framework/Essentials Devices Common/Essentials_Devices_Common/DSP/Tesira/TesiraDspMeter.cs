@@ -33,7 +33,7 @@ namespace Tesira_DSP_EPI
         /// </summary>
         public IntFeedback MeterFeedback { get; set; }
 
-        int _currentMeter;
+        private int _currentMeter;
 
         public BoolFeedback SubscribedFeedback { get; set; }
 

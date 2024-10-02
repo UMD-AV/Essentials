@@ -46,25 +46,25 @@ namespace PepperDash.Essentials.Devices.Displays
         public BoolFeedback Input3Feedback { get; private set; }
         public BoolFeedback Input4Feedback { get; private set; }
 
-        byte _displayID = Convert.ToByte('A');
-        bool _readyForCommands;
-        bool _tcpComm;
-        bool _PowerIsOn;
-        bool _IsWarmingUp;
-        bool _IsCoolingDown;
-        int _CurrentInputIndex;
-        ushort _RequestedPowerState; // 0:none 1:on 2:off
-        ushort _RequestedInputState; // 0:none 1-4:inputs 1-4 
+        private byte _displayID = Convert.ToByte('A');
+        private bool _readyForCommands;
+        private bool _tcpComm;
+        private bool _PowerIsOn;
+        private bool _IsWarmingUp;
+        private bool _IsCoolingDown;
+        private int _CurrentInputIndex;
+        private ushort _RequestedPowerState; // 0:none 1:on 2:off
+        private ushort _RequestedInputState; // 0:none 1-4:inputs 1-4 
 
-        string videoMuteKey;
-        int videoMuteInput;
+        private string videoMuteKey;
+        private int videoMuteInput;
         private DM.DmRmcControllerBase _scaler;
-        readonly NecQueue _cmdQueue;
-        readonly NecQueue _priorityQueue;
-        CommunicationGather _PortGather;
-        RoutingInputPort _CurrentInputPort;
-        CMutex _CommandMutex;
-        CMutex _PowerMutex;
+        private readonly NecQueue _cmdQueue;
+        private readonly NecQueue _priorityQueue;
+        private CommunicationGather _PortGather;
+        private RoutingInputPort _CurrentInputPort;
+        private CMutex _CommandMutex;
+        private CMutex _PowerMutex;
 
         protected override Func<bool> PowerIsOnFeedbackFunc
         {
@@ -155,7 +155,7 @@ namespace PepperDash.Essentials.Devices.Displays
                 eRoutingPortConnectionType.DisplayPort, new Action(InputDp2), this), "10");
         }
 
-        void AddRoutingInputPort(RoutingInputPort port, string fbMatch)
+        private void AddRoutingInputPort(RoutingInputPort port, string fbMatch)
         {
             port.FeedbackMatchObject = fbMatch;
             InputPorts.Add(port);
@@ -307,7 +307,7 @@ namespace PepperDash.Essentials.Devices.Displays
             return commandB;
         }
 
-        void tcpComm_ConnectionChange(object sender, GenericSocketStatusChageEventArgs e)
+        private void tcpComm_ConnectionChange(object sender, GenericSocketStatusChageEventArgs e)
         {
             if (!e.Client.IsConnected)
             {
@@ -326,7 +326,7 @@ namespace PepperDash.Essentials.Devices.Displays
         /// 
         /// </summary>
         /// <param name="sender"></param>
-        void DelimitedTextReceived(object sender, GenericCommMethodReceiveTextArgs e)
+        private void DelimitedTextReceived(object sender, GenericCommMethodReceiveTextArgs e)
         {
             try
             {

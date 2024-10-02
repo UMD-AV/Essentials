@@ -19,7 +19,7 @@ namespace PepperDash.Core.PasswordManagement
         /// <summary>
         /// Timer used to wait until password changes have stopped before updating the dictionary
         /// </summary>
-        CTimer PasswordTimer;
+        private CTimer PasswordTimer;
 
         /// <summary>
         /// Timer length

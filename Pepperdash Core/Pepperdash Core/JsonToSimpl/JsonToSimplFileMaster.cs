@@ -27,10 +27,10 @@ namespace PepperDash.Core.JsonToSimpl
 
         // The JSON file in JObject form
         // For gathering the incoming data
-        object StringBuilderLock = new object();
+        private object StringBuilderLock = new object();
 
         // To prevent multiple same-file access
-        static object FileLock = new object();
+        private static object FileLock = new object();
 
         /*****************************************************************************************/
 

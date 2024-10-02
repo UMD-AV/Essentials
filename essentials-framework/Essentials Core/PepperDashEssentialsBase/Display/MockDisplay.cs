@@ -21,9 +21,9 @@ namespace PepperDash.Essentials.Core
         public RoutingInputPort ComponentIn1 { get; private set; }
         public RoutingInputPort VgaIn1 { get; private set; }
 
-        bool _PowerIsOn;
-        bool _IsWarmingUp;
-        bool _IsCoolingDown;
+        private bool _PowerIsOn;
+        private bool _IsWarmingUp;
+        private bool _IsCoolingDown;
 
         protected override Func<bool> PowerIsOnFeedbackFunc
         {
@@ -69,10 +69,10 @@ namespace PepperDash.Essentials.Core
             get { return () => "Not Implemented"; }
         }
 
-        int VolumeHeldRepeatInterval = 200;
-        ushort VolumeInterval = 655;
-        ushort _FakeVolumeLevel = 31768;
-        bool _IsMuted;
+        private int VolumeHeldRepeatInterval = 200;
+        private ushort VolumeInterval = 655;
+        private ushort _FakeVolumeLevel = 31768;
+        private bool _IsMuted;
 
         public MockDisplay(string key, string name)
             : base(key, name)

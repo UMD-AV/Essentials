@@ -310,7 +310,7 @@ namespace PepperDash.Essentials.Core
 
     public class PropertyNameType
     {
-        object Parent;
+        private object Parent;
 
         [JsonIgnore] public PropertyInfo PropInfo { get; private set; }
 

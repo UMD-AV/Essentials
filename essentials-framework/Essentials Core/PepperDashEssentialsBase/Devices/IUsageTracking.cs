@@ -39,7 +39,7 @@ namespace PepperDash.Essentials.Core
             InUseTracker.InUseFeedback.OutputChange += InUseFeedback_OutputChange; //new EventHandler<EventArgs>();
         }
 
-        void InUseFeedback_OutputChange(object sender, EventArgs e)
+        private void InUseFeedback_OutputChange(object sender, EventArgs e)
         {
             if (InUseTracker.InUseFeedback.BoolValue)
             {

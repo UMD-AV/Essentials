@@ -11,8 +11,8 @@ namespace PepperDash.Essentials.Core
     /// </summary>
     public class IrOutputPortController : Device
     {
-        uint IrPortUid;
-        IROutputPort IrPort;
+        private uint IrPortUid;
+        private IROutputPort IrPort;
 
         public BoolFeedback DriverLoaded { get; private set; }
 

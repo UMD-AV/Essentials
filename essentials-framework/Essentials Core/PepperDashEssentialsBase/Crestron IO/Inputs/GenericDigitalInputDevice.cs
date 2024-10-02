@@ -17,7 +17,7 @@ namespace PepperDash.Essentials.Core.CrestronIO
 
         public BoolFeedback InputStateFeedback { get; private set; }
 
-        Func<bool> InputStateFeedbackFunc
+        private Func<bool> InputStateFeedbackFunc
         {
             get { return () => InputPort.State; }
         }
@@ -41,7 +41,7 @@ namespace PepperDash.Essentials.Core.CrestronIO
 
         #region Events
 
-        void InputPort_StateChange(DigitalInput digitalInput, DigitalInputEventArgs args)
+        private void InputPort_StateChange(DigitalInput digitalInput, DigitalInputEventArgs args)
         {
             InputStateFeedback.FireUpdate();
         }
@@ -148,7 +148,8 @@ namespace PepperDash.Essentials.Core.CrestronIO
 
                 if (props == null) return null;
 
-                GenericDigitalInputDevice portDevice = new GenericDigitalInputDevice(dc.Key, dc.Name, GetDigitalInput, props);
+                GenericDigitalInputDevice portDevice =
+                    new GenericDigitalInputDevice(dc.Key, dc.Name, GetDigitalInput, props);
 
                 return portDevice;
             }

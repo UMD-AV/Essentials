@@ -53,7 +53,7 @@ namespace PepperDash.Essentials.DM
             HdmiOut.Port = _rmc.HdmiOutput;
         }
 
-        void ConnectedDevice_DeviceInformationChange(ConnectedDeviceInformation connectedDevice,
+        private void ConnectedDevice_DeviceInformationChange(ConnectedDeviceInformation connectedDevice,
             ConnectedDeviceEventArgs args)
         {
             switch (args.EventId)

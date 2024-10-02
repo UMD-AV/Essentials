@@ -20,9 +20,7 @@ namespace PepperDash.Essentials.DM.AirMedia
     {
         public AmX00 AirMedia { get; private set; }
 
-        public DeviceConfig DeviceConfig { get; private set; }
-
-        AirMediaPropertiesConfig PropertiesConfig;
+        private AirMediaPropertiesConfig PropertiesConfig;
 
         public RoutingPortCollection<RoutingInputPort> InputPorts { get; private set; }
 
@@ -48,8 +46,6 @@ namespace PepperDash.Essentials.DM.AirMedia
             : base(key, name, device)
         {
             AirMedia = device;
-
-            DeviceConfig = dc;
 
             PropertiesConfig = props;
 
@@ -200,7 +196,7 @@ namespace PepperDash.Essentials.DM.AirMedia
         }
 
 
-        void AirMedia_AirMediaChange(object sender, Crestron.SimplSharpPro.DeviceSupport.GenericEventArgs args)
+        private void AirMedia_AirMediaChange(object sender, Crestron.SimplSharpPro.DeviceSupport.GenericEventArgs args)
         {
             if (args.EventId == AirMediaInputSlot.AirMediaStatusFeedbackEventId)
                 IsInSessionFeedback.FireUpdate();
@@ -216,7 +212,7 @@ namespace PepperDash.Essentials.DM.AirMedia
                 HostnameFeedback.FireUpdate();
         }
 
-        void DisplayControl_DisplayControlChange(object sender,
+        private void DisplayControl_DisplayControlChange(object sender,
             Crestron.SimplSharpPro.DeviceSupport.GenericEventArgs args)
         {
             if (args.EventId == AmX00.VideoOutFeedbackEventId)
@@ -233,7 +229,7 @@ namespace PepperDash.Essentials.DM.AirMedia
                 AutomaticInputRoutingEnabledFeedback.FireUpdate();
         }
 
-        void HdmiIn_StreamChange(Stream stream, Crestron.SimplSharpPro.DeviceSupport.StreamEventArgs args)
+        private void HdmiIn_StreamChange(Stream stream, Crestron.SimplSharpPro.DeviceSupport.StreamEventArgs args)
         {
             if (args.EventId == DMInputEventIds.SourceSyncEventId)
                 HdmiVideoSyncDetectedFeedback.FireUpdate();
@@ -365,7 +361,8 @@ namespace PepperDash.Essentials.DM.AirMedia
 
             Debug.Console(1, "Factory Attempting to create new AirMedia Device");
 
-            AirMediaPropertiesConfig props = JsonConvert.DeserializeObject<AirMediaPropertiesConfig>(dc.Properties.ToString());
+            AirMediaPropertiesConfig props =
+                JsonConvert.DeserializeObject<AirMediaPropertiesConfig>(dc.Properties.ToString());
             AmX00 amDevice = null;
             if (type == "am200")
                 amDevice = new Crestron.SimplSharpPro.DM.AirMedia.Am200(props.Control.IpIdInt, Global.ControlSystem);

@@ -14,9 +14,9 @@ namespace PepperDash.Essentials.Core.Privacy
     /// </summary>
     public class MicrophonePrivacyController : EssentialsDevice
     {
-        MicrophonePrivacyControllerConfig Config;
+        private MicrophonePrivacyControllerConfig Config;
 
-        bool initialized;
+        private bool initialized;
 
         public bool EnableLeds
         {
@@ -38,15 +38,15 @@ namespace PepperDash.Essentials.Core.Privacy
             }
         }
 
-        bool _enableLeds;
+        private bool _enableLeds;
 
         public List<IDigitalInput> Inputs { get; private set; }
 
         public GenericRelayDevice RedLedRelay { get; private set; }
-        bool _redLedRelayState;
+        private bool _redLedRelayState;
 
         public GenericRelayDevice GreenLedRelay { get; private set; }
-        bool _greenLedRelayState;
+        private bool _greenLedRelayState;
 
         public IPrivacy PrivacyDevice { get; private set; }
 
@@ -68,14 +68,16 @@ namespace PepperDash.Essentials.Core.Privacy
                     AddInput(input);
             }
 
-            GenericRelayDevice greenLed = DeviceManager.GetDeviceForKey(Config.GreenLedRelay.DeviceKey) as GenericRelayDevice;
+            GenericRelayDevice greenLed =
+                DeviceManager.GetDeviceForKey(Config.GreenLedRelay.DeviceKey) as GenericRelayDevice;
 
             if (greenLed != null)
                 GreenLedRelay = greenLed;
             else
                 Debug.Console(0, this, "Unable to add Green LED device");
 
-            GenericRelayDevice redLed = DeviceManager.GetDeviceForKey(Config.RedLedRelay.DeviceKey) as GenericRelayDevice;
+            GenericRelayDevice redLed =
+                DeviceManager.GetDeviceForKey(Config.RedLedRelay.DeviceKey) as GenericRelayDevice;
 
             if (redLed != null)
                 RedLedRelay = redLed;
@@ -107,13 +109,13 @@ namespace PepperDash.Essentials.Core.Privacy
             PrivacyDevice = privacyDevice;
         }
 
-        void PrivacyModeIsOnFeedback_OutputChange(object sender, EventArgs e)
+        private void PrivacyModeIsOnFeedback_OutputChange(object sender, EventArgs e)
         {
             Debug.Console(1, this, "Privacy mode change: {0}", sender as BoolFeedback);
             CheckPrivacyMode();
         }
 
-        void CheckPrivacyMode()
+        private void CheckPrivacyMode()
         {
             if (PrivacyDevice != null)
             {
@@ -126,14 +128,14 @@ namespace PepperDash.Essentials.Core.Privacy
             }
         }
 
-        void AddInput(IDigitalInput input)
+        private void AddInput(IDigitalInput input)
         {
             Inputs.Add(input);
 
             input.InputStateFeedback.OutputChange += InputStateFeedback_OutputChange;
         }
 
-        void RemoveInput(IDigitalInput input)
+        private void RemoveInput(IDigitalInput input)
         {
             IDigitalInput tempInput = Inputs.FirstOrDefault(i => i.Equals(input));
 
@@ -143,12 +145,12 @@ namespace PepperDash.Essentials.Core.Privacy
             Inputs.Remove(input);
         }
 
-        void SetRedLedRelay(GenericRelayDevice relay)
+        private void SetRedLedRelay(GenericRelayDevice relay)
         {
             RedLedRelay = relay;
         }
 
-        void SetGreenLedRelay(GenericRelayDevice relay)
+        private void SetGreenLedRelay(GenericRelayDevice relay)
         {
             GreenLedRelay = relay;
         }
@@ -158,7 +160,7 @@ namespace PepperDash.Essentials.Core.Privacy
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        void InputStateFeedback_OutputChange(object sender, EventArgs e)
+        private void InputStateFeedback_OutputChange(object sender, EventArgs e)
         {
             if ((sender as BoolFeedback).BoolValue == true)
                 TogglePrivacyMute();
@@ -172,14 +174,14 @@ namespace PepperDash.Essentials.Core.Privacy
             PrivacyDevice.PrivacyModeToggle();
         }
 
-        void TurnOnRedLeds()
+        private void TurnOnRedLeds()
         {
             _greenLedRelayState = false;
             _redLedRelayState = true;
             SetLedStates();
         }
 
-        void TurnOnGreenLeds()
+        private void TurnOnGreenLeds()
         {
             _redLedRelayState = false;
             _greenLedRelayState = true;
@@ -189,7 +191,7 @@ namespace PepperDash.Essentials.Core.Privacy
         /// <summary>
         /// If enabled, sets the actual state of the relays
         /// </summary>
-        void SetLedStates()
+        private void SetLedStates()
         {
             if (_enableLeds)
             {
@@ -202,7 +204,7 @@ namespace PepperDash.Essentials.Core.Privacy
         /// <summary>
         /// Turns off all LEDs
         /// </summary>
-        void TurnOffAllLeds()
+        private void TurnOffAllLeds()
         {
             _redLedRelayState = false;
             _greenLedRelayState = false;
@@ -210,7 +212,7 @@ namespace PepperDash.Essentials.Core.Privacy
             SetRelayStates();
         }
 
-        void SetRelayStates()
+        private void SetRelayStates()
         {
             if (RedLedRelay != null)
             {

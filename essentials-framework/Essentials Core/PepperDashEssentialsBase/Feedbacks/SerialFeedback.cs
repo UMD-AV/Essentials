@@ -15,7 +15,7 @@ namespace PepperDash.Essentials.Core
             get { return _SerialValue; }
         }
 
-        string _SerialValue;
+        private string _SerialValue;
 
         //public override eCueType Type { get { return eCueType.Serial; } }
 
@@ -24,7 +24,7 @@ namespace PepperDash.Essentials.Core
         /// </summary>
         public string TestValue { get; private set; }
 
-        List<StringInputSig> LinkedInputSigs = new List<StringInputSig>();
+        private List<StringInputSig> LinkedInputSigs = new List<StringInputSig>();
 
         public SerialFeedback()
         {
@@ -74,12 +74,12 @@ namespace PepperDash.Essentials.Core
             FireUpdate(TestValue);
         }
 
-        void UpdateSig(StringInputSig sig)
+        private void UpdateSig(StringInputSig sig)
         {
             sig.StringValue = _SerialValue;
         }
 
-        void UpdateSig(StringInputSig sig, string value)
+        private void UpdateSig(StringInputSig sig, string value)
         {
             sig.StringValue = value;
         }

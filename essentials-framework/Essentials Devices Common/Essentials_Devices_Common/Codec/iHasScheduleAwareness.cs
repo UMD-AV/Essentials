@@ -25,7 +25,7 @@ namespace PepperDash.Essentials.Devices.Common.Codec
 
     public class CodecScheduleAwareness
     {
-        List<Meeting> _meetings;
+        private List<Meeting> _meetings;
 
         public event EventHandler<MeetingEventArgs> MeetingEventChange;
 

@@ -31,8 +31,8 @@ namespace PepperDash.Essentials.Core.PageManagers
     /// </summary>
     public class DefaultPageManager : PageManager
     {
-        BasicTriList TriList;
-        uint BackingPageJoin;
+        private BasicTriList TriList;
+        private uint BackingPageJoin;
 
         public DefaultPageManager(IUiDisplayInfo device, BasicTriList trilist)
         {

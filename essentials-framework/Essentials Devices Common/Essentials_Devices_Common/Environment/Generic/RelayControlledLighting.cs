@@ -13,9 +13,9 @@ namespace PepperDash.Essentials.Devices.Common.Environment
 {
     public class RelayControlledLighting : LightingBase
     {
-        RelayControlledLightingPropertiesConfig _props;
-        Relay[] relayOutputs;
-        CMutex sceneMutex;
+        private RelayControlledLightingPropertiesConfig _props;
+        private Relay[] relayOutputs;
+        private CMutex sceneMutex;
 
         public RelayControlledLighting(string key, string name, RelayControlledLightingPropertiesConfig props)
             : base(key, name)

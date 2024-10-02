@@ -295,7 +295,7 @@ namespace PepperDash.Essentials.DM
                 Debug.Console(2, this, "Unable to execute audio-only switch for tx {0}", Key);
         }
 
-        void InputStreamChangeEvent(EndpointInputStream inputStream, EndpointInputStreamEventArgs args)
+        private void InputStreamChangeEvent(EndpointInputStream inputStream, EndpointInputStreamEventArgs args)
         {
             Debug.Console(2, "{0} event {1} stream {2}", Tx.ToString(), inputStream.ToString(),
                 args.EventId.ToString());
@@ -315,7 +315,7 @@ namespace PepperDash.Essentials.DM
             }
         }
 
-        void Tx_OnlineStatusChange(GenericBase currentDevice, OnlineOfflineEventArgs args)
+        private void Tx_OnlineStatusChange(GenericBase currentDevice, OnlineOfflineEventArgs args)
         {
             RoutingInputPort localVideoInputPort =
                 InputPorts.FirstOrDefault(p => (eVst)p.Selector == Tx.VideoSourceFeedback);
@@ -332,7 +332,7 @@ namespace PepperDash.Essentials.DM
         }
 
 
-        void Tx_BaseEvent(GenericBase device, BaseEventArgs args)
+        private void Tx_BaseEvent(GenericBase device, BaseEventArgs args)
         {
             int id = args.EventId;
             Debug.Console(2, this, "EventId {0}", args.EventId);
@@ -362,7 +362,7 @@ namespace PepperDash.Essentials.DM
         /// <summary>
         /// Relays the input stream change to the appropriate RoutingInputPort.
         /// </summary>
-        void FowardInputStreamChange(RoutingInputPortWithVideoStatuses inputPort, int eventId)
+        private void FowardInputStreamChange(RoutingInputPortWithVideoStatuses inputPort, int eventId)
         {
             if (eventId != EndpointInputStreamEventIds.SyncDetectedFeedbackEventId)
             {
@@ -376,7 +376,7 @@ namespace PepperDash.Essentials.DM
         /// <summary>
         /// Relays the VideoAttributes change to a RoutingInputPort
         /// </summary>
-        void ForwardVideoAttributeChange(RoutingInputPortWithVideoStatuses inputPort, int eventId)
+        private void ForwardVideoAttributeChange(RoutingInputPortWithVideoStatuses inputPort, int eventId)
         {
             //// LOCATION: Crestron.SimplSharpPro.DM.VideoAttributeEventIds
             //Debug.Console(2, this, "VideoAttributes_AttributeChange event id={0} from {1}",

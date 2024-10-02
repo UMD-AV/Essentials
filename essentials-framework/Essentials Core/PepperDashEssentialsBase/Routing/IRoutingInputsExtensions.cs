@@ -187,7 +187,7 @@ namespace PepperDash.Essentials.Core
         /// <param name="cycle">Just an informational counter</param>
         /// <param name="routeTable">The RouteDescriptor being populated as the route is discovered</param>
         /// <returns>true if source is hit</returns>
-        static bool GetRouteToSource(this IRoutingInputs destination, IRoutingOutputs source,
+        private static bool GetRouteToSource(this IRoutingInputs destination, IRoutingOutputs source,
             RoutingOutputPort outputPortToUse, List<IRoutingInputsOutputs> alreadyCheckedDevices,
             eRoutingSignalType signalType, int cycle, RouteDescriptor routeTable)
         {
@@ -216,7 +216,8 @@ namespace PepperDash.Essentials.Core
 
                 // No direct tie? Run back out on the inputs' attached devices... 
                 // Only the ones that are routing devices
-                IEnumerable<TieLine> attachedMidpoints = destDevInputTies.Where(t => t.SourcePort.ParentDevice is IRoutingInputsOutputs);
+                IEnumerable<TieLine> attachedMidpoints =
+                    destDevInputTies.Where(t => t.SourcePort.ParentDevice is IRoutingInputsOutputs);
 
                 //Create a list for tracking already checked devices to avoid loops, if it doesn't already exist from previous iteration
                 if (alreadyCheckedDevices == null)
@@ -226,7 +227,8 @@ namespace PepperDash.Essentials.Core
                 foreach (TieLine inputTieToTry in attachedMidpoints)
                 {
                     RoutingOutputPort upstreamDeviceOutputPort = inputTieToTry.SourcePort;
-                    IRoutingInputsOutputs upstreamRoutingDevice = upstreamDeviceOutputPort.ParentDevice as IRoutingInputsOutputs;
+                    IRoutingInputsOutputs upstreamRoutingDevice =
+                        upstreamDeviceOutputPort.ParentDevice as IRoutingInputsOutputs;
                     Debug.Console(2, destination, "Trying to find route on {0}", upstreamRoutingDevice.Key);
 
                     // Check if this previous device has already been walked
@@ -295,9 +297,9 @@ namespace PepperDash.Essentials.Core
             }
         }
 
-        static RouteDescriptorCollection _DefaultCollection;
+        private static RouteDescriptorCollection _DefaultCollection;
 
-        List<RouteDescriptor> RouteDescriptors = new List<RouteDescriptor>();
+        private List<RouteDescriptor> RouteDescriptors = new List<RouteDescriptor>();
 
         /// <summary>
         /// Adds a RouteDescriptor to the list.  If an existing RouteDescriptor for the

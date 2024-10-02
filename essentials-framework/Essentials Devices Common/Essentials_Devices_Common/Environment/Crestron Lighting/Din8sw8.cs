@@ -45,7 +45,7 @@ namespace PepperDash.Essentials.Devices.Common.Environment.Lighting
         /// <summary>
         /// Populates the generic collection with the loads from the Crestron collection
         /// </summary>
-        void PopulateDictionary()
+        private void PopulateDictionary()
         {
             foreach (SwitchedLoadWithOverrideParameter item in SwitchModule.SwitchedLoads)
             {
@@ -59,7 +59,7 @@ namespace PepperDash.Essentials.Devices.Common.Environment.Lighting
     /// </summary>
     public class Din8sw8Output : ISwitchedOutput
     {
-        SwitchedLoadWithOverrideParameter SwitchedOutput;
+        private SwitchedLoadWithOverrideParameter SwitchedOutput;
 
         public BoolFeedback OutputIsOnFeedback { get; protected set; }
 

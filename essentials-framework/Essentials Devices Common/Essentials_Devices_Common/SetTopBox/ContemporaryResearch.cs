@@ -53,7 +53,7 @@ namespace PepperDash.Essentials.Devices.Common.ContemporaryResearch
 
         #endregion
 
-        DeviceConfig _Dc;
+        private DeviceConfig _Dc;
 
         private Properties _props;
 
@@ -63,7 +63,7 @@ namespace PepperDash.Essentials.Devices.Common.ContemporaryResearch
 
         private string UnitId { get; set; }
 
-        BoolFeedback PowerStatusFeedback { get; set; }
+        private BoolFeedback PowerStatusFeedback { get; set; }
         private bool _PowerStatus { get; set; }
 
         private bool PowerStatus
@@ -132,7 +132,7 @@ namespace PepperDash.Essentials.Devices.Common.ContemporaryResearch
             return cmd;
         }
 
-        void socket_ConnectionChange(object sender, GenericSocketStatusChageEventArgs e)
+        private void socket_ConnectionChange(object sender, GenericSocketStatusChageEventArgs e)
         {
             Debug.Console(2, this, "Socket Status Change: {0}", e.Client.ClientStatus.ToString());
 
@@ -144,7 +144,7 @@ namespace PepperDash.Essentials.Devices.Common.ContemporaryResearch
             }
         }
 
-        void Port_LineReceived(object dev, GenericCommMethodReceiveTextArgs args)
+        private void Port_LineReceived(object dev, GenericCommMethodReceiveTextArgs args)
         {
             Debug.Console(2, this, "RX : '{0}'", args.Text);
             string header = string.Format("<{0}T", UnitId);

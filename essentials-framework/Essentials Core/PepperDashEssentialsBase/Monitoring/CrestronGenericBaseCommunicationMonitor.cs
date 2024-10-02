@@ -9,7 +9,7 @@ namespace PepperDash.Essentials.Core
     /// </summary>
     public class CrestronGenericBaseCommunicationMonitor : StatusMonitorBase
     {
-        GenericBase Device;
+        private GenericBase Device;
 
         public CrestronGenericBaseCommunicationMonitor(IKeyed parent, GenericBase device, long warningTime,
             long errorTime)
@@ -30,12 +30,12 @@ namespace PepperDash.Essentials.Core
             Device.OnlineStatusChange -= Device_OnlineStatusChange;
         }
 
-        void Device_OnlineStatusChange(GenericBase currentDevice, OnlineOfflineEventArgs args)
+        private void Device_OnlineStatusChange(GenericBase currentDevice, OnlineOfflineEventArgs args)
         {
             GetStatus();
         }
 
-        void GetStatus()
+        private void GetStatus()
         {
             if (Device.IsOnline)
             {

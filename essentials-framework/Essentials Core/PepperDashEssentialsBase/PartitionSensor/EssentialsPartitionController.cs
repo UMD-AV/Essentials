@@ -47,7 +47,7 @@ namespace PepperDash.Essentials.Core
             PartitionPresentFeedback.FireUpdate();
         }
 
-        void PartitionPresentFeedback_OutputChange(object sender, FeedbackEventArgs e)
+        private void PartitionPresentFeedback_OutputChange(object sender, FeedbackEventArgs e)
         {
             if (isInAutoMode)
             {

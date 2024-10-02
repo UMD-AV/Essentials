@@ -29,7 +29,7 @@ namespace PepperDash.Essentials.DM.Endpoints.DGEs
 
         private DeviceConfig _dc;
 
-        CrestronTouchpanelPropertiesConfig PropertiesConfig;
+        private CrestronTouchpanelPropertiesConfig PropertiesConfig;
 
         public Dge100Controller(string key, string name, Dge100 device, DeviceConfig dc,
             CrestronTouchpanelPropertiesConfig props)
@@ -113,8 +113,9 @@ namespace PepperDash.Essentials.DM.Endpoints.DGEs
                 return;
             }
 
-            GenericTcpIpClient tcpClient = new GenericTcpIpClient("", _dgeEthernetInfo.IpAddressFeedback.StringValue, CtpPort, 1024)
-                { AutoReconnect = false };
+            GenericTcpIpClient tcpClient =
+                new GenericTcpIpClient("", _dgeEthernetInfo.IpAddressFeedback.StringValue, CtpPort, 1024)
+                    { AutoReconnect = false };
 
             CommunicationGather gather = new CommunicationGather(tcpClient, "\r\n\r\n");
 
@@ -209,7 +210,8 @@ namespace PepperDash.Essentials.DM.Endpoints.DGEs
         {
             string typeName = dc.Type.ToLower();
             EssentialsControlPropertiesConfig comm = CommFactory.GetControlPropertiesConfig(dc);
-            CrestronTouchpanelPropertiesConfig props = JsonConvert.DeserializeObject<CrestronTouchpanelPropertiesConfig>(dc.Properties.ToString());
+            CrestronTouchpanelPropertiesConfig props =
+                JsonConvert.DeserializeObject<CrestronTouchpanelPropertiesConfig>(dc.Properties.ToString());
 
             Debug.Console(1, "Factory Attempting to create new DgeController Device");
 

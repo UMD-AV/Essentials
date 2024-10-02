@@ -35,15 +35,15 @@ namespace PepperDash.Core
         ///// </summary>
         //public bool HasConfig { get { return Config != null; } }
 
-        List<Action> _PreActivationActions;
-        List<Action> _PostActivationActions;
+        private List<Action> _PreActivationActions;
+        private List<Action> _PostActivationActions;
 
         public static Device DefaultDevice
         {
             get { return _DefaultDevice; }
         }
 
-        static Device _DefaultDevice = new Device("Default", "Default");
+        private static Device _DefaultDevice = new Device("Default", "Default");
 
         /// <summary>
         /// Base constructor for all Devices.

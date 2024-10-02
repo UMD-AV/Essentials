@@ -7,8 +7,8 @@ namespace QscQsysDspPlugin
 {
     public class QscDspLevelControl : QscDspControlPoint, IBasicVolumeWithFeedback, IKeyed
     {
-        bool _isMuted;
-        ushort _volumeLevel;
+        private bool _isMuted;
+        private ushort _volumeLevel;
 
         public BoolFeedback MuteFeedback { get; private set; }
 
@@ -18,10 +18,10 @@ namespace QscQsysDspPlugin
         public bool UseAbsoluteValue { get; set; }
         public ePdtLevelTypes Type;
         public int Permissions { get; set; }
-        CTimer _volumeUpRepeatTimer;
-        CTimer _volumeDownRepeatTimer;
-        CMutex _volumeUpLock;
-        CMutex _volumeDownLock;
+        private CTimer _volumeUpRepeatTimer;
+        private CTimer _volumeDownRepeatTimer;
+        private CMutex _volumeUpLock;
+        private CMutex _volumeDownLock;
         private ushort _volumeUpCount;
         private ushort _volumeDownCount;
         private readonly QscDsp _parent;
@@ -73,8 +73,8 @@ namespace QscQsysDspPlugin
         public bool HasMute { get; private set; }
         public bool HasLevel { get; private set; }
 
-        bool _muteIsSubscribed;
-        bool _levelIsSubscribed;
+        private bool _muteIsSubscribed;
+        private bool _levelIsSubscribed;
 
         //public TesiraForteLevelControl(string label, string id, int index1, int index2, bool hasMute, bool hasLevel, BiampTesiraForteDsp parent)
         //    : base(id, index1, index2, parent)
@@ -377,7 +377,7 @@ namespace QscQsysDspPlugin
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
-        double Scale(double input)
+        private double Scale(double input)
         {
             Debug.Console(1, this, "Scaling (double) input '{0}'", input);
 

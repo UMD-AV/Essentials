@@ -200,7 +200,7 @@ namespace PepperDash.Essentials.Devices.Common.Lumens
         }
 
         public BoolFeedback PowerIsOnFeedback { get; set; }
-        bool _PowerIsOn;
+        private bool _PowerIsOn;
 
         public bool PowerIsOn
         {
@@ -245,7 +245,7 @@ namespace PepperDash.Essentials.Devices.Common.Lumens
         }
 
         public BoolFeedback LampIsOnFeedback { get; set; }
-        bool _LampIsOn;
+        private bool _LampIsOn;
 
         public bool LampIsOn
         {

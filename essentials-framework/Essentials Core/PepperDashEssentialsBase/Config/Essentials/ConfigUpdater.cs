@@ -58,7 +58,7 @@ namespace PepperDash.Essentials.Core.Config
             }
         }
 
-        static void OnStatusUpdate(eUpdateStatus status)
+        private static void OnStatusUpdate(eUpdateStatus status)
         {
             EventHandler<ConfigStatusEventArgs> handler = ConfigStatusChanged;
 
@@ -68,7 +68,7 @@ namespace PepperDash.Essentials.Core.Config
             }
         }
 
-        static void WriteConfigToFile(string configData)
+        private static void WriteConfigToFile(string configData)
         {
             string filePath = Global.FilePathPrefix + "configurationFile-updated.json";
 
@@ -91,7 +91,7 @@ namespace PepperDash.Essentials.Core.Config
         /// <summary>
         /// Checks for any existing portal config files and archives them
         /// </summary>
-        static void ArchiveExistingPortalConfigs()
+        private static void ArchiveExistingPortalConfigs()
         {
             string filePath = Global.FilePathPrefix + Global.ConfigFileName;
 
@@ -117,7 +117,7 @@ namespace PepperDash.Essentials.Core.Config
         /// Moves any config files to the archive folder and adds a .bak suffix
         /// </summary>
         /// <param name="files"></param>
-        static void MoveFilesToArchiveFolder(FileInfo[] files)
+        private static void MoveFilesToArchiveFolder(FileInfo[] files)
         {
             string archiveDirectoryPath = Global.FilePathPrefix + "archive";
 
@@ -129,8 +129,9 @@ namespace PepperDash.Essentials.Core.Config
             else
             {
                 // Directory exists, first clear any contents
-                FileInfo[] archivedConfigFiles = ConfigReader.GetConfigFiles(archiveDirectoryPath + Global.DirectorySeparator +
-                                                                             Global.ConfigFileName + ".bak");
+                FileInfo[] archivedConfigFiles = ConfigReader.GetConfigFiles(
+                    archiveDirectoryPath + Global.DirectorySeparator +
+                    Global.ConfigFileName + ".bak");
 
                 if (archivedConfigFiles != null || archivedConfigFiles.Length > 0)
                 {
@@ -168,7 +169,7 @@ namespace PepperDash.Essentials.Core.Config
         /// <summary>
         /// Checks for LocalConfig folder in file system and deletes if found
         /// </summary>
-        static void CheckForLocalConfigAndDelete()
+        private static void CheckForLocalConfigAndDelete()
         {
             string folderPath = Global.FilePathPrefix + ConfigWriter.LocalConfigFolder;
 
@@ -183,7 +184,7 @@ namespace PepperDash.Essentials.Core.Config
         /// <summary>
         /// Connects to the processor via SSH and restarts the program
         /// </summary>
-        static void RestartProgram()
+        private static void RestartProgram()
         {
             Debug.Console(0, Debug.ErrorLogLevel.Notice, "Attempting to Reset Program");
 

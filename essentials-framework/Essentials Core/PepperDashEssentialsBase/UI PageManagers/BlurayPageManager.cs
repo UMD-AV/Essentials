@@ -4,7 +4,7 @@ namespace PepperDash.Essentials.Core.PageManagers
 {
     public class DiscPlayerMediumPageManager : MediumLeftSwitchablePageManager
     {
-        IDiscPlayerControls Player;
+        private IDiscPlayerControls Player;
 
         public DiscPlayerMediumPageManager(IDiscPlayerControls player, BasicTriListWithSmartObject trilist)
             : base(player.DisplayUiType)

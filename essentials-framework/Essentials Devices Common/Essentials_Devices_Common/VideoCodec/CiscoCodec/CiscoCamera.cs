@@ -94,7 +94,7 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.Cisco
         #endregion
 
 
-        void Stop()
+        private void Stop()
         {
             ParentCodec.EnqueueCommand(string.Format("xCommand Call FarEndControl Camera Stop CallId: {0}", CallId));
         }

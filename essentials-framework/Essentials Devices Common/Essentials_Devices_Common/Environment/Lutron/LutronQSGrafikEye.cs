@@ -17,7 +17,7 @@ namespace PepperDash.Essentials.Devices.Common.Environment.Lutron
         public CommunicationGather PortGather { get; private set; }
         public StatusMonitorBase CommunicationMonitor { get; private set; }
 
-        LutronQuantumPropertiesConfig _props;
+        private LutronQuantumPropertiesConfig _props;
 
         private string _integrationId;
 
@@ -35,13 +35,13 @@ namespace PepperDash.Essentials.Devices.Common.Environment.Lutron
             }
         }
 
-        string Username;
-        string Password;
+        private string Username;
+        private string Password;
 
-        const string SceneController = "141";
-        const string Delimiter = "\x0d";
-        const string Set = "#";
-        const string Get = "?";
+        private const string SceneController = "141";
+        private const string Delimiter = "\x0d";
+        private const string Set = "#";
+        private const string Get = "?";
 
         public LutronQS(string key, string name, IBasicCommunication comm, LutronQuantumPropertiesConfig props)
             : base(key, name)
@@ -114,7 +114,7 @@ namespace PepperDash.Essentials.Devices.Common.Environment.Lutron
             }
         }
 
-        void socket_ConnectionChange(object sender, GenericSocketStatusChageEventArgs e)
+        private void socket_ConnectionChange(object sender, GenericSocketStatusChageEventArgs e)
         {
             Debug.Console(2, this, "Socket Status Change: {0}", e.Client.ClientStatus.ToString());
         }
@@ -124,7 +124,7 @@ namespace PepperDash.Essentials.Devices.Common.Environment.Lutron
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="args"></param>
-        void Communication_TextReceived(object sender, GenericCommMethodReceiveTextArgs args)
+        private void Communication_TextReceived(object sender, GenericCommMethodReceiveTextArgs args)
         {
             Debug.Console(2, this, "Text Received: '{0}'", args.Text);
 
@@ -145,7 +145,7 @@ namespace PepperDash.Essentials.Devices.Common.Environment.Lutron
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="args"></param>
-        void PortGather_LineReceived(object sender, GenericCommMethodReceiveTextArgs args)
+        private void PortGather_LineReceived(object sender, GenericCommMethodReceiveTextArgs args)
         {
             Debug.Console(2, this, "Line Received: '{0}'", args.Text);
 

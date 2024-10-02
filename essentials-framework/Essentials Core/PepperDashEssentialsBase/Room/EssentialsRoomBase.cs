@@ -188,7 +188,7 @@ namespace PepperDash.Essentials.Core
         /// <summary>
         /// If mobile control is enabled, sets the appropriate properties
         /// </summary>
-        void SetUpMobileControl()
+        private void SetUpMobileControl()
         {
             string mcBridgeKey = string.Format("mobileControlBridge-{0}", Key);
             IKeyed mcBridge = DeviceManager.GetDeviceForKey(mcBridgeKey);
@@ -206,7 +206,7 @@ namespace PepperDash.Essentials.Core
             }
         }
 
-        void RoomVacancyShutdownPromptTimer_HasFinished(object sender, EventArgs e)
+        private void RoomVacancyShutdownPromptTimer_HasFinished(object sender, EventArgs e)
         {
             switch (VacancyMode)
             {
@@ -316,7 +316,7 @@ namespace PepperDash.Essentials.Core
             OnRoomOccupancyIsSet();
         }
 
-        void OnRoomOccupancyIsSet()
+        private void OnRoomOccupancyIsSet()
         {
             EventHandler<EventArgs> handler = RoomOccupancyIsSet;
             if (handler != null)
@@ -334,7 +334,7 @@ namespace PepperDash.Essentials.Core
         /// <returns></returns>
         public abstract bool RunDefaultPresentRoute();
 
-        void RoomIsOccupiedFeedback_OutputChange(object sender, EventArgs e)
+        private void RoomIsOccupiedFeedback_OutputChange(object sender, EventArgs e)
         {
             if (RoomOccupancy.RoomIsOccupiedFeedback.BoolValue == false)
             {

@@ -118,12 +118,12 @@ namespace PepperDash.Essentials.Core.CrestronIO
 
         #region Events
 
-        void RelayOutput_StateChange(Relay relay, RelayEventArgs args)
+        private void RelayOutput_StateChange(Relay relay, RelayEventArgs args)
         {
             OutputIsOnFeedback.FireUpdate();
         }
 
-        void RelayTimerCallback(object o)
+        private void RelayTimerCallback(object o)
         {
             RelayOutput.State = false;
         }

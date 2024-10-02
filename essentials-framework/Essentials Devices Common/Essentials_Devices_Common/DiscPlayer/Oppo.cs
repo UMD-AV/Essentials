@@ -54,7 +54,7 @@ namespace PepperDash.Essentials.Devices.Common.Oppo
         #endregion
 
         private uint pollCount;
-        DeviceConfig _Dc;
+        private DeviceConfig _Dc;
 
         public IBasicCommunication Communication { get; private set; }
         public CommunicationGather PortGather { get; private set; }
@@ -104,7 +104,7 @@ namespace PepperDash.Essentials.Devices.Common.Oppo
             return cmd;
         }
 
-        void socket_ConnectionChange(object sender, GenericSocketStatusChageEventArgs e)
+        private void socket_ConnectionChange(object sender, GenericSocketStatusChageEventArgs e)
         {
             Debug.Console(2, this, "Socket Status Change: {0}", e.Client.ClientStatus.ToString());
 
@@ -116,7 +116,7 @@ namespace PepperDash.Essentials.Devices.Common.Oppo
             }
         }
 
-        void Port_LineReceived(object dev, GenericCommMethodReceiveTextArgs args)
+        private void Port_LineReceived(object dev, GenericCommMethodReceiveTextArgs args)
         {
             Debug.Console(2, this, "RX : '{0}'", args.Text);
             string message = args.Text.Trim();
@@ -374,7 +374,7 @@ namespace PepperDash.Essentials.Devices.Common.Oppo
         }
 
         public BoolFeedback PowerIsOnFeedback { get; set; }
-        bool _PowerIsOn;
+        private bool _PowerIsOn;
 
         #endregion
 

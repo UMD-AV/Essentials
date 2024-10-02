@@ -27,15 +27,15 @@ namespace VaddioBridgePlugin
         private readonly long _warningTimeoutMs = 60000; // 60s
         private readonly long _errorTimeoutMs = 180000; // 180s
 
-        private readonly string usernameSearch = "login:";
-        private readonly string pipSearch = "pip:";
-        private readonly string layoutSearch = "layout:";
-        private readonly string sourceSearch = "source:";
-        private readonly string standbySearch = "standby:";
-        private readonly string ipAddressSearch = "ip address";
-        private readonly string versionSearch = "system version";
-        private readonly string syntaxErrorSearch = "syntax error";
-        private readonly string incorrectPasswordSearch = "login incorrect";
+        private const string usernameSearch = "login:";
+        private const string pipSearch = "pip:";
+        private const string layoutSearch = "layout:";
+        private const string sourceSearch = "source:";
+        private const string standbySearch = "standby:";
+        private const string ipAddressSearch = "ip address";
+        private const string versionSearch = "system version";
+        private const string syntaxErrorSearch = "syntax error";
+        private const string incorrectPasswordSearch = "login incorrect";
 
         private bool _powerOn;
 

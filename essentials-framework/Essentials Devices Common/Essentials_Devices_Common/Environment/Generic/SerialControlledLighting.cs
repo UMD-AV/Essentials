@@ -22,7 +22,7 @@ namespace PepperDash.Essentials.Devices.Common.Environment.Generic
         private CTimer _commandTimer;
         private bool _queueWaiting = false;
         private bool _commandReady = true;
-        string pollString;
+        private string pollString;
 
         public SerialControlledLighting(string key, string name, IBasicCommunication comm,
             SerialControlledLightingPropertiesConfig props)

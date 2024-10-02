@@ -116,7 +116,7 @@ namespace NvxEpi.Features.Streams.Usb
             stream.StreamUrl.OutputChange += (sender, args) => FollowCurrentRoute(args.StringValue);
         }
 
-        void UsbInput_UsbInputChange(object sender, Crestron.SimplSharpPro.DeviceSupport.GenericEventArgs args)
+        private void UsbInput_UsbInputChange(object sender, Crestron.SimplSharpPro.DeviceSupport.GenericEventArgs args)
         {
             if (args.EventId == UsbInputEventIds.RemoteDeviceIdFeedbackEventId)
             {

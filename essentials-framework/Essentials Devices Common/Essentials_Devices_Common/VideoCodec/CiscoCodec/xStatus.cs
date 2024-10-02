@@ -107,7 +107,7 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.Cisco
 
         public class Volume : ValueProperty
         {
-            string _Value;
+            private string _Value;
 
             /// <summary>
             /// Sets Value and triggers the action when set
@@ -296,7 +296,7 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.Cisco
 
         public class Availability : ValueProperty
         {
-            string _Value;
+            private string _Value;
             public bool BoolValue { get; private set; }
 
             public string Value
@@ -314,7 +314,7 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.Cisco
 
         public class CallStatus : ValueProperty
         {
-            string _Value;
+            private string _Value;
             public bool BoolValue { get; private set; }
 
 
@@ -333,7 +333,7 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.Cisco
 
         public class Status2 : ValueProperty
         {
-            string _Value;
+            private string _Value;
             public bool BoolValue { get; private set; }
 
 
@@ -473,7 +473,7 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.Cisco
 
         public class DoNotDisturb : ValueProperty
         {
-            string _Value;
+            private string _Value;
 
             public bool BoolValue { get; private set; }
 
@@ -507,7 +507,7 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.Cisco
 
         public class Mode2 : ValueProperty
         {
-            string _Value;
+            private string _Value;
 
             public bool BoolValue { get; private set; }
 
@@ -549,7 +549,7 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.Cisco
 
         public class Source2 : ValueProperty
         {
-            string _Value;
+            private string _Value;
 
             /// <summary>
             /// Sets Value and triggers the action when set
@@ -581,7 +581,7 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.Cisco
 
         public class SendingMode : ValueProperty
         {
-            string _Value;
+            private string _Value;
 
             /// <summary>
             /// Sets Value and triggers the action when set
@@ -1207,7 +1207,7 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.Cisco
 
         public class Current3 : ValueProperty
         {
-            string _Value;
+            private string _Value;
 
             /// <summary>
             /// Sets Value and triggers the action when set
@@ -1462,7 +1462,7 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.Cisco
 
         public class State : ValueProperty
         {
-            string _value;
+            private string _value;
 
             public bool BoolValue { get; private set; }
 
@@ -1792,7 +1792,7 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.Cisco
 
         public class Local : ValueProperty
         {
-            string _Value;
+            private string _Value;
 
             public string Value // Valid values are On/Off
             {
@@ -1936,7 +1936,7 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.Cisco
 
         public class PIPPosition3 : ValueProperty
         {
-            string _Value;
+            private string _Value;
 
             public string Value
             {
@@ -2107,7 +2107,7 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.Cisco
 
         public class Description2 : ValueProperty
         {
-            string _Value;
+            private string _Value;
 
             public string Value
             {

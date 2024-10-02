@@ -92,42 +92,42 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec
             get { return () => _IsMuted; }
         }
 
-        bool _IsMuted;
+        private bool _IsMuted;
 
         protected override Func<bool> PrivacyModeIsOnFeedbackFunc
         {
             get { return () => _PrivacyModeIsOn; }
         }
 
-        bool _PrivacyModeIsOn;
+        private bool _PrivacyModeIsOn;
 
         protected override Func<string> SharingSourceFeedbackFunc
         {
             get { return () => _SharingSource; }
         }
 
-        string _SharingSource;
+        private string _SharingSource;
 
         protected override Func<bool> SharingContentIsOnFeedbackFunc
         {
             get { return () => _SharingIsOn; }
         }
 
-        bool _SharingIsOn;
+        private bool _SharingIsOn;
 
         protected override Func<int> VolumeLevelFeedbackFunc
         {
             get { return () => _VolumeLevel; }
         }
 
-        int _VolumeLevel;
+        private int _VolumeLevel;
 
         protected override Func<bool> StandbyIsOnFeedbackFunc
         {
             get { return () => _StandbyIsOn; }
         }
 
-        bool _StandbyIsOn;
+        private bool _StandbyIsOn;
 
         /// <summary>
         /// Creates the fake OSD source, and connects it's AudioVideo output to the CodecOsdIn input
@@ -466,7 +466,7 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec
             }
         }
 
-        CodecScheduleAwareness _CodecSchedule;
+        private CodecScheduleAwareness _CodecSchedule;
 
         #endregion
 
@@ -601,7 +601,7 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec
 
         #endregion
 
-        void SetupCameras()
+        private void SetupCameras()
         {
             SupportsCameraAutoMode = true;
 
@@ -839,7 +839,7 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec
             get { return _AutoAnswerEnabled; }
         }
 
-        bool _AutoAnswerEnabled;
+        private bool _AutoAnswerEnabled;
 
         public void SetAutoAnswer(bool value)
         {

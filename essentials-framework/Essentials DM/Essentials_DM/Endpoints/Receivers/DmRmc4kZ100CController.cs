@@ -30,7 +30,8 @@ namespace PepperDash.Essentials.DM
             //_rmc.HdmiOutput.ConnectedDevice.DeviceInformationChange += ConnectedDevice_DeviceInformationChange;
         }
 
-        void HdmiOutput_OutputStreamChange(EndpointOutputStream outputStream, EndpointOutputStreamEventArgs args)
+        private void HdmiOutput_OutputStreamChange(EndpointOutputStream outputStream,
+            EndpointOutputStreamEventArgs args)
         {
             switch (args.EventId)
             {

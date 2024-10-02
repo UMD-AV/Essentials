@@ -18,7 +18,7 @@ namespace PepperDash.Essentials.Core.Config
         public const long WriteTimeout = 30000;
 
         public static CTimer WriteTimer;
-        static CCriticalSection fileLock = new CCriticalSection();
+        private static CCriticalSection fileLock = new CCriticalSection();
 
         /// <summary>
         /// Updates the config properties of a device
@@ -89,9 +89,9 @@ namespace PepperDash.Essentials.Core.Config
         }
 
         /// <summary>
-        /// Resets (or starts) the write timer
+        /// Resets (or starts) the writer timer
         /// </summary>
-        static void ResetTimer()
+        private static void ResetTimer()
         {
             if (WriteTimer == null)
                 WriteTimer = new CTimer(WriteConfigFile, WriteTimeout);

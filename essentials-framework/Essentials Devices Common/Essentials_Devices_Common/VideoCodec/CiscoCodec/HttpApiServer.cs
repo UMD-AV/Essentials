@@ -63,7 +63,7 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.Cisco
             };
         }
 
-        void Server_Request(object sender, OnHttpRequestArgs args)
+        private void Server_Request(object sender, OnHttpRequestArgs args)
         {
             if (args.Request.Header.RequestType == "OPTIONS")
             {

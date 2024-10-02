@@ -39,11 +39,11 @@ namespace PepperDash.Essentials.License
             }
         }
 
-        static MockEssentialsLicenseManager _Manager;
+        private static MockEssentialsLicenseManager _Manager;
 
-        bool IsValid;
+        private bool IsValid;
 
-        MockEssentialsLicenseManager() : base()
+        private MockEssentialsLicenseManager() : base()
         {
             LicenseIsValid = new BoolFeedback("LicenseIsValid",
                 () => { return IsValid; });
@@ -61,7 +61,7 @@ namespace PepperDash.Essentials.License
                 CrestronConsole.PrintLine("Error restoring Mock License setting: {0}", err);
         }
 
-        void SetIsValid(bool isValid)
+        private void SetIsValid(bool isValid)
         {
             IsValid = isValid;
             CrestronDataStoreStatic.SetGlobalBoolValue("MockLicense", isValid);
@@ -69,7 +69,7 @@ namespace PepperDash.Essentials.License
             LicenseIsValid.FireUpdate();
         }
 
-        void SetFromConsole(bool isValid)
+        private void SetFromConsole(bool isValid)
         {
             SetIsValid(isValid);
         }

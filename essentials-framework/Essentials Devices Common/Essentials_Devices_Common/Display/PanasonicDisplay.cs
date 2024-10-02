@@ -45,22 +45,22 @@ namespace PepperDash.Essentials.Devices.Displays
         public BoolFeedback Input2Feedback { get; private set; }
         public BoolFeedback Input3Feedback { get; private set; }
 
-        bool _readyForCommands;
-        bool _tcpComm;
-        bool _PowerIsOn;
-        bool _IsWarmingUp;
-        bool _IsCoolingDown;
-        int _CurrentInputIndex;
-        ushort _RequestedPowerState; // 0:none 1:on 2:off
-        ushort _RequestedInputState; // 0:none 1-3:inputs 1-3 
+        private bool _readyForCommands;
+        private bool _tcpComm;
+        private bool _PowerIsOn;
+        private bool _IsWarmingUp;
+        private bool _IsCoolingDown;
+        private int _CurrentInputIndex;
+        private ushort _RequestedPowerState; // 0:none 1:on 2:off
+        private ushort _RequestedInputState; // 0:none 1-3:inputs 1-3 
 
         private DM.DmRmcControllerBase _scaler;
-        readonly PanasonicQueue _cmdQueue;
-        readonly PanasonicQueue _priorityQueue;
-        CommunicationGather _PortGather;
-        RoutingInputPort _CurrentInputPort;
-        CMutex _CommandMutex;
-        CMutex _PowerMutex;
+        private readonly PanasonicQueue _cmdQueue;
+        private readonly PanasonicQueue _priorityQueue;
+        private CommunicationGather _PortGather;
+        private RoutingInputPort _CurrentInputPort;
+        private CMutex _CommandMutex;
+        private CMutex _PowerMutex;
 
         protected override Func<bool> PowerIsOnFeedbackFunc
         {
@@ -150,7 +150,7 @@ namespace PepperDash.Essentials.Devices.Displays
             }
         }
 
-        void AddRoutingInputPort(RoutingInputPort port, string fbMatch)
+        private void AddRoutingInputPort(RoutingInputPort port, string fbMatch)
         {
             port.FeedbackMatchObject = fbMatch;
             InputPorts.Add(port);
@@ -193,7 +193,7 @@ namespace PepperDash.Essentials.Devices.Displays
             Input3Feedback.LinkInputSig(trilist.BooleanInput[joinMap.InputSelectOffset.JoinNumber + 2]);
         }
 
-        void tcpComm_ConnectionChange(object sender, GenericSocketStatusChageEventArgs e)
+        private void tcpComm_ConnectionChange(object sender, GenericSocketStatusChageEventArgs e)
         {
             if (!e.Client.IsConnected)
             {
@@ -212,7 +212,7 @@ namespace PepperDash.Essentials.Devices.Displays
         /// 
         /// </summary>
         /// <param name="sender"></param>
-        void DelimitedTextReceived(object sender, GenericCommMethodReceiveTextArgs e)
+        private void DelimitedTextReceived(object sender, GenericCommMethodReceiveTextArgs e)
         {
             try
             {

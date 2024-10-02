@@ -28,33 +28,33 @@ namespace PepperDash.Essentials.Devices.Displays
         public BoolFeedback Input4Feedback { get; private set; }
         public StringFeedback ErrorFeedback { get; private set; }
 
-        string videoMuteKey;
+        private string videoMuteKey;
         private DM.DmRmcControllerBase _scaler;
 
-        byte[] _tcpHandshake = new byte[]
+        private byte[] _tcpHandshake = new byte[]
             { 0x45, 0x53, 0x43, 0x2F, 0x56, 0x50, 0x2E, 0x6E, 0x65, 0x74, 0x10, 0x03, 0x00, 0x00, 0x00, 0x00 };
 
-        byte[] _tcpHeader = new byte[]
+        private byte[] _tcpHeader = new byte[]
             { 0x45, 0x53, 0x43, 0x2F, 0x56, 0x50, 0x2E, 0x6E, 0x65, 0x74, 0x10, 0x03, 0x00, 0x00 };
 
-        bool _readyForCommands;
-        bool _readyForNextCommand;
-        bool _tcpComm;
-        ushort _pollTracker;
-        bool _PowerIsOn;
-        bool _IsWarmingUp;
-        bool _IsCoolingDown;
-        bool _VideoMuteIsOn;
-        bool _abnormalStandby;
-        int _LampHours;
-        int _CurrentInputIndex;
-        ushort _onRetryCount;
-        ushort _offRetryCount;
-        ushort _RequestedPowerState; // 0:none 1:on 2:off
-        ushort _RequestedInputState; // 0:none 1-4:inputs 1-4 
-        ushort _RequestedVideoMuteState; // 0:none 1:on 2:off
-        ushort? _RequestedVolume;
-        string _errorFeedback;
+        private bool _readyForCommands;
+        private bool _readyForNextCommand;
+        private bool _tcpComm;
+        private ushort _pollTracker;
+        private bool _PowerIsOn;
+        private bool _IsWarmingUp;
+        private bool _IsCoolingDown;
+        private bool _VideoMuteIsOn;
+        private bool _abnormalStandby;
+        private int _LampHours;
+        private int _CurrentInputIndex;
+        private ushort _onRetryCount;
+        private ushort _offRetryCount;
+        private ushort _RequestedPowerState; // 0:none 1:on 2:off
+        private ushort _RequestedInputState; // 0:none 1-4:inputs 1-4 
+        private ushort _RequestedVideoMuteState; // 0:none 1:on 2:off
+        private ushort? _RequestedVolume;
+        private string _errorFeedback;
 
         public string ErrorFb
         {
@@ -67,13 +67,13 @@ namespace PepperDash.Essentials.Devices.Displays
             }
         }
 
-        readonly EpsonQueue _cmdQueue;
-        readonly EpsonQueue _priorityQueue;
-        readonly EpsonQueue _volumeQueue;
-        CommunicationGather _PortGather;
-        RoutingInputPort _CurrentInputPort;
-        CMutex _CommandMutex;
-        CMutex _PowerMutex;
+        private readonly EpsonQueue _cmdQueue;
+        private readonly EpsonQueue _priorityQueue;
+        private readonly EpsonQueue _volumeQueue;
+        private CommunicationGather _PortGather;
+        private RoutingInputPort _CurrentInputPort;
+        private CMutex _CommandMutex;
+        private CMutex _PowerMutex;
 
         //Volume Stuff
         private CCriticalSection _rampLock;
@@ -221,7 +221,7 @@ namespace PepperDash.Essentials.Devices.Displays
                 eRoutingPortConnectionType.Vga, new Action(InputVga), this), "11");
         }
 
-        void AddRoutingInputPort(RoutingInputPort port, string fbMatch)
+        private void AddRoutingInputPort(RoutingInputPort port, string fbMatch)
         {
             port.FeedbackMatchObject = fbMatch;
             InputPorts.Add(port);
@@ -302,7 +302,7 @@ namespace PepperDash.Essentials.Devices.Displays
             _rampLock = new CCriticalSection();
         }
 
-        void tcpComm_ConnectionChange(object sender, GenericSocketStatusChageEventArgs e)
+        private void tcpComm_ConnectionChange(object sender, GenericSocketStatusChageEventArgs e)
         {
             if (!e.Client.IsConnected)
             {
@@ -314,7 +314,7 @@ namespace PepperDash.Essentials.Devices.Displays
             }
         }
 
-        void BytesReceived(object sender, GenericCommMethodReceiveBytesArgs e)
+        private void BytesReceived(object sender, GenericCommMethodReceiveBytesArgs e)
         {
             if (!_readyForCommands)
             {
@@ -362,7 +362,7 @@ namespace PepperDash.Essentials.Devices.Displays
         /// 
         /// </summary>
         /// <param name="sender"></param>
-        void DelimitedTextReceived(object sender, GenericCommMethodReceiveTextArgs e)
+        private void DelimitedTextReceived(object sender, GenericCommMethodReceiveTextArgs e)
         {
             try
             {

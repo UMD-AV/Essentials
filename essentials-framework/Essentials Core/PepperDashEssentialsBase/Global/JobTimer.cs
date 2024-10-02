@@ -7,9 +7,9 @@ namespace PepperDash.Essentials.Core
 {
     public static class JobTimer
     {
-        static CTimer MinuteTimer;
+        private static CTimer MinuteTimer;
 
-        static List<JobTimerItem> Items = new List<JobTimerItem>();
+        private static List<JobTimerItem> Items = new List<JobTimerItem>();
 
         /// <summary>
         /// 
@@ -35,7 +35,7 @@ namespace PepperDash.Essentials.Core
             Items.Add(item);
         }
 
-        static void CheckAndRunTimer()
+        private static void CheckAndRunTimer()
         {
             if (Items.Count > 0 && MinuteTimer == null)
             {
@@ -43,7 +43,7 @@ namespace PepperDash.Essentials.Core
             }
         }
 
-        static void MinuteTimerCallback()
+        private static void MinuteTimerCallback()
         {
         }
     }

@@ -16,10 +16,10 @@ namespace PepperDash.Essentials.Core
         public uint RepeatDelay { get; set; }
         public uint RepeatTime { get; set; }
 
-        Action<int> SetAction;
-        Func<int> GetFunc;
-        CTimer Timer;
-        CMutex TimerMutex;
+        private Action<int> SetAction;
+        private Func<int> GetFunc;
+        private CTimer Timer;
+        private CMutex TimerMutex;
 
         /// <summary>
         /// 
@@ -103,7 +103,7 @@ namespace PepperDash.Essentials.Core
         /// Helper that does the work of setting new level, and starting repeat loop, checking against bounds first.
         /// </summary>
         /// <param name="change"></param>
-        void Go(int change)
+        private void Go(int change)
         {
             int currentLevel = GetFunc();
             // Fire once then pause
@@ -138,7 +138,7 @@ namespace PepperDash.Essentials.Core
         /// <param name="levelIn">The level to check against bounds</param>
         /// <param name="levelOut">Revised level if bounds are exceeded. Min or max</param>
         /// <returns>true if new level is at or past bounds</returns>
-        bool CheckLevel(int levelIn, out int levelOut)
+        private bool CheckLevel(int levelIn, out int levelOut)
         {
             bool isAtLimit = false;
             if (levelIn > MaxValue)

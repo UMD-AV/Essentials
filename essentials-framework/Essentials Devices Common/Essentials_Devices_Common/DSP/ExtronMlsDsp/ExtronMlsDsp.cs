@@ -14,15 +14,15 @@ namespace ExtronMlsDsp
         public readonly GenericCommunicationMonitor _commsMonitor;
         private bool _muteFb;
         private ushort _volumeFb;
-        CTimer _volumeUpRepeatTimer;
-        CTimer _volumeDownRepeatTimer;
-        CMutex _volumeUpLock;
-        CMutex _volumeDownLock;
+        private CTimer _volumeUpRepeatTimer;
+        private CTimer _volumeDownRepeatTimer;
+        private CMutex _volumeUpLock;
+        private CMutex _volumeDownLock;
         private ushort _volumeUpCount;
         private ushort _volumeDownCount;
         private ushort _defaultVolume;
         private bool _readyForLevel;
-        CTimer _readyForLevelTimer;
+        private CTimer _readyForLevelTimer;
 
         /// <summary>
         /// Online feedback
@@ -150,7 +150,7 @@ namespace ExtronMlsDsp
             });
         }
 
-        void SetLevelSend(bool b)
+        private void SetLevelSend(bool b)
         {
             if (b == true)
             {
@@ -163,7 +163,7 @@ namespace ExtronMlsDsp
             }
         }
 
-        void EnableLevelSend(object callbackObject)
+        private void EnableLevelSend(object callbackObject)
         {
             _readyForLevel = true;
         }
@@ -171,7 +171,7 @@ namespace ExtronMlsDsp
         /// <summary>
         /// Polls the device, should be called by comm monitor only.
         /// </summary>
-        void Poll()
+        private void Poll()
         {
             //Query the main volume level and mute
             SendText("V");
@@ -183,7 +183,7 @@ namespace ExtronMlsDsp
         /// </summary>
         /// <param name="dev"></param>
         /// <param name="args"></param>
-        void Handle_BytesRecieved(object dev, GenericCommMethodReceiveTextArgs args)
+        private void Handle_BytesRecieved(object dev, GenericCommMethodReceiveTextArgs args)
         {
             Debug.Console(1, this, "Extron Mls RX: '{0}'", args.Text);
             try
@@ -222,7 +222,7 @@ namespace ExtronMlsDsp
             }
         }
 
-        void IsOnlineFeedback_OutputChange(object dev, FeedbackEventArgs args)
+        private void IsOnlineFeedback_OutputChange(object dev, FeedbackEventArgs args)
         {
             OnlineFeedback.FireUpdate();
             if (args.BoolValue == true)

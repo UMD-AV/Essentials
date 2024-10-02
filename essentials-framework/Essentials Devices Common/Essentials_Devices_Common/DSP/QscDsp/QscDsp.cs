@@ -46,12 +46,12 @@ namespace QscQsysDspPlugin
         public Dictionary<string, QscDspCamera> Cameras { get; set; }
         public List<QscDspPresets> PresetList = new List<QscDspPresets>();
 
-        DeviceConfig _Dc;
+        private DeviceConfig _Dc;
 
-        CrestronQueue CommandQueue;
+        private CrestronQueue CommandQueue;
 
-        bool CommandQueueInProgress = false;
-        uint HeartbeatTracker = 0;
+        private bool CommandQueueInProgress = false;
+        private uint HeartbeatTracker = 0;
         public bool ShowHexResponse { get; set; }
 
         /// <summary>
@@ -111,7 +111,7 @@ namespace QscQsysDspPlugin
             return true;
         }
 
-        void socket_ConnectionChange(object sender, GenericSocketStatusChageEventArgs e)
+        private void socket_ConnectionChange(object sender, GenericSocketStatusChageEventArgs e)
         {
             if (e.Client.IsConnected)
             {
@@ -244,7 +244,7 @@ namespace QscQsysDspPlugin
         /// <summary>
         /// Checks the subscription health, should be called by comm monitor only. If no heartbeat has been detected recently, will resubscribe and log error.
         /// </summary>
-        void CheckSubscriptions()
+        private void CheckSubscriptions()
         {
             HeartbeatTracker++;
             SendLine("cgp 2");
@@ -271,7 +271,7 @@ namespace QscQsysDspPlugin
         /// <summary>
         /// Initiates the subscription process to the DSP
         /// </summary>
-        void SubscribeToAttributes()
+        private void SubscribeToAttributes()
         {
             // Change Group destroy
             SendLine("cgd 1");
@@ -313,7 +313,7 @@ namespace QscQsysDspPlugin
         /// </summary>
         /// <param name="dev"></param>
         /// <param name="args"></param>
-        void Port_LineReceived(object dev, GenericCommMethodReceiveTextArgs args)
+        private void Port_LineReceived(object dev, GenericCommMethodReceiveTextArgs args)
         {
             Debug.Console(2, this, "RX: '{0}'", args.Text);
             try
@@ -457,7 +457,7 @@ namespace QscQsysDspPlugin
         /// <summary>
         /// Sends the next queued command to the DSP
         /// </summary>
-        void SendNextQueuedCommand()
+        private void SendNextQueuedCommand()
         {
             if (Communication.IsConnected && !CommandQueue.IsEmpty)
             {

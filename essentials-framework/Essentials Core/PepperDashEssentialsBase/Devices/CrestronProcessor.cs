@@ -26,7 +26,7 @@ namespace PepperDash.Essentials.Core.Devices
         /// <summary>
         /// Creates a GenericRelayDevice for each relay on the processor and adds them to the SwitchedOutputs collection
         /// </summary>
-        void GetRelays()
+        private void GetRelays()
         {
             try
             {

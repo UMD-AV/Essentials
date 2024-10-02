@@ -243,7 +243,7 @@ namespace PepperDash.Core
         /// 
         /// </summary>
         /// <param name="ethernetEventArgs"></param>
-        void CrestronEnvironment_EthernetEventHandler(EthernetEventArgs ethernetEventArgs)
+        private void CrestronEnvironment_EthernetEventHandler(EthernetEventArgs ethernetEventArgs)
         {
             // Re-enable the server if the link comes back up and the status should be connected
             if (ethernetEventArgs.EthernetEventType == eEthernetEventType.LinkUp)
@@ -262,7 +262,7 @@ namespace PepperDash.Core
         /// 
         /// </summary>
         /// <param name="programEventType"></param>
-        void CrestronEnvironment_ProgramStatusEventHandler(eProgramStatusEventType programEventType)
+        private void CrestronEnvironment_ProgramStatusEventHandler(eProgramStatusEventType programEventType)
         {
             if (programEventType != eProgramStatusEventType.Stopping)
                 return;
@@ -310,7 +310,7 @@ namespace PepperDash.Core
         /// </summary>
         /// <param name="server"></param>
         /// <param name="numBytes"></param>
-        void Receive(UDPServer server, int numBytes)
+        private void Receive(UDPServer server, int numBytes)
         {
             try
             {

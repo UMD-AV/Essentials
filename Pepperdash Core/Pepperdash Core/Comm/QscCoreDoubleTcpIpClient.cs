@@ -14,18 +14,18 @@ namespace PepperDash.Core
         public GenericTcpIpClient MasterClient { get; private set; }
         public GenericTcpIpClient SlaveClient { get; private set; }
 
-        string Username;
-        string Password;
-        string LineEnding;
+        private string Username;
+        private string Password;
+        private string LineEnding;
 
-        CommunicationGather MasterGather;
-        CommunicationGather SlaveGather;
+        private CommunicationGather MasterGather;
+        private CommunicationGather SlaveGather;
 
-        bool IsPolling;
-        int PollingIntervalSeconds;
-        CTimer PollTimer;
+        private bool IsPolling;
+        private int PollingIntervalSeconds;
+        private CTimer PollTimer;
 
-        bool SlaveIsActive;
+        private bool SlaveIsActive;
 
         /// <summary>
         /// Default constuctor for S+
@@ -158,7 +158,7 @@ namespace PepperDash.Core
             }
         }
 
-        void MasterClient_SocketStatusChange(object sender, GenericSocketStatusChageEventArgs args)
+        private void MasterClient_SocketStatusChange(object sender, GenericSocketStatusChageEventArgs args)
         {
             OnUshortChange((ushort)args.Client.ClientStatus, MasterClientStatusId);
 
@@ -172,7 +172,7 @@ namespace PepperDash.Core
                 MasterGather.LineReceived -= MasterGather_LineReceived;
         }
 
-        void SlaveClient_SocketStatusChange(object sender, GenericSocketStatusChageEventArgs args)
+        private void SlaveClient_SocketStatusChange(object sender, GenericSocketStatusChageEventArgs args)
         {
             OnUshortChange((ushort)args.Client.ClientStatus, SlaveClientStatusId);
 
@@ -187,7 +187,7 @@ namespace PepperDash.Core
         }
 
 
-        void MasterGather_LineReceived(object sender, GenericCommMethodReceiveTextArgs e)
+        private void MasterGather_LineReceived(object sender, GenericCommMethodReceiveTextArgs e)
         {
             if (e.Text.Contains("login_required"))
             {
@@ -214,7 +214,7 @@ namespace PepperDash.Core
                 OnStringChange(e.Text, LineReceivedId);
         }
 
-        void SlaveGather_LineReceived(object sender, GenericCommMethodReceiveTextArgs e)
+        private void SlaveGather_LineReceived(object sender, GenericCommMethodReceiveTextArgs e)
         {
             if (e.Text.Contains("login_required"))
             {
@@ -239,7 +239,7 @@ namespace PepperDash.Core
                 OnStringChange(e.Text, LineReceivedId);
         }
 
-        void StartPolling()
+        private void StartPolling()
         {
             if (!IsPolling)
             {
@@ -253,7 +253,7 @@ namespace PepperDash.Core
             }
         }
 
-        void Poll()
+        private void Poll()
         {
             if (MasterClient != null && MasterClient.IsConnected)
             {
@@ -276,21 +276,21 @@ namespace PepperDash.Core
 
         // CRLF
 
-        void OnBoolChange(bool state, ushort type)
+        private void OnBoolChange(bool state, ushort type)
         {
             EventHandler<BoolChangeEventArgs> handler = BoolChange;
             if (handler != null)
                 handler(this, new BoolChangeEventArgs(state, type));
         }
 
-        void OnUshortChange(ushort state, ushort type)
+        private void OnUshortChange(ushort state, ushort type)
         {
             EventHandler<UshrtChangeEventArgs> handler = UshortChange;
             if (handler != null)
                 handler(this, new UshrtChangeEventArgs(state, type));
         }
 
-        void OnStringChange(string value, ushort type)
+        private void OnStringChange(string value, ushort type)
         {
             EventHandler<StringChangeEventArgs> handler = StringChange;
             if (handler != null)

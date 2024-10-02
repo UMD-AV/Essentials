@@ -71,7 +71,7 @@ namespace PepperDash.Essentials.Core
             Evaluate();
         }
 
-        void AnyInput_OutputChange(object sender, EventArgs e)
+        private void AnyInput_OutputChange(object sender, EventArgs e)
         {
             Evaluate();
         }
@@ -113,7 +113,7 @@ namespace PepperDash.Essentials.Core
 
     public class BoolFeedbackLinq : BoolFeedbackLogic
     {
-        readonly Func<IEnumerable<BoolFeedback>, bool> _predicate;
+        private readonly Func<IEnumerable<BoolFeedback>, bool> _predicate;
 
         public BoolFeedbackLinq(Func<IEnumerable<BoolFeedback>, bool> predicate)
             : base()

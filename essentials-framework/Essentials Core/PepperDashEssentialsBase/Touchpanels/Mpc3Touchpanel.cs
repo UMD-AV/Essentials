@@ -10,9 +10,9 @@ namespace PepperDash.Essentials.Core.Touchpanels
     /// </summary>
     public class Mpc3TouchpanelController : Device
     {
-        MPC3Basic _Touchpanel;
+        private MPC3Basic _Touchpanel;
 
-        Dictionary<string, KeypadButton> _Buttons;
+        private Dictionary<string, KeypadButton> _Buttons;
 
         public Mpc3TouchpanelController(string key, string name, CrestronControlSystem processor,
             Dictionary<string, KeypadButton> buttons)
@@ -78,7 +78,7 @@ namespace PepperDash.Essentials.Core.Touchpanels
             });
         }
 
-        void _Touchpanel_ButtonStateChange(GenericBase device,
+        private void _Touchpanel_ButtonStateChange(GenericBase device,
             Crestron.SimplSharpPro.DeviceSupport.ButtonEventArgs args)
         {
             Debug.Console(1, this, "Button {0} ({1}), {2}", args.Button.Number, args.Button.Name, args.NewButtonState);

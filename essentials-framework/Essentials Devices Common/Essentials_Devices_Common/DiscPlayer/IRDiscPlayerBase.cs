@@ -377,7 +377,7 @@ namespace PepperDash.Essentials.Devices.Common
         }
 
         public BoolFeedback PowerIsOnFeedback { get; set; }
-        bool _PowerIsOn;
+        private bool _PowerIsOn;
 
         #endregion
 

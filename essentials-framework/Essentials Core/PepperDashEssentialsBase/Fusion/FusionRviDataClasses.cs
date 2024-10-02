@@ -433,7 +433,7 @@ namespace PepperDash.Essentials.Core.Fusion
         /// Determines if the meeting is in progress
         /// </summary>
         /// <returns>Returns true if in progress</returns>
-        bool GetInProgress()
+        private bool GetInProgress()
         {
             DateTime now = DateTime.Now;
 

@@ -80,7 +80,7 @@ namespace QscQsysDspPlugin
         /// Call status event handler
         /// </summary>
         /// <param name="args"></param>
-        void OnCallStatusChange(CodecCallStatusItemChangeEventArgs args)
+        private void OnCallStatusChange(CodecCallStatusItemChangeEventArgs args)
         {
             EventHandler<CodecCallStatusItemChangeEventArgs> handler = CallStatusChange;
             if (handler != null)

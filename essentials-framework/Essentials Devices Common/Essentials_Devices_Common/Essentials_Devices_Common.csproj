@@ -426,11 +426,6 @@
         <Compile Include="DynFusion\SchedulingConfig.cs"/>
         <Compile Include="DynFusion\SchedulingJoinMap.cs"/>
         <Compile Include="DynFusion\XmlExtensions.cs"/>
-        <Compile Include="ImageProcessors\TVOneCorio.cs"/>
-        <Compile Include="ImageProcessors\TVOneCorioPropertiesConfig.cs"/>
-        <Compile Include="ImageProcessors\AnalogWay\AnalongWayLiveCore.cs"/>
-        <Compile Include="ImageProcessors\AnalogWay\AnalogWayLiveCorePropertiesConfig.cs"/>
-        <Compile Include="SoftCodec\BlueJeansPc.cs"/>
         <Compile Include="VideoCodec\CiscoCodec\CiscoCamera.cs"/>
         <Compile Include="VideoCodec\CiscoCodec\CiscoCodecJoinMap.cs"/>
         <Compile Include="VideoCodec\CiscoCodec\RoomPresets.cs"/>
@@ -463,12 +458,10 @@
         <Compile Include="Factory\DeviceFactory.cs"/>
         <Compile Include="Generic\GenericSource.cs"/>
         <Compile Include="SetTopBox\SetTopBoxPropertiesConfig.cs"/>
-        <Compile Include="Streaming\AppleTV.cs"/>
         <Compile Include="Audio\GenericAudioOut.cs"/>
         <Compile Include="DiscPlayer\IRDiscPlayerBase.cs"/>
         <Compile Include="SetTopBox\IRSetTopBoxBase.cs"/>
         <Compile Include="Properties\AssemblyInfo.cs"/>
-        <Compile Include="Streaming\Roku.cs"/>
         <Compile Include="VideoCodec\CiscoCodec\BookingsDataClasses.cs"/>
         <Compile Include="VideoCodec\CiscoCodec\CallHistoryDataClasses.cs"/>
         <Compile Include="VideoCodec\CiscoCodec\CiscoSparkCodec.cs"/>

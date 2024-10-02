@@ -125,7 +125,7 @@ namespace PepperDash.Core.JsonToSimpl
         /// <summary>
         /// Processes a bool property, converting to bool, firing off a BoolChange event
         /// </summary>
-        void ProcessBoolPath(ushort index)
+        private void ProcessBoolPath(ushort index)
         {
             string response;
             if (Process(BoolPaths[index], out response))
@@ -138,7 +138,7 @@ namespace PepperDash.Core.JsonToSimpl
         }
 
         // Processes the path to a ushort, converting to ushort if able, twos complement if necessary, firing off UshrtChange event
-        void ProcessUshortPath(ushort index)
+        private void ProcessUshortPath(ushort index)
         {
             string response;
             if (Process(UshortPaths[index], out response))
@@ -164,7 +164,7 @@ namespace PepperDash.Core.JsonToSimpl
         }
 
         // Processes the path to a string property and fires of a StringChange event.
-        void ProcessStringPath(ushort index)
+        private void ProcessStringPath(ushort index)
         {
             string response;
             if (Process(StringPaths[index], out response))
@@ -183,7 +183,7 @@ namespace PepperDash.Core.JsonToSimpl
         /// doesn't exist</param>
         /// <returns> This will return false in the case that EvaulateAllOnJsonChange
         /// is false and the path does not evaluate to a property in the incoming JSON. </returns>
-        bool Process(string path, out string response)
+        private bool Process(string path, out string response)
         {
             path = GetFullPath(path);
             Debug.Console(1, "JSON Child[{0}] Processing {1}", Key, path);

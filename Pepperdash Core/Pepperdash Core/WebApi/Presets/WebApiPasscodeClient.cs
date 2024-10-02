@@ -25,15 +25,15 @@ namespace PepperDash.Core.WebApi.Presets
         /// <summary>
         /// An embedded JsonToSimpl master object.
         /// </summary>
-        JsonToSimplGenericMaster J2SMaster;
+        private JsonToSimplGenericMaster J2SMaster;
 
-        string UrlBase;
+        private string UrlBase;
 
-        string DefaultPresetJsonFilePath;
+        private string DefaultPresetJsonFilePath;
 
-        User CurrentUser;
+        private User CurrentUser;
 
-        Preset CurrentPreset;
+        private Preset CurrentPreset;
 
 
         /// <summary>
@@ -163,7 +163,7 @@ namespace PepperDash.Core.WebApi.Presets
             }
         }
 
-        void LoadDefaultPresetData()
+        private void LoadDefaultPresetData()
         {
             CurrentPreset = null;
             if (!File.Exists(DefaultPresetJsonFilePath))
@@ -212,7 +212,7 @@ namespace PepperDash.Core.WebApi.Presets
         /// After save operation on JSON master happens, send it to server
         /// </summary>
         /// <param name="json"></param>
-        void SaveCallback(string json)
+        private void SaveCallback(string json)
         {
             CurrentPreset.Data = json;
 

@@ -12,9 +12,9 @@ namespace PepperDash.Essentials.Core
         public bool CanRetrigger { get; set; }
 
         public BoolFeedback Feedback { get; private set; }
-        CTimer Timer;
+        private CTimer Timer;
 
-        bool _BoolValue;
+        private bool _BoolValue;
 
         /// <summary>
         /// Creates a non-retriggering one shot

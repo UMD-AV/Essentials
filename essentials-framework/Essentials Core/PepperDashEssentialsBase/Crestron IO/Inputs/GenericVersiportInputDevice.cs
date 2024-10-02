@@ -18,7 +18,7 @@ namespace PepperDash.Essentials.Core.CrestronIO
 
         public BoolFeedback InputStateFeedback { get; private set; }
 
-        Func<bool> InputStateFeedbackFunc
+        private Func<bool> InputStateFeedbackFunc
         {
             get { return () => InputPort.DigitalIn; }
         }
@@ -43,7 +43,7 @@ namespace PepperDash.Essentials.Core.CrestronIO
             });
         }
 
-        void InputPort_VersiportChange(Versiport port, VersiportEventArgs args)
+        private void InputPort_VersiportChange(Versiport port, VersiportEventArgs args)
         {
             Debug.Console(1, this, "Versiport change: {0}", args.Event);
 
@@ -148,7 +148,8 @@ namespace PepperDash.Essentials.Core.CrestronIO
 
             if (props == null) return null;
 
-            GenericVersiportDigitalInputDevice portDevice = new GenericVersiportDigitalInputDevice(dc.Key, dc.Name, props);
+            GenericVersiportDigitalInputDevice portDevice =
+                new GenericVersiportDigitalInputDevice(dc.Key, dc.Name, props);
 
             return portDevice;
         }

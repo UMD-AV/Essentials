@@ -13,23 +13,23 @@ namespace PepperDash.Essentials.Core
     /// </summary>
     public class RoomOnToDefaultSourceWhenOccupied : ReconfigurableDevice
     {
-        RoomOnToDefaultSourceWhenOccupiedConfig PropertiesConfig;
+        private RoomOnToDefaultSourceWhenOccupiedConfig PropertiesConfig;
 
         public bool FeatureEnabled { get; private set; }
 
         public DateTime FeatureEnabledTime { get; private set; }
 
-        ScheduledEvent FeatureEnableEvent;
+        private ScheduledEvent FeatureEnableEvent;
 
-        const string FeatureEnableEventName = "EnableRoomOnToDefaultSourceWhenOccupied";
+        private const string FeatureEnableEventName = "EnableRoomOnToDefaultSourceWhenOccupied";
 
         public DateTime FeatureDisabledTime { get; private set; }
 
-        ScheduledEvent FeatureDisableEvent;
+        private ScheduledEvent FeatureDisableEvent;
 
-        const string FeatureDisableEventName = "DisableRoomOnToDefaultSourceWhenOccupied";
+        private const string FeatureDisableEventName = "DisableRoomOnToDefaultSourceWhenOccupied";
 
-        ScheduledEventGroup FeatureEventGroup;
+        private ScheduledEventGroup FeatureEventGroup;
 
         public IEssentialsRoom Room { get; private set; }
 
@@ -79,7 +79,7 @@ namespace PepperDash.Essentials.Core
         /// <summary>
         /// Sets up device based on config values
         /// </summary>
-        void SetUpDevice()
+        private void SetUpDevice()
         {
             Room = DeviceManager.GetDeviceForKey(PropertiesConfig.RoomKey) as IEssentialsRoom;
 
@@ -158,7 +158,7 @@ namespace PepperDash.Essentials.Core
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        void RoomOccupancyIsSet(object sender, EventArgs e)
+        private void RoomOccupancyIsSet(object sender, EventArgs e)
         {
             if (Room.RoomOccupancy != null)
             {
@@ -169,7 +169,8 @@ namespace PepperDash.Essentials.Core
             }
         }
 
-        void FeatureEventGroup_UserGroupCallBack(ScheduledEvent SchEvent, ScheduledEventCommon.eCallbackReason type)
+        private void FeatureEventGroup_UserGroupCallBack(ScheduledEvent SchEvent,
+            ScheduledEventCommon.eCallbackReason type)
         {
             Debug.Console(1, this, Debug.ErrorLogLevel.Notice, "{0}:{1} @ {2}", SchEvent.Name, type, DateTime.Now);
 
@@ -197,7 +198,7 @@ namespace PepperDash.Essentials.Core
         /// Checks if the feature should be currently enabled.  Used on startup if processor starts after start time but before end time
         /// </summary>
         /// <returns></returns>
-        bool CheckIfFeatureShouldBeEnabled()
+        private bool CheckIfFeatureShouldBeEnabled()
         {
             bool enabled = false;
 
@@ -230,7 +231,7 @@ namespace PepperDash.Essentials.Core
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        void RoomIsOccupiedFeedback_OutputChange(object sender, FeedbackEventArgs e)
+        private void RoomIsOccupiedFeedback_OutputChange(object sender, FeedbackEventArgs e)
         {
             Debug.Console(1, this, "RoomIsOccupiedFeeback.OutputChange event fired. e.BoolValue: {0}", e.BoolValue);
             if (e.BoolValue)
@@ -249,7 +250,7 @@ namespace PepperDash.Essentials.Core
             }
         }
 
-        void CreateEvent(ScheduledEvent schEvent, string name)
+        private void CreateEvent(ScheduledEvent schEvent, string name)
         {
             Debug.Console(1, this, "Adding Event: '{0}'", name);
             // Create the event
@@ -320,7 +321,8 @@ namespace PepperDash.Essentials.Core
             }
         }
 
-        void CalculateAndSetAcknowledgeExpirationTimeout(ScheduledEvent schEvent, DateTime time1, DateTime time2)
+        private void CalculateAndSetAcknowledgeExpirationTimeout(ScheduledEvent schEvent, DateTime time1,
+            DateTime time2)
         {
             Debug.Console(1, this, "time1.Hour = {0}", time1.Hour);
             Debug.Console(1, this, "time2.Hour = {0}", time2.Hour);
@@ -351,7 +353,7 @@ namespace PepperDash.Essentials.Core
         /// </summary>
         /// <param name="existingEvent"></param>
         /// <returns></returns>
-        bool CheckExistingEventTimeForMatch(ScheduledEvent existingEvent, DateTime newTime)
+        private bool CheckExistingEventTimeForMatch(ScheduledEvent existingEvent, DateTime newTime)
         {
             bool isMatch = true;
 
@@ -369,7 +371,7 @@ namespace PepperDash.Essentials.Core
         /// <param name="existingEvent"></param>
         /// <param name="eWeekdays"></param>
         /// <returns></returns>
-        bool CheckExistingEventRecurrenceForMatch(ScheduledEvent existingEvent,
+        private bool CheckExistingEventRecurrenceForMatch(ScheduledEvent existingEvent,
             ScheduledEventCommon.eWeekDays eWeekdays)
         {
             bool isMatch = true;
@@ -384,7 +386,7 @@ namespace PepperDash.Essentials.Core
         /// <summary>
         /// Adds the Enable event to the local event group and sets its properties based on config
         /// </summary>
-        void AddEnableEventToGroup()
+        private void AddEnableEventToGroup()
         {
             if (!FeatureEventGroup.ScheduledEvents.ContainsKey(FeatureEnableEventName))
             {
@@ -416,7 +418,7 @@ namespace PepperDash.Essentials.Core
         /// <summary>
         /// Adds the Enable event to the local event group and sets its properties based on config
         /// </summary>
-        void AddDisableEventToGroup()
+        private void AddDisableEventToGroup()
         {
             if (!FeatureEventGroup.ScheduledEvents.ContainsKey(FeatureDisableEventName))
             {
@@ -448,7 +450,7 @@ namespace PepperDash.Essentials.Core
         /// Calculates the correct bitfield enum value for the event recurrence based on the config values
         /// </summary>
         /// <returns></returns>
-        ScheduledEventCommon.eWeekDays CalculateDaysOfWeekRecurrence()
+        private ScheduledEventCommon.eWeekDays CalculateDaysOfWeekRecurrence()
         {
             ScheduledEventCommon.eWeekDays value = new ScheduledEventCommon.eWeekDays();
 
@@ -475,7 +477,7 @@ namespace PepperDash.Essentials.Core
         /// </summary>
         /// <param name="SchEvent"></param>
         /// <param name="type"></param>
-        void FeatureEnableEvent_UserCallBack(ScheduledEvent SchEvent, ScheduledEventCommon.eCallbackReason type)
+        private void FeatureEnableEvent_UserCallBack(ScheduledEvent SchEvent, ScheduledEventCommon.eCallbackReason type)
         {
             if (type == ScheduledEventCommon.eCallbackReason.NormalExpiration)
             {
@@ -491,7 +493,8 @@ namespace PepperDash.Essentials.Core
         /// </summary>
         /// <param name="SchEvent"></param>
         /// <param name="type"></param>
-        void FeatureDisableEvent_UserCallBack(ScheduledEvent SchEvent, ScheduledEventCommon.eCallbackReason type)
+        private void FeatureDisableEvent_UserCallBack(ScheduledEvent SchEvent,
+            ScheduledEventCommon.eCallbackReason type)
         {
             if (type == ScheduledEventCommon.eCallbackReason.NormalExpiration)
             {

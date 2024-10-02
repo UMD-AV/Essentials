@@ -6,8 +6,8 @@ namespace PepperDash.Essentials.Core.Presets
 {
     public class PresetsListSubpageReferenceListItem : SubpageReferenceListItem
     {
-        DevicePresetsView View;
-        PresetChannel Channel;
+        private DevicePresetsView View;
+        private PresetChannel Channel;
 
         public PresetsListSubpageReferenceListItem(PresetChannel chan, uint index,
             SubpageReferenceList owner, DevicePresetsView view)

@@ -27,7 +27,7 @@ namespace PepperDash.Essentials.Devices.Common.ShureMxa
         private CMutex DeviceObjectMutex;
         private bool deviceObjectLock;
         private bool deviceMuteChangeInProgress;
-        CTimer deviceMuteChangeTimer;
+        private CTimer deviceMuteChangeTimer;
 
         private readonly GenericQueue _commsQueue;
 

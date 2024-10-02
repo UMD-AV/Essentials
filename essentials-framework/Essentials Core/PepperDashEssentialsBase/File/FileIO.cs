@@ -9,7 +9,7 @@ namespace PepperDash.Essentials.Core
 {
     public static class FileIO
     {
-        static CCriticalSection fileLock = new CCriticalSection();
+        private static CCriticalSection fileLock = new CCriticalSection();
 
         public delegate void GotFileEventHandler(object sender, FileEventArgs e);
 
@@ -202,7 +202,7 @@ namespace PepperDash.Essentials.Core
             Debug.Console(0, Debug.ErrorLogLevel.Notice, "New WriteFile Thread");
         }
 
-        static object _WriteFileMethod(string data, string filePath)
+        private static object _WriteFileMethod(string data, string filePath)
         {
             Debug.Console(0, Debug.ErrorLogLevel.Notice, "Attempting to write file: '{0}'", filePath);
 

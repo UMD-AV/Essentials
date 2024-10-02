@@ -19,7 +19,7 @@ namespace PepperDash.Essentials.Devices.Common.ImageProcessors
 
         public IBasicCommunication Communication { get; private set; }
         public StatusMonitorBase CommunicationMonitor { get; private set; }
-        CommunicationGather CommGather;
+        private CommunicationGather CommGather;
 
         public Dictionary<uint, IntFeedback> OutputFeedbacks { get; private set; }
         public Dictionary<uint, StringFeedback> InputNameFeedbacks { get; private set; }
@@ -138,17 +138,17 @@ namespace PepperDash.Essentials.Devices.Common.ImageProcessors
             }
         }
 
-        void Poll()
+        private void Poll()
         {
             Communication.SendText("PING:\x0A\x0A");
         }
 
-        void CommunicationMonitor_StatusChange(object sender, MonitorStatusChangeEventArgs args)
+        private void CommunicationMonitor_StatusChange(object sender, MonitorStatusChangeEventArgs args)
         {
             Debug.Console(1, this, "CommMonitor status change: {0}", args.Status);
         }
 
-        void DelimitedTextReceived(object sender, GenericCommMethodReceiveTextArgs e)
+        private void DelimitedTextReceived(object sender, GenericCommMethodReceiveTextArgs e)
         {
             Debug.Console(2, this, "Processing feedback:{0}", e.Text);
 

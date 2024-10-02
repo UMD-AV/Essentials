@@ -17,7 +17,7 @@ namespace PepperDash.Core
             }
         }
 
-        static EthernetHelper _LanHelper;
+        private static EthernetHelper _LanHelper;
 
         // ADD OTHER HELPERS HERE
 
