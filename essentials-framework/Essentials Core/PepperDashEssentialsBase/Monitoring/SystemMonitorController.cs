@@ -268,7 +268,8 @@ namespace PepperDash.Essentials.Core.Monitoring
             SystemMonitorJoinMap joinMap)
         {
             uint ethernetSlotJoinStart = 0;
-            foreach (KeyValuePair<short, EthernetStatusFeedbacks> fb in systemMonitorController.EthernetStatusFeedbackCollection)
+            foreach (KeyValuePair<short, EthernetStatusFeedbacks> fb in systemMonitorController
+                         .EthernetStatusFeedbackCollection)
             {
                 fb.Value.CurrentIpAddressFeedback.LinkInputSig(
                     trilist.StringInput[ethernetSlotJoinStart + joinMap.CurrentIpAddress.JoinNumber]);
@@ -302,7 +303,8 @@ namespace PepperDash.Essentials.Core.Monitoring
         {
             uint programSlotJoinStart = 0;
 
-            foreach (KeyValuePair<uint, ProgramStatusFeedbacks> p in systemMonitorController.ProgramStatusFeedbackCollection)
+            foreach (KeyValuePair<uint, ProgramStatusFeedbacks> p in systemMonitorController
+                         .ProgramStatusFeedbackCollection)
             {
                 uint programNumber = p.Value.Program.Number;
 

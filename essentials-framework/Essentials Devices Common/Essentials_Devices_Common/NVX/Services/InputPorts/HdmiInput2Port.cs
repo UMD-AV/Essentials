@@ -37,7 +37,8 @@ namespace NvxEpi.Services.InputPorts
             hdmi.VideoAttributes.AttributeChange += (sender, args) => port.VideoStatus.FireAll();
 
             device.InputPorts.Add(port);
-            foreach (PepperDash.Essentials.Core.Feedback videoStatusOutput in port.VideoStatus.ToList().Where(x => x != null))
+            foreach (PepperDash.Essentials.Core.Feedback videoStatusOutput in port.VideoStatus.ToList()
+                         .Where(x => x != null))
                 device.Feedbacks.Add(videoStatusOutput);
         }
     }

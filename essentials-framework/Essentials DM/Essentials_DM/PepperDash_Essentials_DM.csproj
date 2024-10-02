@@ -50,8 +50,6 @@
         <Prefer32bit>true</Prefer32bit>
     </PropertyGroup>
     <ItemGroup>
-        <Reference Include="Crestron.SimplSharpPro.AudioDistribution"/>
-        <Reference Include="Crestron.SimplSharpPro.CrestronConnected"/>
         <Reference Include="Crestron.SimplSharpPro.DeviceSupport, Version=1.0.0.0, Culture=neutral, PublicKeyToken=1099c178b3b54c3b, processorArchitecture=MSIL">
             <SpecificVersion>False</SpecificVersion>
             <HintPath>..\..\..\..\..\..\..\..\..\ProgramData\Crestron\SDK\SSPDevices\Crestron.SimplSharpPro.DeviceSupport.dll</HintPath>
@@ -60,32 +58,11 @@
             <SpecificVersion>False</SpecificVersion>
             <HintPath>..\..\..\..\..\..\..\..\..\ProgramData\Crestron\SDK\SSPDevices\Crestron.SimplSharpPro.DM.dll</HintPath>
         </Reference>
-        <Reference Include="Crestron.SimplSharpPro.EthernetCommunications"/>
-        <Reference Include="Crestron.SimplSharpPro.Fusion"/>
-        <Reference Include="Crestron.SimplSharpPro.Gateways"/>
-        <Reference Include="Crestron.SimplSharpPro.GeneralIO"/>
-        <Reference Include="Crestron.SimplSharpPro.Keypads"/>
-        <Reference Include="Crestron.SimplSharpPro.Lighting"/>
-        <Reference Include="Crestron.SimplSharpPro.Media"/>
-        <Reference Include="Crestron.SimplSharpPro.Remotes"/>
-        <Reference Include="Crestron.SimplSharpPro.Shades"/>
-        <Reference Include="Crestron.SimplSharpPro.Thermostats"/>
-        <Reference Include="Crestron.SimplSharpPro.ThreeSeriesCards"/>
-        <Reference Include="Crestron.SimplSharpPro.UC"/>
         <Reference Include="Crestron.SimplSharpPro.UI, Version=1.0.0.0, Culture=neutral, PublicKeyToken=1099c178b3b54c3b, processorArchitecture=MSIL">
             <SpecificVersion>False</SpecificVersion>
             <HintPath>..\..\..\..\..\..\..\..\..\ProgramData\Crestron\SDK\SSPDevices\Crestron.SimplSharpPro.UI.dll</HintPath>
         </Reference>
         <Reference Include="mscorlib"/>
-        <Reference Include="SimplSharpAutoUpdateInterface"/>
-        <Reference Include="SimplSharpCryptographyInterface"/>
-        <Reference Include="SimplSharpCustomAttributesInterface, Version=1.0.0.0, Culture=neutral, PublicKeyToken=1099c178b3b54c3b, processorArchitecture=MSIL">
-            <SpecificVersion>False</SpecificVersion>
-            <HintPath>..\..\..\..\..\..\..\..\..\ProgramData\Crestron\SDK\SimplSharpCustomAttributesInterface.dll</HintPath>
-            <Private>False</Private>
-        </Reference>
-        <Reference Include="SimplSharpCWSHelperInterface"/>
-        <Reference Include="SimplSharpExchangeWebServices.dll"/>
         <Reference Include="SimplSharpHelperInterface, Version=1.0.0.0, Culture=neutral, PublicKeyToken=1099c178b3b54c3b, processorArchitecture=MSIL">
             <SpecificVersion>False</SpecificVersion>
             <HintPath>..\..\..\..\..\..\..\..\..\ProgramData\Crestron\SDK\SimplSharpHelperInterface.dll</HintPath>
@@ -95,7 +72,6 @@
             <SpecificVersion>False</SpecificVersion>
             <HintPath>..\..\..\..\..\..\..\..\..\ProgramData\Crestron\SDK\SimplSharpNewtonsoft.dll</HintPath>
         </Reference>
-        <Reference Include="SimplSharpOnvifInterface.dll"/>
         <Reference Include="SimplSharpPro, Version=1.5.3.17, Culture=neutral, PublicKeyToken=1099c178b3b54c3b, processorArchitecture=MSIL">
             <SpecificVersion>False</SpecificVersion>
             <HintPath>..\..\..\..\..\..\..\..\..\ProgramData\Crestron\SDK\SimplSharpPro.exe</HintPath>
@@ -105,13 +81,7 @@
             <SpecificVersion>False</SpecificVersion>
             <HintPath>..\..\..\..\..\..\..\..\..\ProgramData\Crestron\SDK\SimplSharpReflectionInterface.dll</HintPath>
         </Reference>
-        <Reference Include="SimplSharpSQLHelperInterface.dll"/>
-        <Reference Include="SimplSharpTimerEventInterface.dll"/>
-        <Reference Include="System"/>
         <Reference Include="System.Core"/>
-        <Reference Include="System.Data"/>
-        <Reference Include="System.Data.SqlClient"/>
-        <Reference Include="System.Drawing"/>
     </ItemGroup>
     <ItemGroup>
         <Compile Include="AirMedia\AirMediaPropertiesConfig.cs"/>

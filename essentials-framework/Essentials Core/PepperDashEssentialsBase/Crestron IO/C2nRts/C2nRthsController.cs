@@ -110,7 +110,9 @@ namespace PepperDash.Essentials.Core.CrestronIO
             EssentialsControlPropertiesConfig control = CommFactory.GetControlPropertiesConfig(dc);
             uint cresnetId = control.CresnetIdInt;
             uint branchId = control.ControlPortNumber;
-            string parentKey = string.IsNullOrEmpty(control.ControlPortDevKey) ? "processor" : control.ControlPortDevKey;
+            string parentKey = string.IsNullOrEmpty(control.ControlPortDevKey)
+                ? "processor"
+                : control.ControlPortDevKey;
 
             if (parentKey.Equals("processor", StringComparison.CurrentCultureIgnoreCase))
             {

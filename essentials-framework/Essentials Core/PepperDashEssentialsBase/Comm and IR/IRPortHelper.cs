@@ -143,7 +143,8 @@ namespace PepperDash.Essentials.Core
             }
 
             Func<DeviceConfig, IROutputPort> postActivationFunc = new Func<DeviceConfig, IROutputPort>(GetIrOutputPort);
-            IrOutputPortController irDevice = new IrOutputPortController(config.Key + "-ir", postActivationFunc, config);
+            IrOutputPortController irDevice =
+                new IrOutputPortController(config.Key + "-ir", postActivationFunc, config);
 
             return irDevice;
         }

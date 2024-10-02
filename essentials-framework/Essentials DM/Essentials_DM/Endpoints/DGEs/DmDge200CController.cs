@@ -54,7 +54,8 @@ namespace PepperDash.Essentials.DM.Endpoints.DGEs
             {
                 string typeName = dc.Type.ToLower();
                 EssentialsControlPropertiesConfig comm = CommFactory.GetControlPropertiesConfig(dc);
-                CrestronTouchpanelPropertiesConfig props = JsonConvert.DeserializeObject<CrestronTouchpanelPropertiesConfig>(dc.Properties.ToString());
+                CrestronTouchpanelPropertiesConfig props =
+                    JsonConvert.DeserializeObject<CrestronTouchpanelPropertiesConfig>(dc.Properties.ToString());
 
                 Debug.Console(1, "Factory Attempting to create new DgeController  Device");
 

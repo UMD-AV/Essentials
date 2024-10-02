@@ -26,7 +26,8 @@ namespace PepperDash.Essentials.DM
                 {
                     try
                     {
-                        IDeviceFactory factory = (IDeviceFactory)Crestron.SimplSharp.Reflection.Activator.CreateInstance(type);
+                        IDeviceFactory factory =
+                            (IDeviceFactory)Crestron.SimplSharp.Reflection.Activator.CreateInstance(type);
                         factory.LoadTypeFactories();
                     }
                     catch (Exception e)

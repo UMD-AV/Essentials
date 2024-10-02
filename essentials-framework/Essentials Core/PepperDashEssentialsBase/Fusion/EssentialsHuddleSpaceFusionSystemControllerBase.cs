@@ -1086,7 +1086,8 @@ namespace PepperDash.Essentials.Core.Fusion
             {
                 // NEW PROCESS:
                 // Make these lists and insert the fusion attributes by iterating these
-                IEnumerable<KeyValuePair<string, SourceListItem>> setTopBoxes = dict.Where(d => d.Value.SourceDevice is ISetTopBoxControls);
+                IEnumerable<KeyValuePair<string, SourceListItem>> setTopBoxes =
+                    dict.Where(d => d.Value.SourceDevice is ISetTopBoxControls);
                 uint i = 1;
                 foreach (KeyValuePair<string, SourceListItem> kvp in setTopBoxes)
                 {
@@ -1099,7 +1100,8 @@ namespace PepperDash.Essentials.Core.Fusion
                     }
                 }
 
-                IEnumerable<KeyValuePair<string, SourceListItem>> discPlayers = dict.Where(d => d.Value.SourceDevice is IDiscPlayerControls);
+                IEnumerable<KeyValuePair<string, SourceListItem>> discPlayers =
+                    dict.Where(d => d.Value.SourceDevice is IDiscPlayerControls);
                 i = 1;
                 foreach (KeyValuePair<string, SourceListItem> kvp in discPlayers)
                 {
@@ -1112,7 +1114,8 @@ namespace PepperDash.Essentials.Core.Fusion
                     }
                 }
 
-                IEnumerable<KeyValuePair<string, SourceListItem>> laptops = dict.Where(d => d.Value.SourceDevice is Devices.Laptop);
+                IEnumerable<KeyValuePair<string, SourceListItem>> laptops =
+                    dict.Where(d => d.Value.SourceDevice is Devices.Laptop);
                 i = 1;
                 foreach (KeyValuePair<string, SourceListItem> kvp in laptops)
                 {
@@ -1125,7 +1128,8 @@ namespace PepperDash.Essentials.Core.Fusion
                     }
                 }
 
-                foreach (IUsageTracking usageDevice in dict.Select(kvp => kvp.Value.SourceDevice).OfType<IUsageTracking>())
+                foreach (IUsageTracking usageDevice in dict.Select(kvp => kvp.Value.SourceDevice)
+                             .OfType<IUsageTracking>())
                 {
                     usageDevice.UsageTracker = new UsageTracking(usageDevice as Device) { UsageIsTracked = true };
                     usageDevice.UsageTracker.DeviceUsageEnded += UsageTracker_DeviceUsageEnded;
@@ -1378,7 +1382,8 @@ namespace PepperDash.Essentials.Core.Fusion
                     FusionStaticAssets.Add(deviceConfig.Uid, tempAsset);
                 }
 
-                FusionStaticAsset dispAsset = FusionRoom.CreateStaticAsset(tempAsset.SlotNumber, tempAsset.Name, "Display",
+                FusionStaticAsset dispAsset = FusionRoom.CreateStaticAsset(tempAsset.SlotNumber, tempAsset.Name,
+                    "Display",
                     tempAsset.InstanceId);
                 dispAsset.PowerOn.OutputSig.UserObject = dispPowerOnAction;
                 dispAsset.PowerOff.OutputSig.UserObject = dispPowerOffAction;
@@ -1441,7 +1446,8 @@ namespace PepperDash.Essentials.Core.Fusion
 
 
             // Power on
-            BooleanSigData defaultDisplayPowerOn = FusionRoom.CreateOffsetBoolSig((uint)joinOffset, displayName + "Power On",
+            BooleanSigData defaultDisplayPowerOn = FusionRoom.CreateOffsetBoolSig((uint)joinOffset,
+                displayName + "Power On",
                 eSigIoMask.InputOutputSig);
             defaultDisplayPowerOn.OutputSig.UserObject = new Action<bool>(b =>
             {
@@ -1452,7 +1458,8 @@ namespace PepperDash.Essentials.Core.Fusion
             });
 
             // Power Off
-            BooleanSigData defaultDisplayPowerOff = FusionRoom.CreateOffsetBoolSig((uint)joinOffset + 1, displayName + "Power Off",
+            BooleanSigData defaultDisplayPowerOff = FusionRoom.CreateOffsetBoolSig((uint)joinOffset + 1,
+                displayName + "Power Off",
                 eSigIoMask.InputOutputSig);
             defaultDisplayPowerOn.OutputSig.UserObject = new Action<bool>(b =>
             {
@@ -1550,7 +1557,8 @@ namespace PepperDash.Essentials.Core.Fusion
                 tempOccAsset = FusionOccSensor;
             }
 
-            FusionOccupancySensor occSensorAsset = FusionRoom.CreateOccupancySensorAsset(tempOccAsset.SlotNumber, tempOccAsset.Name,
+            FusionOccupancySensor occSensorAsset = FusionRoom.CreateOccupancySensorAsset(tempOccAsset.SlotNumber,
+                tempOccAsset.Name,
                 "Occupancy Sensor", tempOccAsset.InstanceId);
 
             occSensorAsset.RoomOccupied.AddSigToRVIFile = true;

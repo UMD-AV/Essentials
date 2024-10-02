@@ -104,7 +104,9 @@ namespace PepperDash.Essentials.Core
             string type = dc.Type;
             uint cresnetId = control.CresnetIdInt;
             uint branchId = control.ControlPortNumber;
-            string parentKey = string.IsNullOrEmpty(control.ControlPortDevKey) ? "processor" : control.ControlPortDevKey;
+            string parentKey = string.IsNullOrEmpty(control.ControlPortDevKey)
+                ? "processor"
+                : control.ControlPortDevKey;
 
             if (parentKey.Equals("processor", StringComparison.CurrentCultureIgnoreCase))
             {
@@ -163,7 +165,8 @@ namespace PepperDash.Essentials.Core
             {
                 Debug.Console(1, "Factory Attempting to create new CEN-GWEXER Device");
 
-                EssentialsRfGatewayConfig props = JsonConvert.DeserializeObject<EssentialsRfGatewayConfig>(dc.Properties.ToString());
+                EssentialsRfGatewayConfig props =
+                    JsonConvert.DeserializeObject<EssentialsRfGatewayConfig>(dc.Properties.ToString());
 
                 EExGatewayType gatewayType =
                     (EExGatewayType)Enum.Parse(typeof(EExGatewayType), props.GatewayType, true);

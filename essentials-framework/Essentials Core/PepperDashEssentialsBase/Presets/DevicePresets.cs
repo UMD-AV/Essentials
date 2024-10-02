@@ -123,7 +123,8 @@ namespace PepperDash.Essentials.Core.Presets
                 PresetsAreLoaded = false;
                 try
                 {
-                    PresetsList pl = JsonConvert.DeserializeObject<PresetsList>(File.ReadToEnd(_filePath, Encoding.ASCII));
+                    PresetsList pl =
+                        JsonConvert.DeserializeObject<PresetsList>(File.ReadToEnd(_filePath, Encoding.ASCII));
                     Name = pl.Name;
                     PresetsList = pl.Channels;
                 }

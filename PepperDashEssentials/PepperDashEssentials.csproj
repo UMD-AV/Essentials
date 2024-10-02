@@ -50,18 +50,10 @@
         <Prefer32bit>true</Prefer32bit>
     </PropertyGroup>
     <ItemGroup>
-        <Reference Include="Crestron.SimplSharpPro.DeviceSupport, Version=1.0.0.0, Culture=neutral, PublicKeyToken=1099c178b3b54c3b, processorArchitecture=MSIL">
-            <SpecificVersion>False</SpecificVersion>
-            <HintPath>..\..\..\..\..\..\..\..\ProgramData\Crestron\SDK\SSPDevices\Crestron.SimplSharpPro.DeviceSupport.dll</HintPath>
-        </Reference>
         <Reference Include="Crestron.SimplSharpPro.EthernetCommunications">
             <HintPath>..\..\..\ProgramData\Crestron\SDK\SSPDevices\Crestron.SimplSharpPro.EthernetCommunications.dll</HintPath>
         </Reference>
         <Reference Include="mscorlib"/>
-        <Reference Include="SimplSharpCustomAttributesInterface, Version=1.0.0.0, Culture=neutral, PublicKeyToken=1099c178b3b54c3b, processorArchitecture=MSIL">
-            <SpecificVersion>False</SpecificVersion>
-            <HintPath>..\..\..\..\..\..\..\..\ProgramData\Crestron\SDK\SimplSharpCustomAttributesInterface.dll</HintPath>
-        </Reference>
         <Reference Include="SimplSharpHelperInterface, Version=1.0.0.0, Culture=neutral, PublicKeyToken=1099c178b3b54c3b, processorArchitecture=MSIL">
             <SpecificVersion>False</SpecificVersion>
             <HintPath>..\..\..\..\..\..\..\..\ProgramData\Crestron\SDK\SimplSharpHelperInterface.dll</HintPath>
@@ -78,13 +70,23 @@
             <SpecificVersion>False</SpecificVersion>
             <HintPath>..\..\..\..\..\..\..\..\ProgramData\Crestron\SDK\SimplSharpReflectionInterface.dll</HintPath>
         </Reference>
-        <Reference Include="SimplSharpTimerEventInterface, Version=1.0.6197.20052, Culture=neutral, PublicKeyToken=1099c178b3b54c3b, processorArchitecture=MSIL">
-            <SpecificVersion>False</SpecificVersion>
-            <HintPath>..\..\..\..\..\..\..\..\ProgramData\Crestron\SDK\SimplSharpTimerEventInterface.dll</HintPath>
-        </Reference>
         <Reference Include="System"/>
         <Reference Include="System.Core"/>
-        <Reference Include="system.data"/>
+    <Reference Include="System.Data">
+      <HintPath>..\..\..\ProgramData\Crestron\SDK\System.Data.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Runtime.Serialization">
+      <HintPath>..\..\..\ProgramData\Crestron\SDK\System.Runtime.Serialization.dll</HintPath>
+    </Reference>
+    <Reference Include="System.ServiceModel">
+      <HintPath>..\..\..\ProgramData\Crestron\SDK\System.ServiceModel.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Xml">
+      <HintPath>..\..\..\ProgramData\Crestron\SDK\System.Xml.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Xml.Linq">
+      <HintPath>..\..\..\ProgramData\Crestron\SDK\System.Xml.Linq.dll</HintPath>
+    </Reference>
     </ItemGroup>
     <ItemGroup>
         <Compile Include="Bridges\BridgeFactory.cs"/>

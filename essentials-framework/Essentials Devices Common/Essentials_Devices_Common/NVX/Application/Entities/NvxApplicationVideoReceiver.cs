@@ -77,7 +77,8 @@ namespace NvxEpi.Application.Entities
                     if (feedback.StringValue.Equals(NvxGlobalRouter.NoSourceText))
                         return 0;
 
-                    NvxApplicationVideoTransmitter result = _transmitters.FirstOrDefault(t => t.Name.Equals(feedback.StringValue));
+                    NvxApplicationVideoTransmitter result =
+                        _transmitters.FirstOrDefault(t => t.Name.Equals(feedback.StringValue));
                     return result == null ? 0 : result.DeviceId;
                 });
 
@@ -93,7 +94,8 @@ namespace NvxEpi.Application.Entities
                     if (CurrentVideoRouteId.IntValue == 0)
                         return NvxGlobalRouter.NoSourceText;
 
-                    NvxApplicationVideoTransmitter result = _transmitters.FirstOrDefault(t => t.DeviceId.Equals(CurrentVideoRouteId.IntValue));
+                    NvxApplicationVideoTransmitter result =
+                        _transmitters.FirstOrDefault(t => t.DeviceId.Equals(CurrentVideoRouteId.IntValue));
                     return result == null ? NvxGlobalRouter.NoSourceText : result.VideoName.StringValue;
                 });
 

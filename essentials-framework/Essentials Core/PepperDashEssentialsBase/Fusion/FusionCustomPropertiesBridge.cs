@@ -22,7 +22,8 @@ namespace PepperDash.Essentials.Core.Fusion
         {
             try
             {
-                IEnumerable<IKeyed> reconfigurableDevices = DeviceManager.AllDevices.Where(d => d is ReconfigurableDevice);
+                IEnumerable<IKeyed> reconfigurableDevices =
+                    DeviceManager.AllDevices.Where(d => d is ReconfigurableDevice);
 
                 foreach (IKeyed device in reconfigurableDevices)
                 {

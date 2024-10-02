@@ -1,8 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using NvxEpi.Application.Builder;
-using NvxEpi.Devices;
-using NvxEpi.Factories;
 using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Config;
 

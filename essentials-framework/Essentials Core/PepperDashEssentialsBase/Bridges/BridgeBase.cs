@@ -427,8 +427,9 @@ namespace PepperDash.Essentials.Core.Bridges
                 case "eiscapiadv":
                 case "eiscapiadvanced":
                 {
-                    ThreeSeriesTcpIpEthernetIntersystemCommunications eisc = new ThreeSeriesTcpIpEthernetIntersystemCommunications(controlProperties.IpIdInt,
-                        controlProperties.TcpSshProperties.Address, Global.ControlSystem);
+                    ThreeSeriesTcpIpEthernetIntersystemCommunications eisc =
+                        new ThreeSeriesTcpIpEthernetIntersystemCommunications(controlProperties.IpIdInt,
+                            controlProperties.TcpSshProperties.Address, Global.ControlSystem);
                     return new EiscApiAdvanced(dc, eisc);
                 }
                 case "eiscapiadvancedserver":
@@ -438,14 +439,16 @@ namespace PepperDash.Essentials.Core.Bridges
                 }
                 case "eiscapiadvancedclient":
                 {
-                    EISCClient eisc = new EISCClient(controlProperties.IpIdInt, controlProperties.TcpSshProperties.Address,
+                    EISCClient eisc = new EISCClient(controlProperties.IpIdInt,
+                        controlProperties.TcpSshProperties.Address,
                         Global.ControlSystem);
                     return new EiscApiAdvanced(dc, eisc);
                 }
                 case "vceiscapiadv":
                 case "vceiscapiadvanced":
                 {
-                    VirtualControlEISCClient eisc = new VirtualControlEISCClient(controlProperties.IpIdInt, InitialParametersClass.RoomId,
+                    VirtualControlEISCClient eisc = new VirtualControlEISCClient(controlProperties.IpIdInt,
+                        InitialParametersClass.RoomId,
                         Global.ControlSystem);
                     return new EiscApiAdvanced(dc, eisc);
                 }

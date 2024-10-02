@@ -29,7 +29,8 @@ namespace PepperDash.Core.XSigUtility.Tokens
 
         public override byte[] GetBytes()
         {
-            byte[] serialBytes = string.IsNullOrEmpty(Value) ? new byte[0] : Encoding.GetEncoding(28591).GetBytes(Value);
+            byte[] serialBytes =
+                string.IsNullOrEmpty(Value) ? new byte[0] : Encoding.GetEncoding(28591).GetBytes(Value);
 
             byte[] xsig = new byte[serialBytes.Length + 3];
             xsig[0] = (byte)(0xC8 | (Index - 1 >> 7));

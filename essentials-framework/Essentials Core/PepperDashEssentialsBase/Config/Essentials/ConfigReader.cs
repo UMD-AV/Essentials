@@ -108,7 +108,8 @@ namespace PepperDash.Essentials.Core.Config
         /// <returns></returns>
         public static string GetGroupForDeviceKey(string key)
         {
-            DeviceConfig dev = ConfigObject.Devices.FirstOrDefault(d => d.Key.Equals(key, StringComparison.OrdinalIgnoreCase));
+            DeviceConfig dev =
+                ConfigObject.Devices.FirstOrDefault(d => d.Key.Equals(key, StringComparison.OrdinalIgnoreCase));
             return dev == null ? null : dev.Group;
         }
 
