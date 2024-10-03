@@ -2,12 +2,12 @@
 
 namespace PepperDash.Essentials.EpiphanPearl.Models
 {
-    public class ScheduleResponse<T>
+    public class BaseResponse<T>
     {
         [JsonProperty("status")] public string Status { get; set; }
 
-        [JsonProperty("result")] public T Result { get; set; }
-
         [JsonProperty("message")] public string Message { get; set; }
+
+        [JsonProperty("result")] public T Result { get; set; }
     }
 }

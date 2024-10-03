@@ -1,5 +1,6 @@
 ﻿using System;
 using PepperDash.Essentials.Core;
+using PepperDash.Essentials.Core.CrestronIO;
 
 namespace PepperDash.Essentials.EpiphanPearl.JoinMaps
 {
@@ -50,6 +51,19 @@ namespace PepperDash.Essentials.EpiphanPearl.JoinMaps
                 JoinCapabilities = eJoinCapabilities.ToSIMPL,
                 JoinType = eJoinType.Digital,
                 Description = "Recorder Online"
+            });
+
+        [JoinName("HdmiOutputSource")] public JoinDataComplete HdmiOutputSource = new JoinDataComplete(
+            new JoinData
+            {
+                JoinNumber = 2,
+                JoinSpan = 1
+            },
+            new JoinMetadata
+            {
+                JoinCapabilities = eJoinCapabilities.ToFromSIMPL,
+                JoinType = eJoinType.Serial,
+                Description = "HdmiOutputSource Set/Get"
             });
 
         [JoinName("Start")] public JoinDataComplete Start = new JoinDataComplete(

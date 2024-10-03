@@ -94,7 +94,19 @@ namespace PepperDash.Essentials.EpiphanPearl
         public TResponse Post<TResponse>(string path)
             where TResponse : class
         {
-            HttpClientRequest request = CreateRequest(path, RequestType.Post);
+            return Post<TResponse>(path, RequestType.Post);
+        }
+
+        public TResponse Put<TResponse>(string path)
+            where TResponse : class
+        {
+            return Post<TResponse>(path, RequestType.Put);
+        }
+
+        private TResponse Post<TResponse>(string path, RequestType requestType)
+            where TResponse : class
+        {
+            HttpClientRequest request = CreateRequest(path, requestType);
 
             request.Header.ContentType = "application/json";
 
@@ -123,7 +135,7 @@ namespace PepperDash.Essentials.EpiphanPearl
                 return null;
             }
         }
-
+        
         public string Delete(string path)
         {
             HttpClientRequest request = CreateRequest(path, RequestType.Delete);

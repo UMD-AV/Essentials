@@ -38,6 +38,9 @@ namespace PepperDash.Essentials.EpiphanPearl
         private BoolFeedback _runningEventRunningFeedback;
         private BoolFeedback _runningEventPausedFeedback;
 
+        private string _hdmiOutputSource;
+        public StringFeedback HdmiOutputFeedback;
+
         private StringFeedback _runningEventStartFeedback;
 
         private List<Event> _scheduledEvents;
@@ -146,6 +149,8 @@ namespace PepperDash.Essentials.EpiphanPearl
                           _runningEvent.Status.Equals(PausedStatus, StringComparison.InvariantCultureIgnoreCase));
 
             _nextEventExistsFeedback = new BoolFeedback(() => _scheduledEvents.Count > 0);
+
+            HdmiOutputFeedback = new StringFeedback(() => _hdmiOutputSource);
         }
 
         public override void LinkToApi(BasicTriList trilist, uint joinStart, string joinMapKey, EiscApiAdvanced bridge)
@@ -164,6 +169,8 @@ namespace PepperDash.Essentials.EpiphanPearl
             trilist.SetSigTrueAction(joinMap.Pause.JoinNumber, PauseRunningEvent);
             trilist.SetSigTrueAction(joinMap.Resume.JoinNumber, ResumeRunningEvent);
             trilist.SetSigTrueAction(joinMap.Extend.JoinNumber, ExtendRunningEvent);
+            
+            trilist.SetStringSigAction(joinMap.HdmiOutputSource.JoinNumber, SetHdmiOutputSource);
 
             CommunicationMonitor.IsOnlineFeedback.LinkInputSig(trilist.BooleanInput[joinMap.RecorderOnline.JoinNumber]);
 
@@ -189,6 +196,8 @@ namespace PepperDash.Essentials.EpiphanPearl
                 .LinkInputSig(trilist.StringInput[joinMap.NextRecordingLength.JoinNumber]);
 
             _nextEventExistsFeedback.LinkInputSig(trilist.BooleanInput[joinMap.NextRecordingExists.JoinNumber]);
+
+            HdmiOutputFeedback.LinkInputSig((trilist.StringInput[joinMap.HdmiOutputSource.JoinNumber]));
 
             trilist.OnlineStatusChange += (device, args) =>
             {
@@ -244,7 +253,7 @@ namespace PepperDash.Essentials.EpiphanPearl
             _statusTimer = null;
         }
 
-        private void PauseRunningEvent()
+        public void PauseRunningEvent()
         {
             if (_runningEvent == null)
             {
@@ -254,7 +263,7 @@ namespace PepperDash.Essentials.EpiphanPearl
 
             string path = string.Format("/schedule/events/{0}/control/pause", _runningEvent.Id);
 
-            ScheduleResponse<string> response = _client.Post<ScheduleResponse<string>>(path);
+            BaseResponse<string> response = _client.Post<BaseResponse<string>>(path);
 
             if (response == null)
             {
@@ -271,7 +280,7 @@ namespace PepperDash.Essentials.EpiphanPearl
             }
         }
 
-        private void ResumeRunningEvent()
+        public void ResumeRunningEvent()
         {
             if (_runningEvent == null)
             {
@@ -281,7 +290,7 @@ namespace PepperDash.Essentials.EpiphanPearl
 
             string path = string.Format("/schedule/events/{0}/control/resume", _runningEvent.Id);
 
-            ScheduleResponse<string> response = _client.Post<ScheduleResponse<string>>(path);
+            BaseResponse<string> response = _client.Post<BaseResponse<string>>(path);
 
             if (response == null)
             {
@@ -298,7 +307,7 @@ namespace PepperDash.Essentials.EpiphanPearl
             }
         }
 
-        private void StopRunningEvent()
+        public void StopRunningEvent()
         {
             if (_runningEvent == null)
             {
@@ -308,7 +317,7 @@ namespace PepperDash.Essentials.EpiphanPearl
 
             string path = string.Format("/schedule/events/{0}/control/stop", _runningEvent.Id);
 
-            ScheduleResponse<string> response = _client.Post<ScheduleResponse<string>>(path);
+            BaseResponse<string> response = _client.Post<BaseResponse<string>>(path);
 
             if (response == null)
             {
@@ -331,7 +340,7 @@ namespace PepperDash.Essentials.EpiphanPearl
             GetRunningEvent();
         }
 
-        private void StartEvent()
+        public void StartEvent()
         {
             string id = string.Empty;
             if (_scheduledEvents.Count > 0)
@@ -347,7 +356,7 @@ namespace PepperDash.Essentials.EpiphanPearl
 
             string path = string.Format("/schedule/events/{0}/control/stop", id);
 
-            ScheduleResponse<string> response = _client.Post<ScheduleResponse<string>>(path);
+            BaseResponse<string> response = _client.Post<BaseResponse<string>>(path);
 
             if (response == null)
             {
@@ -369,7 +378,7 @@ namespace PepperDash.Essentials.EpiphanPearl
             //StartEventStatusTimer();
         }
 
-        private void ExtendRunningEvent()
+        public void ExtendRunningEvent()
         {
             string path = string.Format("/schedule/events/{0}/control/extend", _runningEvent.Id);
 
@@ -378,7 +387,7 @@ namespace PepperDash.Essentials.EpiphanPearl
                 Finish = _runningEvent.Finish + new TimeSpan(0, 0, 15, 0)
             };
 
-            ScheduleResponse<string> response = _client.Post<ExtendEventRequest, ScheduleResponse<string>>(path, body);
+            BaseResponse<string> response = _client.Post<ExtendEventRequest, BaseResponse<string>>(path, body);
 
             if (response == null)
             {
@@ -395,6 +404,54 @@ namespace PepperDash.Essentials.EpiphanPearl
             }
         }
 
+        private void GetHdmiOutputSetting()
+        {
+            string path = string.Format("api/displays/D1/settings");
+
+            BaseResponse<HdmiResult> response = _client.Put<BaseResponse<HdmiResult>>(path);
+
+            if (response == null)
+            {
+                Debug.Console(1, this, "Unable to get HDMI output setting");
+                return;
+            }
+
+            if (!response.Status.Equals("ok", StringComparison.InvariantCultureIgnoreCase))
+            {
+                Debug.Console(0, this, "Error getting HDMI output setting: {0}", response.Message);
+                return;
+            }
+
+            _hdmiOutputSource = response.Result.Source;
+            HdmiOutputFeedback.FireUpdate();
+        }
+
+        /// <summary>
+        /// Set the HDMI 1 output to a source. Example sources include:
+        /// "1" for channel 1, "2" for channel 2, etc.
+        /// "multiview" for the multiview output
+        /// </summary>
+        /// <param name="source"></param>
+        public void SetHdmiOutputSource(string source)
+        {
+            string path = string.Format("api/displays/D1/settings?source={0}", source);
+
+            BaseResponse<string> response = _client.Post<BaseResponse<string>>("api/displays/D1/settings");
+
+            if (response == null)
+            {
+                Debug.Console(1, this, "Unable to change HDMI output");
+                return;
+            }
+
+            if (!response.Status.Equals("ok", StringComparison.InvariantCultureIgnoreCase))
+            {
+                Debug.ConsoleWithLog(0, this, "Error changing HDMI output event: {0}", response.Message);
+            }
+
+            GetHdmiOutputSetting();
+        }
+
         private void GetScheduledEvents()
         {
             DateTime from = DateTime.Now.Date;
@@ -403,7 +460,7 @@ namespace PepperDash.Essentials.EpiphanPearl
 
             string todayScheduledPath = string.Format("/schedule/events/?from={0}&to={1}&status=scheduled", from, to);
 
-            ScheduleResponse<List<Event>> response = _client.Get<ScheduleResponse<List<Event>>>(todayScheduledPath);
+            BaseResponse<List<Event>> response = _client.Get<BaseResponse<List<Event>>>(todayScheduledPath);
 
             if (response == null)
             {
@@ -465,7 +522,7 @@ namespace PepperDash.Essentials.EpiphanPearl
 
             string pausedEventPath = string.Format("/schedule/events/?status=paused");
 
-            ScheduleResponse<List<Event>> response = _client.Get<ScheduleResponse<List<Event>>>(runningEventPath);
+            BaseResponse<List<Event>> response = _client.Get<BaseResponse<List<Event>>>(runningEventPath);
 
             if (response == null)
             {
@@ -485,7 +542,7 @@ namespace PepperDash.Essentials.EpiphanPearl
                 return;
             }
 
-            response = _client.Get<ScheduleResponse<List<Event>>>(pausedEventPath);
+            response = _client.Get<BaseResponse<List<Event>>>(pausedEventPath);
 
             if (response == null)
             {
@@ -525,7 +582,7 @@ namespace PepperDash.Essentials.EpiphanPearl
 
             string path = string.Format("/schedule/events/{0}/status", _runningEvent.Id);
 
-            ScheduleResponse<string> response = _client.Get<ScheduleResponse<string>>(path);
+            BaseResponse<string> response = _client.Get<BaseResponse<string>>(path);
 
             if (response == null)
             {
@@ -551,6 +608,8 @@ namespace PepperDash.Essentials.EpiphanPearl
             _runningEventRunningFeedback.FireUpdate();
             _runningEventPausedFeedback.FireUpdate();
             _nextEventExistsFeedback.FireUpdate();
+
+            HdmiOutputFeedback.FireUpdate();
 
             for (int i = 0; i < _scheduledRecordings.Count; i++)
             {

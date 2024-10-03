@@ -94,7 +94,19 @@ namespace PepperDash.Essentials.EpiphanPearl
         public TResponse Post<TResponse>(string path)
             where TResponse : class
         {
-            HttpsClientRequest request = CreateRequest(path, Crestron.SimplSharp.Net.Https.RequestType.Post);
+            return Post<TResponse>(path, Crestron.SimplSharp.Net.Https.RequestType.Post);
+        }
+
+        public TResponse Put<TResponse>(string path)
+            where TResponse : class
+        {
+            return Post<TResponse>(path, Crestron.SimplSharp.Net.Https.RequestType.Put);
+        }
+
+        private TResponse Post<TResponse>(string path, Crestron.SimplSharp.Net.Https.RequestType requestType)
+            where TResponse : class
+        {
+            HttpsClientRequest request = CreateRequest(path, requestType);
 
             request.Header.ContentType = "application/json";
 

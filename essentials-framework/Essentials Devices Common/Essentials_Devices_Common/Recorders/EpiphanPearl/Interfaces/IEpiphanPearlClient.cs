@@ -10,5 +10,7 @@
             where TResponse : class;
 
         TResponse Post<TResponse>(string path) where TResponse : class;
+
+        TResponse Put<TResponse>(string path) where TResponse : class;
     }
 }

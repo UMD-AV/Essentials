@@ -24,6 +24,15 @@ namespace PepperDash.Essentials.EpiphanPearl.Models
         [JsonProperty("extra_data")] public EventExtraData ExtraData { get; set; }
     }
 
+    public class HdmiResult
+    {
+        [JsonProperty("source")] public string Source { get; set; }
+        [JsonProperty("experimental")] public bool Experimental { get; set; }
+        [JsonProperty("layout")] public string Layout { get; set; }
+        [JsonProperty("showCmsEvents")] public bool ShowCmsEvents { get; set; }
+        [JsonProperty("outputMode")] public string OutputMode { get; set; }
+    }
+
     public class SecondEpochConverter : DateTimeConverterBase
     {
         private static DateTime _epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);

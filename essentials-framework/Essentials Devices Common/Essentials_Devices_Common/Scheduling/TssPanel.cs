@@ -1,4 +1,4 @@
-﻿using System;
+﻿/*using System;
 using System.Collections.Generic;
 using Crestron.SimplSharp;
 using Crestron.SimplSharpPro.DeviceSupport;
@@ -24,7 +24,7 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
 
         public override bool CustomActivate()
         {
-            BuildServer();
+            //BuildServer();
             return true;
         }
 
@@ -145,4 +145,5 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
         {
         }
     }
-}
+}*/
+
