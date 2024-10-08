@@ -169,7 +169,7 @@ namespace PepperDash.Essentials.EpiphanPearl
             trilist.SetSigTrueAction(joinMap.Pause.JoinNumber, PauseRunningEvent);
             trilist.SetSigTrueAction(joinMap.Resume.JoinNumber, ResumeRunningEvent);
             trilist.SetSigTrueAction(joinMap.Extend.JoinNumber, ExtendRunningEvent);
-            
+
             trilist.SetStringSigAction(joinMap.HdmiOutputSource.JoinNumber, SetHdmiOutputSource);
 
             CommunicationMonitor.IsOnlineFeedback.LinkInputSig(trilist.BooleanInput[joinMap.RecorderOnline.JoinNumber]);
@@ -354,7 +354,7 @@ namespace PepperDash.Essentials.EpiphanPearl
                 return;
             }
 
-            string path = string.Format("/schedule/events/{0}/control/stop", id);
+            string path = string.Format("/schedule/events/{0}/control/start", id);
 
             BaseResponse<string> response = _client.Post<BaseResponse<string>>(path);
 
@@ -406,7 +406,7 @@ namespace PepperDash.Essentials.EpiphanPearl
 
         private void GetHdmiOutputSetting()
         {
-            string path = string.Format("api/displays/D1/settings");
+            string path = string.Format("/displays/D1/settings");
 
             BaseResponse<HdmiResult> response = _client.Put<BaseResponse<HdmiResult>>(path);
 
@@ -434,9 +434,9 @@ namespace PepperDash.Essentials.EpiphanPearl
         /// <param name="source"></param>
         public void SetHdmiOutputSource(string source)
         {
-            string path = string.Format("api/displays/D1/settings?source={0}", source);
+            string path = string.Format("/displays/D1/settings?source={0}", source);
 
-            BaseResponse<string> response = _client.Post<BaseResponse<string>>("api/displays/D1/settings");
+            BaseResponse<string> response = _client.Post<BaseResponse<string>>(path);
 
             if (response == null)
             {

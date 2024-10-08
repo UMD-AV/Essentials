@@ -94,27 +94,27 @@
             <SpecificVersion>False</SpecificVersion>
             <HintPath>..\..\..\..\..\..\..\..\..\ProgramData\Crestron\SDK\SimplSharpReflectionInterface.dll</HintPath>
         </Reference>
-    <Reference Include="System">
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="System.Core">
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="System.Data">
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="System.Runtime.Serialization">
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="System.ServiceModel">
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="System.Xml">
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="System.Xml.Linq">
-      <Private>True</Private>
-    </Reference>
+        <Reference Include="System">
+            <Private>True</Private>
+        </Reference>
+        <Reference Include="System.Core">
+            <Private>True</Private>
+        </Reference>
+        <Reference Include="System.Data">
+            <Private>True</Private>
+        </Reference>
+        <Reference Include="System.Runtime.Serialization">
+            <Private>True</Private>
+        </Reference>
+        <Reference Include="System.ServiceModel">
+            <Private>True</Private>
+        </Reference>
+        <Reference Include="System.Xml">
+            <Private>True</Private>
+        </Reference>
+        <Reference Include="System.Xml.Linq">
+            <Private>True</Private>
+        </Reference>
     </ItemGroup>
     <ItemGroup>
         <Compile Include="AudioCodec\AudioCodecBase.cs"/>
@@ -198,6 +198,7 @@
         <Compile Include="CameraControllers\AutomateVx.cs"/>
         <Compile Include="Environment\Crestron Lighting\CrestronLighting.cs"/>
         <Compile Include="Environment\Generic\GenericPartitionInput.cs"/>
+        <Compile Include="Environment\Generic\SerialControlledRelay.cs"/>
         <Compile Include="Environment\Generic\SerialControlledLighting.cs"/>
         <Compile Include="Environment\Generic\RelayControlledLighting.cs"/>
         <Compile Include="Environment\Lutron\LutronQSGrafikEye.cs"/>
@@ -377,6 +378,16 @@
         <Compile Include="Recorders\EpiphanPearl\Models\ScheduleResponse.cs"/>
         <Compile Include="Recorders\EpiphanPearl\Utilities\EpiphanCommunicationMonitor.cs"/>
         <Compile Include="Recorders\EpiphanPearl\Utilities\HttpHelper.cs"/>
+        <Compile Include="Recorders\PanoptoCloud\PanoptoCloudController.cs"/>
+        <Compile Include="Recorders\PanoptoCloud\PanoptoCloudControllerFactory.cs"/>
+        <Compile Include="Recorders\PanoptoCloud\PanoptoCloudControllerJoinMap.cs"/>
+        <Compile Include="Recorders\PanoptoCloud\PanoptoCloudStatusMonitor.cs"/>
+        <Compile Include="Recorders\PanoptoCloud\PanoptoOathClient.cs"/>
+        <Compile Include="Recorders\PanoptoCloud\RemoteRecoderSearchResult.cs"/>
+        <Compile Include="Recorders\PanoptoCloud\RemoteRecorderState.cs"/>
+        <Compile Include="Recorders\PanoptoCloud\RemoteRecording.cs"/>
+        <Compile Include="Recorders\PanoptoCloud\StartRecordingRequest.cs"/>
+        <Compile Include="Recorders\PanoptoCloud\Utils.cs"/>
         <Compile Include="Scheduling\CollegeNet.cs"/>
         <Compile Include="Scheduling\TssPanel.cs"/>
         <Compile Include="SetTopBox\ContemporaryResearch.cs"/>
@@ -498,6 +509,7 @@
     </ItemGroup>
     <ItemGroup>
         <Folder Include="NVX\"/>
+        <Folder Include="Recorders\PanoptoSoap\"/>
     </ItemGroup>
     <Import Project="$(MSBuildBinPath)\Microsoft.CompactFramework.CSharp.targets"/>
     <ProjectExtensions>
