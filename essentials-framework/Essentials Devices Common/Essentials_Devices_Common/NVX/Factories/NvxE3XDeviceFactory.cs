@@ -22,7 +22,7 @@ namespace NvxEpi.Factories
                     "dmnvxe30",
                     "dmnvxe30c",
                     "dmnvxe31",
-                    "dmnvxe31c",
+                    "dmnvxe31c"
                 };
             }
 

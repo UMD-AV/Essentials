@@ -1,11 +1,9 @@
 ﻿using System;
 using Crestron.SimplSharp;
-using Crestron.SimplSharpPro;
 using Crestron.SimplSharpPro.DeviceSupport;
 using Crestron.SimplSharpPro.DM.Streaming;
 using NvxEpi.Abstractions;
 using NvxEpi.Abstractions.HdmiInput;
-using NvxEpi.Abstractions.Usb;
 using NvxEpi.Services.Bridge;
 using NvxEpi.Services.InputPorts;
 using NvxEpi.Services.InputSwitching;
@@ -13,22 +11,19 @@ using PepperDash.Core;
 using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Bridges;
 using PepperDash.Essentials.Core.Config;
-using HdmiInput = NvxEpi.Features.Hdmi.Input.HdmiInput;
+using DmInput = NvxEpi.Features.Hdmi.Input.DmInput;
 
 namespace NvxEpi.Devices
 {
-    public class NvxE3X :
+    public class NvxE760X :
         NvxBaseDevice,
-        INvxE3XDeviceWithHardware,
-        IComPorts,
-        IIROutputPorts,
+        INvxE76XDeviceWithHardware,
         IHdmiInput,
         IRouting
     {
         private IHdmiInput _hdmiInputs;
-        private readonly IUsbStream _usbStream;
 
-        public NvxE3X(DeviceConfig config, Func<DmNvxBaseClass> getHardware)
+        public NvxE760X(DeviceConfig config, Func<DmNvxBaseClass> getHardware)
             : base(config, getHardware, true)
         {
             AddPreActivationAction(AddRoutingPorts);
@@ -36,46 +31,21 @@ namespace NvxEpi.Devices
 
         public override bool CustomActivate()
         {
-            DmNvxE3x hardware = base.Hardware as DmNvxE3x;
+            DmNvxE760x hardware = base.Hardware as DmNvxE760x;
             if (hardware == null)
                 throw new Exception("hardware built doesn't match");
 
             Hardware = hardware;
-            _hdmiInputs = new HdmiInput(this);
+            _hdmiInputs = new DmInput(this);
 
             return base.CustomActivate();
         }
 
-        public CrestronCollection<ComPort> ComPorts
-        {
-            get { return Hardware.ComPorts; }
-        }
-
-        public new DmNvxE3x Hardware { get; private set; }
+        public new DmNvxE760x Hardware { get; private set; }
 
         public ReadOnlyDictionary<uint, IntFeedback> HdcpCapability
         {
             get { return _hdmiInputs.HdcpCapability; }
-        }
-
-        public CrestronCollection<IROutputPort> IROutputPorts
-        {
-            get { return Hardware.IROutputPorts; }
-        }
-
-        public bool IsRemote
-        {
-            get { return _usbStream.IsRemote; }
-        }
-
-        public int NumberOfComPorts
-        {
-            get { return Hardware.NumberOfComPorts; }
-        }
-
-        public int NumberOfIROutputPorts
-        {
-            get { return Hardware.NumberOfIROutputPorts; }
         }
 
         public ReadOnlyDictionary<uint, BoolFeedback> SyncDetected

@@ -10,6 +10,7 @@ using PepperDash.Core;
 using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Routing;
 using Crestron.SimplSharpPro.DM.Streaming;
+using NvxEpi.Abstractions;
 
 namespace NvxEpi.Application.Entities
 {
@@ -73,7 +74,8 @@ namespace NvxEpi.Application.Entities
 
         private void LinkRoutingInputPort(string routingPortKey)
         {
-            if (string.IsNullOrEmpty(routingPortKey) || Device is DmNvxE3x)
+            if (string.IsNullOrEmpty(routingPortKey) || Device is INvxE3XDeviceWithHardware ||
+                Device is INvxE76XDeviceWithHardware)
             {
                 RoutingInputPort routingPort = Device.InputPorts[DeviceInputEnum.NoSwitch.Name];
                 if (routingPort == null)

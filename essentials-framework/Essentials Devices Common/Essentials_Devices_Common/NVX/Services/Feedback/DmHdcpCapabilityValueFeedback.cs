@@ -20,7 +20,7 @@ namespace NvxEpi.Services.Feedback
         }
     }
 
-    public class DmHdcpCapabilityStateFeedback
+    public class DmHdcpStateFeedback
     {
         public static IntFeedback GetFeedback(DmNvxBaseClass device)
         {
@@ -28,7 +28,7 @@ namespace NvxEpi.Services.Feedback
             if (dmDevice == null)
                 return new IntFeedback(() => 0);
 
-            IntFeedback feedback = new IntFeedback(Hdmi1HdcpCapabilityValueFeedback.Key,
+            IntFeedback feedback = new IntFeedback(Hdmi1HdcpStateFeedback.Key,
                 () => (int)device.DmIn.VideoAttributes.HdcpStateFeedback);
 
             device.DmIn.InputStreamChange += (stream, args) => feedback.FireUpdate();

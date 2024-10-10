@@ -11,10 +11,6 @@ using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Routing;
 
 
-#if SERIES4
-using MockDisplay = PepperDash.Essentials.Devices.Common.Displays.MockDisplay;
-#endif
-
 namespace NvxEpi.Application.Entities
 {
     public class NvxApplicationVideoReceiver : EssentialsDevice, IOnline

@@ -12,15 +12,11 @@ namespace NvxEpi.Features.Hdmi.Input
         {
             foreach (uint inputNumber in device.Hardware.HdmiIn.Keys)
             {
-                IntFeedback capability = (device.Hardware is DmNvxE760x)
-                    ? DmHdcpCapabilityValueFeedback.GetFeedback(device.Hardware)
-                    : HdmiHdcpCapabilityValueFeedback.GetFeedback(device.Hardware, inputNumber);
+                IntFeedback capability = HdmiHdcpCapabilityValueFeedback.GetFeedback(device.Hardware, inputNumber);
 
                 _capability.Add(inputNumber, capability);
 
-                BoolFeedback sync = (device.Hardware is DmNvxE760x)
-                    ? DmSyncDetectedFeedback.GetFeedback(device.Hardware)
-                    : HdmiSyncDetectedFeedback.GetFeedback(device.Hardware, inputNumber);
+                BoolFeedback sync = HdmiSyncDetectedFeedback.GetFeedback(device.Hardware, inputNumber);
                 _sync.Add(inputNumber, sync);
 
                 StringFeedback inputResolution =
@@ -28,7 +24,8 @@ namespace NvxEpi.Features.Hdmi.Input
 
                 _currentResolution.Add(inputNumber, inputResolution);
 
-                StringFeedback capabilityString = HdmiHdcpCapabilityFeedback.GetFeedback(device.Hardware, inputNumber);
+                StringFeedback capabilityString =
+                    HdmiHdcpCapabilityFeedback.GetFeedback(device.Hardware, inputNumber);
 
                 _capabilityString.Add(inputNumber, capabilityString);
 

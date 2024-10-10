@@ -24,10 +24,6 @@ using PepperDash.Essentials.Core.Config;
 using Feedback = PepperDash.Essentials.Core.Feedback;
 using HdmiInput = NvxEpi.Features.Hdmi.Input.HdmiInput;
 
-#if SERIES4
-using NvxEpi.McMessengers;
-#endif
-
 namespace NvxEpi.Devices
 {
     public class Nvx36X :
@@ -72,8 +68,6 @@ namespace NvxEpi.Devices
                 if (_config.EnableAutoRoute)
                     // ReSharper disable once ObjectCreationAsStatement
                     new AutomaticInputRouter(_hdmiInputs);
-
-                AddMcMessengers();
 
                 return result;
             }

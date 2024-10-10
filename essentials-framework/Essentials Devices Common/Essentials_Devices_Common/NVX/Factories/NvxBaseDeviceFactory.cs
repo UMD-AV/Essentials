@@ -350,7 +350,7 @@ namespace NvxEpi.Factories
                     if (string.IsNullOrEmpty(props.ParentDeviceKey) ||
                         props.ParentDeviceKey.Equals("processor", StringComparison.OrdinalIgnoreCase))
                     {
-                        return () => new DmNvxE760(props.Control.IpIdInt, Global.ControlSystem);
+                        return () => new DmNvxE760C(props.Control.IpIdInt, Global.ControlSystem);
                     }
 
                     return () =>

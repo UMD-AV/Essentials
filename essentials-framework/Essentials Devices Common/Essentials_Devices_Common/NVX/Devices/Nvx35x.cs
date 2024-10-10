@@ -65,7 +65,6 @@ namespace NvxEpi.Devices
                 // ReSharper disable once ObjectCreationAsStatement
                 new AutomaticInputRouter(_hdmiInputs);
 
-            AddMcMessengers();
             return result;
         }
 

@@ -235,13 +235,8 @@ namespace Tesira_DSP_EPI
                 Thread.eThreadStartOptions.CreateSuspended)
             {
                 Name = string.Format("{0}-queue", Key),
-                Priority = CrestronEnvironment.ProgramCompatibility.Equals(eCrestronSeries.Series4)
-                    ? Thread.eThreadPriority.LowestPriority
-                    : Thread.eThreadPriority.LowestPriority
-            };
-            /*{
                 Priority = Thread.eThreadPriority.LowestPriority
-            };*/
+            };
 
             _subscribeThread.Start();
         }

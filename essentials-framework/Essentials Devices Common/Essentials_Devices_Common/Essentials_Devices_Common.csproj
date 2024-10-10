@@ -228,12 +228,13 @@
         <Compile Include="NVX\Abstractions\InputSwitching\ICurrentDanteInput.cs"/>
         <Compile Include="NVX\Abstractions\InputSwitching\ICurrentNaxInput.cs"/>
         <Compile Include="NVX\Abstractions\InputSwitching\ICurrentVideoInput.cs"/>
-        <Compile Include="NVX\Abstractions\INvx35xDeviceWithHardware.cs"/>
+        <Compile Include="NVX\Abstractions\INvx35XDeviceWithHardware.cs"/>
         <Compile Include="NVX\Abstractions\INvx36XDeviceWithHardware.cs"/>
         <Compile Include="NVX\Abstractions\INvxD3XDeviceWithHardware.cs"/>
         <Compile Include="NVX\Abstractions\INvxDevice.cs"/>
         <Compile Include="NVX\Abstractions\INvxDeviceWithHardware.cs"/>
-        <Compile Include="NVX\Abstractions\INvxE3xDeviceWithHardware.cs"/>
+        <Compile Include="NVX\Abstractions\INvxE3XDeviceWithHardware.cs"/>
+        <Compile Include="NVX\Abstractions\INvxE76XDeviceWithHardware.cs"/>
         <Compile Include="NVX\Abstractions\SecondaryAudio\ICurrentSecondaryAudioStream.cs"/>
         <Compile Include="NVX\Abstractions\SecondaryAudio\ISecondaryAudioAddress.cs"/>
         <Compile Include="NVX\Abstractions\SecondaryAudio\ISecondaryAudioStream.cs"/>
@@ -258,6 +259,7 @@
         <Compile Include="NVX\Devices\NvxBaseDevice.cs"/>
         <Compile Include="NVX\Devices\NvxD3X.cs"/>
         <Compile Include="NVX\Devices\NvxE3X.cs"/>
+        <Compile Include="NVX\Devices\NvxE760X.cs"/>
         <Compile Include="NVX\Devices\NvxMockDevice.cs"/>
         <Compile Include="NVX\Devices\NvxXioDirector.cs"/>
         <Compile Include="NVX\Enums\DeviceInputEnum.cs"/>
@@ -278,11 +280,13 @@
         <Compile Include="NVX\Factories\NvxD3XDeviceFactory.cs"/>
         <Compile Include="NVX\Factories\NvxDirectorFactory.cs"/>
         <Compile Include="NVX\Factories\NvxE3XDeviceFactory.cs"/>
+        <Compile Include="NVX\Factories\NvxE760XDeviceFactory.cs"/>
         <Compile Include="NVX\Factories\NvxMockDeviceFactory.cs"/>
         <Compile Include="NVX\Features\Audio\Nvx36xAudio.cs"/>
         <Compile Include="NVX\Features\AutomaticRouting\AutomaticInputRouter.cs"/>
         <Compile Include="NVX\Features\Config\NvxDeviceProperties.cs"/>
         <Compile Include="NVX\Features\Config\NvxDirectorConfig.cs"/>
+        <Compile Include="NVX\Features\Hdmi\Input\DmInput.cs"/>
         <Compile Include="NVX\Features\Hdmi\Input\HdmiInput.cs"/>
         <Compile Include="NVX\Features\Hdmi\Input\HdmiInputBase.cs"/>
         <Compile Include="NVX\Features\Hdmi\Output\HdmiOutput.cs"/>
