@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text;
+using System.Xml.Schema;
 using Crestron.SimplSharp;
 using Crestron.SimplSharpPro.CrestronThread;
 using Crestron.SimplSharpPro.DeviceSupport;
@@ -28,18 +30,23 @@ namespace PepperDash.Essentials.Devices.Displays
         public BoolFeedback Input4Feedback { get; private set; }
         public StringFeedback ErrorFeedback { get; private set; }
 
-        private string videoMuteKey;
+        private readonly string videoMuteKey;
         private DM.DmRmcControllerBase _scaler;
 
-        private byte[] _tcpHandshake = new byte[]
+        private readonly byte[] _tcpHandshake = new byte[]
             { 0x45, 0x53, 0x43, 0x2F, 0x56, 0x50, 0x2E, 0x6E, 0x65, 0x74, 0x10, 0x03, 0x00, 0x00, 0x00, 0x00 };
 
-        private byte[] _tcpHeader = new byte[]
+        private readonly byte[] _passwordHandshake = new byte[]
+        {
+            0x45, 0x53, 0x43, 0x2F, 0x56, 0x50, 0x2E, 0x6E, 0x65, 0x74, 0x10, 0x03, 0x00, 0x00, 0x00, 0x01, 0x01, 0x01
+        };
+
+        private readonly byte[] _tcpHeader = new byte[]
             { 0x45, 0x53, 0x43, 0x2F, 0x56, 0x50, 0x2E, 0x6E, 0x65, 0x74, 0x10, 0x03, 0x00, 0x00 };
 
         private bool _readyForCommands;
         private bool _readyForNextCommand;
-        private bool _tcpComm;
+        private readonly bool _tcpComm;
         private ushort _pollTracker;
         private bool _PowerIsOn;
         private bool _IsWarmingUp;
@@ -55,6 +62,7 @@ namespace PepperDash.Essentials.Devices.Displays
         private ushort _RequestedVideoMuteState; // 0:none 1:on 2:off
         private ushort? _RequestedVolume;
         private string _errorFeedback;
+        private string _password;
 
         public string ErrorFb
         {
@@ -70,10 +78,10 @@ namespace PepperDash.Essentials.Devices.Displays
         private readonly EpsonQueue _cmdQueue;
         private readonly EpsonQueue _priorityQueue;
         private readonly EpsonQueue _volumeQueue;
-        private CommunicationGather _PortGather;
+        private readonly CommunicationGather _PortGather;
         private RoutingInputPort _CurrentInputPort;
-        private CMutex _CommandMutex;
-        private CMutex _PowerMutex;
+        private readonly CMutex _CommandMutex;
+        private readonly CMutex _PowerMutex;
 
         //Volume Stuff
         private CCriticalSection _rampLock;
@@ -81,10 +89,10 @@ namespace PepperDash.Essentials.Devices.Displays
         private bool _isMuted;
         private ushort _savedVolumeForMute;
         private ushort _lastVolumeFb;
-        private ushort _defaultVolume;
-        private ushort _volumeSteps;
-        private ushort _upperLimit;
-        private ushort _lowerLimit;
+        private readonly ushort _defaultVolume;
+        private readonly ushort _volumeSteps;
+        private readonly ushort _upperLimit;
+        private readonly ushort _lowerLimit;
 
         public bool MuteFb
         {
@@ -143,10 +151,13 @@ namespace PepperDash.Essentials.Devices.Displays
             : base(key, name)
         {
             Communication = comm;
-            Communication.BytesReceived += new EventHandler<GenericCommMethodReceiveBytesArgs>(BytesReceived);
-            _PortGather = new CommunicationGather(Communication, '\x0D');
-            _PortGather.IncludeDelimiter = false;
-            _PortGather.LineReceived += new EventHandler<GenericCommMethodReceiveTextArgs>(DelimitedTextReceived);
+            Communication.BytesReceived += BytesReceived;
+            _PortGather = new CommunicationGather(Communication, '\x0D')
+            {
+                IncludeDelimiter = false
+            };
+            _PortGather.LineReceived += DelimitedTextReceived;
+            _password = config.Password ?? "";
 
             GenericTcpIpClient tcpComm = comm as GenericTcpIpClient;
             _readyForCommands = false;
@@ -155,8 +166,7 @@ namespace PepperDash.Essentials.Devices.Displays
                 _tcpComm = true;
                 tcpComm.AutoReconnect = true;
                 tcpComm.AutoReconnectIntervalMs = 10000;
-                tcpComm.ConnectionChange +=
-                    new EventHandler<GenericSocketStatusChageEventArgs>(tcpComm_ConnectionChange);
+                tcpComm.ConnectionChange += tcpComm_ConnectionChange;
             }
             else
             {
@@ -177,10 +187,10 @@ namespace PepperDash.Essentials.Devices.Displays
 
             LampHoursFeedback = new IntFeedback(() => _LampHours);
             VideoMuteIsOnFeedback = new BoolFeedback(() => _VideoMuteIsOn);
-            Input1Feedback = new BoolFeedback(() => { return _CurrentInputIndex == 1; });
-            Input2Feedback = new BoolFeedback(() => { return _CurrentInputIndex == 2; });
-            Input3Feedback = new BoolFeedback(() => { return _CurrentInputIndex == 3; });
-            Input4Feedback = new BoolFeedback(() => { return _CurrentInputIndex == 4; });
+            Input1Feedback = new BoolFeedback(() => _CurrentInputIndex == 1);
+            Input2Feedback = new BoolFeedback(() => _CurrentInputIndex == 2);
+            Input3Feedback = new BoolFeedback(() => _CurrentInputIndex == 3);
+            Input4Feedback = new BoolFeedback(() => _CurrentInputIndex == 4);
             ErrorFeedback = new StringFeedback(() => _errorFeedback);
 
             _onRetryCount = 0;
@@ -197,11 +207,11 @@ namespace PepperDash.Essentials.Devices.Displays
             WarmupTimer = new CTimer(WarmupCallback, Timeout.Infinite);
             CooldownTimer = new CTimer(CooldownCallback, Timeout.Infinite);
 
-            _defaultVolume = (ushort)(config.defaultVolume == null ? 10 : config.defaultVolume);
+            _defaultVolume = (ushort)(config.defaultVolume ?? 10);
             _RequestedVolume = null;
-            _volumeSteps = (ushort)(config.volumeSteps == null ? 20 : config.volumeSteps);
-            _upperLimit = (ushort)(config.volumeUpperLimit == null ? 255 : config.volumeUpperLimit);
-            _lowerLimit = (ushort)(config.volumeLowerLimit == null ? 0 : config.volumeLowerLimit);
+            _volumeSteps = (ushort)(config.volumeSteps ?? 20);
+            _upperLimit = (ushort)(config.volumeUpperLimit ?? 255);
+            _lowerLimit = (ushort)(config.volumeLowerLimit ?? 0);
             InitVolumeControls();
 
             CommunicationMonitor =
@@ -344,6 +354,7 @@ namespace PepperDash.Essentials.Devices.Displays
                                 else
                                 {
                                     Debug.Console(0, this, "EpsonProjector password required");
+                                    SendPassword();
                                 }
 
                                 return;
@@ -854,9 +865,34 @@ namespace PepperDash.Essentials.Devices.Displays
                 Thread.Sleep(500);
                 if (!_readyForCommands)
                 {
-                    //Try to get response by sending return char
-                    Communication.SendText("\x0D");
+                    //Try to get a response by sending return char
+                    Communication.SendText("\r");
                 }
+            }
+        }
+
+        private void SendPassword()
+        {
+            if (!Communication.IsConnected) return;
+            Debug.Console(1, this, "Sending tcp handshake with password");
+            if (_password.Length > 0)
+            {
+                byte[] _passwordBytes = Encoding.GetEncoding(28591).GetBytes(_password);
+                byte[] passwordArray = new byte[_passwordHandshake.Length + _passwordBytes.Length];
+                _passwordHandshake.CopyTo(passwordArray, 0);
+                _passwordBytes.CopyTo(passwordArray, _passwordHandshake.Length);
+                Communication.SendBytes(passwordArray);
+            }
+            else
+            {
+                Communication.SendBytes(_passwordHandshake);
+            }
+
+            Thread.Sleep(500);
+            if (!_readyForCommands)
+            {
+                //Try to get a response by sending return char
+                Communication.SendText("\r");
             }
         }
 
@@ -1348,14 +1384,14 @@ namespace PepperDash.Essentials.Devices.Displays
 
         private class EpsonQueue
         {
-            public List<KeyValuePair<eCommandType, string>> Q = new List<KeyValuePair<eCommandType, string>>();
+            public readonly List<KeyValuePair<eCommandType, string>> Q = new List<KeyValuePair<eCommandType, string>>();
 
             public ushort Count
             {
                 get { return (ushort)Q.Count; }
             }
 
-            private CMutex mutex = new CMutex();
+            private readonly CMutex mutex = new CMutex();
 
             /// <summary>
             /// Creates a queue for processing Epson Projector commands
@@ -1789,6 +1825,8 @@ namespace PepperDash.Essentials.Devices.Displays
         [JsonProperty("defaultVolume")] public int? defaultVolume { get; set; }
 
         [JsonProperty("videoMuteKey")] public string VideoMuteKey { get; set; }
+
+        [JsonProperty("password")] public string Password { get; set; }
 
         public EpsonProjectorPropertiesConfig()
         {
