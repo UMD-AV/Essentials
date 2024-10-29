@@ -222,17 +222,17 @@
                 // string passed is the full assembly name, which we get from SimplSharp project FullAssemblyName
                 // for generateDebugSysmbols, we *may* have to set this to false in order to get Mono.Cecil to like the pdb format
                 // TODO determine if we need to true/false and if that can depend on the project debug/release configuration passed in from MSBuild
-                //var result1 = s.ValidateAssembly(fullAssemblyName, resolutionPaths, false);
-                //if (!result1.IsValid)
-                //{
-                //    StringBuilder sb = new StringBuilder();
-                //
-                //    foreach (var error in result1.Errors)
-                //    {
-                //        sb.Append(String.Format("Sandbox validation error: {0}\r\n", error));
-                //    }
-                //    throw new Exception(sb.ToString());
-                //}
+                var result1 = s.ValidateAssembly(fullAssemblyName, resolutionPaths, false);
+                if (!result1.IsValid)
+                {
+                    StringBuilder sb = new StringBuilder();
+                
+                    foreach (var error in result1.Errors)
+                    {
+                        sb.Append(String.Format("Sandbox validation error: {0}\r\n", error));
+                    }
+                    throw new Exception(sb.ToString());
+                }
 
                 //string passed is the full assembly name, which we get from Simplsharp project FullAssemblyName
                 var result2 = s.VerifyAssembly(fullAssemblyName);

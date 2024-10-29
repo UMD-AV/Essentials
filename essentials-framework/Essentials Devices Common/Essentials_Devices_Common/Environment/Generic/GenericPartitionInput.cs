@@ -17,10 +17,7 @@ namespace PepperDash.Essentials.Devices.Common.Environment
         public GenericPartitionInput(string key, string name, GenericPartitionInputConfig props)
             : base(key, name, props)
         {
-            if (props.InvertInput != null)
-            {
-                invertInput = props.InvertInput;
-            }
+            invertInput = props.InvertInput;
         }
 
         public override void LinkToApi(BasicTriList trilist, uint joinStart, string joinMapKey, EiscApiAdvanced bridge)

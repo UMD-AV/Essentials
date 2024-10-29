@@ -69,9 +69,6 @@
             <HintPath>..\..\..\..\..\ProgramData\Crestron\SDK\SSPDevices\Crestron.SimplSharpPro.Lighting.dll</HintPath>
         </Reference>
         <Reference Include="mscorlib"/>
-        <Reference Include="Noemax.WebSockets.CF35.Trial">
-            <HintPath>..\..\..\..\..\ProgramData\Crestron\SDK\SSPDevices\Noemax.WebSockets.CF35.Trial.dll</HintPath>
-        </Reference>
         <Reference Include="SimplSharpHelperInterface, Version=1.0.0.0, Culture=neutral, PublicKeyToken=1099c178b3b54c3b, processorArchitecture=MSIL">
             <SpecificVersion>False</SpecificVersion>
             <HintPath>..\..\..\..\..\..\..\..\..\ProgramData\Crestron\SDK\SimplSharpHelperInterface.dll</HintPath>
@@ -394,7 +391,6 @@
         <Compile Include="Recorders\PanoptoCloud\StartRecordingRequest.cs"/>
         <Compile Include="Recorders\PanoptoCloud\Utils.cs"/>
         <Compile Include="Scheduling\CollegeNet.cs"/>
-        <Compile Include="Scheduling\TssPanel.cs"/>
         <Compile Include="SetTopBox\ContemporaryResearch.cs"/>
         <Compile Include="VideoCodec\ConvertiblePreset.cs"/>
         <Compile Include="Codec\IHasCallHold.cs"/>
