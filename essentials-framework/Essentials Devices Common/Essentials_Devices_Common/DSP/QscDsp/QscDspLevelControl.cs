@@ -24,7 +24,6 @@ namespace QscQsysDspPlugin
         private CMutex _volumeDownLock;
         private ushort _volumeUpCount;
         private ushort _volumeDownCount;
-        private readonly QscDsp _parent;
 
         /// <summary>
         /// Used for to identify level subscription values
@@ -37,32 +36,12 @@ namespace QscQsysDspPlugin
         public string MuteCustomName { get; private set; }
 
         /// <summary>
-        /// Minimum fader level
+        /// Checks if a valid subscription string has been received for all subscriptions
         /// </summary>
-        //double MinLevel;
-
-        /// <summary>
-        /// Maximum fader level
-        /// </summary>
-        //double MaxLevel;
-
-        /// <summary>
-        /// Checks if a valid subscription string has been recieved for all subscriptions
-        /// </summary>
-        public bool IsSubsribed
+        public bool IsSubscribed
         {
             get
             {
-                //bool isSubscribed = false;
-
-                //if (HasMute && MuteIsSubscribed)
-                //    isSubscribed = true;
-
-                //if (HasLevel && LevelIsSubscribed)
-                //    isSubscribed = true;
-
-                //return isSubscribed;
-
                 bool isSubscribed = HasMute && _muteIsSubscribed || HasLevel && _levelIsSubscribed;
                 return isSubscribed;
             }
@@ -76,22 +55,16 @@ namespace QscQsysDspPlugin
         private bool _muteIsSubscribed;
         private bool _levelIsSubscribed;
 
-        //public TesiraForteLevelControl(string label, string id, int index1, int index2, bool hasMute, bool hasLevel, BiampTesiraForteDsp parent)
-        //    : base(id, index1, index2, parent)
-        //{
-        //    Initialize(label, hasMute, hasLevel);
-        //}
-
         /// <summary>
         /// Constructor
         /// </summary>
         /// <param name="key">instance key</param>
         /// <param name="config">level control block configuration object</param>
-        /// <param name="parent">dsp parent isntance</param>
+        /// <param name="parent">dsp parent instance</param>
         public QscDspLevelControl(string key, QscDspLevelControlBlockConfig config, QscDsp parent)
             : base(config.LevelInstanceTag, config.MuteInstanceTag, parent)
         {
-            _parent = parent;
+            QscDsp parent1 = parent;
             if (config.Disabled)
                 return;
 
@@ -103,10 +76,10 @@ namespace QscQsysDspPlugin
                 CrestronInvoke.BeginInvoke(o =>
                 {
                     if (!string.IsNullOrEmpty(config.LevelInstanceTag) && config.HasLevel)
-                        _parent.SendLine(string.Format("cg \"{0}\"", config.LevelInstanceTag));
+                        parent1.SendLine(string.Format("cg \"{0}\"", config.LevelInstanceTag));
 
                     if (!string.IsNullOrEmpty(config.MuteInstanceTag) && config.HasMute)
-                        _parent.SendLine(string.Format("cg \"{0}\"", config.MuteInstanceTag));
+                        parent1.SendLine(string.Format("cg \"{0}\"", config.MuteInstanceTag));
                 });
             };
 
@@ -132,7 +105,6 @@ namespace QscQsysDspPlugin
             _volumeUpLock = new CMutex();
             _volumeUpCount = 0;
             _volumeDownCount = 0;
-            this.IsSubscribed = false;
 
             MuteFeedback = new BoolFeedback(() => _isMuted);
 
@@ -152,7 +124,6 @@ namespace QscQsysDspPlugin
         /// </summary>
         public void Subscribe()
         {
-            // Do subscriptions and blah blah
             // Subscribe to mute
             if (this.HasMute)
             {

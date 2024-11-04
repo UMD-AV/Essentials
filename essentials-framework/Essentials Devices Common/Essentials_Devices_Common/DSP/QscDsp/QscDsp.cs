@@ -17,7 +17,7 @@ namespace QscQsysDspPlugin
     /// </summary>
     /// <remarks>
     /// Questions:
-    /// 1. When subscribing, jsut use the Instance ID for custom name?
+    /// 1. When subscribing, just use the Instance ID for custom name?
     /// 2. Verbose on subscription?
     /// 
     /// - Example subscription feedback responses:
@@ -32,7 +32,7 @@ namespace QscQsysDspPlugin
         public IBasicCommunication Communication { get; private set; }
 
         /// <summary>
-        /// Gather object
+        /// Gather
         /// </summary>
         public CommunicationGather PortGather { get; private set; }
 
@@ -44,13 +44,10 @@ namespace QscQsysDspPlugin
         public Dictionary<string, QscDspLevelControl> LevelControlPoints { get; private set; }
         public Dictionary<string, QscDspDialer> Dialers { get; set; }
         public Dictionary<string, QscDspCamera> Cameras { get; set; }
-        public List<QscDspPresets> PresetList = new List<QscDspPresets>();
+        public readonly List<QscDspPresets> PresetList = new List<QscDspPresets>();
 
-        private DeviceConfig _Dc;
+        private readonly DeviceConfig _Dc;
 
-        private CrestronQueue CommandQueue;
-
-        private bool CommandQueueInProgress = false;
         private uint HeartbeatTracker = 0;
         public bool ShowHexResponse { get; set; }
 
@@ -69,7 +66,6 @@ namespace QscQsysDspPlugin
                 JsonConvert.DeserializeObject<QscDspPropertiesConfig>(dc.Properties.ToString());
             Debug.Console(2, this, "Made it to device constructor");
 
-            CommandQueue = new CrestronQueue(100);
             Communication = comm;
             ISocketStatus socket = comm as ISocketStatus;
             if (socket != null)
@@ -120,8 +116,6 @@ namespace QscQsysDspPlugin
             else
             {
                 // Cleanup items from this session
-                CommandQueue.Clear();
-                CommandQueueInProgress = false;
             }
         }
 
@@ -248,24 +242,25 @@ namespace QscQsysDspPlugin
         {
             HeartbeatTracker++;
             SendLine("cgp 2");
-            CrestronEnvironment.Sleep(1000);
 
-            if (HeartbeatTracker > 0)
+            CrestronInvoke.BeginInvoke(o =>
             {
-                Debug.Console(1, this, "Heartbeat missed, count {0}", HeartbeatTracker);
-                if (HeartbeatTracker % 5 == 0)
+                CrestronEnvironment.Sleep(1000);
+                if (HeartbeatTracker > 0)
                 {
+                    Debug.Console(1, this, "Heartbeat missed, count {0}", HeartbeatTracker);
+                    if (HeartbeatTracker % 5 != 0) return;
                     Debug.Console(1, this, "Heartbeat missed 5 times, subscriptions lost? Resubscribing now");
                     if (HeartbeatTracker == 5)
                         Debug.LogError(Debug.ErrorLogLevel.Warning,
                             "Heartbeat missed 5 times - subscriptions lost? Attempting resubscribe.");
                     SubscribeToAttributes();
                 }
-            }
-            else
-            {
-                Debug.Console(1, this, "Heartbeat okay");
-            }
+                else
+                {
+                    Debug.Console(1, this, "Heartbeat okay");
+                }
+            });
         }
 
         /// <summary>
@@ -303,9 +298,6 @@ namespace QscQsysDspPlugin
             {
                 CommunicationMonitor.Start();
             }
-
-            if (!CommandQueueInProgress)
-                SendNextQueuedCommand();
         }
 
         /// <summary>
@@ -335,77 +327,56 @@ namespace QscQsysDspPlugin
 
                     string changedInstance = changeMessage[1].Replace("\"", "");
                     Debug.Console(1, this, "cv parse Instance: {0}", changedInstance);
-                    bool foundItFlag = false;
                     foreach (KeyValuePair<string, QscDspLevelControl> controlPoint in LevelControlPoints)
                     {
                         if (changedInstance == controlPoint.Value.LevelInstanceTag)
                         {
                             controlPoint.Value.ParseSubscriptionMessage(changedInstance, changeMessage[4],
                                 changeMessage[3]);
-                            foundItFlag = true;
                             return;
                         }
 
-                        else if (changedInstance == controlPoint.Value.MuteInstanceTag)
+                        if (changedInstance == controlPoint.Value.MuteInstanceTag)
                         {
                             controlPoint.Value.ParseSubscriptionMessage(changedInstance,
                                 changeMessage[2].Replace("\"", ""), null);
-                            foundItFlag = true;
                             return;
                         }
                     }
 
-                    if (!foundItFlag)
+                    foreach (KeyValuePair<string, QscDspDialer> dialer in Dialers)
                     {
-                        foreach (KeyValuePair<string, QscDspDialer> dialer in Dialers)
+                        PropertyInfo[] properties = dialer.Value.Tags.GetType().GetCType().GetProperties();
+                        foreach (PropertyInfo prop in properties)
                         {
-                            PropertyInfo[] properties = dialer.Value.Tags.GetType().GetCType().GetProperties();
-                            foreach (PropertyInfo prop in properties)
+                            string propValue = prop.GetValue(dialer.Value.Tags, null) as string;
+                            if (changedInstance == propValue)
                             {
-                                string propValue = prop.GetValue(dialer.Value.Tags, null) as string;
-                                if (changedInstance == propValue)
+                                if (changeMessage[2].Contains("Dialing") || changeMessage[2].Contains("Connected"))
                                 {
-                                    if (changeMessage[2].Contains("Dialing") || changeMessage[2].Contains("Connected"))
-                                    {
-                                        dialer.Value.ParseSubscriptionMessage(changedInstance,
-                                            changeMessage[2].Replace("\"", "") + " " +
-                                            changeMessage[4].Replace("\"", ""));
-                                    }
-                                    else
-                                    {
-                                        dialer.Value.ParseSubscriptionMessage(changedInstance,
-                                            changeMessage[2].Replace("\"", ""));
-                                    }
-
-                                    foundItFlag = true;
-                                    return;
+                                    dialer.Value.ParseSubscriptionMessage(changedInstance,
+                                        changeMessage[2].Replace("\"", "") + " " +
+                                        changeMessage[4].Replace("\"", ""));
                                 }
-                            }
+                                else
+                                {
+                                    dialer.Value.ParseSubscriptionMessage(changedInstance,
+                                        changeMessage[2].Replace("\"", ""));
+                                }
 
-                            if (foundItFlag)
-                            {
                                 return;
                             }
                         }
                     }
 
-                    if (!foundItFlag)
+                    foreach (KeyValuePair<string, QscDspCamera> camera in Cameras)
                     {
-                        foreach (KeyValuePair<string, QscDspCamera> camera in Cameras)
+                        Debug.Console(1, this, "DSP Camera Status Compare: {0} ==? {1}", changedInstance,
+                            camera.Value.Config.OnlineStatus);
+                        if (changedInstance == camera.Value.Config.OnlineStatus)
                         {
-                            Debug.Console(1, this, "DSP Camera Status Compare: {0} ==? {1}", changedInstance,
-                                camera.Value.Config.OnlineStatus);
-                            if (changedInstance == camera.Value.Config.OnlineStatus)
-                            {
-                                camera.Value.ParseSubscriptionMessage(changedInstance,
-                                    changeMessage[2].Replace("\"", ""), null);
-                                foundItFlag = true;
-                                return;
-                            }
-                        }
-
-                        if (foundItFlag)
-                        {
+                            camera.Value.ParseSubscriptionMessage(changedInstance,
+                                changeMessage[2].Replace("\"", ""), null);
                             return;
                         }
                     }
@@ -429,58 +400,6 @@ namespace QscQsysDspPlugin
         }
 
         /// <summary>
-        /// Adds a command from a child module to the queue
-        /// </summary>
-        /// <param name="commandToEnqueue">Command object from child module</param>
-        public void EnqueueCommand(QueuedCommand commandToEnqueue)
-        {
-            CommandQueue.Enqueue(commandToEnqueue);
-            //Debug.Console(1, this, "Command (QueuedCommand) Enqueued '{0}'.  CommandQueue has '{1}' Elements.", commandToEnqueue.Command, CommandQueue.Count);
-
-            if (!CommandQueueInProgress)
-                SendNextQueuedCommand();
-        }
-
-        /// <summary>
-        /// Adds a raw string command to the queue
-        /// </summary>
-        /// <param name="command"></param>
-        public void EnqueueCommand(string command)
-        {
-            CommandQueue.Enqueue(command);
-            //Debug.Console(1, this, "Command (string) Enqueued '{0}'.  CommandQueue has '{1}' Elements.", command, CommandQueue.Count);
-
-            if (!CommandQueueInProgress)
-                SendNextQueuedCommand();
-        }
-
-        /// <summary>
-        /// Sends the next queued command to the DSP
-        /// </summary>
-        private void SendNextQueuedCommand()
-        {
-            if (Communication.IsConnected && !CommandQueue.IsEmpty)
-            {
-                CommandQueueInProgress = true;
-
-                if (CommandQueue.Peek() is QueuedCommand)
-                {
-                    QueuedCommand nextCommand = new QueuedCommand();
-
-                    nextCommand = (QueuedCommand)CommandQueue.Peek();
-
-                    SendLine(nextCommand.Command);
-                }
-                else
-                {
-                    string nextCommand = (string)CommandQueue.Peek();
-
-                    SendLine(nextCommand);
-                }
-            }
-        }
-
-        /// <summary>
         /// Runs the preset with the number provided
         /// </summary>
         /// <param name="n">ushort</param>
@@ -490,7 +409,7 @@ namespace QscQsysDspPlugin
         }
 
         /// <summary>
-        /// Adds a presst
+        /// Adds a preset
         /// </summary>
         /// <param name="s">QscDspPresets</param>
         public void addPreset(QscDspPresets s)
@@ -506,16 +425,6 @@ namespace QscQsysDspPlugin
         {
             SendLine(string.Format("ssl {0}", name));
             SendLine("cgp 1");
-        }
-
-        /// <summary>
-        /// Queues Commands
-        /// </summary>
-        public class QueuedCommand
-        {
-            public string Command { get; set; }
-            public string AttributeCode { get; set; }
-            public QscDspControlPoint ControlPoint { get; set; }
         }
 
         #region IBridge Members

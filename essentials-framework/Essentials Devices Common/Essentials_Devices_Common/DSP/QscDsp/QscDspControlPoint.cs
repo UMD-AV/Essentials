@@ -8,9 +8,7 @@ namespace QscQsysDspPlugin
 
         public string LevelInstanceTag { get; set; }
         public string MuteInstanceTag { get; set; }
-        public QscDsp Parent { get; private set; }
-
-        public bool IsSubscribed { get; protected set; }
+        protected QscDsp Parent { get; private set; }
 
         /// <summary>
         /// Constructor
@@ -28,7 +26,7 @@ namespace QscQsysDspPlugin
         /// <summary>
         /// Initializes the plugin
         /// </summary>
-        virtual public void Initialize()
+        public void Initialize()
         {
         }
 
@@ -38,19 +36,18 @@ namespace QscQsysDspPlugin
         /// <param name="cmd">command</param>
         /// <param name="instance">named control/instance tag</param>
         /// <param name="value">value (use "" if not applicable)</param>
-        public virtual void SendFullCommand(string cmd, string instance, string value)
+        protected void SendFullCommand(string cmd, string instance, string value)
         {
-            string cmdToSemd = string.Format("{0} \"{1}\" {2}", cmd, instance, value);
-
-            Parent.SendLine(cmdToSemd);
+            string cmdToSend = string.Format("{0} \"{1}\" {2}", cmd, instance, value);
+            Parent.SendLine(cmdToSend);
         }
 
         /// <summary>
-        /// Parses get messgae return
+        /// Parses get message return
         /// </summary>
-        /// <param name="attributeCode">attributte code</param>
+        /// <param name="attributeCode">attribute code</param>
         /// <param name="message">message</param>
-        virtual public void ParseGetMessage(string attributeCode, string message)
+        protected void ParseGetMessage(string attributeCode, string message)
         {
         }
 
@@ -59,15 +56,12 @@ namespace QscQsysDspPlugin
         /// Sends the subscription command of the instance tag for the provided change group
         /// </summary>
         /// <param name="instanceTag">named control/instance tag</param>
-        /// <param name="changeGroup">change group</param>
-        public virtual void SendSubscriptionCommand(string instanceTag)
+        protected void SendSubscriptionCommand(string instanceTag)
         {
             // Subscription string format: InstanceTag subscribe attributeCode Index1 customName responseRate
             // Ex: "RoomLevel subscribe level 1 MyRoomLevel 500"
 
-            string cmd;
-
-            cmd = string.Format("cga 1 \"{0}\"", instanceTag);
+            string cmd = string.Format("cga 1 \"{0}\"", instanceTag);
 
             Parent.SendLine(cmd);
         }

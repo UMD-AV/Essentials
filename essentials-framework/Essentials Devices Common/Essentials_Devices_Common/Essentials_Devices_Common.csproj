@@ -204,6 +204,7 @@
         <Compile Include="Environment\Lutron\LutronQSKeypad.cs"/>
         <Compile Include="Environment\nLight\nLight.cs"/>
         <Compile Include="Environment\Overflow\Overflow.cs"/>
+        <Compile Include="Microphones\Catchbox.cs"/>
         <Compile Include="Microphones\ShureUlxd.cs"/>
         <Compile Include="Microphones\ShureSbc.cs"/>
         <Compile Include="Microphones\ShureMxa.cs"/>

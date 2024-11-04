@@ -1,41 +1,27 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text.RegularExpressions;
+using System.Net.Sockets;
+using Crestron.SimplSharp;
 using Newtonsoft.Json;
 using Crestron.SimplSharpPro.DeviceSupport;
 using PepperDash.Core;
 using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Bridges;
 using PepperDash.Essentials.Core.Config;
-using PepperDash.Essentials.Core.Queues;
 
-namespace PepperDash.Essentials.Devices.Common.ShureUlxd
+namespace PepperDash.Essentials.Devices.Common.Catchbox
 {
-    public class ShureUlxdDevice : EssentialsBridgeableDevice
+    public class CatchboxDevice : EssentialsBridgeableDevice
     {
-        private readonly IBasicCommunication _comms;
+        private readonly GenericUdpServer _comms;
         private readonly GenericCommunicationMonitor _commsMonitor;
-        private const string CommsDelimiter = ">";
-        private readonly GenericQueue _commsQueue;
-        public int UlxdSize { get; private set; }
-
-        private readonly Regex regexPattern = new Regex(
-            @"< REP (?<Index>[0-9]\s)?(?<Command>.*\b) (?<State>\w+|\{.*\}) >",
-            RegexOptions.IgnoreCase);
-
-        private readonly CommunicationGather commsGather;
-        public readonly ShureUlxdMicrophone[] Microphones;
+        public int CatchboxSize { get; private set; }
+        public readonly CatchboxMicrophone[] Microphones;
 
         /// <summary>
         /// Reports socket status feedback through the bridge
         /// </summary>
         public IntFeedback SocketStatusFeedback { get; private set; }
-
-        /// <summary>
-        /// Reports monitor status feedback through the bridge
-        /// Typically used for Fusion status reporting and system status LED's
-        /// </summary>
-        public IntFeedback MonitorStatusFeedback { get; private set; }
 
         #region Device Info
 
@@ -88,58 +74,50 @@ namespace PepperDash.Essentials.Devices.Common.ShureUlxd
         /// </summary>
         /// <param name="key">device key</param>
         /// <param name="name">device name</param>
-        /// <param name="config">device configuration object</param>
         /// <param name="comms">device communication as IBasicCommunication</param>
         /// <see cref="PepperDash.Core.IBasicCommunication"/>
         /// <seealso cref="Crestron.SimplSharp.CrestronSockets.SocketStatus"/>
-        public ShureUlxdDevice(string key, string name, ShureUlxdPropertiesConfig config, IBasicCommunication comms)
+        public CatchboxDevice(string key, string name, IBasicCommunication comms)
             : base(key, name)
         {
             Debug.Console(0, this, "Constructing new {0} instance", name);
-            MonitorStatusFeedback = new IntFeedback(() =>
-            {
-                if (_commsMonitor != null) return (int)_commsMonitor.Status;
-                return 0;
-            });
             DeviceModelFeedback = new StringFeedback(() => DeviceModel);
             DeviceFirmwareVersionFeedback = new StringFeedback(() => DeviceFirmwareVersion);
-            UlxdSize = config.size <= 4 ? config.size : 4;
-            Microphones = new ShureUlxdMicrophone[4];
+            CatchboxSize = 4;
+            Microphones = new CatchboxMicrophone[4];
             for (ushort i = 0; i < 4; i++)
             {
-                Microphones[i] = new ShureUlxdMicrophone();
-                if (i < UlxdSize)
+                Microphones[i] = new CatchboxMicrophone();
+                if (i < CatchboxSize)
                 {
                     Microphones[i].MicrophoneEnabled = true;
                 }
             }
 
-            _comms = comms;
-
-            commsGather = new CommunicationGather(_comms, CommsDelimiter);
-            commsGather.LineReceived += Handle_LineReceived;
-            _commsMonitor = new GenericCommunicationMonitor(this, _comms, 30000, 180000, 300000, Poll);
-            _commsQueue = new GenericQueue(key + "-queue");
-
-            ISocketStatus socket = _comms as ISocketStatus;
-            if (socket != null)
+            _comms = (GenericUdpServer)comms;
+            if (_comms == null)
             {
-                // device comms is IP **ELSE** device comms is RS232
-                socket.ConnectionChange += socket_ConnectionChange;
-                SocketStatusFeedback = new IntFeedback(() => (int)socket.ClientStatus);
+                Debug.ConsoleWithLog(0, this, "Catchbox device must use udp as comm method");
+                return;
             }
+
+            _commsMonitor = new GenericCommunicationMonitor(this, _comms, 30000, 180000, 300000, Poll);
+            _comms.TextReceived += Handle_TextReceived;
+            _comms.ConnectionChange += socket_ConnectionChange;
+            SocketStatusFeedback = new IntFeedback(() => (int)_comms.ClientStatus);
         }
 
         /// <summary>
-        /// Use the custom activate method to connect the device and start the comms monitor.
+        /// Use custom activate to connect the device and start the comms monitor.
         /// This method will be called when the device is built.
         /// </summary>
         /// <returns></returns>
         public override bool CustomActivate()
         {
+            Debug.Console(0, this, "Connecting udp");
             _comms.Connect();
+            UpdateStatus();
             _commsMonitor.Start();
-
             return base.CustomActivate();
         }
 
@@ -148,195 +126,11 @@ namespace PepperDash.Essentials.Devices.Common.ShureUlxd
         {
             if (SocketStatusFeedback != null)
                 SocketStatusFeedback.FireUpdate();
-
-            if (args.Client.IsConnected)
-                UpdateStatus();
         }
 
-        // handles line received		
-        private void Handle_LineReceived(object sender, GenericCommMethodReceiveTextArgs args)
+        private void Handle_TextReceived(object sender, GenericCommMethodReceiveTextArgs args)
         {
-            _commsQueue.Enqueue(new ProcessStringMessage(args.Text, ProcessLineReceived));
-        }
-
-        // processes line received
-        private void ProcessLineReceived(string lineReceived)
-        {
-            if (string.IsNullOrEmpty(lineReceived)) return;
-            Debug.Console(2, this, "ProcessLineRecieved: lineReceived = {0}", lineReceived);
-
-            Match responses = regexPattern.Match(lineReceived);
-            char[] trimPattern = { '{', '}', ' ' };
-
-            string indexString = responses.Groups["Index"].Value.Trim();
-            string command = responses.Groups["Command"].Value.Trim();
-            string state = responses.Groups["State"].Value.Trim(trimPattern);
-
-            if (string.IsNullOrEmpty(command)) return;
-
-            Debug.Console(2, this, "ProcessLineRecieved: index-'{0}' | command-'{1} | state-'{2}'", indexString,
-                command, state);
-
-            switch (command)
-            {
-                // Microphone type
-                // TX: < GET x TX_TYPE >
-                // RX: < REP x TX_TYPE model >
-                case "TX_TYPE":
-                {
-                    int index = Convert.ToInt16(indexString) - 1;
-                    if (index < 4)
-                    {
-                        if (state.Length == 0 || state == "UNKN")
-                        {
-                            Microphones[index].Model = "";
-                            Microphones[index].MicrophonePresent = false;
-                        }
-                        else
-                        {
-                            Microphones[index].Model = state;
-                            Microphones[index].MicrophonePresent = true;
-                        }
-                    }
-
-                    break;
-                }
-
-                // Battery percent charge
-                // TX: < GET x BATT_CHARGE >
-                // RX: < REP x BATT_CHARGE 027 >
-                case "BATT_CHARGE":
-                {
-                    int index = Convert.ToInt16(indexString) - 1;
-                    if (index < 4)
-                    {
-                        short stateInt = Convert.ToInt16(state);
-                        if (stateInt >= 0 && stateInt <= 100)
-                        {
-                            Microphones[index].PercentCharge = stateInt;
-                        }
-                        else
-                        {
-                            Microphones[index].PercentCharge = 0;
-                        }
-                    }
-
-                    break;
-                }
-                // Battery percent health
-                // TX: < GET x BATT_HEALTH >
-                // RX: < REP x BATT_CHARGE 099 >
-                case "BATT_HEALTH":
-                {
-                    int index = Convert.ToInt16(indexString) - 1;
-                    if (index < 4)
-                    {
-                        short stateInt = Convert.ToInt16(state);
-                        if (stateInt >= 0 && stateInt <= 100)
-                        {
-                            Microphones[index].PercentHealth = stateInt;
-                        }
-                        else
-                        {
-                            Microphones[index].PercentHealth = 0;
-                        }
-                    }
-
-                    break;
-                }
-                // Battery temperature F
-                // TX: < GET x BATT_TEMP_F >
-                // RX: < REP x BATT_TEMP_F 095 >
-                case "BATT_TEMP_F":
-                {
-                    int index = Convert.ToInt16(indexString) - 1;
-                    if (index < 4)
-                    {
-                        short stateInt = Convert.ToInt16(state);
-                        if (stateInt >= 0 && stateInt <= 253)
-                        {
-                            Microphones[index].TemperatureF = stateInt;
-                        }
-                        else
-                        {
-                            Microphones[index].TemperatureF = 0;
-                        }
-                    }
-
-                    break;
-                }
-
-                // Battery run time
-                // TX: < GET x BATT_RUN_TIME >
-                // RX: < REP x BATT_RUN_TIME 00125 >
-                case "BATT_RUN_TIME":
-                {
-                    int index = Convert.ToInt16(indexString) - 1;
-                    ushort stateInt = Convert.ToUInt16(state);
-                    if (index < 4)
-                    {
-                        Microphones[index].Runtime = stateInt;
-                    }
-
-                    break;
-                }
-
-                // Model Number
-                // TX: "< GET MODEL >"
-                // RX: "< REP MODEL {y} >"	// y is 32-char model number
-                case "MODEL":
-                {
-                    DeviceModel = state;
-                    if (state.StartsWith("ULXD4Q"))
-                    {
-                        //quad rx model
-                        for (ushort i = 0; i < 4; i++)
-                        {
-                            Microphones[i].MicrophoneEnabled = true;
-                        }
-                    }
-                    else if (state.StartsWith("ULXD4D"))
-                    {
-                        //dual rx model
-                        Microphones[0].MicrophoneEnabled = true;
-                        Microphones[1].MicrophoneEnabled = true;
-                        Microphones[2].MicrophoneEnabled = false;
-                        Microphones[3].MicrophoneEnabled = false;
-                    }
-                    else if (state.StartsWith("ULXD4"))
-                    {
-                        //single rx model
-                        Microphones[0].MicrophoneEnabled = true;
-                        Microphones[1].MicrophoneEnabled = false;
-                        Microphones[2].MicrophoneEnabled = false;
-                        Microphones[3].MicrophoneEnabled = false;
-                    }
-                    else
-                    {
-                        //unknown model
-                        for (ushort i = 0; i < 4; i++)
-                        {
-                            Microphones[i].MicrophoneEnabled = i < UlxdSize;
-                        }
-                    }
-
-                    break;
-                }
-                // Firmware Version
-                // TX: "< GET FW_VER >"
-                // RX: "< REP FW_VER {y} >" // y is 18-char firmware version
-                case "FW_VER":
-                {
-                    DeviceFirmwareVersion = state;
-                    break;
-                }
-                default:
-                {
-                    Debug.Console(1, this, "ProcessLineReceived: Unkown command-'{0}' with state-'{1}'", command,
-                        state);
-                    break;
-                }
-            }
+            Debug.Console(0, this, "TextRecieved: {0}", args.Text);
         }
 
         /// <summary>
@@ -349,10 +143,8 @@ namespace PepperDash.Essentials.Devices.Common.ShureUlxd
 
             if (string.IsNullOrEmpty(text)) return;
 
-            string cmd = string.Format("< {0} >", text.ToUpper());
-
-            Debug.Console(1, this, "SendText: {0}", cmd);
-            _comms.SendText(cmd);
+            Debug.Console(0, this, "SendText: {0}", text);
+            _comms.SendText(text);
         }
 
         #region Polls
@@ -365,11 +157,13 @@ namespace PepperDash.Essentials.Devices.Common.ShureUlxd
         /// </remarks>
         public void Poll()
         {
-            SendText("GET 0 TX_TYPE");
+            SendText("{\"tx1\":{\"device\":{\"battery\":null}}}");
+            SendText("{\"tx2\":{\"device\":{\"battery\":null}}}");
+            SendText("{\"tx3\":{\"device\":{\"battery\":null}}}");
+            SendText("{\"tx4\":{\"device\":{\"battery\":null}}}");
         }
 
         #endregion Polls
-
 
         #region Overrides of EssentialsBridgeableDevice
 
@@ -384,7 +178,7 @@ namespace PepperDash.Essentials.Devices.Common.ShureUlxd
         {
             try
             {
-                ShureUlxdBridgeJoinMap joinMap = new ShureUlxdBridgeJoinMap(joinStart);
+                CatchboxBridgeJoinMap joinMap = new CatchboxBridgeJoinMap(joinStart);
 
                 // This adds the join map to the collection on the bridge
                 if (bridge != null)
@@ -402,7 +196,6 @@ namespace PepperDash.Essentials.Devices.Common.ShureUlxd
                 // _commsMonitor.IsOnlineFeedback is used to drive IsOnlineFb on the bridge
                 _commsMonitor.IsOnlineFeedback.LinkInputSig(trilist.BooleanInput[joinMap.IsOnline.JoinNumber]);
                 SocketStatusFeedback.LinkInputSig(trilist.UShortInput[joinMap.SocketStatus.JoinNumber]);
-                MonitorStatusFeedback.LinkInputSig(trilist.UShortInput[joinMap.MonitorStatus.JoinNumber]);
 
                 // microphone info **feedback only**
                 for (ushort i = 0; i < 4; i++)
@@ -447,7 +240,6 @@ namespace PepperDash.Essentials.Devices.Common.ShureUlxd
         private void UpdateFeedbacks()
         {
             SocketStatusFeedback.FireUpdate();
-            MonitorStatusFeedback.FireUpdate();
             DeviceModelFeedback.FireUpdate();
             DeviceFirmwareVersionFeedback.FireUpdate();
 
@@ -471,42 +263,23 @@ namespace PepperDash.Essentials.Devices.Common.ShureUlxd
         /// </summary>
         public void UpdateStatus()
         {
-            SendText("GET 0 ALL");
-        }
-
-        public void Dispose()
-        {
-            // Unsubscribe from events
-            ISocketStatus socket = _comms as ISocketStatus;
-            if (socket != null)
-            {
-                socket.ConnectionChange -= socket_ConnectionChange;
-            }
-
-            commsGather.LineReceived -= Handle_LineReceived;
-
-            // Stop the communication monitor
-            _commsMonitor.Stop();
-
-            // Clear the communication queue
-            _commsQueue.Dispose();
-
-            // Clear feedbacks
-            this.SocketStatusFeedback = null;
-            this.MonitorStatusFeedback = null;
-            this.DeviceModelFeedback = null;
-            this.DeviceFirmwareVersionFeedback = null;
-
-            foreach (var mic in Microphones)
-            {
-                mic.DisposeFeedbacks();
-            }
-
-            Debug.Console(0, this, "Disposed ShureUlxdDevice resources.");
+            SendText(CatchboxApi.GetDeviceVersion);
+            CrestronEnvironment.Sleep(100);
+            SendText(CatchboxApi.GetDeviceType);
+            CrestronEnvironment.Sleep(100);
+            SendText(CatchboxApi.SubscribeMic1);
+            CrestronEnvironment.Sleep(100);
+            SendText(CatchboxApi.GetMic1Rssi);
+            CrestronEnvironment.Sleep(100);
+            SendText(CatchboxApi.GetMic1Name);
+            CrestronEnvironment.Sleep(100);
+            SendText(CatchboxApi.GetMic1LinkState);
+            CrestronEnvironment.Sleep(100);
+            SendText(CatchboxApi.GetMic1BatteryLevel);
         }
     }
 
-    public class ShureUlxdMicrophone
+    public class CatchboxMicrophone
     {
         #region Microphone Enabled
 
@@ -655,7 +428,7 @@ namespace PepperDash.Essentials.Devices.Common.ShureUlxd
 
         #endregion
 
-        public ShureUlxdMicrophone()
+        public CatchboxMicrophone()
         {
             _runtime = 65535;
             MicrophoneEnabledFeedback = new BoolFeedback(() => MicrophoneEnabled);
@@ -666,20 +439,24 @@ namespace PepperDash.Essentials.Devices.Common.ShureUlxd
             RuntimeFeedback = new IntFeedback(() => Runtime);
             ModelFeedback = new StringFeedback(() => Model);
         }
-
-        public void DisposeFeedbacks()
-        {
-            MicrophoneEnabledFeedback = null;
-            MicrophonePresentFeedback = null;
-            PercentChargeFeedback = null;
-            PercentHealthFeedback = null;
-            TemperatureFFeedback = null;
-            RuntimeFeedback = null;
-            ModelFeedback = null;
-        }
     }
 
-    public class ShureUlxdBridgeJoinMap : JoinMapBaseAdvanced
+    public static class CatchboxApi
+    {
+        public const string SubscribeMic1 =
+            "{\"subscribe\":[{\"#\":{\"enable\":true,\"period_ms\":0},\"rx\":{\"device\":{\"mic1_link_state\":null}},\"tx1\":{\"device\":{\"name\":null,\"rssi\":null,\"battery\":null}}}]}\n";
+
+        public const string GetDeviceVersion = "{\"rx\":{\"device\":{\"firmware_info\":null}}}";
+
+        public const string GetDeviceType = "{\"rx\":{\"device\":{\"device_type\":null}}}";
+
+        public const string GetMic1Rssi = "{\"tx1\":{\"device\":{\"rssi\":null}}}";
+        public const string GetMic1Name = "{\"tx1\":{\"device\":{\"name\":null}}}";
+        public const string GetMic1LinkState = "{\"rx\":{\"device\":{\"mic1_link_state\":null}}}";
+        public const string GetMic1BatteryLevel = "{\"tx1\":{\"device\":{\"battery\":null}}}";
+    }
+
+    public class CatchboxBridgeJoinMap : JoinMapBaseAdvanced
     {
         #region Digital
 
@@ -702,7 +479,7 @@ namespace PepperDash.Essentials.Devices.Common.ShureUlxd
         /// <summary>
         /// Refresh all data
         /// </summary>
-        [JoinName("RefreshData")] public JoinDataComplete RefreshData = new JoinDataComplete(
+        [JoinName("RefreshData")] public readonly JoinDataComplete RefreshData = new JoinDataComplete(
             new JoinData
             {
                 JoinNumber = 2,
@@ -718,7 +495,7 @@ namespace PepperDash.Essentials.Devices.Common.ShureUlxd
         /// <summary>
         /// Get enabled feedback for a microphone
         /// </summary>
-        [JoinName("MicrophoneEnabled")] public JoinDataComplete MicrophoneEnabled = new JoinDataComplete(
+        [JoinName("MicrophoneEnabled")] public readonly JoinDataComplete MicrophoneEnabled = new JoinDataComplete(
             new JoinData
             {
                 JoinNumber = 11,
@@ -734,7 +511,7 @@ namespace PepperDash.Essentials.Devices.Common.ShureUlxd
         /// <summary>
         /// Get present feedback for a microphone
         /// </summary>
-        [JoinName("MicrophonePresent")] public JoinDataComplete MicrophonePresent = new JoinDataComplete(
+        [JoinName("MicrophonePresent")] public readonly JoinDataComplete MicrophonePresent = new JoinDataComplete(
             new JoinData
             {
                 JoinNumber = 21,
@@ -755,7 +532,7 @@ namespace PepperDash.Essentials.Devices.Common.ShureUlxd
         /// Get device socket status join map
         /// </summary>
         /// <see cref="Crestron.SimplSharp.CrestronSockets.SocketStatus"/>
-        [JoinName("SocketStatus")] public JoinDataComplete SocketStatus = new JoinDataComplete(
+        [JoinName("SocketStatus")] public readonly JoinDataComplete SocketStatus = new JoinDataComplete(
             new JoinData
             {
                 JoinNumber = 1,
@@ -793,7 +570,7 @@ namespace PepperDash.Essentials.Devices.Common.ShureUlxd
         /// 254 = error,
         /// 255 = unknown
         /// </remarks>
-        [JoinName("PercentCharge")] public JoinDataComplete PercentCharge = new JoinDataComplete(
+        [JoinName("PercentCharge")] public readonly JoinDataComplete PercentCharge = new JoinDataComplete(
             new JoinData
             {
                 JoinNumber = 11,
@@ -814,7 +591,7 @@ namespace PepperDash.Essentials.Devices.Common.ShureUlxd
         /// 254 = error,
         /// 255 = unknown
         /// </remarks>
-        [JoinName("PercentHealth")] public JoinDataComplete PercentHealth = new JoinDataComplete(
+        [JoinName("PercentHealth")] public readonly JoinDataComplete PercentHealth = new JoinDataComplete(
             new JoinData
             {
                 JoinNumber = 21,
@@ -835,7 +612,7 @@ namespace PepperDash.Essentials.Devices.Common.ShureUlxd
         /// 254 = error,
         /// 255 = unknown
         /// </remarks>
-        [JoinName("TemperatureF")] public JoinDataComplete TemperatureF = new JoinDataComplete(
+        [JoinName("TemperatureF")] public readonly JoinDataComplete TemperatureF = new JoinDataComplete(
             new JoinData
             {
                 JoinNumber = 31,
@@ -851,7 +628,7 @@ namespace PepperDash.Essentials.Devices.Common.ShureUlxd
         /// <summary>
         /// Get microphone runtime
         /// </summary>
-        [JoinName("Runtime")] public JoinDataComplete Runtime = new JoinDataComplete(
+        [JoinName("Runtime")] public readonly JoinDataComplete Runtime = new JoinDataComplete(
             new JoinData
             {
                 JoinNumber = 41,
@@ -871,7 +648,7 @@ namespace PepperDash.Essentials.Devices.Common.ShureUlxd
         /// <summary>
         /// Get device name
         /// </summary>
-        [JoinName("DeviceName")] public JoinDataComplete DeviceName = new JoinDataComplete(
+        [JoinName("DeviceName")] public readonly JoinDataComplete DeviceName = new JoinDataComplete(
             new JoinData
             {
                 JoinNumber = 1,
@@ -885,9 +662,9 @@ namespace PepperDash.Essentials.Devices.Common.ShureUlxd
             });
 
         /// <summary>
-        /// Get device model
+        /// Get the device model
         /// </summary>
-        [JoinName("DeviceModel")] public JoinDataComplete DeviceModel = new JoinDataComplete(
+        [JoinName("DeviceModel")] public readonly JoinDataComplete DeviceModel = new JoinDataComplete(
             new JoinData
             {
                 JoinNumber = 2,
@@ -901,25 +678,26 @@ namespace PepperDash.Essentials.Devices.Common.ShureUlxd
             });
 
         /// <summary>
-        /// Get device firmware version
+        /// Get the device firmware version
         /// </summary>
-        [JoinName("DeviceFirmwareVersion")] public JoinDataComplete DeviceFirmwareVersion = new JoinDataComplete(
-            new JoinData
-            {
-                JoinNumber = 4,
-                JoinSpan = 1
-            },
-            new JoinMetadata
-            {
-                Description = "Device Firmware Version",
-                JoinCapabilities = eJoinCapabilities.ToSIMPL,
-                JoinType = eJoinType.Serial
-            });
+        [JoinName("DeviceFirmwareVersion")] public readonly JoinDataComplete DeviceFirmwareVersion =
+            new JoinDataComplete(
+                new JoinData
+                {
+                    JoinNumber = 4,
+                    JoinSpan = 1
+                },
+                new JoinMetadata
+                {
+                    Description = "Device Firmware Version",
+                    JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                    JoinType = eJoinType.Serial
+                });
 
         /// <summary>
-        /// Get microphone model
+        /// Get the microphone model
         /// </summary>
-        [JoinName("Model")] public JoinDataComplete Model = new JoinDataComplete(
+        [JoinName("Model")] public readonly JoinDataComplete Model = new JoinDataComplete(
             new JoinData
             {
                 JoinNumber = 11,
@@ -938,8 +716,8 @@ namespace PepperDash.Essentials.Devices.Common.ShureUlxd
         /// Plugin device BridgeJoinMap constructor
         /// </summary>
         /// <param name="joinStart">This will be the join it starts on the EISC bridge</param>
-        public ShureUlxdBridgeJoinMap(uint joinStart)
-            : base(joinStart, typeof(ShureUlxdBridgeJoinMap))
+        public CatchboxBridgeJoinMap(uint joinStart)
+            : base(joinStart, typeof(CatchboxBridgeJoinMap))
         {
         }
     }
@@ -947,14 +725,16 @@ namespace PepperDash.Essentials.Devices.Common.ShureUlxd
     /// <summary>
     /// Plugin factory for devices that require communications using IBasicCommunications or custom communication methods
     /// </summary>
-    public class ShureUlxdFactory : EssentialsDeviceFactory<ShureUlxdDevice>
+    public class CatchboxFactory : EssentialsDeviceFactory<CatchboxDevice>
     {
         /// <summary>
         /// Device factory constructor
         /// </summary>
-        public ShureUlxdFactory()
+        public CatchboxFactory()
         {
-            TypeNames = new List<string>() { "shureulxd" };
+            // In the constructor, we initialize the list with the typenames that will build an instance of this device
+            // only include unique typenames. When the constructor is used, all the typenames will be evaluated in lower case.
+            TypeNames = new List<string>() { "catchbox" };
         }
 
         /// <summary>
@@ -969,17 +749,9 @@ namespace PepperDash.Essentials.Devices.Common.ShureUlxd
             {
                 Debug.Console(0, "[{0}] Factory attempting to create new device from type: {1}", dc.Key, dc.Type);
 
-                // get the device properties configuration object and check for null 
-                ShureUlxdPropertiesConfig propertiesConfig = dc.Properties.ToObject<ShureUlxdPropertiesConfig>();
-                if (propertiesConfig == null)
-                {
-                    Debug.Console(0, "[{0}] Factory: failed to read properties config for {1}", dc.Key, dc.Name);
-                    return null;
-                }
-
-                // build the device comms (for all other comms methods) & check for null			
+                // build the device comms (for all other comms methods) and check for null			
                 IBasicCommunication comms = CommFactory.CreateCommForDevice(dc);
-                if (comms != null) return new ShureUlxdDevice(dc.Key, dc.Name, propertiesConfig, comms);
+                if (comms != null) return new CatchboxDevice(dc.Key, dc.Name, comms);
                 Debug.Console(0, "[{0}] Factory: failed to create comm for {1}", dc.Key, dc.Name);
                 return null;
             }
@@ -988,15 +760,6 @@ namespace PepperDash.Essentials.Devices.Common.ShureUlxd
                 Debug.Console(0, "[{0}] Factory BuildDevice Exception: {1}", dc.Key, ex);
                 return null;
             }
-        }
-    }
-
-    public class ShureUlxdPropertiesConfig
-    {
-        [JsonProperty("size")] public int size { get; set; }
-
-        public ShureUlxdPropertiesConfig()
-        {
         }
     }
 }

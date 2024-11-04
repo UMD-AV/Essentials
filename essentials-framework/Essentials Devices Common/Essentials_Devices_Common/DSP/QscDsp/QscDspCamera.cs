@@ -13,7 +13,7 @@ namespace QscQsysDspPlugin
     /// </summary>
     public class QscDspCamera : EssentialsBridgeableDevice, IOnline
     {
-        private QscDsp _Dsp;
+        private readonly QscDsp _Dsp;
         public QscDspCameraConfig Config { get; private set; }
         private string LastCmd;
         private bool _Online;

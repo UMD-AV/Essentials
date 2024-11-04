@@ -22,12 +22,16 @@ namespace PepperDash.Essentials.Devices.Common.ShureMxa
         private const string CommsDelimiter = ">";
 
         private IBasicVolumeWithFeedback DspObject;
-        private CMutex DspObjectMutex;
+        private readonly CMutex DspObjectMutex;
         private bool dspObjectLock;
-        private CMutex DeviceObjectMutex;
+        private readonly CMutex DeviceObjectMutex;
         private bool deviceObjectLock;
         private bool deviceMuteChangeInProgress;
-        private CTimer deviceMuteChangeTimer;
+        private readonly CTimer deviceMuteChangeTimer;
+
+        private readonly Regex regexPattern = new Regex(
+            @"< REP (?<Index>[0-9]\s)?(?<Command>.*\b) (?<State>\w+|\{.*\}) >",
+            RegexOptions.IgnoreCase);
 
         private readonly GenericQueue _commsQueue;
 
@@ -173,7 +177,7 @@ namespace PepperDash.Essentials.Devices.Common.ShureMxa
         private bool _deviceMuteStatusLedState;
 
         /// <summary>
-        /// Devicee mute led state 
+        /// Device mute led state 
         /// </summary>
         public bool DeviceMuteStatusLedState
         {
@@ -195,7 +199,7 @@ namespace PepperDash.Essentials.Devices.Common.ShureMxa
 
         #region External Switch State (EXT_SWITCH_OUT_STATE)
 
-        // external swtich state
+        // external switch state
         private bool _externalSwitchState;
 
         /// <summary>
@@ -553,7 +557,7 @@ namespace PepperDash.Essentials.Devices.Common.ShureMxa
         /// </summary>
         public StringFeedback DeviceFirmwareVersionFeedback { get; private set; }
 
-        // devicee error field
+        // device error field
         private string _deviceError;
 
         /// <summary>
@@ -570,7 +574,7 @@ namespace PepperDash.Essentials.Devices.Common.ShureMxa
         }
 
         /// <summary>
-        /// Deivce error feedback
+        /// Device error feedback
         /// </summary>
         public StringFeedback DeviceErrorFeedback { get; private set; }
 
@@ -593,7 +597,11 @@ namespace PepperDash.Essentials.Devices.Common.ShureMxa
 
             _config = config;
 
-            MonitorStatusFeedback = new IntFeedback(() => (int)_commsMonitor.Status);
+            MonitorStatusFeedback = new IntFeedback(() =>
+            {
+                if (_commsMonitor != null) return (int)_commsMonitor.Status;
+                return 0;
+            });
 
             // digital feedbacks
             DeviceLedStateFeedback = new BoolFeedback(() => DeviceLedState);
@@ -617,7 +625,7 @@ namespace PepperDash.Essentials.Devices.Common.ShureMxa
             _comms = comms;
             CommunicationGather commsGather = new CommunicationGather(_comms, CommsDelimiter)
                 { IncludeDelimiter = true };
-            commsGather.LineReceived += Handle_LineRecieved;
+            commsGather.LineReceived += Handle_LineReceived;
             _commsMonitor = new GenericCommunicationMonitor(this, _comms, 30000, 180000, 300000, Poll);
             _commsQueue = new GenericQueue(key + "-queue");
 
@@ -640,7 +648,7 @@ namespace PepperDash.Essentials.Devices.Common.ShureMxa
 
 
         /// <summary>
-        /// Use the custom activiate to connect the device and start the comms monitor.
+        /// Use the custom activate to connect the device and start the comms monitor.
         /// This method will be called when the device is built.
         /// </summary>
         /// <returns></returns>
@@ -661,7 +669,7 @@ namespace PepperDash.Essentials.Devices.Common.ShureMxa
 
             // Essentials will handle the connect method to the device                       
             _comms.Connect();
-            // Essentialss will handle starting the comms monitor
+            // Essentials will handle starting the comms monitor
             _commsMonitor.Start();
 
             return base.CustomActivate();
@@ -765,29 +773,27 @@ namespace PepperDash.Essentials.Devices.Common.ShureMxa
         }
 
 
-        // handles line recieved		
-        private void Handle_LineRecieved(object sender, GenericCommMethodReceiveTextArgs args)
+        // handles line received		
+        private void Handle_LineReceived(object sender, GenericCommMethodReceiveTextArgs args)
         {
-            _commsQueue.Enqueue(new ProcessStringMessage(args.Text, ProcessLineRecieved));
+            _commsQueue.Enqueue(new ProcessStringMessage(args.Text, ProcessLineReceived));
         }
 
 
-        // processes linee recieved
-        private void ProcessLineRecieved(string lineRecieved)
+        // processes line received
+        private void ProcessLineReceived(string lineReceived)
         {
-            if (string.IsNullOrEmpty(lineRecieved)) return;
+            if (string.IsNullOrEmpty(lineReceived)) return;
 
-            Debug.Console(2, this, "ProcessLineRecieved: lineReceived = {0}", lineRecieved);
+            Debug.Console(2, this, "ProcessLineRecieved: lineReceived = {0}", lineReceived);
 
             // Shure MXA910 command strings
             // https://pubs.shure.com/command-strings/MXA910			
             // Shure MXA310 command strings
             // https://pubs.shure.com/command-strings/MXA310
 
-            Regex regexPattern = new Regex(@"< REP (?<Index>[0-9]\s)?(?<Command>.*\b) (?<State>\w+|\{.*\}) >",
-                RegexOptions.IgnoreCase);
-            Match responses = regexPattern.Match(lineRecieved);
-            if (responses == null) return;
+
+            Match responses = regexPattern.Match(lineReceived);
 
             Debug.Console(2, this, "group[{0}-Index] = {1}", responses.Groups["Index"].Index,
                 responses.Groups["Index"].Value);
@@ -910,7 +916,7 @@ namespace PepperDash.Essentials.Devices.Common.ShureMxa
                 // TX: "< GET LED_COLOR_{MUTED|UNMUTED} >"
                 // TX: "< SET LED_COLOR_{MUTED|UNMUTED} {RED|GREEN|BLUE|PINK|PURPLE|YELLOW|ORANGE|WHITE} >" // FW ver < 3.0
                 // TX: "< SET LED_COLOR_{MUTED|UNMUTED} {RED|GREEN|BLUE|PINK|PURPLE|YELLOW|ORANGE|WHITE|GOLD|YELLOWGREEN|TURQUOISE|POWDERBLUE|CYAN|SKYBLUE|LIGHTPURPLE|VIOLET|ORCHID} >" // FW ver > 3.0
-                // RX: "< REP LED_COLUR_{MUTED|UNMUTED} {n} >" // n is LED color
+                // RX: "< REP LED_COLOR_{MUTED|UNMUTED} {n} >" // n is LED color
                 case "LED_COLOR_MUTED":
                 {
                     LedMutedColorName = state;
@@ -973,7 +979,7 @@ namespace PepperDash.Essentials.Devices.Common.ShureMxa
                 // TX: "< GET MUTE_BUTTON_LED_STATE >"
                 // RX: "< REP MUTE_BUTTON_LED_STATE {ON|OFF} >"
                 //case "MUTE_BUTTON_LED_STATE":
-                //{				
+                //{
                 //	break;
                 //}
                 case "ERR":
@@ -1173,7 +1179,7 @@ namespace PepperDash.Essentials.Devices.Common.ShureMxa
 
         /// <summary>
         /// Update status of all parameters
-        /// Shure command string API recommends ruunning this command on first power up
+        /// Shure command string API recommends running this command on first power up
         /// </summary>
         public void UpdateStatus()
         {
@@ -1256,7 +1262,7 @@ namespace PepperDash.Essentials.Devices.Common.ShureMxa
         public Dictionary<uint, ShureMxaPresetsConfig> Presets { get; set; }
 
         /// <summary>
-        /// Constuctor
+        /// Constructor
         /// </summary>
         public ShureMxaConfig()
         {
@@ -1553,7 +1559,7 @@ namespace PepperDash.Essentials.Devices.Common.ShureMxa
         /// </summary>
         /// <remarks>
         /// Red = 0,
-        /// Greeen = 1,
+        /// Green = 1,
         /// Blue = 2,
         /// Pink = 3,
         /// Purple = 4,
@@ -1591,7 +1597,7 @@ namespace PepperDash.Essentials.Devices.Common.ShureMxa
         /// </summary>
         /// <remarks>
         /// Red = 0,
-        /// Greeen = 1,
+        /// Green = 1,
         /// Blue = 2,
         /// Pink = 3,
         /// Purple = 4,
@@ -1722,7 +1728,7 @@ namespace PepperDash.Essentials.Devices.Common.ShureMxa
             });
 
         /// <summary>
-        /// Outputs device error, if recieved
+        /// Outputs device error, if received
         /// </summary>
         /// <example>
         /// "REP ERR {y}"
@@ -1745,7 +1751,7 @@ namespace PepperDash.Essentials.Devices.Common.ShureMxa
         /// </summary>
         /// <remarks>
         /// Red = 0,
-        /// Greeen = 1,
+        /// Green = 1,
         /// Blue = 2,
         /// Pink = 3,
         /// Purple = 4,
@@ -1784,7 +1790,7 @@ namespace PepperDash.Essentials.Devices.Common.ShureMxa
         /// </summary>
         /// <remarks>
         /// Red = 0,
-        /// Greeen = 1,
+        /// Green = 1,
         /// Blue = 2,
         /// Pink = 3,
         /// Purple = 4,
@@ -1858,8 +1864,6 @@ namespace PepperDash.Essentials.Devices.Common.ShureMxa
         /// </summary>
         public ShureMxaFactory()
         {
-            // In the constructor we initialize the list with the typenames that will build an instance of this device
-            // only include unique typenames, when the constructur is used all the typenames will be evaluated in lower case.
             TypeNames = new List<string>() { "shuremxa" };
         }
 
@@ -1875,7 +1879,7 @@ namespace PepperDash.Essentials.Devices.Common.ShureMxa
             {
                 Debug.Console(0, "[{0}] Factory attempting to create new device from type: {1}", dc.Key, dc.Type);
 
-                // get the device properties configuration object & check for null 
+                // get the device properties configuration object and check for null 
                 ShureMxaConfig propertiesConfig = dc.Properties.ToObject<ShureMxaConfig>();
                 if (propertiesConfig == null)
                 {

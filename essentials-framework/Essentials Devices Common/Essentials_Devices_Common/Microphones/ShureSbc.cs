@@ -19,8 +19,14 @@ namespace PepperDash.Essentials.Devices.Common.ShureSbc
         private const string CommsDelimiter = ">";
         private readonly GenericQueue _commsQueue;
         public int SbcSize { get; private set; }
-        public ShureSbcBattery[] Batteries;
+        public readonly ShureSbcBattery[] Batteries;
         private CTimer batteryCheckTimer;
+
+        private readonly Regex regexPattern = new Regex(
+            @"< REP (?<Index>[0-9]\s)?(?<Command>.*\b) (?<State>\w+|\{.*\}) >",
+            RegexOptions.IgnoreCase);
+
+        private readonly CommunicationGather commsGather;
 
         /// <summary>
         /// Reports socket status feedback through the bridge
@@ -134,7 +140,11 @@ namespace PepperDash.Essentials.Devices.Common.ShureSbc
             : base(key, name)
         {
             Debug.Console(0, this, "Constructing new {0} instance", name);
-            MonitorStatusFeedback = new IntFeedback(() => (int)_commsMonitor.Status);
+            MonitorStatusFeedback = new IntFeedback(() =>
+            {
+                if (_commsMonitor != null) return (int)_commsMonitor.Status;
+                return 0;
+            });
             DeviceModelFeedback = new StringFeedback(() => DeviceModel);
             DeviceFirmwareVersionFeedback = new StringFeedback(() => DeviceFirmwareVersion);
             ErrorFeedback = new StringFeedback(() => DeviceError);
@@ -148,9 +158,9 @@ namespace PepperDash.Essentials.Devices.Common.ShureSbc
             }
 
             _comms = comms;
-            CommunicationGather commsGather = new CommunicationGather(_comms, CommsDelimiter)
+            commsGather = new CommunicationGather(_comms, CommsDelimiter)
                 { IncludeDelimiter = true };
-            commsGather.LineReceived += Handle_LineRecieved;
+            commsGather.LineReceived += Handle_LineReceived;
             _commsMonitor = new GenericCommunicationMonitor(this, _comms, 30000, 180000, 300000, Poll);
             _commsQueue = new GenericQueue(key + "-queue");
 
@@ -164,7 +174,7 @@ namespace PepperDash.Essentials.Devices.Common.ShureSbc
         }
 
         /// <summary>
-        /// Use the custom activiate to connect the device and start the comms monitor.
+        /// Use the custom activate method to connect the device and start the comms monitor.
         /// This method will be called when the device is built.
         /// </summary>
         /// <returns></returns>
@@ -172,7 +182,7 @@ namespace PepperDash.Essentials.Devices.Common.ShureSbc
         {
             _comms.Connect();
             _commsMonitor.Start();
-            batteryCheckTimer = new CTimer(batteryCheckTimerCallback, Crestron.SimplSharp.Timeout.Infinite);
+            batteryCheckTimer = new CTimer(batteryCheckTimerCallback, Timeout.Infinite);
             armBatteryCheckTimer();
 
             return base.CustomActivate();
@@ -242,22 +252,19 @@ namespace PepperDash.Essentials.Devices.Common.ShureSbc
                 UpdateStatus();
         }
 
-        // handles line recieved		
-        private void Handle_LineRecieved(object sender, GenericCommMethodReceiveTextArgs args)
+        // handles line received		
+        private void Handle_LineReceived(object sender, GenericCommMethodReceiveTextArgs args)
         {
-            _commsQueue.Enqueue(new ProcessStringMessage(args.Text, ProcessLineRecieved));
+            _commsQueue.Enqueue(new ProcessStringMessage(args.Text, ProcessLineReceived));
         }
 
-        // processes line recieved
-        private void ProcessLineRecieved(string lineRecieved)
+        // processes line received
+        private void ProcessLineReceived(string lineReceived)
         {
-            if (string.IsNullOrEmpty(lineRecieved)) return;
-            Debug.Console(2, this, "ProcessLineRecieved: lineReceived = {0}", lineRecieved);
+            if (string.IsNullOrEmpty(lineReceived)) return;
+            Debug.Console(2, this, "ProcessLineRecieved: lineReceived = {0}", lineReceived);
 
-            Regex regexPattern = new Regex(@"< REP (?<Index>[0-9]\s)?(?<Command>.*\b) (?<State>\w+|\{.*\}) >",
-                RegexOptions.IgnoreCase);
-            Match responses = regexPattern.Match(lineRecieved);
-            if (responses == null) return;
+            Match responses = regexPattern.Match(lineReceived);
             char[] trimPattern = { '{', '}', ' ' };
 
             string indexString = responses.Groups["Index"].Value.Trim();
@@ -631,7 +638,7 @@ namespace PepperDash.Essentials.Devices.Common.ShureSbc
 
         #region Battery Present 5AM
 
-        private bool _batteryPresent5AM = false;
+        private bool _batteryPresent5AM;
 
         public bool BatteryPresent5AM
         {
@@ -1117,8 +1124,6 @@ namespace PepperDash.Essentials.Devices.Common.ShureSbc
         /// </summary>
         public ShureSbcFactory()
         {
-            // In the constructor we initialize the list with the typenames that will build an instance of this device
-            // only include unique typenames, when the constructur is used all the typenames will be evaluated in lower case.
             TypeNames = new List<string>() { "shuresbc" };
         }
 
@@ -1134,7 +1139,7 @@ namespace PepperDash.Essentials.Devices.Common.ShureSbc
             {
                 Debug.Console(0, "[{0}] Factory attempting to create new device from type: {1}", dc.Key, dc.Type);
 
-                // get the device properties configuration object & check for null 
+                // get the device properties configuration object and check for null 
                 ShureSbcPropertiesConfig propertiesConfig = dc.Properties.ToObject<ShureSbcPropertiesConfig>();
                 if (propertiesConfig == null)
                 {
