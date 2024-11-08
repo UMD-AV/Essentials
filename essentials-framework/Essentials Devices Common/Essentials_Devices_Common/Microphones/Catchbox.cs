@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Net.Sockets;
 using Crestron.SimplSharp;
 using Newtonsoft.Json;
 using Crestron.SimplSharpPro.DeviceSupport;
@@ -116,7 +115,6 @@ namespace PepperDash.Essentials.Devices.Common.Catchbox
         {
             Debug.Console(0, this, "Connecting udp");
             _comms.Connect();
-            UpdateStatus();
             _commsMonitor.Start();
             return base.CustomActivate();
         }
@@ -126,6 +124,10 @@ namespace PepperDash.Essentials.Devices.Common.Catchbox
         {
             if (SocketStatusFeedback != null)
                 SocketStatusFeedback.FireUpdate();
+            if (args.Client.IsConnected)
+            {
+                UpdateStatus();
+            }
         }
 
         private void Handle_TextReceived(object sender, GenericCommMethodReceiveTextArgs args)
@@ -157,10 +159,10 @@ namespace PepperDash.Essentials.Devices.Common.Catchbox
         /// </remarks>
         public void Poll()
         {
-            SendText("{\"tx1\":{\"device\":{\"battery\":null}}}");
-            SendText("{\"tx2\":{\"device\":{\"battery\":null}}}");
-            SendText("{\"tx3\":{\"device\":{\"battery\":null}}}");
-            SendText("{\"tx4\":{\"device\":{\"battery\":null}}}");
+            SendText("{\"tx1\":{\"device\":{\"rssi\":null}}}");
+            SendText("{\"tx2\":{\"device\":{\"rssi\":null}}}");
+            SendText("{\"tx3\":{\"device\":{\"rssi\":null}}}");
+            SendText("{\"tx4\":{\"device\":{\"rssi\":null}}}");
         }
 
         #endregion Polls
@@ -200,6 +202,7 @@ namespace PepperDash.Essentials.Devices.Common.Catchbox
                 // microphone info **feedback only**
                 for (ushort i = 0; i < 4; i++)
                 {
+                    // ReSharper disable once InlineTemporaryVariable - required due to loop
                     ushort index = i;
                     Microphones[index].MicrophoneEnabledFeedback
                         .LinkInputSig(trilist.BooleanInput[joinMap.MicrophoneEnabled.JoinNumber + index]);
@@ -258,8 +261,7 @@ namespace PepperDash.Essentials.Devices.Common.Catchbox
         #endregion Overrides of EssentialsBridgeableDevice
 
         /// <summary>
-        /// Update status of all parameters
-        /// Shure command string API recommends running this command on first power up
+        /// Update status and subscribe
         /// </summary>
         public void UpdateStatus()
         {
@@ -267,17 +269,39 @@ namespace PepperDash.Essentials.Devices.Common.Catchbox
             CrestronEnvironment.Sleep(100);
             SendText(CatchboxApi.GetDeviceType);
             CrestronEnvironment.Sleep(100);
-            SendText(CatchboxApi.SubscribeMic1);
+            SendText(CatchboxApi.SetUsbModeMicrophone);
             CrestronEnvironment.Sleep(100);
-            SendText(CatchboxApi.GetMic1Rssi);
-            CrestronEnvironment.Sleep(100);
-            SendText(CatchboxApi.GetMic1Name);
-            CrestronEnvironment.Sleep(100);
-            SendText(CatchboxApi.GetMic1LinkState);
-            CrestronEnvironment.Sleep(100);
-            SendText(CatchboxApi.GetMic1BatteryLevel);
+
+            for (int i = 1; i <= CatchboxSize; i++)
+            {
+                string tx = string.Format("tx{0}", i);
+                //subscribe to battery levels
+                SendText(CatchboxApi.SubscribeTxRx(tx, "battery"));
+                CrestronEnvironment.Sleep(100);
+
+                //subscribe to mic states
+                SendText(CatchboxApi.SubscribeTxRx("rx", string.Format("mic{0}_link_state", i)));
+                CrestronEnvironment.Sleep(100);
+
+                //Get battery levels
+                SendText(CatchboxApi.GetTxRxData(tx, "battery"));
+                CrestronEnvironment.Sleep(100);
+
+                //Get mic states
+                SendText(CatchboxApi.GetTxRxData("rx", string.Format("mic{0}_link_state", i)));
+                CrestronEnvironment.Sleep(100);
+
+                //Get mic names
+                SendText(CatchboxApi.GetTxRxData(tx, "name"));
+                CrestronEnvironment.Sleep(100);
+
+                //Get mic rssi
+                SendText(CatchboxApi.GetTxRxData(tx, "rssi"));
+                CrestronEnvironment.Sleep(100);
+            }
         }
     }
+
 
     public class CatchboxMicrophone
     {
@@ -443,17 +467,44 @@ namespace PepperDash.Essentials.Devices.Common.Catchbox
 
     public static class CatchboxApi
     {
-        public const string SubscribeMic1 =
-            "{\"subscribe\":[{\"#\":{\"enable\":true,\"period_ms\":0},\"rx\":{\"device\":{\"mic1_link_state\":null}},\"tx1\":{\"device\":{\"name\":null,\"rssi\":null,\"battery\":null}}}]}\n";
-
         public const string GetDeviceVersion = "{\"rx\":{\"device\":{\"firmware_info\":null}}}";
-
         public const string GetDeviceType = "{\"rx\":{\"device\":{\"device_type\":null}}}";
+        public const string SetUsbModeMicrophone = "{\"rx\":{\"device\":{\"usb_device_mode\":1}}}";
 
-        public const string GetMic1Rssi = "{\"tx1\":{\"device\":{\"rssi\":null}}}";
-        public const string GetMic1Name = "{\"tx1\":{\"device\":{\"name\":null}}}";
-        public const string GetMic1LinkState = "{\"rx\":{\"device\":{\"mic1_link_state\":null}}}";
-        public const string GetMic1BatteryLevel = "{\"tx1\":{\"device\":{\"battery\":null}}}";
+        public static string SubscribeTxRx(string device1, string device2)
+        {
+            var jsonData = new
+            {
+                subscribe = new[]
+                {
+                    new Dictionary<string, object>
+                    {
+                        { "#", new { enable = true, period_ms = 0 } },
+                        {
+                            device1,
+                            new { device = new Dictionary<string, object> { { device2, null } } }
+                        }
+                    }
+                }
+            };
+
+            return JsonConvert.SerializeObject(jsonData);
+        }
+
+        public static string GetTxRxData(string device1, string device2)
+        {
+            Dictionary<string, object> jsonData = new Dictionary<string, object>
+            {
+                {
+                    string.Format("{0}", device1), new Dictionary<string, object>
+                    {
+                        { "device", new Dictionary<string, object> { { device2, null } } }
+                    }
+                }
+            };
+
+            return JsonConvert.SerializeObject(jsonData);
+        }
     }
 
     public class CatchboxBridgeJoinMap : JoinMapBaseAdvanced
@@ -463,7 +514,7 @@ namespace PepperDash.Essentials.Devices.Common.Catchbox
         /// <summary>
         /// Get device online feedback
         /// </summary>
-        [JoinName("IsOnline")] public JoinDataComplete IsOnline = new JoinDataComplete(
+        [JoinName("IsOnline")] public readonly JoinDataComplete IsOnline = new JoinDataComplete(
             new JoinData
             {
                 JoinNumber = 1,
