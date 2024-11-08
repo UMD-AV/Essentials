@@ -102,7 +102,7 @@ namespace PepperDash.Essentials.Devices.Common.Catchbox
 
             _commsMonitor = new GenericCommunicationMonitor(this, _comms, 30000, 180000, 300000, Poll);
             _comms.TextReceived += Handle_TextReceived;
-            _comms.ConnectionChange += socket_ConnectionChange;
+            _comms.UpdateConnectionStatus += socket_ConnectionChange;
             SocketStatusFeedback = new IntFeedback(() => (int)_comms.ClientStatus);
         }
 
@@ -120,13 +120,14 @@ namespace PepperDash.Essentials.Devices.Common.Catchbox
         }
 
         // socket connection change event handler
-        private void socket_ConnectionChange(object sender, GenericSocketStatusChageEventArgs args)
+        private void socket_ConnectionChange(object sender, GenericUdpConnectedEventArgs args)
         {
             if (SocketStatusFeedback != null)
                 SocketStatusFeedback.FireUpdate();
-            if (args.Client.IsConnected)
+            if (args.Connected)
             {
-                UpdateStatus();
+                Debug.Console(0, this, "Connected udp, subscribing now");
+                Subscribe();
             }
         }
 
@@ -141,7 +142,11 @@ namespace PepperDash.Essentials.Devices.Common.Catchbox
         /// <param name="text">Command to be sent</param>		
         public void SendText(string text)
         {
-            if (_comms.IsConnected == false) return;
+            if (_comms.IsConnected == false)
+            {
+                Debug.Console(0, this, "Not connected, ignoring command");
+                return;
+            }
 
             if (string.IsNullOrEmpty(text)) return;
 
@@ -154,15 +159,15 @@ namespace PepperDash.Essentials.Devices.Common.Catchbox
         /// <summary>
         /// Polls the device
         /// </summary>
-        /// <remarks>
-        /// Poll method is used by the communication monitor.  Update the poll method as needed for the plugin being developed
-        /// </remarks>
         public void Poll()
         {
-            SendText("{\"tx1\":{\"device\":{\"rssi\":null}}}");
-            SendText("{\"tx2\":{\"device\":{\"rssi\":null}}}");
-            SendText("{\"tx3\":{\"device\":{\"rssi\":null}}}");
-            SendText("{\"tx4\":{\"device\":{\"rssi\":null}}}");
+            //No poll needed as the device will send updates via subscription.
+            //If the device is offline, try to resubscribe.
+
+            if (_commsMonitor.IsOnlineFeedback.BoolValue)
+                return;
+
+            Subscribe();
         }
 
         #endregion Polls
@@ -193,7 +198,7 @@ namespace PepperDash.Essentials.Devices.Common.Catchbox
 
                 // links to bridge
                 trilist.StringInput[joinMap.DeviceName.JoinNumber].StringValue = Name;
-                trilist.SetSigTrueAction(joinMap.RefreshData.JoinNumber, UpdateStatus);
+                trilist.SetSigTrueAction(joinMap.RefreshData.JoinNumber, Subscribe);
 
                 // _commsMonitor.IsOnlineFeedback is used to drive IsOnlineFb on the bridge
                 _commsMonitor.IsOnlineFeedback.LinkInputSig(trilist.BooleanInput[joinMap.IsOnline.JoinNumber]);
@@ -263,14 +268,16 @@ namespace PepperDash.Essentials.Devices.Common.Catchbox
         /// <summary>
         /// Update status and subscribe
         /// </summary>
-        public void UpdateStatus()
+        public void Subscribe()
         {
+            SendText(CatchboxApi.DevicePoll);
+            CrestronEnvironment.Sleep(100);
             SendText(CatchboxApi.GetDeviceVersion);
             CrestronEnvironment.Sleep(100);
             SendText(CatchboxApi.GetDeviceType);
             CrestronEnvironment.Sleep(100);
-            SendText(CatchboxApi.SetUsbModeMicrophone);
-            CrestronEnvironment.Sleep(100);
+            //SendText(CatchboxApi.SetUsbModeMicrophone);
+            //CrestronEnvironment.Sleep(100);
 
             for (int i = 1; i <= CatchboxSize; i++)
             {
@@ -467,6 +474,9 @@ namespace PepperDash.Essentials.Devices.Common.Catchbox
 
     public static class CatchboxApi
     {
+        public const string DevicePoll =
+            "{\"subscribe\":[{\"#\":{\"enable\":true,\"period_ms\":30000},\"rx\":{\"device\":{\"name\":null}}}]}";
+
         public const string GetDeviceVersion = "{\"rx\":{\"device\":{\"firmware_info\":null}}}";
         public const string GetDeviceType = "{\"rx\":{\"device\":{\"device_type\":null}}}";
         public const string SetUsbModeMicrophone = "{\"rx\":{\"device\":{\"usb_device_mode\":1}}}";
