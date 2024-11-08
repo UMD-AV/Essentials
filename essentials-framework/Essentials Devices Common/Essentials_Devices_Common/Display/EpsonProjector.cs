@@ -62,7 +62,7 @@ namespace PepperDash.Essentials.Devices.Displays
         private ushort _RequestedVideoMuteState; // 0:none 1:on 2:off
         private ushort? _RequestedVolume;
         private string _errorFeedback;
-        private string _password;
+        private readonly string _password;
 
         public string ErrorFb
         {
@@ -110,14 +110,7 @@ namespace PepperDash.Essentials.Devices.Displays
             set
             {
                 _lastVolumeFb = value;
-                if (value > 0)
-                {
-                    MuteFb = false;
-                }
-                else
-                {
-                    MuteFb = true;
-                }
+                MuteFb = value <= 0;
 
                 VolumeLevelFeedback.FireUpdate();
             }
@@ -373,6 +366,7 @@ namespace PepperDash.Essentials.Devices.Displays
         /// 
         /// </summary>
         /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void DelimitedTextReceived(object sender, GenericCommMethodReceiveTextArgs e)
         {
             try
@@ -423,7 +417,7 @@ namespace PepperDash.Essentials.Devices.Displays
                                 _abnormalStandby = false;
                             }
 
-                            //Finish warming up process
+                            //Finish the warming-up process
                             if (_IsWarmingUp)
                             {
                                 CrestronInvoke.BeginInvoke((o) => WarmupDone());
@@ -455,7 +449,7 @@ namespace PepperDash.Essentials.Devices.Displays
                         {
                             _offRetryCount = 0;
                             //Update power on feedback
-                            if (_PowerIsOn == true)
+                            if (_PowerIsOn)
                             {
                                 _PowerIsOn = false;
                                 _VideoMuteIsOn = false;
@@ -478,7 +472,7 @@ namespace PepperDash.Essentials.Devices.Displays
                                 _abnormalStandby = false;
                             }
 
-                            //Finish cooling down process
+                            //Finish the cooling-down process
                             if (_IsCoolingDown)
                             {
                                 CrestronInvoke.BeginInvoke((o) => CooldownDone());
@@ -495,7 +489,7 @@ namespace PepperDash.Essentials.Devices.Displays
 
                             _offRetryCount = 0;
                             //Update power on feedback
-                            if (_PowerIsOn == true)
+                            if (_PowerIsOn)
                             {
                                 _PowerIsOn = false;
                                 PowerIsOnFeedback.FireUpdate();
@@ -506,7 +500,7 @@ namespace PepperDash.Essentials.Devices.Displays
                             _RequestedPowerState = 0;
                             _PowerMutex.ReleaseMutex();
 
-                            //Finish cooling down process
+                            //Finish the cooling-down process
                             if (_IsCoolingDown)
                             {
                                 CrestronInvoke.BeginInvoke((o) => CooldownDone());
@@ -600,55 +594,55 @@ namespace PepperDash.Essentials.Devices.Displays
                         switch (error)
                         {
                             case "00":
-                                ErrorFb = "";
+                                SetErrorString("");
                                 break;
                             case "01":
-                                ErrorFb = "Fan error";
+                                SetErrorString("Fan error");
                                 break;
                             case "03":
-                                ErrorFb = "Lamp failure at power on";
+                                SetErrorString("Lamp failure at power on");
                                 break;
                             case "04":
-                                ErrorFb = "High internal temperature error";
+                                SetErrorString("High internal temperature error");
                                 break;
                             case "06":
-                                ErrorFb = "Lamp error";
+                                SetErrorString("Lamp error");
                                 break;
                             case "07":
-                                ErrorFb = "Open lamp cover door error";
+                                SetErrorString("Open lamp cover door error");
                                 break;
                             case "08":
-                                ErrorFb = "Cinema filter error";
+                                SetErrorString("Cinema filter error");
                                 break;
                             case "09":
-                                ErrorFb = "Electric dual-layered capacitor is disconnected";
+                                SetErrorString("Electric dual-layered capacitor is disconnected");
                                 break;
                             case "0A":
-                                ErrorFb = "Auto iris error";
+                                SetErrorString("Auto iris error");
                                 break;
                             case "0B":
-                                ErrorFb = "Subsystem error";
+                                SetErrorString("Subsystem error");
                                 break;
                             case "0C":
-                                ErrorFb = "Low air flow error";
+                                SetErrorString("Low air flow error");
                                 break;
                             case "0D":
-                                ErrorFb = "Air filter air flow sensor error";
+                                SetErrorString("Air filter air flow sensor error");
                                 break;
                             case "0E":
-                                ErrorFb = "Power supply unit error (Ballast)";
+                                SetErrorString("Power supply unit error (Ballast)");
                                 break;
                             case "0F":
-                                ErrorFb = "Shutter error";
+                                SetErrorString("Shutter error");
                                 break;
                             case "10":
-                                ErrorFb = "Cooling system error (peltiert element)";
+                                SetErrorString("Cooling system error (peltiert element)");
                                 break;
                             case "11":
-                                ErrorFb = "Cooling system error (Pump)";
+                                SetErrorString("Cooling system error (Pump)");
                                 break;
                             default:
-                                ErrorFb = "Unknown error";
+                                SetErrorString("Unknown error");
                                 break;
                         }
                     }
@@ -1072,7 +1066,7 @@ namespace PepperDash.Essentials.Devices.Displays
                 {
                     PowerOnGo();
                 }
-                else if (_RequestedPowerState == 2 && (_PowerIsOn == true || !CommunicationMonitor.IsOnline))
+                else if (_RequestedPowerState == 2 && (_PowerIsOn || !CommunicationMonitor.IsOnline))
                 {
                     PowerOffGo();
                 }
@@ -1698,7 +1692,7 @@ namespace PepperDash.Essentials.Devices.Displays
             {
                 JoinCapabilities = eJoinCapabilities.ToSIMPL,
                 JoinType = eJoinType.Digital,
-                Label = "Warming"
+                Description = "Warming"
             });
 
         [JoinName("Cooling")] public JoinDataComplete Cooling = new JoinDataComplete(
@@ -1711,7 +1705,7 @@ namespace PepperDash.Essentials.Devices.Displays
             {
                 JoinCapabilities = eJoinCapabilities.ToSIMPL,
                 JoinType = eJoinType.Digital,
-                Label = "Cooling"
+                Description = "Cooling"
             });
 
         [JoinName("Video Mute On")] public JoinDataComplete VideoMuteOn = new JoinDataComplete(
@@ -1724,7 +1718,7 @@ namespace PepperDash.Essentials.Devices.Displays
             {
                 JoinCapabilities = eJoinCapabilities.ToFromSIMPL,
                 JoinType = eJoinType.Digital,
-                Label = "Video Mute On"
+                Description = "Video Mute On"
             });
 
         [JoinName("Video Mute Off")] public JoinDataComplete VideoMuteOff = new JoinDataComplete(
@@ -1737,7 +1731,7 @@ namespace PepperDash.Essentials.Devices.Displays
             {
                 JoinCapabilities = eJoinCapabilities.FromSIMPL,
                 JoinType = eJoinType.Digital,
-                Label = "Video Mute Off"
+                Description = "Video Mute Off"
             });
 
         [JoinName("Video Mute Supported")] public JoinDataComplete VideoMuteSupported = new JoinDataComplete(
@@ -1750,7 +1744,7 @@ namespace PepperDash.Essentials.Devices.Displays
             {
                 JoinCapabilities = eJoinCapabilities.ToSIMPL,
                 JoinType = eJoinType.Digital,
-                Label = "Video Mute Supported"
+                Description = "Video Mute Supported"
             });
 
         [JoinName("Lamp Hours Supported")] public JoinDataComplete LampHoursSupported = new JoinDataComplete(
@@ -1763,7 +1757,7 @@ namespace PepperDash.Essentials.Devices.Displays
             {
                 JoinCapabilities = eJoinCapabilities.ToSIMPL,
                 JoinType = eJoinType.Digital,
-                Label = "Lamp Hours Supported"
+                Description = "Lamp Hours Supported"
             });
 
         [JoinName("Lamp Hours")] public JoinDataComplete LampHours = new JoinDataComplete(
@@ -1776,7 +1770,7 @@ namespace PepperDash.Essentials.Devices.Displays
             {
                 JoinCapabilities = eJoinCapabilities.ToSIMPL,
                 JoinType = eJoinType.Analog,
-                Label = "Lamp Hours"
+                Description = "Lamp Hours"
             });
 
         [JoinName("ErrorMessage")] public JoinDataComplete ErrorMessage = new JoinDataComplete(

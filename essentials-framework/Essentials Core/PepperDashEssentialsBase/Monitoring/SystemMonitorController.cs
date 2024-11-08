@@ -23,6 +23,7 @@ namespace PepperDash.Essentials.Core.Monitoring
 
         private string _uptime;
         private string _lastStart;
+        private int _ramUsage;
 
         public event EventHandler<EventArgs> SystemMonitorPropertiesChanged;
 
@@ -43,6 +44,7 @@ namespace PepperDash.Essentials.Core.Monitoring
 
         public StringFeedback UptimeFeedback { get; set; }
         public StringFeedback LastStartFeedback { get; set; }
+        public IntFeedback RamUsageFeedback { get; protected set; }
 
         public SystemMonitorController(string key)
             : base(key)
@@ -63,6 +65,7 @@ namespace PepperDash.Essentials.Core.Monitoring
             ModelFeedback = new StringFeedback(() => InitialParametersClass.ControllerPromptName);
             UptimeFeedback = new StringFeedback(() => _uptime);
             LastStartFeedback = new StringFeedback(() => _lastStart);
+            RamUsageFeedback = new IntFeedback(() => _ramUsage);
 
             ProgramStatusFeedbackCollection = new Dictionary<uint, ProgramStatusFeedbacks>();
 
@@ -130,6 +133,29 @@ namespace PepperDash.Essentials.Core.Monitoring
 
             //4 => "for " to get what's on the right
             _uptime = uptimeRaw.Substring(forIndex + 4);
+        }
+
+        private void UpdateRamUsage()
+        {
+            string consoleResponse = string.Empty;
+            CrestronConsole.SendControlSystemCommand("ramfree", ref consoleResponse);
+            ParseRamFree(consoleResponse);
+            RamUsageFeedback.FireUpdate();
+        }
+
+        private void ParseRamFree(string response)
+        {
+            string[] splitString = response.Trim().Split('\r', '\n');
+            string percentMemoryRaw = splitString.FirstOrDefault(o => o.Contains("percent of memory in use"));
+
+            try
+            {
+                _ramUsage = string.IsNullOrEmpty(percentMemoryRaw) ? 0 : int.Parse(percentMemoryRaw.Split(' ')[0]);
+            }
+            catch
+            {
+                _ramUsage = 0;
+            }
         }
 
         private void CrestronEnvironmentOnEthernetEventHandler(EthernetEventArgs ethernetEventArgs)
@@ -203,6 +229,7 @@ namespace PepperDash.Essentials.Core.Monitoring
                 p.Value.AggregatedProgramInfoFeedback.FireUpdate();
             }
 
+            UpdateRamUsage();
             OnSystemMonitorPropertiesChanged();
         }
 
@@ -255,6 +282,7 @@ namespace PepperDash.Essentials.Core.Monitoring
             ModelFeedback.LinkInputSig(trilist.StringInput[joinMap.Model.JoinNumber]);
             UptimeFeedback.LinkInputSig(trilist.StringInput[joinMap.Uptime.JoinNumber]);
             LastStartFeedback.LinkInputSig(trilist.StringInput[joinMap.LastBoot.JoinNumber]);
+            RamUsageFeedback.LinkInputSig(trilist.UShortInput[joinMap.RamUsagePercent.JoinNumber]);
 
             trilist.BooleanOutput[joinMap.Refresh.JoinNumber].SetSigFalseAction(() => RefreshSystemMonitorData());
 

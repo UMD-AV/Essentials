@@ -89,6 +89,11 @@
     ],
     "AnalogAttributes": [
       {
+        "joinNumber": 50,
+        "rwType": "R",
+        "name": "Processor - Memory Usage %"
+      },
+      {
         "joinNumber": 51,
         "rwType": "RW",
         "name": "Occ Shutdown - Minutes"

@@ -20,6 +20,14 @@ namespace PepperDash.Essentials.Core.Bridges
                 JoinType = eJoinType.Analog
             });
 
+        [JoinName("RamUsagePercent")] public JoinDataComplete RamUsagePercent = new JoinDataComplete(
+            new JoinData { JoinNumber = 2, JoinSpan = 1 },
+            new JoinMetadata
+            {
+                Description = "Ram usage in percentage", JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                JoinType = eJoinType.Analog
+            });
+
         [JoinName("TimeZoneName")] public JoinDataComplete TimeZoneName = new JoinDataComplete(
             new JoinData { JoinNumber = 1, JoinSpan = 1 },
             new JoinMetadata

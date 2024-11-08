@@ -10,7 +10,7 @@ namespace NvxEpi.Services.Feedback
         public static StringFeedback GetFeedback(DmNvxBaseClass device)
         {
             StringFeedback feedback = new StringFeedback(Key,
-                () => device.Control.ServerUrlFeedback.StringValue);
+                () => device.IsOnline ? device.Control.ServerUrlFeedback.StringValue : "");
 
             device.BaseEvent += (@base, args) => feedback.FireUpdate();
             if (device is DmNvxD3x)
@@ -31,6 +31,7 @@ namespace NvxEpi.Services.Feedback
                 device.SourceTransmit.StreamChange += (stream, args) => feedback.FireUpdate();
             }
 
+            device.OnlineStatusChange += (sender, args) => feedback.FireUpdate();
             return feedback;
         }
     }
