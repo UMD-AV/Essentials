@@ -90,6 +90,7 @@
         <Compile Include="Bridges\IBridge.cs"/>
         <Compile Include="Bridges\JoinMaps\AirMediaControllerJoinMap.cs"/>
         <Compile Include="Bridges\JoinMaps\AppleTvJoinMap.cs"/>
+        <Compile Include="Bridges\JoinMaps\HdPsXxxControllerJoinMap.cs"/>
         <Compile Include="Bridges\JoinMaps\PduJoinMapBase.cs"/>
         <Compile Include="Bridges\JoinMaps\C2nRthsControllerJoinMap.cs"/>
         <Compile Include="Bridges\JoinMaps\CameraControllerJoinMap.cs"/>

@@ -97,6 +97,8 @@
         <Compile Include="Chassis\DmpsRoutingController.cs"/>
         <Compile Include="Chassis\HdMd8xNController.cs"/>
         <Compile Include="Chassis\HdMdNxM4kEBridgeableController.cs"/>
+        <Compile Include="Chassis\HdPsXxxController.cs"/>
+        <Compile Include="Config\HdPsXxxPropertiesConfig.cs"/>
         <Compile Include="Config\InputPropertiesConfig.cs"/>
         <Compile Include="Endpoints\DGEs\DmDge200CController.cs"/>
         <Compile Include="Endpoints\Receivers\DmRmc4kZ100CController.cs"/>

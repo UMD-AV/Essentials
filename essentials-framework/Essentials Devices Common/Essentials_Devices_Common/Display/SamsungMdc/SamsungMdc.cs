@@ -22,7 +22,7 @@ namespace PepperDash.Essentials.Devices.Displays
         public static List<string> InputKeys = new List<string>();
         private readonly SamsungMDCDisplayPropertiesConfig _config;
         private readonly uint _coolingTimeMs;
-        private CMutex _feedbackMutex;
+        private readonly CMutex _feedbackMutex;
 
         private readonly int _lowerLimit;
         private readonly long _pollIntervalMs;
@@ -31,9 +31,10 @@ namespace PepperDash.Essentials.Devices.Displays
         public IntFeedback CurrentLedTemperatureCelsiusFeedback;
         public IntFeedback CurrentLedTemperatureFahrenheitFeedback;
 
-        private string videoMuteKey;
-        private int videoMuteInput;
+        private readonly string videoMuteKey;
+        private readonly int videoMuteInput;
         private DM.DmRmcControllerBase _scaler;
+        private NvxEpi.Abstractions.HdmiOutput.IHdmiOutput _nvx;
         public List<BoolFeedback> InputFeedback;
         public IntFeedback InputNumberFeedback;
         private RoutingInputPort _currentInputPort;
@@ -47,7 +48,7 @@ namespace PepperDash.Essentials.Devices.Displays
         private bool _isPoweringOnIgnorePowerFb;
         private bool _isWarmingUp;
         private bool _lastCommandSentWasVolume;
-        private int _lastVolumeSent; //not scaled, should be in range of 0-100 for samsung
+        private int _lastVolumeSent; //not scaled, should be in the range of 0-100 for samsung
         private bool _volumeWaitingToSend;
         private CCriticalSection _parseLock = new CCriticalSection();
         private CTimer _pollRing;
@@ -57,9 +58,9 @@ namespace PepperDash.Essentials.Devices.Displays
         private ushort _volumeLevelForSig;
         private ushort _RequestedPowerState; // 0:none 1:on 2:off
         private ushort _RequestedInputState; // 0:none 1-4:inputs 1-4 
-        private CMutex _PowerMutex;
-        private ushort _defaultVolume;
-        private bool _showVolumeControls;
+        private readonly CMutex _PowerMutex;
+        private readonly ushort _defaultVolume;
+        private readonly bool _showVolumeControls;
 
         /// <summary>
         /// Constructor for IBaseCommunication
@@ -796,7 +797,7 @@ namespace PepperDash.Essentials.Devices.Displays
                 {
                     PowerOff();
                 }
-                else if (a > 0 && a < InputPorts.Count)
+                else if (a < InputPorts.Count)
                 {
                     InputNumber = a + 1;
                 }
@@ -1020,6 +1021,11 @@ namespace PepperDash.Essentials.Devices.Displays
                     Debug.Console(0, this, "Using scaler {0} for video mute", videoMuteKey);
                     _scaler = dev as DM.DmRmcControllerBase;
                 }
+                else if (dev is NvxEpi.Abstractions.HdmiOutput.IHdmiOutput)
+                {
+                    Debug.Console(0, this, "Using nvx {0} for video mute", videoMuteKey);
+                    _nvx = dev as NvxEpi.Abstractions.HdmiOutput.IHdmiOutput;
+                }
             }
 
             Communication.Connect();
@@ -1030,7 +1036,7 @@ namespace PepperDash.Essentials.Devices.Displays
         }
 
         /// <summary>
-        /// Communication bytes recieved
+        /// Communication bytes received
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e">Event args</param>
