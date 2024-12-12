@@ -19,7 +19,6 @@ namespace QscQsysDspPlugin
 
             Debug.Console(1, DspDevice, "Linking to Trilist '{0}'", trilist.ID.ToString("X"));
             ushort i = 1;
-            ICommunicationMonitor comm = DspDevice as ICommunicationMonitor;
 
             // from Plugin > to SiMPL
             DspDevice.IsOnline.LinkInputSig(trilist.BooleanInput[joinMap.IsOnline.JoinNumber]);
@@ -30,11 +29,10 @@ namespace QscQsysDspPlugin
                 ushort x = i;
                 Debug.Console(2, "QscChannel {0} connect", x);
 
-                IBasicVolumeWithFeedback genericChannel = channel.Value as IBasicVolumeWithFeedback;
+                IBasicVolumeWithFeedback genericChannel = channel.Value;
                 if (channel.Value.Enabled)
                 {
                     // from SiMPL > to Plugin
-                    trilist.StringInput[joinMap.ChannelName.JoinNumber + x].StringValue = channel.Value.LevelCustomName;
                     trilist.UShortInput[joinMap.ChannelType.JoinNumber + x].UShortValue = (ushort)channel.Value.Type;
                     trilist.BooleanInput[joinMap.ChannelVisible.JoinNumber + x].BoolValue = true;
                     trilist.UShortInput[joinMap.ChannelPermissions.JoinNumber + x].UShortValue =
@@ -65,7 +63,7 @@ namespace QscQsysDspPlugin
 
                     trilist.SetUShortSigAction(joinMap.ChannelVolume.JoinNumber + x, u =>
                     {
-                        if (trilist.BooleanOutput[joinMap.EnableLevelSend.JoinNumber + x].BoolValue == true)
+                        if (trilist.BooleanOutput[joinMap.EnableLevelSend.JoinNumber + x].BoolValue)
                         {
                             genericChannel.SetVolume(u);
                         }

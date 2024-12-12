@@ -76,10 +76,10 @@ namespace PepperDash_Essentials_DM.Chassis
             if (_chassis.NumberOfOutputs == 1)
                 AutoRouteFeedback = new BoolFeedback(() => _chassis.PriorityRouteOnFeedback.BoolValue);
 
-            InputNames = props.Inputs;
+            InputNames = props.InputNames;
             SetupInputs(InputNames);
 
-            OutputNames = props.Outputs;
+            OutputNames = props.OutputNames;
             SetupOutputs(OutputNames);
         }
 

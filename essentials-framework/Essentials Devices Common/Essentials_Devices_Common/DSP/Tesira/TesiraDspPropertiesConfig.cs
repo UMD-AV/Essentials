@@ -72,19 +72,11 @@ namespace Tesira_DSP_EPI
 
         [JsonProperty("index2")] public int Index2 { get; set; }
 
-        [JsonProperty("hasMute")] public bool HasMute { get; set; }
-
-        [JsonProperty("hasLevel")] public bool HasLevel { get; set; }
-
         [JsonProperty("isMic")] public bool IsMic { get; set; }
 
         [JsonProperty("useAbsoluteValue")] public bool UseAbsoluteValue { get; set; }
 
         [JsonProperty("unmuteOnVolChange")] public bool UnmuteOnVolChange { get; set; }
-
-        [JsonProperty("incrementAmount")] public string IncrementAmount { get; set; }
-
-        [JsonProperty("permissions")] public int Permissions { get; set; }
 
         [JsonProperty("bridgeIndex")] public uint? BridgeIndex { get; set; }
     }

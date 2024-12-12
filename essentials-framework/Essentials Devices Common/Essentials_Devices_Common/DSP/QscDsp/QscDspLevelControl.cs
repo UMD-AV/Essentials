@@ -26,24 +26,14 @@ namespace QscQsysDspPlugin
         private ushort _volumeDownCount;
 
         /// <summary>
-        /// Used for to identify level subscription values
-        /// </summary>
-        public string LevelCustomName { get; private set; }
-
-        /// <summary>
-        /// Used for to identify mute subscription values
-        /// </summary>
-        public string MuteCustomName { get; private set; }
-
-        /// <summary>
         /// Checks if a valid subscription string has been received for all subscriptions
         /// </summary>
         public bool IsSubscribed
         {
             get
             {
-                bool isSubscribed = HasMute && _muteIsSubscribed || HasLevel && _levelIsSubscribed;
-                return isSubscribed;
+                bool isNotSubscribed = HasMute && !_muteIsSubscribed || HasLevel && !_levelIsSubscribed;
+                return !isNotSubscribed;
             }
         }
 
@@ -75,10 +65,10 @@ namespace QscQsysDspPlugin
 
                 CrestronInvoke.BeginInvoke(o =>
                 {
-                    if (!string.IsNullOrEmpty(config.LevelInstanceTag) && config.HasLevel)
+                    if (!string.IsNullOrEmpty(config.LevelInstanceTag))
                         parent1.SendLine(string.Format("cg \"{0}\"", config.LevelInstanceTag));
 
-                    if (!string.IsNullOrEmpty(config.MuteInstanceTag) && config.HasMute)
+                    if (!string.IsNullOrEmpty(config.MuteInstanceTag))
                         parent1.SendLine(string.Format("cg \"{0}\"", config.MuteInstanceTag));
                 });
             };
@@ -110,11 +100,11 @@ namespace QscQsysDspPlugin
 
             VolumeLevelFeedback = new IntFeedback(() => _volumeLevel);
 
+            HasLevel = !string.IsNullOrEmpty(LevelInstanceTag);
+            HasMute = !string.IsNullOrEmpty(MuteInstanceTag);
+
             _volumeUpRepeatTimer = new CTimer(VolumeUpRepeat, Timeout.Infinite);
             _volumeDownRepeatTimer = new CTimer(VolumeDownRepeat, Timeout.Infinite);
-            LevelCustomName = config.Label;
-            HasMute = config.HasMute;
-            HasLevel = config.HasLevel;
             UseAbsoluteValue = config.UseAbsoluteValue;
             AutomaticUnmuteOnVolume = config.UnmuteOnVolChange;
         }

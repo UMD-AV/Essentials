@@ -847,7 +847,7 @@ namespace Tesira_DSP_EPI
             Debug.Console(2, this, "Checking Preset {0} | presetIndex {1} | presetId {2} | presetName {3}",
                 tesiraPreset.Name, tesiraPreset.PresetData.PresetIndex, tesiraPreset.PresetData.PresetId,
                 tesiraPreset.PresetData.PresetName);
-            // - changed string check reference from 'tesiraPreset.PresetName' to 'tesiraPreset.PreetData.PresetName'
+            // - changed string check reference from 'tesiraPreset.PresetName' to 'tesiraPreset.PresetData.PresetName'
             if (!string.IsNullOrEmpty(tesiraPreset.PresetData.PresetName))
             {
                 RunPreset(tesiraPreset.PresetData.PresetName);
@@ -1171,7 +1171,6 @@ namespace Tesira_DSP_EPI
                 channel.NameFeedback.LinkInputSig(trilist.StringInput[faderJoinMap.Label.JoinNumber + x]);
                 channel.TypeFeedback.LinkInputSig(trilist.UShortInput[faderJoinMap.Type.JoinNumber + x]);
                 channel.ControlTypeFeedback.LinkInputSig(trilist.UShortInput[faderJoinMap.Status.JoinNumber + x]);
-                channel.PermissionsFeedback.LinkInputSig(trilist.UShortInput[faderJoinMap.Permissions.JoinNumber + x]);
                 channel.VisibleFeedback.LinkInputSig(trilist.BooleanInput[faderJoinMap.Visible.JoinNumber + x]);
 
                 genericChannel.MuteFeedback.LinkInputSig(trilist.BooleanInput[faderJoinMap.MuteToggle.JoinNumber + x]);

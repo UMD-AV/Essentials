@@ -41,11 +41,7 @@ namespace Tesira_DSP_EPI
         }
 
         private const string KeyFormatter = "{0}--{1}";
-
-        private int Permissions { get; set; }
         private int ControlType { get; set; }
-
-        private string IncrementAmount { get; set; }
         private bool UseAbsoluteValue { get; set; }
         private EPdtLevelTypes _type;
 
@@ -59,7 +55,6 @@ namespace Tesira_DSP_EPI
         public IntFeedback VolumeLevelFeedback { get; private set; }
         public IntFeedback TypeFeedback { get; private set; }
         public IntFeedback ControlTypeFeedback { get; private set; }
-        public IntFeedback PermissionsFeedback { get; private set; }
 
         private Dictionary<string, SubscriptionTrackingObject> SubscriptionTracker { get; set; }
 
@@ -86,7 +81,7 @@ namespace Tesira_DSP_EPI
         public double MaxLevel { get; private set; }
 
         /// <summary>
-        /// Checks if a valid subscription string has been recieved for all subscriptions
+        /// Checks if a valid subscription string has been received for all subscriptions
         /// </summary>
         public override bool IsSubscribed
         {
@@ -151,12 +146,10 @@ namespace Tesira_DSP_EPI
 
             IsSubscribed = false;
 
-            HasMute = config.HasMute;
-            HasLevel = config.HasLevel;
+            HasLevel = !string.IsNullOrEmpty(config.LevelInstanceTag);
+            HasMute = !string.IsNullOrEmpty(config.MuteInstanceTag);
             UseAbsoluteValue = config.UseAbsoluteValue;
             Enabled = config.Enabled;
-            Permissions = config.Permissions;
-            IncrementAmount = config.IncrementAmount;
             AutomaticUnmuteOnVolumeUp = config.UnmuteOnVolChange;
             _volumeUpRepeatTimer = new CTimer(VolumeUpRepeat, Timeout.Infinite);
             _volumeDownRepeatTimer = new CTimer(VolumeDownRepeat, Timeout.Infinite);
@@ -193,7 +186,6 @@ namespace Tesira_DSP_EPI
             VolumeLevelFeedback = new IntFeedback(Key + "-LevelFeedback", () => VolumeLevel);
             TypeFeedback = new IntFeedback(Key + "-TypeFeedback", () => (ushort)_type);
             ControlTypeFeedback = new IntFeedback(Key + "-ControlTypeFeedback", () => ControlType);
-            PermissionsFeedback = new IntFeedback(Key + "-PermissionsFeedback", () => Permissions);
 
             Feedbacks.Add(MuteFeedback);
             Feedbacks.Add(VolumeLevelFeedback);
@@ -201,8 +193,6 @@ namespace Tesira_DSP_EPI
             Feedbacks.Add(VisibleFeedback);
             Feedbacks.Add(TypeFeedback);
             Feedbacks.Add(ControlTypeFeedback);
-            Feedbacks.Add(PermissionsFeedback);
-
             Parent.Feedbacks.AddRange(Feedbacks);
         }
 
@@ -268,7 +258,7 @@ namespace Tesira_DSP_EPI
         }
 
         /// <summary>
-        /// Unsubscribe from component
+        /// Unsubscribe from the component
         /// </summary>
         public override void Unsubscribe()
         {
@@ -282,7 +272,7 @@ namespace Tesira_DSP_EPI
                     SubscriptionTracker["mute"].Subscribed = false;
                 }
 
-                //Unubscribe to Level
+                //Unsubscribe to Level
                 if (HasLevel)
                 {
                     SendUnSubscriptionCommand(LevelCustomName, "level", 2);
@@ -405,7 +395,7 @@ namespace Tesira_DSP_EPI
         /// <summary>
         /// Set level to specified value
         /// </summary>
-        /// <param name="level">Level from 0 - 100, as a percentage of the total range</param>
+        /// <param name="level">Level from 0-100, as a percentage of the total range</param>
         public void SetVolume(ushort level)
         {
             Debug.Console(1, this, "volume: {0}", level);
@@ -513,12 +503,12 @@ namespace Tesira_DSP_EPI
                 if (_volDownPressTracker)
                 {
                     _volumeDownRepeatTimer.Reset(100);
-                    SendFullCommand("decrement", "level", IncrementAmount, 1);
+                    SendFullCommand("decrement", "level", "2.0", 1);
                 }
                 else if (!_volDownPressTracker)
                 {
                     _volumeDownRepeatDelayTimer.Reset(750);
-                    SendFullCommand("decrement", "level", IncrementAmount, 1);
+                    SendFullCommand("decrement", "level", "2.0", 1);
                 }
 
                 return;
@@ -543,12 +533,12 @@ namespace Tesira_DSP_EPI
                 if (_volUpPressTracker)
                 {
                     _volumeUpRepeatTimer.Reset(100);
-                    SendFullCommand("increment", "level", IncrementAmount, 1);
+                    SendFullCommand("increment", "level", "2.0", 1);
                 }
                 else if (!_volUpPressTracker)
                 {
                     _volumeUpRepeatDelayTimer.Reset(750);
-                    SendFullCommand("increment", "level", IncrementAmount, 1);
+                    SendFullCommand("increment", "level", "2.0", 1);
                     if (!AutomaticUnmuteOnVolumeUp) return;
 
                     if (_isMuted)
@@ -595,14 +585,13 @@ namespace Tesira_DSP_EPI
 
             if (!Enabled) return;
 
-            IBasicVolumeWithFeedback genericChannel = this as IBasicVolumeWithFeedback;
+            IBasicVolumeWithFeedback genericChannel = this;
 
             Debug.Console(2, this, "TesiraChannel {0} Is Enabled", Key);
 
             NameFeedback.LinkInputSig(trilist.StringInput[joinMap.Label.JoinNumber]);
             TypeFeedback.LinkInputSig(trilist.UShortInput[joinMap.Type.JoinNumber]);
             ControlTypeFeedback.LinkInputSig(trilist.UShortInput[joinMap.Status.JoinNumber]);
-            PermissionsFeedback.LinkInputSig(trilist.UShortInput[joinMap.Permissions.JoinNumber]);
             VisibleFeedback.LinkInputSig(trilist.BooleanInput[joinMap.Visible.JoinNumber]);
 
             genericChannel.MuteFeedback.LinkInputSig(trilist.BooleanInput[joinMap.MuteToggle.JoinNumber]);
@@ -625,7 +614,7 @@ namespace Tesira_DSP_EPI
 
             trilist.SetUShortSigAction(joinMap.Volume.JoinNumber, u =>
             {
-                if (trilist.BooleanOutput[joinMap.EnableLevelSend.JoinNumber].BoolValue == true)
+                if (trilist.BooleanOutput[joinMap.EnableLevelSend.JoinNumber].BoolValue)
                 {
                     genericChannel.SetVolume(u);
                 }

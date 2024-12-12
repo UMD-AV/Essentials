@@ -126,7 +126,6 @@
         <Compile Include="CameraControllers\BlackmagicAtem.cs"/>
         <Compile Include="Cameras\Aver\AverCameraFactory.cs"/>
         <Compile Include="Cameras\CameraBase.cs"/>
-        <Compile Include="Cameras\CameraOnvif.cs"/>
         <Compile Include="Cameras\Aver\AverCameraDevice.cs"/>
         <Compile Include="Cameras\RemoteCamera.cs"/>
         <Compile Include="Cameras\Crestron\CrestronCameraDevice.cs"/>
