@@ -9,7 +9,7 @@ namespace DynFusion
         public EssentialsFactoryTemplate()
         {
             // In the constructor we initialize the list with the type names that will build an instance of this device
-            TypeNames = new List<string>() { "DynFusion", "DynFusionSchedule" };
+            TypeNames = new List<string>() { "fusion", "fusionschedule" };
         }
 
         // Builds and returns an instance of EssentialsPluginDeviceTemplate
@@ -20,13 +20,13 @@ namespace DynFusion
 
             switch (dc.Type)
             {
-                case "DynFusion":
+                case "fusion":
                 {
                     DynFusionConfigObjectTemplate propertiesConfig =
                         dc.Properties.ToObject<DynFusionConfigObjectTemplate>();
                     return new DynFusionDevice(dc.Key, dc.Name, propertiesConfig);
                 }
-                case "DynFusionSchedule":
+                case "fusionschedule":
                 {
                     SchedulingConfig propertiesConfig = dc.Properties.ToObject<SchedulingConfig>();
                     return new DynFusionSchedule(dc.Key, dc.Name, propertiesConfig);
