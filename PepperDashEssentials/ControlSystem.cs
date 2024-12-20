@@ -359,7 +359,7 @@ namespace PepperDash.Essentials
 
                     if (newDev != null)
                     {
-                        if (devConf.Type.ToLower() == "dynfusion")
+                        if (devConf.Type.ToLower() == "fusion")
                         {
                             Debug.Console(0, "Found fusion device, trying to get embedded resource file");
                             DynFusionDevice fusionDev = newDev as DynFusionDevice;
