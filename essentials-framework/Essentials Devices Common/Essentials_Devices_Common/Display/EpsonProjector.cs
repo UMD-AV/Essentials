@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using System.Xml.Schema;
 using Crestron.SimplSharp;
 using Crestron.SimplSharpPro.CrestronThread;
 using Crestron.SimplSharpPro.DeviceSupport;
@@ -787,7 +786,7 @@ namespace PepperDash.Essentials.Devices.Displays
 
                             if (!Communication.IsConnected)
                             {
-                                //Fail safe for no feedback
+                                //Fail-safe for no feedback
                                 Thread.Sleep(500);
                             }
                             else
@@ -1359,7 +1358,7 @@ namespace PepperDash.Essentials.Devices.Displays
         /// <param name="selector"></param>
         public override void ExecuteSwitch(object selector)
         {
-            (selector as Action)();
+            ((Action)selector)();
         }
 
         public enum eCommandType
@@ -1378,7 +1377,8 @@ namespace PepperDash.Essentials.Devices.Displays
 
         private class EpsonQueue
         {
-            public readonly List<KeyValuePair<eCommandType, string>> Q = new List<KeyValuePair<eCommandType, string>>();
+            private readonly List<KeyValuePair<eCommandType, string>>
+                Q = new List<KeyValuePair<eCommandType, string>>();
 
             public ushort Count
             {
@@ -1428,7 +1428,7 @@ namespace PepperDash.Essentials.Devices.Displays
                                          command.Key == eCommandType.VideoMutePoll ||
                                          command.Key == eCommandType.VolumePoll))
                     {
-                        //Move poll to end of queue
+                        //Move the poll to the end of the queue
                         Q.RemoveAt(i);
                         Q.Add(command);
                     }
@@ -1492,12 +1492,12 @@ namespace PepperDash.Essentials.Devices.Displays
         #region IBasicVolumeWithFeedback Members
 
         /// <summary>
-        /// Scales the 16 bit level to the range of the display and sends the command
+        /// Scales the 16-bit level to the range of the display and sends the command
         /// </summary>
         /// <param name="level"></param>
         public void SetVolume(ushort level)
         {
-            //Scale volume from Crestron 16 bit to configurable volume range
+            //Scale volume from Crestron 16-bit to configurable volume range
             double scaled = Math.Round((double)(NumericalHelpers.Scale(level, 0, 65535, _lowerLimit, _upperLimit)));
             if (scaled > 0)
             {
@@ -1511,7 +1511,9 @@ namespace PepperDash.Essentials.Devices.Displays
         /// <param name="level"></param>
         private void SetVolumeScaled(ushort level)
         {
-            //Convert to 8 bit based on Epson model. Different models have different volume ranges but typically 0-20 (21 steps) - see API doc and set via "volumeSteps" config value.
+            //Convert to 8-bit based on the Epson model.
+            //Different models have different volume ranges, but typically 0-20 (21 steps)
+            //See API doc and set via "volumeSteps" config value.
             double scaled = Math.Floor((double)(level * 256 / _volumeSteps));
             SetVolumeRaw((ushort)scaled);
         }
@@ -1536,7 +1538,7 @@ namespace PepperDash.Essentials.Devices.Displays
 
         public ushort GetScaledVolumeFb(int level)
         {
-            //First convert from Epson 8 bit to model adjusted volume factor
+            //First convert from Epson 8-bit to the model adjusted volume factor
             double scaled = Math.Round((double)level * _volumeSteps / 256);
 
             if (scaled >= _upperLimit)
@@ -1545,7 +1547,7 @@ namespace PepperDash.Essentials.Devices.Displays
                 return 0;
             else
             {
-                //Scale volume feedback (Epson range is 0-255, but we can limit range further) to Crestron 16 bit
+                //Scale volume feedback (Epson range is 0-255, but we can limit range further) to Crestron 16-bit
                 return (ushort)NumericalHelpers.Scale(scaled, _lowerLimit, _upperLimit, 0, 65535);
             }
         }
@@ -1821,9 +1823,5 @@ namespace PepperDash.Essentials.Devices.Displays
         [JsonProperty("videoMuteKey")] public string VideoMuteKey { get; set; }
 
         [JsonProperty("password")] public string Password { get; set; }
-
-        public EpsonProjectorPropertiesConfig()
-        {
-        }
     }
 }

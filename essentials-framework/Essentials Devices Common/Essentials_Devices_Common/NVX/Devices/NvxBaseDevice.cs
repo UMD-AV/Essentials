@@ -103,11 +103,14 @@ namespace NvxEpi.Devices
             Debug.Console(1, this, "Activating...");
             DeviceMode = DeviceModeFeedback.GetFeedback(Hardware);
 
+            StringFeedback devNameFeedback = DeviceNameFeedback.GetFeedback(Name);
+            devNameFeedback.FireUpdate();
+
             Feedbacks.AddRange(new Feedback[]
             {
                 IsOnline,
                 new IntFeedback("DeviceId", () => DeviceId),
-                DeviceNameFeedback.GetFeedback(Name),
+                devNameFeedback,
                 DeviceIpFeedback.GetFeedback(Hardware),
                 DeviceHostnameFeedback.GetFeedback(Hardware),
                 DeviceModeNameFeedback.GetFeedback(Hardware),

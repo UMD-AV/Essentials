@@ -36,12 +36,11 @@ namespace PepperDash.Essentials.Core.Bridges
                 JoinType = eJoinType.Serial
             });
 
-        [JoinName("EdidManufacturer")] public JoinDataComplete EdidManufacturer = new JoinDataComplete(
+        [JoinName("Name")] public JoinDataComplete Name = new JoinDataComplete(
             new JoinData { JoinNumber = 2, JoinSpan = 1 },
             new JoinMetadata
             {
-                Description = "DM RMC EDID Manufacturer", JoinCapabilities = eJoinCapabilities.ToSIMPL,
-                JoinType = eJoinType.Serial
+                Description = "DM RMC Name", JoinCapabilities = eJoinCapabilities.ToSIMPL, JoinType = eJoinType.Serial
             });
 
         [JoinName("EdidName")] public JoinDataComplete EdidName = new JoinDataComplete(
@@ -68,11 +67,12 @@ namespace PepperDash.Essentials.Core.Bridges
                 JoinType = eJoinType.Serial
             });
 
-        [JoinName("Name")] public JoinDataComplete Name = new JoinDataComplete(
+        [JoinName("EdidManufacturer")] public JoinDataComplete EdidManufacturer = new JoinDataComplete(
             new JoinData { JoinNumber = 6, JoinSpan = 1 },
             new JoinMetadata
             {
-                Description = "DM RMC Name", JoinCapabilities = eJoinCapabilities.ToSIMPL, JoinType = eJoinType.Serial
+                Description = "DM RMC EDID Manufacturer", JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                JoinType = eJoinType.Serial
             });
 
         [JoinName("AudioVideoSource")] public JoinDataComplete AudioVideoSource = new JoinDataComplete(

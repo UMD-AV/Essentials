@@ -27,98 +27,29 @@ namespace NvxEpi.Services.Bridge
             {
                 uint joinNumber = 0;
 
-                if (feedback.Key == DeviceNameFeedback.Key)
-                    joinNumber = joinMap.DeviceName.JoinNumber;
-
-                /*if (feedback.Key == IsStreamingVideoFeedback.Key)
-                    joinNumber = joinMap.StreamStarted.JoinNumber;*/
-
-                if (feedback.Key == Hdmi1SyncDetectedFeedback.Key)
-                    joinNumber = joinMap.Hdmi1SyncDetected.JoinNumber;
-
-                if (feedback.Key == Hdmi2SyncDetectedFeedback.Key)
-                    joinNumber = joinMap.Hdmi2SyncDetected.JoinNumber;
-
-                /*
-                if (feedback.Key == Hdmi1HdcpCapabilityValueFeedback.Key)
-                    joinNumber = joinMap.Hdmi1Capability.JoinNumber;
-
-                if (feedback.Key == Hdmi2HdcpCapabilityValueFeedback.Key)
-                    joinNumber = joinMap.Hdmi2Capability.JoinNumber;
-
-                if (feedback.Key == Hdmi1HdcpCapabilityFeedback.Key)
-                    joinNumber = joinMap.Hdmi1Capability.JoinNumber;
-
-                if (feedback.Key == Hdmi2HdcpCapabilityFeedback.Key)
-                    joinNumber = joinMap.Hdmi2Capability.JoinNumber;
-
-                if (feedback.Key == HdmiOutputDisabledFeedback.Key)
-                    joinNumber = joinMap.HdmiOutputDisableByHdcp.JoinNumber;
-
-                if (feedback.Key == VideowallModeFeedback.Key)
-                    joinNumber = joinMap.VideowallMode.JoinNumber;
-
-                if (feedback.Key == CurrentVideoStream.RouteNameKey)
-                    joinNumber = joinMap.VideoRouteString.JoinNumber;
-
-                if (feedback.Key == CurrentVideoStream.RouteValueKey)
-                    joinNumber = joinMap.VideoRoute.JoinNumber;
-
-                if (feedback.Key == CurrentSecondaryAudioStream.RouteNameKey)
-                    joinNumber = joinMap.AudioRouteString.JoinNumber;
-
-                if (feedback.Key == CurrentSecondaryAudioStream.RouteValueKey)
-                    joinNumber = joinMap.AudioRoute.JoinNumber;*/
-
-                if (feedback.Key == VideoInputFeedback.Key)
-                    joinNumber = joinMap.VideoInput.JoinNumber;
-
-                if (feedback.Key == VideoInputValueFeedback.Key)
-                    joinNumber = joinMap.VideoInput.JoinNumber;
-
-                if (feedback.Key == AudioInputFeedback.Key)
-                    joinNumber = joinMap.AudioInputString.JoinNumber;
-
-                if (feedback.Key == AudioInputValueFeedback.Key)
-                    joinNumber = joinMap.AudioInput.JoinNumber;
-
-                /*if (feedback.Key == StreamUrlFeedback.Key)
-                    joinNumber = joinMap.StreamUrl.JoinNumber;
-
-                if (feedback.Key == MulticastAddressFeedback.Key)
-                    joinNumber = joinMap.MulticastVideoAddress.JoinNumber;
-
-                if (feedback.Key == SecondaryAudioAddressFeedback.Key)
-                    joinNumber = joinMap.MulticastAudioAddress.JoinNumber;
-
-                if (feedback.Key == AudioTxAddressFeedback.Key)
-                    joinNumber = joinMap.NaxTxAddress.JoinNumber;
-
-                if (feedback.Key == AudioRxAddressFeedback.Key)
-                    joinNumber = joinMap.NaxRxAddress.JoinNumber;
-
-                if (feedback.Key == DanteInputFeedback.Key)
-                    joinNumber = joinMap.DanteInput.JoinNumber;
-
-                if (feedback.Key == DanteInputValueFeedback.Key)
-                    joinNumber = joinMap.DanteInput.JoinNumber;
-
-                if (feedback.Key == NaxInputFeedback.Key)
-                    joinNumber = joinMap.NaxInput.JoinNumber;
-
-                if (feedback.Key == NaxInputValueFeedback.Key)
-                    joinNumber = joinMap.NaxInput.JoinNumber;
-
-                if (feedback.Key == VideoAspectRatioModeFeedback.Key)
-                    joinNumber = joinMap.VideoAspectRatioMode.JoinNumber;
-
-                if (feedback.Key == UsbRouteFeedback.Key)
+                switch (feedback.Key)
                 {
-                    joinNumber = joinMap.UsbRoute.JoinNumber;
+                    case DeviceNameFeedback.Key:
+                        joinNumber = joinMap.DeviceName.JoinNumber;
+                        break;
+                    case Hdmi1SyncDetectedFeedback.Key:
+                        joinNumber = joinMap.Hdmi1SyncDetected.JoinNumber;
+                        break;
+                    case Hdmi2SyncDetectedFeedback.Key:
+                        joinNumber = joinMap.Hdmi2SyncDetected.JoinNumber;
+                        break;
+                    case VideoInputFeedback.Key:
+                    case VideoInputValueFeedback.Key:
+                        joinNumber = joinMap.VideoInput.JoinNumber;
+                        break;
+                    case AudioInputFeedback.Key:
+                        joinNumber = joinMap.AudioInputString.JoinNumber;
+                        break;
+                    case AudioInputValueFeedback.Key:
+                        joinNumber = joinMap.AudioInput.JoinNumber;
+                        break;
                 }
 
-                if (feedback.Key == HorizontalResolutionFeedback.Key) { }
-                */
                 if (joinNumber > 0)
                     LinkFeedback(trilist, feedback, joinNumber);
             }

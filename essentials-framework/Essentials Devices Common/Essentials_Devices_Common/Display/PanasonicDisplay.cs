@@ -21,23 +21,27 @@ namespace PepperDash.Essentials.Devices.Displays
 
         #region Command constants
 
-        public const string InputGetCmd = "\x02QMI\x03";
-        public const string Hdmi1Cmd = "\x02IMS:HM1\x03";
-        public const string Hdmi2Cmd = "\x02IMS:HM2\x03";
-        public const string Pc1Cmd = "\x02IMS:PC1\x03";
+        public const string InputGetCmd = "\x02" + "QMI" + "\x03";
+        public const string Hdmi1Cmd = "\x02" + "IMS:HM1" + "\x03";
+        public const string Hdmi2Cmd = "\x02" + "IMS:HM2" + "\x03";
+        public const string Pc1Cmd = "\x02" + "IMS:PC1" + "\x03";
 
-        public const string PowerGetCmd = "\x02QPW\x03";
-        public const string PowerOnCmd = "\x02PON\x03";
-        public const string PowerOffCmd = "\x02POF\x03";
+        public const string PowerGetCmd = "\x02" + "QPW" + "\x03";
+        public const string PowerOnCmd = "\x02" + "PON" + "\x03";
+        public const string PowerOffCmd = "\x02" + "POF" + "\x03";
 
-        public const string MuteOffCmd = "\x02AMT:0\x03";
-        public const string MuteOnCmd = "\x02AMT:1\x03";
-        public const string MuteGetCmd = "\x02QAM\x03";
+        public const string MuteOffCmd = "\x02" + "AMT:0" + "\x03";
+        public const string MuteOnCmd = "\x02" + "AMT:1" + "\x03";
+        public const string MuteGetCmd = "\x02" + "QAM" + "\x03";
 
-        public const string VolumeGetCmd = "\x02QAV\x03";
-        public const string VolumeLevelPartialCmd = "\x02AVL:";
-        public const string VolumeUpCmd = "\x02AUU\x03";
-        public const string VolumeDownCmd = "\x02AUD\x03";
+        public const string VolumeGetCmd = "\x02" + "QAV" + "\x03";
+        public const string VolumeLevelPartialCmd = "\x02" + "AVL:";
+        public const string VolumeUpCmd = "\x02" + "AUU" + "\x03";
+        public const string VolumeDownCmd = "\x02" + "AUD" + "\x03";
+
+        public const string VideoMuteOffCmd = "\x02" + "VMT:0" + "\x03";
+        public const string VideoMuteOnCmd = "\x02" + "VMT:1" + "\x03";
+        public const string VideoMuteGetCmd = "\x02" + "QVM" + "\x03";
 
         #endregion
 
@@ -45,22 +49,28 @@ namespace PepperDash.Essentials.Devices.Displays
         public BoolFeedback Input2Feedback { get; private set; }
         public BoolFeedback Input3Feedback { get; private set; }
 
+        public BoolFeedback VideoMuteIsOnFeedback { get; private set; }
+
+
         private bool _readyForCommands;
-        private bool _tcpComm;
+        private readonly bool _tcpComm;
         private bool _PowerIsOn;
         private bool _IsWarmingUp;
         private bool _IsCoolingDown;
         private int _CurrentInputIndex;
         private ushort _RequestedPowerState; // 0:none 1:on 2:off
         private ushort _RequestedInputState; // 0:none 1-3:inputs 1-3 
+        private ushort _RequestedVideoMuteState; // 0:none 1:on 2:off
+        private bool _VideoMuteIsOn;
 
+        private readonly string videoMuteKey;
         private DM.DmRmcControllerBase _scaler;
         private readonly PanasonicQueue _cmdQueue;
         private readonly PanasonicQueue _priorityQueue;
-        private CommunicationGather _PortGather;
+        private readonly CommunicationGather _PortGather;
         private RoutingInputPort _CurrentInputPort;
-        private CMutex _CommandMutex;
-        private CMutex _PowerMutex;
+        private readonly CMutex _CommandMutex;
+        private readonly CMutex _PowerMutex;
 
         protected override Func<bool> PowerIsOnFeedbackFunc
         {
@@ -91,9 +101,11 @@ namespace PepperDash.Essentials.Devices.Displays
             : base(key, name)
         {
             Communication = comm;
-            _PortGather = new CommunicationGather(Communication, '\x03');
-            _PortGather.IncludeDelimiter = false;
-            _PortGather.LineReceived += new EventHandler<GenericCommMethodReceiveTextArgs>(DelimitedTextReceived);
+            _PortGather = new CommunicationGather(Communication, '\x03')
+            {
+                IncludeDelimiter = false
+            };
+            _PortGather.LineReceived += DelimitedTextReceived;
 
             GenericTcpIpClient tcpComm = comm as GenericTcpIpClient;
             _readyForCommands = false;
@@ -102,8 +114,7 @@ namespace PepperDash.Essentials.Devices.Displays
                 _tcpComm = true;
                 tcpComm.AutoReconnect = true;
                 tcpComm.AutoReconnectIntervalMs = 10000;
-                tcpComm.ConnectionChange +=
-                    new EventHandler<GenericSocketStatusChageEventArgs>(tcpComm_ConnectionChange);
+                tcpComm.ConnectionChange += tcpComm_ConnectionChange;
             }
             else
             {
@@ -115,13 +126,15 @@ namespace PepperDash.Essentials.Devices.Displays
             _CommandMutex = new CMutex();
             _PowerMutex = new CMutex();
 
-            Input1Feedback = new BoolFeedback(() => { return _CurrentInputIndex == 1; });
-            Input2Feedback = new BoolFeedback(() => { return _CurrentInputIndex == 2; });
-            Input3Feedback = new BoolFeedback(() => { return _CurrentInputIndex == 3; });
+            Input1Feedback = new BoolFeedback(() => _CurrentInputIndex == 1);
+            Input2Feedback = new BoolFeedback(() => _CurrentInputIndex == 2);
+            Input3Feedback = new BoolFeedback(() => _CurrentInputIndex == 3);
+            VideoMuteIsOnFeedback = new BoolFeedback(() => _VideoMuteIsOn);
 
             _CurrentInputIndex = 0;
             _RequestedPowerState = 0;
             _RequestedInputState = 0;
+            _RequestedVideoMuteState = 0;
             WarmupTime = 15000;
             CooldownTime = 15000;
             WarmupTimer = new CTimer(WarmupCallback, Timeout.Infinite);
@@ -142,11 +155,7 @@ namespace PepperDash.Essentials.Devices.Displays
 
             if (config.VideoMuteKey != null)
             {
-                IKeyed dev = DeviceManager.GetDeviceForKey(config.VideoMuteKey);
-                if (dev is DM.DmRmcControllerBase)
-                {
-                    _scaler = dev as DM.DmRmcControllerBase;
-                }
+                videoMuteKey = config.VideoMuteKey;
             }
         }
 
@@ -158,6 +167,16 @@ namespace PepperDash.Essentials.Devices.Displays
 
         public override bool CustomActivate()
         {
+            if (videoMuteKey != null)
+            {
+                IKeyed dev = DeviceManager.GetDeviceForKey(videoMuteKey);
+                if (dev is DM.DmRmcControllerBase)
+                {
+                    Debug.Console(0, this, "Using scaler {0} for video mute", videoMuteKey);
+                    _scaler = dev as DM.DmRmcControllerBase;
+                }
+            }
+
             Communication.Connect();
             if (!_tcpComm)
             {
@@ -176,7 +195,7 @@ namespace PepperDash.Essentials.Devices.Displays
             PanasonicDisplayJoinMap joinMap = new PanasonicDisplayJoinMap(joinStart);
 
             trilist.BooleanInput[joinMap.LampHoursSupported.JoinNumber].BoolValue = false;
-            trilist.BooleanInput[joinMap.VideoMuteSupported.JoinNumber].BoolValue = false;
+            trilist.BooleanInput[joinMap.VideoMuteSupported.JoinNumber].BoolValue = true;
 
             //Video Mute
             if (_scaler != null)
@@ -184,6 +203,12 @@ namespace PepperDash.Essentials.Devices.Displays
                 _scaler.HdmiOutputBlankedFeedback.LinkInputSig(trilist.BooleanInput[joinMap.VideoMuteOn.JoinNumber]);
                 trilist.SetSigTrueAction(joinMap.VideoMuteOn.JoinNumber, _scaler.BlankOutput);
                 trilist.SetSigTrueAction(joinMap.VideoMuteOff.JoinNumber, _scaler.UnblankOutput);
+            }
+            else
+            {
+                VideoMuteIsOnFeedback.LinkInputSig(trilist.BooleanInput[joinMap.VideoMuteOn.JoinNumber]);
+                trilist.SetSigTrueAction(joinMap.VideoMuteOn.JoinNumber, VideoMuteOn);
+                trilist.SetSigTrueAction(joinMap.VideoMuteOff.JoinNumber, VideoMuteOff);
             }
 
             IsWarmingUpFeedback.LinkInputSig(trilist.BooleanInput[joinMap.Warming.JoinNumber]);
@@ -212,13 +237,14 @@ namespace PepperDash.Essentials.Devices.Displays
         /// 
         /// </summary>
         /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void DelimitedTextReceived(object sender, GenericCommMethodReceiveTextArgs e)
         {
             try
             {
                 if (e.Text.Contains("\x02"))
                 {
-                    int start = e.Text.IndexOf("\x02");
+                    int start = e.Text.IndexOf("\x02", StringComparison.Ordinal);
                     string fb = e.Text.Remove(0, start + 1); //Remove STX and any possible data before the STX
                     Debug.Console(1, this, "Received feedback: {0}", fb);
                     if (fb.StartsWith("QPW"))
@@ -234,6 +260,10 @@ namespace PepperDash.Essentials.Devices.Displays
                                 inputFb = inputFb.Substring(0, 3);
                             ProcessInputFb(inputFb);
                         }
+                    }
+                    else if (fb.StartsWith("QVM:"))
+                    {
+                        ProcessVideoMuteFb(fb);
                     }
                 }
                 else
@@ -267,7 +297,7 @@ namespace PepperDash.Essentials.Devices.Displays
 
                 _PowerMutex.ReleaseMutex();
 
-                //Finish warming up process
+                //Finish the warming-up process
                 if (_IsWarmingUp)
                 {
                     CrestronInvoke.BeginInvoke((o) => WarmupDone());
@@ -276,10 +306,12 @@ namespace PepperDash.Essentials.Devices.Displays
             else if (powerFb == "QPW:0")
             {
                 //Update power on feedback
-                if (_PowerIsOn == true)
+                if (_PowerIsOn)
                 {
                     _PowerIsOn = false;
+                    _VideoMuteIsOn = false;
                     PowerIsOnFeedback.FireUpdate();
+                    VideoMuteIsOnFeedback.FireUpdate();
                 }
 
                 //Clear power check
@@ -291,10 +323,32 @@ namespace PepperDash.Essentials.Devices.Displays
 
                 _PowerMutex.ReleaseMutex();
 
-                //Finish cooling down process
+                //Finish the cooling-down process
                 if (_IsCoolingDown)
                 {
                     CrestronInvoke.BeginInvoke((o) => CooldownDone());
+                }
+            }
+        }
+
+        private void ProcessVideoMuteFb(string videoMuteFb)
+        {
+            switch (videoMuteFb)
+            {
+                case "QVM:1":
+                {
+                    _RequestedVideoMuteState = 0;
+                    _VideoMuteIsOn = true;
+                    VideoMuteIsOnFeedback.FireUpdate();
+                    break;
+                }
+                case "QVM:0":
+                {
+                    _RequestedVideoMuteState = 0;
+                    _VideoMuteIsOn = false;
+                    VideoMuteIsOnFeedback.FireUpdate();
+                    ResyncPowerOnState();
+                    break;
                 }
             }
         }
@@ -327,19 +381,16 @@ namespace PepperDash.Essentials.Devices.Displays
             }
         }
 
-        private void Resync()
+        private void ResyncPowerOnState()
         {
-            StatusGet();
-            ProcessPower();
-            if (!_IsCoolingDown && !_IsWarmingUp)
+            if (_RequestedVideoMuteState == 2)
             {
-                if (_RequestedInputState != 0)
-                {
-                    if (_RequestedInputState != 0)
-                    {
-                        InputSelectGo(_RequestedInputState);
-                    }
-                }
+                VideoMuteOffGo();
+            }
+
+            if (_RequestedInputState != 0)
+            {
+                InputSelectGo(_RequestedInputState);
             }
         }
 
@@ -379,15 +430,9 @@ namespace PepperDash.Essentials.Devices.Displays
                 {
                     try
                     {
-                        KeyValuePair<eCommandType, string> kvp;
-                        if (_priorityQueue.Count > 0)
-                        {
-                            kvp = _priorityQueue.Dequeue();
-                        }
-                        else
-                        {
-                            kvp = _cmdQueue.Dequeue();
-                        }
+                        KeyValuePair<eCommandType, string> kvp = _priorityQueue.Count > 0
+                            ? _priorityQueue.Dequeue()
+                            : _cmdQueue.Dequeue();
 
                         if (kvp.Value != null)
                         {
@@ -416,6 +461,11 @@ namespace PepperDash.Essentials.Devices.Displays
             {
                 PowerGet();
                 InputGet();
+
+                if (_scaler == null)
+                {
+                    VideoMuteGet();
+                }
             }
         }
 
@@ -437,6 +487,22 @@ namespace PepperDash.Essentials.Devices.Displays
                 IsCoolingDownFeedback.FireUpdate();
                 PowerIsOnFeedback.FireUpdate();
                 WarmupTimer.Reset(WarmupTime);
+
+                while (_IsWarmingUp)
+                {
+                    SendCommand(eCommandType.PowerPoll, PowerGetCmd, true);
+                    if (_RequestedVideoMuteState == 1)
+                    {
+                        Debug.Console(0, "Sending video mute");
+                        SendCommand(eCommandType.VideoMute, VideoMuteOnCmd, true);
+                    }
+                    else
+                    {
+                        ResyncPowerOnState();
+                    }
+
+                    Thread.Sleep(2000);
+                }
             }
         }
 
@@ -455,9 +521,23 @@ namespace PepperDash.Essentials.Devices.Displays
                 InputSelectGo(_RequestedInputState);
             }
 
+            if (_scaler == null)
+            {
+                VideoMuteGet();
+            }
+
+            if (_RequestedVideoMuteState == 1)
+            {
+                VideoMuteOnGo();
+            }
+            else
+            {
+                ResyncPowerOnState();
+            }
+
             ProcessPower();
 
-            //fail safe for no feedback
+            //fail-safe for no feedback
             if (!CommunicationMonitor.IsOnline)
             {
                 _PowerMutex.WaitForMutex();
@@ -494,10 +574,12 @@ namespace PepperDash.Essentials.Devices.Displays
             _IsCoolingDown = false;
             IsWarmingUpFeedback.FireUpdate();
             IsCoolingDownFeedback.FireUpdate();
+            _VideoMuteIsOn = false;
+            VideoMuteIsOnFeedback.FireUpdate();
 
             ProcessPower();
 
-            //fail safe for no feedback
+            //fail-safe for no feedback
             if (!CommunicationMonitor.IsOnline)
             {
                 _PowerMutex.WaitForMutex();
@@ -526,7 +608,7 @@ namespace PepperDash.Essentials.Devices.Displays
             _RequestedPowerState = 2;
             _PowerMutex.ReleaseMutex();
             _RequestedInputState = 0;
-            _RequestedInputState = 0;
+            _RequestedVideoMuteState = 0;
             ProcessPower();
         }
 
@@ -540,6 +622,7 @@ namespace PepperDash.Essentials.Devices.Displays
         {
             if (_scaler != null)
             {
+                _RequestedVideoMuteState = 0;
                 _scaler.UnblankOutput();
             }
 
@@ -555,7 +638,7 @@ namespace PepperDash.Essentials.Devices.Displays
                 {
                     PowerOnGo();
                 }
-                else if (_RequestedPowerState == 2 && (_PowerIsOn == true || !CommunicationMonitor.IsOnline))
+                else if (_RequestedPowerState == 2 && (_PowerIsOn || !CommunicationMonitor.IsOnline))
                 {
                     PowerOffGo();
                 }
@@ -577,6 +660,85 @@ namespace PepperDash.Essentials.Devices.Displays
         public void PowerGet()
         {
             SendCommand(eCommandType.PowerPoll, PowerGetCmd, false);
+        }
+
+
+        public void VideoMuteOn()
+        {
+            if (_scaler != null)
+            {
+                _RequestedVideoMuteState = 0;
+                _scaler.BlankOutput();
+            }
+            else if (_RequestedPowerState == 1 || _PowerIsOn)
+            {
+                Debug.Console(0, "Video Mute Requested");
+                _RequestedVideoMuteState = 1;
+                if (!_IsWarmingUp)
+                {
+                    VideoMuteOnGo();
+                }
+            }
+        }
+
+        private void VideoMuteOnGo()
+        {
+            if (_scaler != null)
+            {
+                _RequestedVideoMuteState = 0;
+                _scaler.BlankOutput();
+            }
+            else
+            {
+                SendCommand(eCommandType.VideoMute, VideoMuteOnCmd, false);
+                VideoMuteGet();
+                CrestronInvoke.BeginInvoke((o) =>
+                {
+                    Thread.Sleep(1000);
+                    VideoMuteGet();
+                });
+            }
+        }
+
+        public void VideoMuteOff()
+        {
+            if (_scaler != null)
+            {
+                _scaler.UnblankOutput();
+            }
+            else
+            {
+                _RequestedVideoMuteState = 2;
+                if (_PowerIsOn && !_IsWarmingUp)
+                {
+                    VideoMuteOffGo();
+                }
+            }
+        }
+
+        private void VideoMuteOffGo()
+        {
+            if (_scaler != null)
+            {
+                _RequestedVideoMuteState = 0;
+                _scaler.UnblankOutput();
+            }
+
+            else
+            {
+                SendCommand(eCommandType.VideoMute, VideoMuteOffCmd, false);
+                VideoMuteGet();
+                CrestronInvoke.BeginInvoke((o) =>
+                {
+                    Thread.Sleep(1000);
+                    VideoMuteGet();
+                });
+            }
+        }
+
+        public void VideoMuteGet()
+        {
+            SendCommand(eCommandType.VideoMutePoll, VideoMuteGetCmd, false);
         }
 
         public void InputSelect(ushort input)
@@ -690,7 +852,7 @@ namespace PepperDash.Essentials.Devices.Displays
         /// <param name="selector"></param>
         public override void ExecuteSwitch(object selector)
         {
-            (selector as Action)();
+            ((Action)selector)();
         }
 
         public enum eCommandType
@@ -698,19 +860,22 @@ namespace PepperDash.Essentials.Devices.Displays
             Power,
             Input,
             PowerPoll,
-            InputPoll
+            InputPoll,
+            VideoMute,
+            VideoMutePoll
         }
 
         private class PanasonicQueue
         {
-            public List<KeyValuePair<eCommandType, string>> Q = new List<KeyValuePair<eCommandType, string>>();
+            private readonly List<KeyValuePair<eCommandType, string>>
+                Q = new List<KeyValuePair<eCommandType, string>>();
 
             public ushort Count
             {
                 get { return (ushort)Q.Count; }
             }
 
-            private CMutex mutex = new CMutex();
+            private readonly CMutex mutex = new CMutex();
 
             /// <summary>
             /// Creates a queue for processing Panasonic Display commands
@@ -789,7 +954,7 @@ namespace PepperDash.Essentials.Devices.Displays
 
     public class PanasonicDisplayJoinMap : DisplayControllerJoinMap
     {
-        [JoinName("Warming")] public JoinDataComplete Warming = new JoinDataComplete(
+        [JoinName("Warming")] public readonly JoinDataComplete Warming = new JoinDataComplete(
             new JoinData()
             {
                 JoinNumber = 53,
@@ -799,10 +964,10 @@ namespace PepperDash.Essentials.Devices.Displays
             {
                 JoinCapabilities = eJoinCapabilities.ToSIMPL,
                 JoinType = eJoinType.Digital,
-                Label = "Warming"
+                Description = "Warming"
             });
 
-        [JoinName("Cooling")] public JoinDataComplete Cooling = new JoinDataComplete(
+        [JoinName("Cooling")] public readonly JoinDataComplete Cooling = new JoinDataComplete(
             new JoinData()
             {
                 JoinNumber = 54,
@@ -812,10 +977,10 @@ namespace PepperDash.Essentials.Devices.Displays
             {
                 JoinCapabilities = eJoinCapabilities.ToSIMPL,
                 JoinType = eJoinType.Digital,
-                Label = "Cooling"
+                Description = "Cooling"
             });
 
-        [JoinName("Video Mute On")] public JoinDataComplete VideoMuteOn = new JoinDataComplete(
+        [JoinName("Video Mute On")] public readonly JoinDataComplete VideoMuteOn = new JoinDataComplete(
             new JoinData()
             {
                 JoinNumber = 57,
@@ -825,10 +990,10 @@ namespace PepperDash.Essentials.Devices.Displays
             {
                 JoinCapabilities = eJoinCapabilities.ToFromSIMPL,
                 JoinType = eJoinType.Digital,
-                Label = "Video Mute On"
+                Description = "Video Mute On"
             });
 
-        [JoinName("Video Mute Off")] public JoinDataComplete VideoMuteOff = new JoinDataComplete(
+        [JoinName("Video Mute Off")] public readonly JoinDataComplete VideoMuteOff = new JoinDataComplete(
             new JoinData()
             {
                 JoinNumber = 58,
@@ -838,10 +1003,10 @@ namespace PepperDash.Essentials.Devices.Displays
             {
                 JoinCapabilities = eJoinCapabilities.FromSIMPL,
                 JoinType = eJoinType.Digital,
-                Label = "Video Mute Off"
+                Description = "Video Mute Off"
             });
 
-        [JoinName("Video Mute Supported")] public JoinDataComplete VideoMuteSupported = new JoinDataComplete(
+        [JoinName("Video Mute Supported")] public readonly JoinDataComplete VideoMuteSupported = new JoinDataComplete(
             new JoinData()
             {
                 JoinNumber = 55,
@@ -851,10 +1016,10 @@ namespace PepperDash.Essentials.Devices.Displays
             {
                 JoinCapabilities = eJoinCapabilities.ToSIMPL,
                 JoinType = eJoinType.Digital,
-                Label = "Video Mute Supported"
+                Description = "Video Mute Supported"
             });
 
-        [JoinName("Lamp Hours Supported")] public JoinDataComplete LampHoursSupported = new JoinDataComplete(
+        [JoinName("Lamp Hours Supported")] public readonly JoinDataComplete LampHoursSupported = new JoinDataComplete(
             new JoinData()
             {
                 JoinNumber = 56,
@@ -864,7 +1029,7 @@ namespace PepperDash.Essentials.Devices.Displays
             {
                 JoinCapabilities = eJoinCapabilities.ToSIMPL,
                 JoinType = eJoinType.Digital,
-                Label = "Lamp Hours Supported"
+                Description = "Lamp Hours Supported"
             });
 
         public PanasonicDisplayJoinMap(uint joinStart)
@@ -893,8 +1058,7 @@ namespace PepperDash.Essentials.Devices.Displays
             IBasicCommunication comm = CommFactory.CreateCommForDevice(dc);
             if (comm != null)
                 return new PanasonicDisplay(dc.Key, dc.Name, comm, config);
-            else
-                return null;
+            return null;
         }
     }
 }
