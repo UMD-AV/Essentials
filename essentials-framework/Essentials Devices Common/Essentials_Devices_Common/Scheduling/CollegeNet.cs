@@ -290,12 +290,12 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
         {
             try
             {
-                Debug.Console(0, this, "Getting https: {0}", data);
+                Debug.Console(1, this, "Getting https: {0}", data);
                 HttpsClientRequest req = new HttpsClientRequest();
                 string auth = string.Format("Basic {0}",
                     Convert.ToBase64String(ASCIIEncoding.ASCII.GetBytes(username + ":" + password)));
                 string url = string.Format("https://webservices.collegenet.com/r25ws/wrd/umd/run/{0}", data);
-                Debug.Console(0, this, "url: {0} auth: {1}", url, auth);
+                Debug.Console(1, this, "url: {0} auth: {1}", url, auth);
                 req.Header.ContentType = "application/json";
                 req.Header.SetHeaderValue("Authorization", auth);
                 req.Encoding = Encoding.UTF8;
@@ -316,7 +316,7 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
 
         private void GetTodaysReservations()
         {
-            Debug.Console(0, this, "Getting reservations for spaceId {0}", spaceId);
+            Debug.Console(1, this, "Getting reservations for spaceId {0}", spaceId);
             if (spaceId != 0)
             {
                 scheduleTimeout.Reset(20000);
@@ -343,7 +343,7 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
 
         public void GetSpaceInfo()
         {
-            Debug.Console(0, this, "Getting space info for spaceId {0}", spaceId);
+            Debug.Console(1, this, "Getting space info for spaceId {0}", spaceId);
             if (spaceId != 0)
             {
                 GetData(string.Format("space.json?space_id={0}", spaceId), "Space");
@@ -368,7 +368,7 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
             if (roomName != null)
             {
                 scheduleTimeout.Reset(20000);
-                Debug.Console(0, this, "Getting space id for room with name: {0}", roomName);
+                Debug.Console(1, this, "Getting space id for room with name: {0}", roomName);
                 GetData(string.Format("spaces.json?name={0}", roomName), "SpacesName");
             }
             else
@@ -518,7 +518,7 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
 
         private void ProcessFeedback(string requestName, string content)
         {
-            Debug.Console(0, this, "Processing feedback:{0}", requestName);
+            Debug.Console(1, this, "Processing feedback:{0}", requestName);
             if (requestName == "Reservations")
             {
                 try

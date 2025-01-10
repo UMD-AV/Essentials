@@ -52,6 +52,7 @@ namespace PepperDash.Essentials.Devices.Displays
         public BoolFeedback VideoMuteIsOnFeedback { get; private set; }
 
 
+        private readonly bool _supportsVideoMute;
         private bool _readyForCommands;
         private readonly bool _tcpComm;
         private bool _PowerIsOn;
@@ -153,6 +154,7 @@ namespace PepperDash.Essentials.Devices.Displays
             AddRoutingInputPort(new RoutingInputPort("PC 1", eRoutingSignalType.Audio | eRoutingSignalType.Video,
                 eRoutingPortConnectionType.Vga, new Action(InputPc1), this), "PC1");
 
+            _supportsVideoMute = config.SupportsVideoMute;
             if (config.VideoMuteKey != null)
             {
                 videoMuteKey = config.VideoMuteKey;
@@ -195,17 +197,22 @@ namespace PepperDash.Essentials.Devices.Displays
             PanasonicDisplayJoinMap joinMap = new PanasonicDisplayJoinMap(joinStart);
 
             trilist.BooleanInput[joinMap.LampHoursSupported.JoinNumber].BoolValue = false;
-            trilist.BooleanInput[joinMap.VideoMuteSupported.JoinNumber].BoolValue = true;
 
             //Video Mute
             if (_scaler != null)
             {
+                trilist.BooleanInput[joinMap.VideoMuteSupported.JoinNumber].BoolValue = true;
                 _scaler.HdmiOutputBlankedFeedback.LinkInputSig(trilist.BooleanInput[joinMap.VideoMuteOn.JoinNumber]);
                 trilist.SetSigTrueAction(joinMap.VideoMuteOn.JoinNumber, _scaler.BlankOutput);
                 trilist.SetSigTrueAction(joinMap.VideoMuteOff.JoinNumber, _scaler.UnblankOutput);
             }
+            else if (!_supportsVideoMute)
+            {
+                trilist.BooleanInput[joinMap.VideoMuteSupported.JoinNumber].BoolValue = false;
+            }
             else
             {
+                trilist.BooleanInput[joinMap.VideoMuteSupported.JoinNumber].BoolValue = true;
                 VideoMuteIsOnFeedback.LinkInputSig(trilist.BooleanInput[joinMap.VideoMuteOn.JoinNumber]);
                 trilist.SetSigTrueAction(joinMap.VideoMuteOn.JoinNumber, VideoMuteOn);
                 trilist.SetSigTrueAction(joinMap.VideoMuteOff.JoinNumber, VideoMuteOff);
@@ -462,7 +469,7 @@ namespace PepperDash.Essentials.Devices.Displays
                 PowerGet();
                 InputGet();
 
-                if (_scaler == null)
+                if (_scaler == null && _supportsVideoMute)
                 {
                     VideoMuteGet();
                 }
@@ -670,6 +677,10 @@ namespace PepperDash.Essentials.Devices.Displays
                 _RequestedVideoMuteState = 0;
                 _scaler.BlankOutput();
             }
+            else if (!_supportsVideoMute)
+            {
+                PowerOff();
+            }
             else if (_RequestedPowerState == 1 || _PowerIsOn)
             {
                 Debug.Console(0, "Video Mute Requested");
@@ -687,6 +698,10 @@ namespace PepperDash.Essentials.Devices.Displays
             {
                 _RequestedVideoMuteState = 0;
                 _scaler.BlankOutput();
+            }
+            else if (!_supportsVideoMute)
+            {
+                PowerOff();
             }
             else
             {
@@ -706,6 +721,10 @@ namespace PepperDash.Essentials.Devices.Displays
             {
                 _scaler.UnblankOutput();
             }
+            else if (!_supportsVideoMute)
+            {
+                PowerOn();
+            }
             else
             {
                 _RequestedVideoMuteState = 2;
@@ -723,7 +742,10 @@ namespace PepperDash.Essentials.Devices.Displays
                 _RequestedVideoMuteState = 0;
                 _scaler.UnblankOutput();
             }
-
+            else if (!_supportsVideoMute)
+            {
+                PowerOn();
+            }
             else
             {
                 SendCommand(eCommandType.VideoMute, VideoMuteOffCmd, false);
@@ -1041,6 +1063,8 @@ namespace PepperDash.Essentials.Devices.Displays
     public class PanasonicDisplayPropertiesConfig
     {
         [JsonProperty("videoMuteKey")] public string VideoMuteKey { get; set; }
+
+        [JsonProperty("supportsVideoMute")] public bool SupportsVideoMute { get; set; }
     }
 
     public class PanasonicDisplayFactory : EssentialsDeviceFactory<PanasonicDisplay>

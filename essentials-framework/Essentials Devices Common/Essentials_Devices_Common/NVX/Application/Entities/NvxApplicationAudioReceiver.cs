@@ -7,6 +7,7 @@ using NvxEpi.Features.Routing;
 using NvxEpi.Features.Streams.Audio;
 using NvxEpi.Services.Feedback;
 using NvxEpi.Extensions;
+using PepperDash.Essentials.Devices.Common;
 using PepperDash.Essentials.Core;
 
 namespace NvxEpi.Application.Entities
@@ -27,8 +28,8 @@ namespace NvxEpi.Application.Entities
         {
             _transmitters = transmitters;
             DeviceId = deviceId;
-            //var sink = new Amplifier(key + "--amp", key + "--amp");
-            //Amp = sink;
+            var sink = new Amplifier(key + "--amp", key + "--amp");
+            Amp = sink;
 
             AddPostActivationAction(() =>
             {

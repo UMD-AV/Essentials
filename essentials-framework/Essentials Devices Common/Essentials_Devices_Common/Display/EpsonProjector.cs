@@ -62,6 +62,8 @@ namespace PepperDash.Essentials.Devices.Displays
         private ushort? _RequestedVolume;
         private string _errorFeedback;
         private readonly string _password;
+        private readonly CTimer VolumeReleaseTimer;
+        private ushort _lastVolume;
 
         public string ErrorFb
         {
@@ -198,11 +200,13 @@ namespace PepperDash.Essentials.Devices.Displays
             CooldownTime = 30000;
             WarmupTimer = new CTimer(WarmupCallback, Timeout.Infinite);
             CooldownTimer = new CTimer(CooldownCallback, Timeout.Infinite);
+            VolumeReleaseTimer = new CTimer(VolumeReleaseCallback, Timeout.Infinite);
+            _lastVolume = 0;
 
-            _defaultVolume = (ushort)(config.defaultVolume ?? 10);
+            _defaultVolume = (ushort)(config.defaultVolume ?? 5);
             _RequestedVolume = null;
-            _volumeSteps = (ushort)(config.volumeSteps ?? 20);
-            _upperLimit = (ushort)(config.volumeUpperLimit ?? 255);
+            _volumeSteps = (ushort)(config.volumeSteps ?? 21);
+            _upperLimit = (ushort)(config.volumeUpperLimit ?? 20);
             _lowerLimit = (ushort)(config.volumeLowerLimit ?? 0);
             InitVolumeControls();
 
@@ -290,7 +294,18 @@ namespace PepperDash.Essentials.Devices.Displays
             trilist.SetSigTrueAction(joinMap.VolumeMute.JoinNumber, MuteToggle);
             trilist.SetSigTrueAction(joinMap.VolumeMuteOn.JoinNumber, MuteOn);
             trilist.SetSigTrueAction(joinMap.VolumeMuteOff.JoinNumber, MuteOff);
-            trilist.SetUShortSigAction(joinMap.VolumeLevel.JoinNumber, SetVolume);
+
+            trilist.SetSigFalseAction(joinMap.EnableLevelSend.JoinNumber, () => { VolumeReleaseTimer.Reset(500); });
+
+            trilist.SetUShortSigAction(joinMap.VolumeLevel.JoinNumber, u =>
+            {
+                _lastVolume = u;
+                if (trilist.BooleanOutput[joinMap.EnableLevelSend.JoinNumber].BoolValue)
+                {
+                    SetVolume(u);
+                }
+            });
+
             VolumeLevelFeedback.LinkInputSig(trilist.UShortInput[joinMap.VolumeLevel.JoinNumber]);
             MuteFeedback.LinkInputSig(trilist.BooleanInput[joinMap.VolumeMuteOn.JoinNumber]);
             MuteFeedback.LinkInputSig(trilist.BooleanInput[joinMap.VolumeMute.JoinNumber]);
@@ -1489,7 +1504,11 @@ namespace PepperDash.Essentials.Devices.Displays
             }
         }
 
-        #region IBasicVolumeWithFeedback Members
+        private void VolumeReleaseCallback(object o)
+        {
+            Debug.Console(1, this, "Setting final volume level: {0}", _lastVolume);
+            SetVolume(_lastVolume);
+        }
 
         /// <summary>
         /// Scales the 16-bit level to the range of the display and sends the command
@@ -1498,11 +1517,8 @@ namespace PepperDash.Essentials.Devices.Displays
         public void SetVolume(ushort level)
         {
             //Scale volume from Crestron 16-bit to configurable volume range
-            double scaled = Math.Round((double)(NumericalHelpers.Scale(level, 0, 65535, _lowerLimit, _upperLimit)));
-            if (scaled > 0)
-            {
-                SetVolumeRaw((ushort)scaled);
-            }
+            double scaled = Math.Round(NumericalHelpers.Scale(level, 0, 65535, _lowerLimit, _upperLimit));
+            SetVolumeScaled((ushort)scaled);
         }
 
         /// <summary>
@@ -1514,8 +1530,9 @@ namespace PepperDash.Essentials.Devices.Displays
             //Convert to 8-bit based on the Epson model.
             //Different models have different volume ranges, but typically 0-20 (21 steps)
             //See API doc and set via "volumeSteps" config value.
-            double scaled = Math.Floor((double)(level * 256 / _volumeSteps));
-            SetVolumeRaw((ushort)scaled);
+            double volumeStep = 256.0 / _volumeSteps;
+            Debug.Console(1, this, "Setting volume to scaled level: {0}, volume step: {1}", level, volumeStep);
+            SetVolumeRaw((ushort)Math.Floor(level * volumeStep));
         }
 
         /// <summary>
@@ -1678,8 +1695,6 @@ namespace PepperDash.Essentials.Devices.Displays
                 _rampLock.Leave();
             }
         }
-
-        #endregion
     }
 
     public class EpsonProjectorJoinMap : DisplayControllerJoinMap

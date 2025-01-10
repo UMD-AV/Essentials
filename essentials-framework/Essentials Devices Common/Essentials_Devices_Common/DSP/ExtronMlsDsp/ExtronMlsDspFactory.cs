@@ -35,7 +35,6 @@ namespace ExtronMlsDsp
             if (config != null)
             {
                 return new ExtronMlsDsp(dc.Key, dc.Name, config, comms);
-                ;
             }
 
             Debug.Console(0, Debug.ErrorLogLevel.Error, "Unable to deserialize config for device {0}", dc.Key);

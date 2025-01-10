@@ -10,29 +10,22 @@ namespace ExtronMlsDsp
     public class ExtronMlsDsp : EssentialsBridgeableDevice, ICommunicationMonitor, IOnline
     {
         private readonly IBasicCommunication _comms;
-        private CommunicationGather _gather;
+        private readonly CommunicationGather _gather;
         public readonly GenericCommunicationMonitor _commsMonitor;
         private bool _muteFb;
         private ushort _volumeFb;
-        private CTimer _volumeUpRepeatTimer;
-        private CTimer _volumeDownRepeatTimer;
-        private CMutex _volumeUpLock;
-        private CMutex _volumeDownLock;
+        private readonly CTimer _volumeUpRepeatTimer;
+        private readonly CTimer _volumeDownRepeatTimer;
+        private readonly CMutex _volumeUpLock;
+        private readonly CMutex _volumeDownLock;
         private ushort _volumeUpCount;
         private ushort _volumeDownCount;
-        private ushort _defaultVolume;
-        private bool _readyForLevel;
-        private CTimer _readyForLevelTimer;
+        private readonly ushort _defaultVolume;
 
         /// <summary>
         /// Online feedback
         /// </summary>
         public BoolFeedback OnlineFeedback { get; private set; }
-
-        /// <summary>
-        /// Monitor status feedback
-        /// </summary>
-        public IntFeedback MonitorStatusFeedback { get; private set; }
 
         /// <summary>
         /// Mute feedback
@@ -59,13 +52,13 @@ namespace ExtronMlsDsp
         /// </summary>
         /// <param name="key">String</param>
         /// <param name="name">String</param>
+        /// <param name="config"></param>
         /// <param name="comm">IBasicCommunication</param>
         public ExtronMlsDsp(string key, string name, ExtronMlsDspPropertiesConfig config, IBasicCommunication comm)
             : base(key, name)
         {
             _comms = comm;
             _muteFb = false;
-            _readyForLevel = false;
 
             //Set volume up/down controls
             _volumeDownLock = new CMutex();
@@ -78,24 +71,21 @@ namespace ExtronMlsDsp
 
             _volumeUpRepeatTimer = new CTimer(VolumeUpRepeat, Timeout.Infinite);
             _volumeDownRepeatTimer = new CTimer(VolumeDownRepeat, Timeout.Infinite);
-            _readyForLevelTimer = new CTimer(EnableLevelSend, Timeout.Infinite);
 
-            // Comm monitoring, will poll every 30s.
+            // Comm monitoring will poll every 30s.
             _commsMonitor = new GenericCommunicationMonitor(this, _comms, 30000, 120000, 300000, Poll);
             _commsMonitor.Start();
 
             //Link feedback
-            OnlineFeedback = new BoolFeedback(() => _comms.IsConnected);
-            MonitorStatusFeedback = new IntFeedback(() => (int)_commsMonitor.Status);
+            OnlineFeedback = new BoolFeedback(() => _commsMonitor.IsOnline);
             MuteFeedback = new BoolFeedback(() => _muteFb);
             VolumeFeedback = new IntFeedback(() => _volumeFb);
 
-            _gather = new CommunicationGather(_comms, "\x0d\x0a");
-            _gather.LineReceived += this.Handle_BytesRecieved;
+            _gather = new CommunicationGather(_comms, "\r\n");
+            _gather.LineReceived += Handle_BytesReceived;
             _comms.Connect();
 
-            _commsMonitor.IsOnlineFeedback.OutputChange +=
-                new EventHandler<FeedbackEventArgs>(IsOnlineFeedback_OutputChange);
+            _commsMonitor.IsOnlineFeedback.OutputChange += IsOnlineFeedback_OutputChange;
         }
 
         /// <summary>
@@ -104,6 +94,7 @@ namespace ExtronMlsDsp
         /// <param name="trilist">BasicTriList</param>
         /// <param name="joinStart">uint</param>
         /// <param name="joinMapKey">string</param>
+        /// <param name="bridge"></param>
         public override void LinkToApi(BasicTriList trilist, uint joinStart, string joinMapKey, EiscApiAdvanced bridge)
         {
             ExtronMlsDspDeviceJoinMap joinMap = new ExtronMlsDspDeviceJoinMap(joinStart);
@@ -116,8 +107,7 @@ namespace ExtronMlsDsp
             trilist.StringInput[joinMap.Presets.JoinNumber + 1].StringValue = "Default Volume";
 
             //From Simpl to Plugin
-            trilist.SetSigTrueAction(joinMap.Presets.JoinNumber + 1, () => DefaultVolume());
-            trilist.SetBoolSigAction(joinMap.EnableLevelSend.JoinNumber, b => SetLevelSend(b));
+            trilist.SetSigTrueAction(joinMap.Presets.JoinNumber + 1, DefaultVolume);
 
             //Link main volume to channel 1 feedback
             trilist.StringInput[joinMap.ChannelName.JoinNumber + 1].StringValue = "Main Volume";
@@ -128,12 +118,12 @@ namespace ExtronMlsDsp
             VolumeFeedback.LinkInputSig(trilist.UShortInput[joinMap.ChannelVolume.JoinNumber + 1]);
 
             //Link channel 1 actions to main volume            
-            trilist.SetSigTrueAction(joinMap.ChannelMuteToggle.JoinNumber + 1, () => MuteToggle());
-            trilist.SetSigTrueAction(joinMap.ChannelMuteOn.JoinNumber + 1, () => MuteOn());
-            trilist.SetSigTrueAction(joinMap.ChannelMuteOff.JoinNumber + 1, () => MuteOff());
+            trilist.SetSigTrueAction(joinMap.ChannelMuteToggle.JoinNumber + 1, MuteToggle);
+            trilist.SetSigTrueAction(joinMap.ChannelMuteOn.JoinNumber + 1, MuteOn);
+            trilist.SetSigTrueAction(joinMap.ChannelMuteOff.JoinNumber + 1, MuteOff);
 
-            trilist.SetBoolSigAction(joinMap.ChannelVolumeUp.JoinNumber + 1, b => VolumeUp(b));
-            trilist.SetBoolSigAction(joinMap.ChannelVolumeDown.JoinNumber + 1, b => VolumeDown(b));
+            trilist.SetBoolSigAction(joinMap.ChannelVolumeUp.JoinNumber + 1, VolumeUp);
+            trilist.SetBoolSigAction(joinMap.ChannelVolumeDown.JoinNumber + 1, VolumeDown);
 
             trilist.SetSigFalseAction(joinMap.EnableLevelSend.JoinNumber + 1, () =>
             {
@@ -143,29 +133,11 @@ namespace ExtronMlsDsp
 
             trilist.SetUShortSigAction(joinMap.ChannelVolume.JoinNumber + 1, u =>
             {
-                if (trilist.BooleanOutput[joinMap.EnableLevelSend.JoinNumber + 1].BoolValue == true)
+                if (trilist.BooleanOutput[joinMap.EnableLevelSend.JoinNumber + 1].BoolValue)
                 {
                     SetVolume(u);
                 }
             });
-        }
-
-        private void SetLevelSend(bool b)
-        {
-            if (b == true)
-            {
-                _readyForLevelTimer.Reset(5000);
-            }
-            else
-            {
-                _readyForLevelTimer.Stop();
-                _readyForLevel = false;
-            }
-        }
-
-        private void EnableLevelSend(object callbackObject)
-        {
-            _readyForLevel = true;
         }
 
         /// <summary>
@@ -183,17 +155,17 @@ namespace ExtronMlsDsp
         /// </summary>
         /// <param name="dev"></param>
         /// <param name="args"></param>
-        private void Handle_BytesRecieved(object dev, GenericCommMethodReceiveTextArgs args)
+        private void Handle_BytesReceived(object dev, GenericCommMethodReceiveTextArgs args)
         {
             Debug.Console(1, this, "Extron Mls RX: '{0}'", args.Text);
             try
             {
                 if (args.Text.Contains("Vol"))
                 {
-                    //Get number after Vol, for example 013 if return is Vol013
-                    int start = args.Text.IndexOf("Vol") + 3;
+                    //Get number after Vol, for example, 013 if return is Vol013
+                    int start = args.Text.IndexOf("Vol", StringComparison.Ordinal) + 3;
                     ushort volRaw = ushort.Parse(args.Text.Substring(start, 3));
-                    if (volRaw >= 0 && volRaw <= 100)
+                    if (volRaw <= 100)
                     {
                         _volumeFb = (ushort)(volRaw * ushort.MaxValue / 100);
                         VolumeFeedback.FireUpdate();
@@ -225,9 +197,9 @@ namespace ExtronMlsDsp
         private void IsOnlineFeedback_OutputChange(object dev, FeedbackEventArgs args)
         {
             OnlineFeedback.FireUpdate();
-            if (args.BoolValue == true)
+            if (args.BoolValue)
             {
-                //Device is now online
+                //The device is now online
                 //Lock front panel adjustments
                 SendText("1X");
                 //Set Audio Input 1
@@ -256,16 +228,13 @@ namespace ExtronMlsDsp
 
         public void SetVolume(ushort vol)
         {
-            if (_readyForLevel)
+            if (_muteFb)
             {
-                if (_muteFb)
-                {
-                    MuteOff();
-                }
-
-                int scaledVol = vol * 100 / ushort.MaxValue;
-                SendText(string.Format("{0}V", scaledVol));
+                MuteOff();
             }
+
+            int scaledVol = vol * 100 / ushort.MaxValue;
+            SendText(string.Format("{0}V", scaledVol));
         }
 
 
@@ -371,7 +340,7 @@ namespace ExtronMlsDsp
 
         public void MuteToggle()
         {
-            if (_muteFb == true)
+            if (_muteFb)
             {
                 MuteOff();
             }

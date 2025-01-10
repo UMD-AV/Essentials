@@ -119,6 +119,7 @@
         <Compile Include="AudioCodec\Interfaces\IHasAudioCodec.cs"/>
         <Compile Include="AudioCodec\MockAC\MockAC.cs"/>
         <Compile Include="AudioCodec\MockAC\MockAcPropertiesConfig.cs"/>
+        <Compile Include="Audio\Amplifier.cs"/>
         <Compile Include="AvBridges\VaddioBridge\VaddioBridgeConfig.cs"/>
         <Compile Include="AvBridges\VaddioBridge\VaddioBridgeDevice.cs"/>
         <Compile Include="AvBridges\VaddioBridge\VaddioBridgeJoinMap.cs"/>

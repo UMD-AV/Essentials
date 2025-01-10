@@ -248,7 +248,20 @@ namespace PepperDash.Essentials.Core
             trilist.SetSigTrueAction(joinMap.VolumeMuteOff.JoinNumber, volumeDisplayWithFeedback.MuteOff);
 
 
-            trilist.SetUShortSigAction(joinMap.VolumeLevel.JoinNumber, volumeDisplayWithFeedback.SetVolume);
+            trilist.SetSigFalseAction(joinMap.EnableLevelSend.JoinNumber, () =>
+            {
+                CrestronEnvironment.Sleep(500);
+                volumeDisplayWithFeedback.SetVolume(trilist.UShortOutput[joinMap.VolumeLevel.JoinNumber].UShortValue);
+            });
+
+            trilist.SetUShortSigAction(joinMap.VolumeLevel.JoinNumber, u =>
+            {
+                if (trilist.BooleanOutput[joinMap.EnableLevelSend.JoinNumber].BoolValue)
+                {
+                    volumeDisplayWithFeedback.SetVolume(u);
+                }
+            });
+
             volumeDisplayWithFeedback.VolumeLevelFeedback.LinkInputSig(
                 trilist.UShortInput[joinMap.VolumeLevel.JoinNumber]);
             volumeDisplayWithFeedback.MuteFeedback.LinkInputSig(trilist.BooleanInput[joinMap.VolumeMute.JoinNumber]);

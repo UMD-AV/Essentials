@@ -86,6 +86,14 @@ namespace PepperDash.Essentials.Core.Bridges
                 JoinType = eJoinType.Digital
             });
 
+        [JoinName("EnableLevelSend")] public JoinDataComplete EnableLevelSend = new JoinDataComplete(
+            new JoinData { JoinNumber = 10, JoinSpan = 1 },
+            new JoinMetadata
+            {
+                Description = "Enable Volume Level Send", JoinCapabilities = eJoinCapabilities.FromSIMPL,
+                JoinType = eJoinType.Digital
+            });
+
         [JoinName("InputSelectOffset")] public JoinDataComplete InputSelectOffset = new JoinDataComplete(
             new JoinData { JoinNumber = 11, JoinSpan = 10 },
             new JoinMetadata
