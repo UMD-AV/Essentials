@@ -404,9 +404,7 @@ namespace ViscaCameraPlugin
             if (_config.PrivacyOffPreset != null && _config.PrivacyOffPreset <= PresetMax)
                 _privacyOffPreset = config.PrivacyOffPreset;
 
-            if (_config.Control.Method.ToString().ToLower().StartsWith("udp") ||
-                _config.Control.Method.ToString().ToLower().StartsWith("tcp") ||
-                _config.Control.Method.ToString().ToLower().StartsWith("ssh"))
+            if (_config.Control.Method.ToString().ToLower().StartsWith("udp"))
                 _useHeader = true;
 
             if (_config.TrackingCmdType != null && _config.TrackingCmdType == "aver")
