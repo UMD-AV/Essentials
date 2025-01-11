@@ -58,7 +58,7 @@ namespace PepperDash.Essentials.DM
         public DmpsMicrophoneController Microphones { get; private set; }
 
         public const int RouteOffTime = 500;
-        private Dictionary<PortNumberType, CTimer> RouteOffTimers = new Dictionary<PortNumberType, CTimer>();
+        private readonly Dictionary<PortNumberType, CTimer> RouteOffTimers = new Dictionary<PortNumberType, CTimer>();
 
         /// <summary>
         /// Text that represents when an output has no source routed to it
@@ -113,7 +113,7 @@ namespace PepperDash.Essentials.DM
         /// </summary>
         /// <param name="key"></param>
         /// <param name="name"></param>
-        /// <param name="chassis"></param>
+        /// <param name="systemControl"></param>
         public DmpsRoutingController(string key, string name, ISystemControl systemControl)
             : base(key, name)
         {
@@ -123,27 +123,23 @@ namespace PepperDash.Essentials.DM
             {
                 case eSystemControlType.Dmps34K150CSystemControl:
                     SystemControl = systemControl as Dmps34K150CSystemControl;
-                    SystemPowerOnFeedback = new BoolFeedback(() => { return true; });
-                    SystemPowerOffFeedback = new BoolFeedback(() => { return false; });
+                    SystemPowerOnFeedback = new BoolFeedback(() => true);
+                    SystemPowerOffFeedback = new BoolFeedback(() => false);
                     break;
                 case eSystemControlType.Dmps34K200CSystemControl:
                 case eSystemControlType.Dmps34K250CSystemControl:
                 case eSystemControlType.Dmps34K300CSystemControl:
                 case eSystemControlType.Dmps34K350CSystemControl:
                     SystemControl = systemControl as Dmps34K300CSystemControl;
-                    SystemPowerOnFeedback = new BoolFeedback(() => { return true; });
-                    SystemPowerOffFeedback = new BoolFeedback(() => { return false; });
+                    SystemPowerOnFeedback = new BoolFeedback(() => true);
+                    SystemPowerOffFeedback = new BoolFeedback(() => false);
                     break;
                 default:
                     SystemControl = systemControl as Dmps3SystemControl;
                     SystemPowerOnFeedback = new BoolFeedback(() =>
-                    {
-                        return ((Dmps3SystemControl)SystemControl).SystemPowerOnFeedBack.BoolValue;
-                    });
+                        ((Dmps3SystemControl)SystemControl).SystemPowerOnFeedBack.BoolValue);
                     SystemPowerOffFeedback = new BoolFeedback(() =>
-                    {
-                        return ((Dmps3SystemControl)SystemControl).SystemPowerOffFeedBack.BoolValue;
-                    });
+                        ((Dmps3SystemControl)SystemControl).SystemPowerOffFeedBack.BoolValue);
                     break;
             }
 
@@ -157,14 +153,8 @@ namespace PepperDash.Essentials.DM
             TxDictionary = new Dictionary<uint, string>();
             RxDictionary = new Dictionary<uint, string>();
 
-            FrontPanelLockOnFeedback = new BoolFeedback(() =>
-            {
-                return SystemControl.FrontPanelLockOnFeedback.BoolValue;
-            });
-            FrontPanelLockOffFeedback = new BoolFeedback(() =>
-            {
-                return SystemControl.FrontPanelLockOffFeedback.BoolValue;
-            });
+            FrontPanelLockOnFeedback = new BoolFeedback(() => SystemControl.FrontPanelLockOnFeedback.BoolValue);
+            FrontPanelLockOffFeedback = new BoolFeedback(() => SystemControl.FrontPanelLockOffFeedback.BoolValue);
 
             VideoOutputFeedbacks = new Dictionary<uint, IntFeedback>();
             AudioOutputFeedbacks = new Dictionary<uint, IntFeedback>();
@@ -538,7 +528,7 @@ namespace PepperDash.Essentials.DM
 
 
         /// <summary>
-        /// Iterate the SwitcherOutputs collection to setup feedbacks and add routing ports
+        /// Iterate the SwitcherOutputs collection to set up feedbacks and add routing ports
         /// </summary>
         private void SetupOutputCards()
         {
@@ -722,8 +712,38 @@ namespace PepperDash.Essentials.DM
 
                     if (inputCard.VideoDetectedFeedback != null && inputCard.VideoDetectedFeedback.Supported)
                     {
-                        VideoInputSyncFeedbacks[inputCard.Number] =
-                            new BoolFeedback(() => inputCard.VideoDetectedFeedback.BoolValue);
+                        if (SystemControl.SystemControlType == eSystemControlType.Dmps34K150CSystemControl)
+                        {
+                            if (inputCard is Card.Dmps3VgaInput)
+                            {
+                                VideoInputSyncFeedbacks[inputCard.Number] =
+                                    new BoolFeedback(() =>
+                                        ((Card.Dmps3VgaInput)inputCard).VgaInputPort.SyncDetectedFeedback.BoolValue);
+                            }
+                            else if (inputCard is Card.Dmps3HdmiInputWithoutAnalogAudio)
+                            {
+                                VideoInputSyncFeedbacks[inputCard.Number] =
+                                    new BoolFeedback(() =>
+                                        ((Card.Dmps3HdmiInputWithoutAnalogAudio)inputCard).HdmiInputPort
+                                        .SyncDetectedFeedback.BoolValue);
+                            }
+                            else if (inputCard is Card.Dmps3DmInput)
+                            {
+                                VideoInputSyncFeedbacks[inputCard.Number] =
+                                    new BoolFeedback(() =>
+                                        ((Card.Dmps3DmInput)inputCard).DmInputPort.SyncDetectedFeedback.BoolValue);
+                            }
+                            else
+                            {
+                                VideoInputSyncFeedbacks[inputCard.Number] =
+                                    new BoolFeedback(() => false);
+                            }
+                        }
+                        else
+                        {
+                            VideoInputSyncFeedbacks[inputCard.Number] =
+                                new BoolFeedback(() => inputCard.VideoDetectedFeedback.BoolValue);
+                        }
                     }
 
                     InputNameFeedbacks[inputCard.Number] = new StringFeedback(() =>
@@ -759,7 +779,7 @@ namespace PepperDash.Essentials.DM
         }
 
         /// <summary>
-        /// Builds the appropriate ports aand callst the appropreate add port method
+        /// Builds the appropriate ports and calls the appropriate add port method
         /// </summary>
         /// <param name="number"></param>
         /// <param name="inputCard"></param>
@@ -774,16 +794,6 @@ namespace PepperDash.Essentials.DM
 
                 AddInputPortWithDebug(number, string.Format("HdmiIn{0}", number),
                     eRoutingSignalType.Audio | eRoutingSignalType.Video, eRoutingPortConnectionType.Hdmi, cecPort);
-            }
-            else if (inputCard is Card.Dmps3HdmiInput)
-            {
-                Card.Dmps3HdmiInput hdmiInputCard = inputCard as Card.Dmps3HdmiInput;
-                Dmps3HdmiInputPort cecPort = hdmiInputCard.HdmiInputPort;
-
-                AddInputPortWithDebug(number, string.Format("HdmiIn{0}", number),
-                    eRoutingSignalType.Audio | eRoutingSignalType.Video, eRoutingPortConnectionType.Hdmi, cecPort);
-                AddInputPortWithDebug(number, string.Format("HudioIn{1}", number), eRoutingSignalType.Audio,
-                    eRoutingPortConnectionType.LineAudio);
             }
             else if (inputCard is Card.Dmps3HdmiVgaInput)
             {
@@ -1131,9 +1141,23 @@ namespace PepperDash.Essentials.DM
                     }
                     case (DMInputEventIds.VideoDetectedEventId):
                     {
-                        Debug.Console(1, this, "DM Input {0} VideoDetectedEventId, state: {1}", args.Number,
-                            (Dmps.SwitcherInputs[args.Number] as DMInput).VideoDetectedFeedback.BoolValue);
-                        VideoInputSyncFeedbacks[args.Number].FireUpdate();
+                        if (SystemControl.SystemControlType != eSystemControlType.Dmps34K150CSystemControl)
+                        {
+                            Debug.Console(1, this, "DM Input {0} VideoDetectedEventId, state: {1}", args.Number,
+                                ((DMInput)Dmps.SwitcherInputs[args.Number]).VideoDetectedFeedback.BoolValue);
+                            VideoInputSyncFeedbacks[args.Number].FireUpdate();
+                        }
+
+                        break;
+                    }
+                    case (DMInputEventIds.SourceSyncEventId):
+                    {
+                        if (SystemControl.SystemControlType == eSystemControlType.Dmps34K150CSystemControl)
+                        {
+                            Debug.Console(1, this, "DM Input {0} SourceSyncEventId", args.Number);
+                            VideoInputSyncFeedbacks[args.Number].FireUpdate();
+                        }
+
                         break;
                     }
                     case (DMInputEventIds.InputNameEventId):

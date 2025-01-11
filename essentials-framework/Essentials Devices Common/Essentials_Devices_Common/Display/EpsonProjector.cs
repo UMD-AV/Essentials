@@ -295,7 +295,7 @@ namespace PepperDash.Essentials.Devices.Displays
             trilist.SetSigTrueAction(joinMap.VolumeMuteOn.JoinNumber, MuteOn);
             trilist.SetSigTrueAction(joinMap.VolumeMuteOff.JoinNumber, MuteOff);
 
-            trilist.SetSigFalseAction(joinMap.EnableLevelSend.JoinNumber, () => { VolumeReleaseTimer.Reset(500); });
+            trilist.SetSigFalseAction(joinMap.EnableLevelSend.JoinNumber, () => { VolumeReleaseTimer.Reset(300); });
 
             trilist.SetUShortSigAction(joinMap.VolumeLevel.JoinNumber, u =>
             {
