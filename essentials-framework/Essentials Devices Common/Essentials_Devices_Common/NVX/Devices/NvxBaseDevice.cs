@@ -138,6 +138,8 @@ namespace NvxEpi.Devices
             if (DefaultMulticastRoute != null)
                 Hardware.Control.ServerUrl.StringValue = DefaultMulticastRoute;
 
+            StreamUrl.FireUpdate();
+
             return base.CustomActivate();
         }
 
@@ -224,6 +226,11 @@ namespace NvxEpi.Devices
         public StringFeedback StreamUrl
         {
             get { return _currentVideoStream.StreamUrl; }
+        }
+
+        public bool IsMock
+        {
+            get { return false; }
         }
 
         public BoolFeedback IsStreamingVideo

@@ -11,10 +11,10 @@ namespace VaddioBridgePlugin
 
         [JsonProperty("password")] public string Password { get; set; }
 
-        [JsonProperty("pollTimeMs")] public long PollTimeMs { get; set; }
+        [JsonProperty("pollTimeMs")] public long? PollTimeMs { get; set; }
 
-        [JsonProperty("warningTimeoutMs")] public long WarningTimeoutMs { get; set; }
+        [JsonProperty("warningTimeoutMs")] public long? WarningTimeoutMs { get; set; }
 
-        [JsonProperty("errorTimeoutMs")] public long ErrorTimeoutMs { get; set; }
+        [JsonProperty("errorTimeoutMs")] public long? ErrorTimeoutMs { get; set; }
     }
 }

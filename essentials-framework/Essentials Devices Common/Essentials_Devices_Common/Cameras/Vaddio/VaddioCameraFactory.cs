@@ -3,14 +3,14 @@ using PepperDash.Core;
 using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Config;
 
-namespace ViscaCameraPlugin
+namespace VaddioCameraPlugin
 {
-    public class ViscaCameraFactory : EssentialsPluginDeviceFactory<ViscaCameraDevice>
+    public class VaddioCameraFactory : EssentialsPluginDeviceFactory<VaddioCameraDevice>
     {
-        public ViscaCameraFactory()
+        public VaddioCameraFactory()
         {
             // In the constructor we initialize the list with the typenames that will build an instance of this device
-            TypeNames = new List<string>() { "visca", "viscacamera" };
+            TypeNames = new List<string>() { "vaddiocameracli" };
         }
 
         // Builds and returns an instance of EssentialsPluginDeviceTemplate
@@ -21,18 +21,19 @@ namespace ViscaCameraPlugin
             IBasicCommunication comms = CommFactory.CreateCommForDevice(dc);
             if (comms == null)
             {
-                Debug.Console(0, "[{0}] VISCA Camera: failed to create comms for {1}", dc.Key, dc.Name);
+                Debug.Console(0, "Factory failed to create comms for [{0}] {1}", dc.Key, dc.Name);
                 return null;
             }
 
-            ViscaCameraConfig propertiesConfig = dc.Properties.ToObject<ViscaCameraConfig>();
+            VaddioCameraConfig propertiesConfig = dc.Properties.ToObject<VaddioCameraConfig>();
             if (propertiesConfig == null)
             {
-                Debug.Console(0, "[{0}] VISCA Camera: failed to read properties config for {1}", dc.Key, dc.Name);
+                Debug.Console(0, "Factory failed to read properties config for [{0}] {1}", dc.Key,
+                    dc.Name);
                 return null;
             }
 
-            return new ViscaCameraDevice(dc.Key, dc.Name, comms, propertiesConfig);
+            return new VaddioCameraDevice(dc.Key, dc.Name, comms, propertiesConfig);
         }
     }
 }

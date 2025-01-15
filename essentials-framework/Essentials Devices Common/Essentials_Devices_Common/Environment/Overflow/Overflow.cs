@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Crestron.SimplSharpPro;
 using Crestron.SimplSharpPro.DeviceSupport;
 using Crestron.SimplSharpPro.EthernetCommunication;
@@ -12,16 +13,18 @@ namespace OverflowPlugin
 {
     public class Overflow : EssentialsBridgeableDevice
     {
-        private ThreeSeriesTcpIpEthernetIntersystemCommunications OverflowEisc;
+        private readonly ThreeSeriesTcpIpEthernetIntersystemCommunications OverflowEisc;
         private BasicTriList InternalEisc;
-        private BoolFeedback OverflowOnline;
+        private readonly BoolFeedback OverflowOnline;
         private BoolFeedback InternalOnline;
-        private BoolFeedback RemoteOverflowOn;
-        private BoolFeedback RemoteOverflowOff;
-        private OverflowBridgeJoinMap overflowJoinMap = new OverflowBridgeJoinMap(1);
+        private readonly BoolFeedback RemoteOverflowOn;
+        private readonly BoolFeedback RemoteOverflowOff;
+        private readonly StringFeedback[] StreamUrls;
+        private readonly OverflowBridgeJoinMap overflowJoinMap = new OverflowBridgeJoinMap(1);
 
         private uint internalJoinOffset;
         private uint endInternalJoin;
+        private Tieline[] tielines;
 
         public Overflow(string key, string name, OverflowPropertiesConfig props)
             : base(key, name)
@@ -36,6 +39,15 @@ namespace OverflowPlugin
                 OverflowEisc.BooleanOutput[overflowJoinMap.OverflowOn.JoinNumber].BoolValue);
             RemoteOverflowOff = new BoolFeedback(() =>
                 OverflowEisc.BooleanOutput[overflowJoinMap.OverflowOff.JoinNumber].BoolValue);
+
+            tielines = props.Tielines;
+            StreamUrls = new StringFeedback[32];
+            for (uint i = 0; i < StreamUrls.Length; i++)
+            {
+                uint index = overflowJoinMap.StreamUrl.JoinNumber + i;
+                StreamUrls[i] = new StringFeedback(() =>
+                    OverflowEisc.StringOutput[index].StringValue);
+            }
         }
 
         public override void LinkToApi(BasicTriList trilist, uint joinStart, string joinMapKey, EiscApiAdvanced bridge)
@@ -45,17 +57,34 @@ namespace OverflowPlugin
             endInternalJoin = joinStart + 10;
             InternalEisc = trilist;
             InternalOnline = new BoolFeedback(() => trilist.IsOnline);
-            trilist.SigChange += new SigEventHandler(InternalEisc_SigChange);
-            trilist.OnlineStatusChange += new OnlineStatusChangeEventHandler(InternalEisc_OnlineStatusChange);
+            trilist.SigChange += InternalEisc_SigChange;
+            trilist.OnlineStatusChange += InternalEisc_OnlineStatusChange;
 
             //Send this device name to SIMPL
-            InternalEisc.StringInput[joinMap.DeviceName.JoinNumber].StringValue = this.Name;
+            InternalEisc.StringInput[joinMap.DeviceName.JoinNumber].StringValue = Name;
 
             //Send camera EISC online status to SIMPL on join 1
             OverflowOnline.LinkInputSig(trilist.BooleanInput[joinMap.IsOnline.JoinNumber]);
 
             RemoteOverflowOn.LinkInputSig(trilist.BooleanInput[joinMap.OverflowOn.JoinNumber]);
             RemoteOverflowOff.LinkInputSig(trilist.BooleanInput[joinMap.OverflowOff.JoinNumber]);
+
+            if (tielines != null)
+            {
+                foreach (Tieline tieline in tielines)
+                {
+                    try
+                    {
+                        uint remoteIndex = uint.Parse(tieline.remote.Replace("rx", ""));
+                        uint localIndex = uint.Parse(tieline.remote.Replace("tx", ""));
+                        StreamUrls[remoteIndex].LinkInputSig(trilist.StringInput[localIndex]);
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.Console(0, this, "Unable to process tieline {0} to {1}", tieline.remote, tieline.local);
+                    }
+                }
+            }
         }
 
         public override bool CustomActivate()
@@ -63,6 +92,11 @@ namespace OverflowPlugin
             OverflowEisc.Register();
             RemoteOverflowOn.FireUpdate();
             RemoteOverflowOff.FireUpdate();
+            for (uint i = 0; i < StreamUrls.Length; i++)
+            {
+                StreamUrls[i].FireUpdate();
+            }
+
             return true;
         }
 
@@ -93,6 +127,13 @@ namespace OverflowPlugin
                 }
                 case eSigType.String:
                 {
+                    //Remote overflow command
+                    if (args.Sig.Number >= overflowJoinMap.StreamUrl.JoinNumber &&
+                        args.Sig.Number < overflowJoinMap.StreamUrl.JoinNumber + 32)
+                    {
+                        StreamUrls[args.Sig.Number - overflowJoinMap.StreamUrl.JoinNumber].FireUpdate();
+                    }
+
                     break;
                 }
             }
@@ -157,6 +198,10 @@ namespace OverflowPlugin
             {
                 RemoteOverflowOn.FireUpdate();
                 RemoteOverflowOff.FireUpdate();
+                for (uint i = 0; i < StreamUrls.Length; i++)
+                {
+                    StreamUrls[i].FireUpdate();
+                }
             }
             else
             {
@@ -169,12 +214,25 @@ namespace OverflowPlugin
             InternalOnline.FireUpdate();
             RemoteOverflowOn.FireUpdate();
             RemoteOverflowOff.FireUpdate();
+            for (uint i = 0; i < StreamUrls.Length; i++)
+            {
+                StreamUrls[i].FireUpdate();
+            }
         }
+    }
+
+    public class Tieline
+    {
+        [JsonProperty("remote")] public string remote;
+
+        [JsonProperty("local")] public string local;
     }
 
     public class OverflowPropertiesConfig
     {
         [JsonProperty("control")] public ControlPropertiesConfig Control { get; set; }
+
+        [JsonProperty("tielines")] public Tieline[] Tielines { get; set; }
     }
 
     public class OverflowFactory : EssentialsDeviceFactory<Overflow>
@@ -251,6 +309,19 @@ namespace OverflowPlugin
             {
                 Description = "Name",
                 JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                JoinType = eJoinType.Serial
+            });
+
+        [JoinName("StreamUrl")] public JoinDataComplete StreamUrl = new JoinDataComplete(
+            new JoinData()
+            {
+                JoinNumber = 2,
+                JoinSpan = 32
+            },
+            new JoinMetadata()
+            {
+                Description = "StreamUrl",
+                JoinCapabilities = eJoinCapabilities.ToFromSIMPL,
                 JoinType = eJoinType.Serial
             });
 

@@ -19,11 +19,11 @@ namespace NvxEpi.Services.Feedback
             }
             else if (device is DmNvxE3x)
             {
-                (device as DmNvxE3x).SourceTransmit.StreamChange += (stream, args) => feedback.FireUpdate();
+                device.SourceTransmit.StreamChange += (stream, args) => feedback.FireUpdate();
             }
             else if (device is DmNvxE760x)
             {
-                (device as DmNvxE760x).SourceTransmit.StreamChange += (stream, args) => feedback.FireUpdate();
+                device.SourceTransmit.StreamChange += (stream, args) => feedback.FireUpdate();
             }
             else
             {

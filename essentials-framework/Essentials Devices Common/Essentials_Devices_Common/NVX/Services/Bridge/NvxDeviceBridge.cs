@@ -8,6 +8,8 @@ using NvxEpi.Services.Feedback;
 using PepperDash.Core;
 using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Bridges;
+using NvxEpi.Abstractions.Stream;
+using NvxEpi.Devices;
 
 namespace NvxEpi.Services.Bridge
 {
@@ -47,6 +49,9 @@ namespace NvxEpi.Services.Bridge
                         break;
                     case AudioInputValueFeedback.Key:
                         joinNumber = joinMap.AudioInput.JoinNumber;
+                        break;
+                    case StreamUrlFeedback.Key:
+                        joinNumber = joinMap.StreamUrl.JoinNumber;
                         break;
                 }
 
@@ -104,11 +109,11 @@ namespace NvxEpi.Services.Bridge
 
             var danteInput = _device as ICurrentDanteInput;
             if (audioInput != null)
-                trilist.SetUShortSigAction(joinMap.DanteInput.JoinNumber, danteInput.SetDanteInput);
+                trilist.SetUShortSigAction(joinMap.DanteInput.JoinNumber, danteInput.SetDanteInput);*/
 
-            var stream = _device as IStreamWithHardware;
+            IStreamWithHardware stream = _device as IStreamWithHardware;
             if (stream != null)
-                trilist.SetStringSigAction(joinMap.StreamUrl.JoinNumber, stream.SetStreamUrl);*/
+                trilist.SetStringSigAction(joinMap.StreamUrl.JoinNumber, stream.SetStreamUrl);
         }
 
         private void LinkRouting(BasicTriList trilist, NvxDeviceJoinMap joinMap)

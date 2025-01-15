@@ -6,6 +6,7 @@ using NvxEpi.Application.Config;
 using NvxEpi.Enums;
 using NvxEpi.Extensions;
 using NvxEpi.Abstractions.InputSwitching;
+using NvxEpi.Devices;
 using PepperDash.Core;
 using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Routing;
@@ -73,7 +74,7 @@ namespace NvxEpi.Application.Entities
         private void LinkRoutingInputPort(string routingPortKey)
         {
             if (string.IsNullOrEmpty(routingPortKey) || Device is INvxE3XDeviceWithHardware ||
-                Device is INvxE76XDeviceWithHardware)
+                Device is INvxE76XDeviceWithHardware || Device is NvxMockDevice)
             {
                 RoutingInputPort routingPort = Device.InputPorts[DeviceInputEnum.NoSwitch.Name];
                 if (routingPort == null)

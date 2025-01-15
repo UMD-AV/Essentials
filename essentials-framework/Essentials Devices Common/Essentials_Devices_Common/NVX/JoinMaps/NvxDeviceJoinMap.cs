@@ -95,6 +95,19 @@ namespace NvxEpi.JoinMaps
                 Description = "Video Input Source"
             });
 
+        [JoinName("StreamUrl")] public JoinDataComplete StreamUrl = new JoinDataComplete(
+            new JoinData
+            {
+                JoinNumber = 10,
+                JoinSpan = 1,
+            },
+            new JoinMetadata
+            {
+                JoinCapabilities = eJoinCapabilities.ToFromSIMPL,
+                JoinType = eJoinType.Serial,
+                Description = "Stream Url"
+            });
+
         public NvxDeviceJoinMap(uint joinStart)
             : base(joinStart, typeof(NvxDeviceJoinMap))
         {

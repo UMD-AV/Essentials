@@ -14,12 +14,12 @@ namespace VaddioBridgePlugin
     {
         private readonly IBasicCommunication _comms;
         private byte[] _commsByteBuffer = new byte[] { };
-        private readonly GenericCommunicationMonitor _commsMonitor;
+        private readonly StatusMonitorBase _commsMonitor;
         private readonly bool _commsIsSerial;
         private bool _loggedIn;
         private bool _usernameSent;
-        private CMutex _bufferMutex;
-        private CTimer _loginTimeout;
+        private readonly CMutex _bufferMutex;
+        private readonly CTimer _loginTimeout;
 
         private readonly VaddioBridgeConfig _config;
 
@@ -198,11 +198,6 @@ namespace VaddioBridgePlugin
         public IntFeedback SocketStatusFeedback { get; private set; }
 
         /// <summary>
-        /// Monitor status feedback
-        /// </summary>
-        public IntFeedback MonitorStatusFeedback { get; private set; }
-
-        /// <summary>
         /// Constructor
         /// </summary>
         /// <param name="key">device key</param>
@@ -221,9 +216,7 @@ namespace VaddioBridgePlugin
             _bufferMutex = new CMutex();
             _loginTimeout = new CTimer(LoginTimeoutExpired, Timeout.Infinite);
 
-            OnlineFeedback = new BoolFeedback(() => _comms.IsConnected);
-            MonitorStatusFeedback = new IntFeedback(() => (int)_commsMonitor.Status);
-
+            OnlineFeedback = new BoolFeedback(() => _comms != null && _comms.IsConnected);
             PowerOnFeedback = new BoolFeedback(() => PowerOn);
             PipOnFeedback = new BoolFeedback(() => PipOn);
             PipUpperLeftFeedback = new BoolFeedback(() => PipLayout == ePipLayout.UpperLeft);
@@ -237,44 +230,61 @@ namespace VaddioBridgePlugin
             IpAddressFeedback = new StringFeedback(() => IpAddress);
             FirmwareVersionFeedback = new StringFeedback(() => FirmwareVersion);
 
-            if (_config.PollTimeMs > 0 && _config.PollTimeMs != _pollTimeMs)
-                _pollTimeMs = _config.PollTimeMs;
+            if (_config.PollTimeMs != null && _config.PollTimeMs > 0 && _config.PollTimeMs != _pollTimeMs)
+                _pollTimeMs = (long)_config.PollTimeMs;
 
-            if (_config.WarningTimeoutMs > 0 && _config.WarningTimeoutMs != _warningTimeoutMs)
-                _warningTimeoutMs = _config.WarningTimeoutMs;
+            if (_config.WarningTimeoutMs != null && _config.WarningTimeoutMs > 0 &&
+                _config.WarningTimeoutMs != _warningTimeoutMs)
+                _warningTimeoutMs = (long)_config.WarningTimeoutMs;
 
-            if (_config.ErrorTimeoutMs > 0 && _config.ErrorTimeoutMs != _errorTimeoutMs)
-                _errorTimeoutMs = _config.ErrorTimeoutMs;
+            if (_config.ErrorTimeoutMs != null && _config.ErrorTimeoutMs > 0 &&
+                _config.ErrorTimeoutMs != _errorTimeoutMs)
+                _errorTimeoutMs = (long)_config.ErrorTimeoutMs;
 
             _comms = comms;
-            _comms.BytesReceived += Handle_BytesRecieved;
+            _comms.BytesReceived += Handle_BytesReceived;
             _commsMonitor =
                 new GenericCommunicationMonitor(this, _comms, _pollTimeMs, _warningTimeoutMs, _errorTimeoutMs, Poll);
+
+            if (config.Control.Method.ToString() == "ssh")
+            {
+                _loggedIn = true;
+            }
 
             ISocketStatus socket = _comms as ISocketStatus;
             if (socket != null)
             {
-                // device is configured for IP control
+                // the device is configured for IP control
                 _commsIsSerial = false;
                 socket.ConnectionChange += socket_ConnectionChange;
                 SocketStatusFeedback = new IntFeedback(() => (int)socket.ClientStatus);
             }
             else
             {
-                // device is configured for RS232 control
+                // the device is configured for RS232 control
                 _commsIsSerial = true;
                 _commsMonitor.Start();
             }
         }
 
         /// <summary>
-        /// Use the custom activate to connect the device and start the comms monitor
+        /// Use custom activate to connect the device and start the comms monitor
         /// </summary>
         /// <returns></returns>
         public override bool CustomActivate()
         {
+            Debug.Console(0, "Activating bridge");
             // Essentials will handle the connect method to the device
-            _comms.Connect();
+            try
+            {
+                _comms.Connect();
+            }
+            catch (Exception e)
+            {
+                Debug.Console(0, e.Message);
+            }
+
+            Debug.Console(0, "Bridge connected");
             // Essentials will handle starting the comms monitor
             _commsMonitor.Start();
 
@@ -284,7 +294,7 @@ namespace VaddioBridgePlugin
         #region Overrides of EssentialsBridgeableDevice
 
         /// <summary>
-        /// Link to API method replaces bridge class, this method will be called by the bridge directly
+        /// Link to API method replaces bridge class, the bridge will call this method directly
         /// </summary>
         /// <param name="trilist"></param>
         /// <param name="joinStart"></param>
@@ -398,9 +408,9 @@ namespace VaddioBridgePlugin
 
 
         /// <summary>
-        /// Send bytes to device
+        /// Send bytes to the device
         /// </summary>
-        /// <param name="bytes"></param>
+        /// <param name="text"></param>
         public void SendText(string text)
         {
             if (text == null || !this._loggedIn) return;
@@ -408,18 +418,16 @@ namespace VaddioBridgePlugin
             text += "\r";
             Debug.Console(1, this, "Sending text: {0}", text);
 
-            if (_commsIsSerial)
-                _comms.SendText(text);
-            else
+            if (!_commsIsSerial)
             {
                 if (!_comms.IsConnected)
                     _comms.Connect();
-
-                _comms.SendText(text);
             }
+
+            _comms.SendText(text);
         }
 
-        private void Handle_BytesRecieved(object sender, GenericCommMethodReceiveBytesArgs args)
+        private void Handle_BytesReceived(object sender, GenericCommMethodReceiveBytesArgs args)
         {
             CrestronInvoke.BeginInvoke(o =>
             {
@@ -467,7 +475,7 @@ namespace VaddioBridgePlugin
                             }
                         }
 
-                        // save partial message here
+                        // save a partial message here
                         _commsByteBuffer = byteBuffer.Skip(position).ToArray();
                     }
                     catch (Exception ex)
@@ -609,7 +617,7 @@ namespace VaddioBridgePlugin
             if (!_usernameSent)
             {
                 _usernameSent = true;
-                string username = _config.Username == null ? "admin" : _config.Username;
+                string username = _config.Username ?? "admin";
                 if (!_commsIsSerial && !_comms.IsConnected)
                 {
                     _comms.Connect();
@@ -618,7 +626,7 @@ namespace VaddioBridgePlugin
                 _comms.SendText(username + "\r");
                 _loginTimeout.Reset(5000);
                 CrestronEnvironment.Sleep(1000);
-                string password = _config.Password == null ? "" : _config.Password;
+                string password = _config.Password ?? "";
                 _comms.SendText(password + "\r");
             }
         }

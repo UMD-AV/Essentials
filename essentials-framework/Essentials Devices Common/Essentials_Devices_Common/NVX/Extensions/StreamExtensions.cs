@@ -1,6 +1,8 @@
 using System;
 using Crestron.SimplSharpPro.DM.Streaming;
 using NvxEpi.Abstractions.Stream;
+using NvxEpi.Devices;
+using NvxEpi.Features.Streams.Video;
 using PepperDash.Core;
 
 namespace NvxEpi.Extensions
@@ -12,6 +14,17 @@ namespace NvxEpi.Extensions
             if (device.IsTransmitter)
                 return;
 
+            if (device.IsMock)
+            {
+                NvxMockDevice mock = device as NvxMockDevice;
+                if (mock != null)
+                {
+                    mock.ClearStreamMock();
+                }
+
+                return;
+            }
+
             Debug.Console(1, device, "Clearing stream");
             device.Hardware.Control.ServerUrl.StringValue = string.Empty;
         }
@@ -20,6 +33,32 @@ namespace NvxEpi.Extensions
         {
             if (device.IsTransmitter)
                 throw new ArgumentException("device");
+
+            if (device.IsMock)
+            {
+                NvxMockDevice mock = device as NvxMockDevice;
+                if (mock != null)
+                {
+                    if (tx == null)
+                    {
+                        mock.ClearStreamMock();
+                        return;
+                    }
+
+                    if (!tx.IsTransmitter)
+                        throw new ArgumentException("tx");
+
+                    Debug.Console(1, device, "Routing device stream : '{0}'", tx.Name);
+                    tx.StreamUrl.FireUpdate();
+
+                    if (string.IsNullOrEmpty(tx.StreamUrl.StringValue))
+                        mock.ClearStreamMock();
+                    else
+                        mock.SetStreamUrlMock(tx.StreamUrl.StringValue);
+                }
+
+                return;
+            }
 
             if (tx == null)
             {
@@ -45,6 +84,16 @@ namespace NvxEpi.Extensions
                 return;
 
             Debug.Console(1, device, "Setting stream: '{0}'", url);
+
+            if (device.IsMock)
+            {
+                NvxMockDevice mock = device as NvxMockDevice;
+                if (mock != null)
+                {
+                    mock.SetStreamUrlMock(url);
+                }
+            }
+
             device.Hardware.Control.ServerUrl.StringValue = url;
             if (device.Hardware is DmNvxD3x)
             {

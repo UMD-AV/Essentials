@@ -80,6 +80,11 @@ namespace NvxEpi.Features.Streams.Video
             get { return _device.OutputPorts; }
         }
 
+        public bool IsMock
+        {
+            get { return false; }
+        }
+
         public BoolFeedback IsStreamingVideo
         {
             get { return _isStreamingVideo; }

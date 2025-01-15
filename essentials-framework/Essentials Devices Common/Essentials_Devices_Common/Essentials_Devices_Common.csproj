@@ -132,6 +132,10 @@
         <Compile Include="Cameras\Crestron\CrestronCameraDevice.cs"/>
         <Compile Include="Cameras\Crestron\CrestronCameraFactory.cs"/>
         <Compile Include="Cameras\IHasCameraPresets.cs"/>
+        <Compile Include="Cameras\Vaddio\VaddioCameraDevice.cs"/>
+        <Compile Include="Cameras\Vaddio\VaddioCameraFactory.cs"/>
+        <Compile Include="Cameras\Vaddio\VaddioCameraConfig.cs"/>
+        <Compile Include="Cameras\Vaddio\VaddioCameraBridgeJoinMap.cs"/>
         <Compile Include="Cameras\Visca\ViscaCameraBridgeJoinMap.cs"/>
         <Compile Include="Cameras\Visca\ViscaCameraConfig.cs"/>
         <Compile Include="Cameras\Visca\ViscaCameraDevice.cs"/>
@@ -202,6 +206,7 @@
         <Compile Include="Environment\Lutron\LutronQSGrafikEye.cs"/>
         <Compile Include="Environment\Lutron\LutronGRX.cs"/>
         <Compile Include="Environment\Lutron\LutronQSKeypad.cs"/>
+        <Compile Include="Environment\Lutron\LutronTMH.cs"/>
         <Compile Include="Environment\nLight\nLight.cs"/>
         <Compile Include="Environment\Overflow\Overflow.cs"/>
         <Compile Include="Microphones\Catchbox.cs"/>
@@ -303,6 +308,7 @@
         <Compile Include="NVX\Features\Streams\Audio\SecondaryAudioStream.cs"/>
         <Compile Include="NVX\Features\Streams\Usb\UsbStream.cs"/>
         <Compile Include="NVX\Features\Streams\Video\CurrentVideoStream.cs"/>
+        <Compile Include="NVX\Features\Streams\Video\MockCurrentVideoStream.cs"/>
         <Compile Include="NVX\Features\Streams\Video\VideoStream.cs"/>
         <Compile Include="NVX\JoinMaps\NvxDeviceJoinMap.cs"/>
         <Compile Include="NVX\Services\Bridge\NvxDeviceBridge.cs"/>

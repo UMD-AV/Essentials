@@ -30,6 +30,8 @@ namespace NvxEpi.Features.Config
     {
         public int DeviceId { get; set; }
         public string StreamUrl { get; set; }
+
+        public string Mode { get; set; }
         public string MulticastVideoAddress { get; set; }
         public string MulticastAudioAddress { get; set; }
     }
