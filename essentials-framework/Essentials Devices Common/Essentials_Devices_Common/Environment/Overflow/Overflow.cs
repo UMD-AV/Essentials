@@ -32,9 +32,8 @@ namespace OverflowPlugin
             OverflowEisc = new ThreeSeriesTcpIpEthernetIntersystemCommunications(props.Control.IpIdInt,
                 props.Control.TcpSshProperties.Address, Global.ControlSystem);
             OverflowOnline = new BoolFeedback(() => OverflowEisc.IsOnline);
-            OverflowEisc.SigChange += new SigEventHandler(OverflowEisc_SigChange);
-            OverflowEisc.OnlineStatusChange +=
-                new Crestron.SimplSharpPro.OnlineStatusChangeEventHandler(OverflowEisc_OnlineStatusChange);
+            OverflowEisc.SigChange += OverflowEisc_SigChange;
+            OverflowEisc.OnlineStatusChange += OverflowEisc_OnlineStatusChange;
             RemoteOverflowOn = new BoolFeedback(() =>
                 OverflowEisc.BooleanOutput[overflowJoinMap.OverflowOn.JoinNumber].BoolValue);
             RemoteOverflowOff = new BoolFeedback(() =>
@@ -54,7 +53,7 @@ namespace OverflowPlugin
         {
             OverflowBridgeJoinMap joinMap = new OverflowBridgeJoinMap(joinStart);
             internalJoinOffset = joinStart - 1;
-            endInternalJoin = joinStart + 10;
+            endInternalJoin = joinStart + 49;
             InternalEisc = trilist;
             InternalOnline = new BoolFeedback(() => trilist.IsOnline);
             trilist.SigChange += InternalEisc_SigChange;
@@ -77,6 +76,8 @@ namespace OverflowPlugin
                     {
                         uint remoteIndex = uint.Parse(tieline.remote.Replace("rx", ""));
                         uint localIndex = uint.Parse(tieline.local.Replace("tx", ""));
+                        Debug.Console(0, this, "Linking tieline {0} to {1}", remoteIndex,
+                            localIndex);
                         StreamUrls[remoteIndex - 1]
                             .LinkInputSig(trilist.StringInput[joinMap.StreamUrl.JoinNumber + localIndex - 1]);
                     }
