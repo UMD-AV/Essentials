@@ -76,12 +76,14 @@ namespace OverflowPlugin
                     try
                     {
                         uint remoteIndex = uint.Parse(tieline.remote.Replace("rx", ""));
-                        uint localIndex = uint.Parse(tieline.remote.Replace("tx", ""));
-                        StreamUrls[remoteIndex].LinkInputSig(trilist.StringInput[localIndex]);
+                        uint localIndex = uint.Parse(tieline.local.Replace("tx", ""));
+                        StreamUrls[remoteIndex - 1]
+                            .LinkInputSig(trilist.StringInput[joinMap.StreamUrl.JoinNumber + localIndex - 1]);
                     }
                     catch (Exception e)
                     {
-                        Debug.Console(0, this, "Unable to process tieline {0} to {1}", tieline.remote, tieline.local);
+                        Debug.Console(0, this, "Unable to process tieline {0} to {1}, exception: {2}", tieline.remote,
+                            tieline.local, e.Message);
                     }
                 }
             }
