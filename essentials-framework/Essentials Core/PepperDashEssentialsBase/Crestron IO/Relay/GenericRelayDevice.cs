@@ -26,7 +26,7 @@ namespace PepperDash.Essentials.Core.CrestronIO
         public GenericRelayDevice(string key, Relay relay) :
             base(key)
         {
-            OutputIsOnFeedback = new BoolFeedback(new Func<bool>(() => RelayOutput.State));
+            OutputIsOnFeedback = new BoolFeedback(new Func<bool>(() => RelayOutput != null && RelayOutput.State));
 
             RelayOutput = relay;
             RelayHoldTimer = new CTimer(RelayTimerCallback, Timeout.Infinite);
@@ -39,7 +39,7 @@ namespace PepperDash.Essentials.Core.CrestronIO
             RelayPortConfig config)
             : base(key, name)
         {
-            OutputIsOnFeedback = new BoolFeedback(() => RelayOutput.State);
+            OutputIsOnFeedback = new BoolFeedback(() => RelayOutput != null && RelayOutput.State);
             if (config.RelayHoldTimeSeconds >= 1)
             {
                 RelayHoldTimeSeconds = config.RelayHoldTimeSeconds;
@@ -70,7 +70,7 @@ namespace PepperDash.Essentials.Core.CrestronIO
 
         #region PreActivate
 
-        private static Relay GetRelay(RelayPortConfig dc)
+        public static Relay GetRelay(RelayPortConfig dc)
         {
             IRelayPorts relayDevice;
 

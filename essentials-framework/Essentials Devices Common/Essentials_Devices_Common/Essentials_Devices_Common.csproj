@@ -398,6 +398,7 @@
         <Compile Include="Recorders\PanoptoCloud\StartRecordingRequest.cs"/>
         <Compile Include="Recorders\PanoptoCloud\Utils.cs"/>
         <Compile Include="Scheduling\CollegeNet.cs"/>
+        <Compile Include="Screens\Dalite.cs"/>
         <Compile Include="SetTopBox\ContemporaryResearch.cs"/>
         <Compile Include="VideoCodec\ConvertiblePreset.cs"/>
         <Compile Include="Codec\IHasCallHold.cs"/>

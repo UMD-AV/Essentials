@@ -4,6 +4,7 @@ using System.Linq;
 using Crestron.SimplSharp;
 using NvxEpi.Abstractions.InputSwitching;
 using NvxEpi.Abstractions.Stream;
+using NvxEpi.Devices;
 using NvxEpi.Enums;
 using NvxEpi.Extensions;
 using NvxEpi.Services.InputSwitching;
@@ -31,9 +32,15 @@ namespace NvxEpi.Features.Routing
                 if (signalType.Is(eRoutingSignalType.Audio))
                     throw new ArgumentException("signal type must include video");
 
-                IStreamWithHardware rx = outputSelector as IStreamWithHardware;
+                IStream rx = outputSelector as IStreamWithHardware;
                 if (rx == null)
-                    throw new ArgumentNullException("rx");
+                {
+                    rx = outputSelector as NvxMockDevice;
+                    if (rx == null)
+                    {
+                        throw new ArgumentNullException("rx");
+                    }
+                }
 
                 IStream tx = inputSelector as IStream;
                 if (tx == null)

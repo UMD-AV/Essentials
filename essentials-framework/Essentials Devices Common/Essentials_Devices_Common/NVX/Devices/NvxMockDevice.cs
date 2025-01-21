@@ -1,5 +1,4 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using Crestron.SimplSharpPro.DeviceSupport;
 using Crestron.SimplSharpPro.DM.Streaming;
 using NvxEpi.Abstractions.SecondaryAudio;
@@ -16,13 +15,11 @@ using PepperDash.Core;
 using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Bridges;
 using PepperDash.Essentials.Core.Config;
-using PepperDash.Essentials.Devices.Common.VideoCodec;
 using Feedback = PepperDash.Essentials.Core.Feedback;
 
 namespace NvxEpi.Devices
 {
-    public class NvxMockDevice : EssentialsDevice, ISecondaryAudioStream, IRoutingNumeric, IBridgeAdvanced,
-        ICurrentStream
+    public class NvxMockDevice : EssentialsDevice, ISecondaryAudioStream, IRoutingNumeric, IBridgeAdvanced, IStream
     {
         private MockCurrentVideoStream _currentVideoStream;
 
@@ -229,6 +226,11 @@ namespace NvxEpi.Devices
 
         public void SetStreamUrlMock(string url)
         {
+            if (url == "")
+            {
+                url = this.Key;
+            }
+
             if (url.Equals(_streamUrl))
                 return;
 
@@ -254,7 +256,5 @@ namespace NvxEpi.Devices
             deviceBridge.LinkToApi(trilist, joinStart, joinMapKey, bridge);
             trilist.SetStringSigAction(joinMap.StreamUrl.JoinNumber, SetStreamUrlMock);
         }
-
-        public DmNvxBaseClass Hardware { get; private set; }
     }
 }
