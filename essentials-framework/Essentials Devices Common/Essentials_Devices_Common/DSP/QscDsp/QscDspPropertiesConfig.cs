@@ -138,10 +138,6 @@ namespace QscQsysDspPlugin
 
         [JsonProperty("disabled")] public bool Disabled { get; set; }
 
-        [JsonProperty("hasLevel")] public bool HasLevel { get; set; }
-
-        [JsonProperty("hasMute")] public bool HasMute { get; set; }
-
         [JsonProperty("isMic")] public bool IsMic { get; set; }
 
         [JsonProperty("permissions")] public int Permissions { get; set; }

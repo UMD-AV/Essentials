@@ -4,6 +4,7 @@ using System.Linq;
 using Crestron.SimplSharp;
 using NvxEpi.Abstractions;
 using NvxEpi.Abstractions.Stream;
+using NvxEpi.Devices;
 using NvxEpi.Features.Routing;
 using PepperDash.Core;
 using PepperDash.Essentials.Core;
@@ -50,27 +51,42 @@ namespace NvxEpi.Features.Streams.Video
 
         public void UpdateCurrentRoute()
         {
-            if (!IsOnline.BoolValue || IsTransmitter)
+            if (!IsOnline.BoolValue)
                 return;
-
             try
             {
                 _lock.Enter();
-                _current = GetCurrentStream();
 
-                if (_current == null)
+                if (!IsTransmitter)
                 {
-                    Debug.Console(2, this, "Current stream address: {0} device ID: {1}", "0.0.0.0", 0);
+                    StreamUrl.FireUpdate();
+                    _current = GetCurrentStream();
+
+                    if (_current == null)
+                    {
+                        Debug.Console(2, this, "Current stream address: {0} device ID: {1}", "0.0.0.0", 0, 0);
+                    }
+                    else
+                    {
+                        Debug.Console(2, this, "Current stream address: {0} device ID: {1}", _current.MulticastAddress,
+                            _current.DeviceId);
+                    }
+
+                    CurrentStreamId.FireUpdate();
+                    CurrentStreamName.FireUpdate();
                 }
                 else
                 {
-                    Debug.Console(2, this, "Current stream address: {0} device ID: {1}", _current.MulticastAddress,
-                        _current.DeviceId);
+                    Debug.Console(2, this, "Tx {0} updating rxs with empty stream feedbacks", this.Key);
+                    foreach (NvxBaseDevice rx in DeviceManager
+                                 .AllDevices
+                                 .OfType<NvxBaseDevice>()
+                                 .Where(t => !t.IsTransmitter && t.IsOnline.BoolValue)
+                                 .Where(x => x.CurrentStreamId.IntValue == 0))
+                    {
+                        rx.UpdateCurrentRoute();
+                    }
                 }
-
-                CurrentStreamId.FireUpdate();
-                CurrentStreamName.FireUpdate();
-                StreamUrl.FireUpdate();
             }
             catch (Exception ex)
             {
@@ -120,10 +136,10 @@ namespace NvxEpi.Features.Streams.Video
 
         private void Initialize()
         {
-            IsOnline.OutputChange += (currentDevice, args) => UpdateCurrentRoute();
-            VideoStreamStatus.OutputChange += (sender, args) => UpdateCurrentRoute();
-            IsStreamingVideo.OutputChange += (currentDevice, args) => UpdateCurrentRoute();
-            MulticastAddress.OutputChange += (currentDevice, args) => UpdateCurrentRoute();
+            //IsOnline.OutputChange += (currentDevice, args) => UpdateCurrentRoute();
+            //VideoStreamStatus.OutputChange += (sender, args) => UpdateCurrentRoute();
+            //IsStreamingVideo.OutputChange += (currentDevice, args) => UpdateCurrentRoute();
+            //MulticastAddress.OutputChange += (currentDevice, args) => UpdateCurrentRoute();
             StreamUrl.OutputChange += (currentDevice, args) => UpdateCurrentRoute();
         }
     }

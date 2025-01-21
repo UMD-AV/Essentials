@@ -5,6 +5,7 @@ using Crestron.SimplSharp;
 using NvxEpi.Abstractions;
 using NvxEpi.Abstractions.SecondaryAudio;
 using NvxEpi.Features.Routing;
+using NvxEpi.Services.Feedback;
 using PepperDash.Core;
 using PepperDash.Essentials.Core;
 
@@ -74,13 +75,11 @@ namespace NvxEpi.Features.Streams.Audio
 
         private void Initialize()
         {
-            IsOnline.OutputChange += (sender, args) => UpdateCurrentAudioRoute();
-            IsStreamingSecondaryAudio.OutputChange += (sender, args) => UpdateCurrentAudioRoute();
             SecondaryAudioStreamStatus.OutputChange += (sender, args) => UpdateCurrentAudioRoute();
             RxAudioAddress.OutputChange += (sender, args) => UpdateCurrentAudioRoute();
         }
 
-        private void UpdateCurrentAudioRoute()
+        public void UpdateCurrentAudioRoute()
         {
             if (!IsOnline.BoolValue)
                 return;

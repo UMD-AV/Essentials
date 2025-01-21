@@ -35,8 +35,8 @@ namespace NvxEpi.Devices
         ICommunicationMonitor,
         IDeviceInfoProvider
     {
-        private ICurrentSecondaryAudioStream _currentSecondaryAudioStream;
-        private ICurrentStream _currentVideoStream;
+        private CurrentSecondaryAudioStream _currentSecondaryAudioStream;
+        private CurrentVideoStream _currentVideoStream;
         private ICurrentVideoInput _videoSwitcher;
         private ICurrentAudioInput _audioSwitcher;
         private ICurrentNaxInput _naxSwitcher;
@@ -88,6 +88,16 @@ namespace NvxEpi.Devices
             AddPreActivationAction(() =>
                 CommunicationMonitor = new NvxCommunicationMonitor(this, 10000, 30000, Hardware));
             AddPreActivationAction(() => RegisterForOnlineFeedback(Hardware, props));
+        }
+
+        public void UpdateCurrentRoute()
+        {
+            _currentVideoStream.UpdateCurrentRoute();
+        }
+
+        public void UpdateCurrentAudioRoute()
+        {
+            _currentSecondaryAudioStream.UpdateCurrentAudioRoute();
         }
 
         private void SetDeviceName()
