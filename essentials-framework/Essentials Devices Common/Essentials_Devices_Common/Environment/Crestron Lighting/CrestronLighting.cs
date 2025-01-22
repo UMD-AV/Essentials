@@ -158,21 +158,33 @@ namespace PepperDash.Essentials.Devices.Common.Environment.CrestronLighting
 
         private void PushLightingOutputData()
         {
-            for (uint x = startJoin; x <= endJoin; x++)
+            if (LightingEisc != null && InternalEisc != null)
             {
-                LightingEisc.BooleanInput[x].BoolValue = InternalEisc.BooleanOutput[x + internalJoinOffset].BoolValue;
-                LightingEisc.UShortInput[x].UShortValue = InternalEisc.UShortOutput[x + internalJoinOffset].UShortValue;
-                LightingEisc.StringInput[x].StringValue = InternalEisc.StringOutput[x + internalJoinOffset].StringValue;
+                for (uint x = startJoin; x <= endJoin; x++)
+                {
+                    LightingEisc.BooleanInput[x].BoolValue =
+                        InternalEisc.BooleanOutput[x + internalJoinOffset].BoolValue;
+                    LightingEisc.UShortInput[x].UShortValue =
+                        InternalEisc.UShortOutput[x + internalJoinOffset].UShortValue;
+                    LightingEisc.StringInput[x].StringValue =
+                        InternalEisc.StringOutput[x + internalJoinOffset].StringValue;
+                }
             }
         }
 
         private void PushInternalOutputData()
         {
-            for (uint x = startJoin; x <= endJoin; x++)
+            if (LightingEisc != null && InternalEisc != null)
             {
-                InternalEisc.BooleanInput[x + internalJoinOffset].BoolValue = LightingEisc.BooleanOutput[x].BoolValue;
-                InternalEisc.UShortInput[x + internalJoinOffset].UShortValue = LightingEisc.UShortOutput[x].UShortValue;
-                InternalEisc.StringInput[x + internalJoinOffset].StringValue = LightingEisc.StringOutput[x].StringValue;
+                for (uint x = startJoin; x <= endJoin; x++)
+                {
+                    InternalEisc.BooleanInput[x + internalJoinOffset].BoolValue =
+                        LightingEisc.BooleanOutput[x].BoolValue;
+                    InternalEisc.UShortInput[x + internalJoinOffset].UShortValue =
+                        LightingEisc.UShortOutput[x].UShortValue;
+                    InternalEisc.StringInput[x + internalJoinOffset].StringValue =
+                        LightingEisc.StringOutput[x].StringValue;
+                }
             }
         }
 

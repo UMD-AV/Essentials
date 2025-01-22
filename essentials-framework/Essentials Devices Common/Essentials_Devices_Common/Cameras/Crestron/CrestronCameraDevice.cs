@@ -10,7 +10,7 @@ namespace CrestronCameraPlugin
         {
         }
 
-        public override void PollAutoTrack()
+        protected override void PollAutoTrack()
         {
             //Camera sends status via heartbeat, no longer needed
         }
@@ -42,7 +42,7 @@ namespace CrestronCameraPlugin
         /// <summary>
         /// Initialize the camera by sending Address Set Broadcast and IF Clear Broadcasst
         /// </summary>
-        public override void InitializeCamera()
+        protected override void InitializeCamera()
         {
             // send address set broadcast
             QueueCommand(new byte[] { 0x88, 0x30, 0x01, 0xFF });

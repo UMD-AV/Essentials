@@ -13,42 +13,42 @@ namespace ViscaCameraPlugin
     {
         public StatusMonitorBase CommunicationMonitor { get; private set; }
         private readonly IBasicCommunication _comms;
-        private CrestronQueue<ViscaCameraCommand> _commandQueue;
-        private CMutex _commandMutex;
-        private CTimer _commandTimer;
-        private CMutex _feedbackMutex;
+        private readonly CrestronQueue<ViscaCameraCommand> _commandQueue;
+        private readonly CMutex _commandMutex;
+        private readonly CTimer _commandTimer;
+        private readonly CMutex _feedbackMutex;
         private byte[] _incomingBuffer = { };
-        private bool _queueWaiting = false;
+        private bool _queueWaiting;
         private bool _commandReady = true;
         private readonly bool _commsIsSerial;
         private readonly bool _useHeader;
         private bool _offlineIFClearSent;
-        private uint _counter = 0;
-        protected bool _autoTrackingCapable = false;
-        protected uint _lastCalledPreset = 0;
+        private uint _counter;
+        protected readonly bool _autoTrackingCapable;
+        protected uint _lastCalledPreset;
         private EDirection _moveInProgress = EDirection.Stop;
         protected eViscaCameraCommand _lastInquiry = eViscaCameraCommand.NoFeedback;
 
         private readonly ViscaCameraConfig _config;
         private Dictionary<uint, uint> presetIds;
 
-        protected byte _address = 0x81;
-        protected byte _feedbackAddress = 0x90;
+        protected readonly byte _address = 0x81;
+        protected readonly byte _feedbackAddress = 0x90;
         private const uint AddressMax = 7;
 
-        private long _pollTimeMs = 60000; // 60s
-        private long _warningTimeoutMs = 18000; // 180s
-        private long _errorTimeoutMs = 300000; // 300s
+        private readonly long _pollTimeMs = 60000; // 60s
+        private readonly long _warningTimeoutMs = 18000; // 180s
+        private readonly long _errorTimeoutMs = 300000; // 300s
 
 
-        private uint? _privacyOnPreset;
-        private uint? _privacyOffPreset;
+        private readonly uint? _privacyOnPreset;
+        private readonly uint? _privacyOffPreset;
 
-        private byte[] _autoTrackingOnBytes;
-        private byte[] _autoTrackingOffBytes;
-        private byte[] _autoTrackingOnFbBytes;
-        private byte[] _autoTrackingOffFbBytes;
-        private byte[] _autoTrackingInquiryBytes;
+        private readonly byte[] _autoTrackingOnBytes;
+        private readonly byte[] _autoTrackingOffBytes;
+        private readonly byte[] _autoTrackingOnFbBytes;
+        private readonly byte[] _autoTrackingOffFbBytes;
+        private readonly byte[] _autoTrackingInquiryBytes;
 
 
         private bool _power;
@@ -61,7 +61,7 @@ namespace ViscaCameraPlugin
         /// <summary>
         /// Power property
         /// </summary>
-        public bool Power
+        protected bool Power
         {
             get { return _power; }
             set
@@ -89,7 +89,7 @@ namespace ViscaCameraPlugin
         /// <summary>
         /// Auto tracking on property
         /// </summary>
-        public bool AutoTrackingOn
+        protected bool AutoTrackingOn
         {
             get { return _autoTrackingOn; }
             set
@@ -125,12 +125,12 @@ namespace ViscaCameraPlugin
         private bool _autoFocus;
 
         /// <summary>
-        /// Auto focus feedback
+        /// Autofocus feedback
         /// </summary>
         public BoolFeedback AutoFocusFeedback { get; private set; }
 
         /// <summary>
-        /// Auto focus property
+        /// Autofocus property
         /// </summary>
         public bool AutoFocus
         {
@@ -175,7 +175,7 @@ namespace ViscaCameraPlugin
         /// <summary>
         /// Preset count property
         /// </summary>
-        public uint ActivePreset
+        protected uint ActivePreset
         {
             get { return (uint)_activePreset; }
             set
@@ -209,7 +209,7 @@ namespace ViscaCameraPlugin
         /// </summary>
         public uint PanSpeed
         {
-            get { return (uint)_panSpeed; }
+            get { return _panSpeed; }
             set
             {
                 if (_panSpeed == value) return;
@@ -226,7 +226,7 @@ namespace ViscaCameraPlugin
         /// </summary>
         public uint TiltSpeed
         {
-            get { return (uint)_tiltSpeed; }
+            get { return _tiltSpeed; }
             set
             {
                 if (_tiltSpeed == value) return;
@@ -243,7 +243,7 @@ namespace ViscaCameraPlugin
         /// </summary>
         public uint ZoomSpeed
         {
-            get { return (uint)_zoomSpeed; }
+            get { return _zoomSpeed; }
             set
             {
                 if (_zoomSpeed == value) return;
@@ -260,7 +260,7 @@ namespace ViscaCameraPlugin
         /// </summary>
         public uint FocusSpeed
         {
-            get { return (uint)_focusSpeed; }
+            get { return _focusSpeed; }
             set
             {
                 if (_focusSpeed == value) return;
@@ -270,8 +270,8 @@ namespace ViscaCameraPlugin
 
         public class ViscaCameraCommand
         {
-            public eViscaCameraCommand Command;
-            public byte[] Bytes;
+            public readonly eViscaCameraCommand Command;
+            public readonly byte[] Bytes;
 
             public ViscaCameraCommand(eViscaCameraCommand command, byte[] bytes)
             {
@@ -327,11 +327,6 @@ namespace ViscaCameraPlugin
         public IntFeedback SocketStatusFeedback { get; private set; }
 
         /// <summary>
-        /// Monitor status feedback
-        /// </summary>
-        public IntFeedback MonitorStatusFeedback { get; private set; }
-
-        /// <summary>
         /// Auto Tracking Capable Feedback
         /// </summary>
         public BoolFeedback AutoTrackingCapable { get; private set; }
@@ -355,8 +350,7 @@ namespace ViscaCameraPlugin
 
             _config = config;
 
-            OnlineFeedback = new BoolFeedback(() => _comms.IsConnected);
-            MonitorStatusFeedback = new IntFeedback(() => (int)CommunicationMonitor.Status);
+            OnlineFeedback = new BoolFeedback(() => _comms != null && _comms.IsConnected);
             AutoTrackingCapable = new BoolFeedback(() => _autoTrackingCapable);
 
             PowerFeedback = new BoolFeedback(() => Power);
@@ -368,7 +362,7 @@ namespace ViscaCameraPlugin
             PresetActiveFeedbacks = new Dictionary<uint, BoolFeedback>();
             ActivePresetFeedback = new IntFeedback(() => (int)ActivePreset);
 
-            if (_config.AutoTracking == true)
+            if (_config.AutoTracking)
                 _autoTrackingCapable = true;
 
             if (_config.PollTimeMs > 0 && _config.PollTimeMs != _pollTimeMs)
@@ -383,7 +377,7 @@ namespace ViscaCameraPlugin
             if (_config.Address > 0 && _config.Address <= AddressMax && _config.Address != _address)
             {
                 _address = Convert.ToByte(0x80 + _config.Address);
-                _feedbackAddress = Convert.ToByte((uint)(_config.Address + 8) * 16);
+                _feedbackAddress = Convert.ToByte((_config.Address + 8) * 16);
             }
 
             if (_config.PanSpeed > 0 && _config.PanSpeed <= PanSpeedMax)
@@ -425,7 +419,7 @@ namespace ViscaCameraPlugin
             }
 
             _comms = comms;
-            _comms.BytesReceived += Handle_BytesRecieved;
+            _comms.BytesReceived += Handle_BytesReceived;
             CommunicationMonitor = new GenericCommunicationMonitor(this, _comms, _pollTimeMs, _warningTimeoutMs,
                 _errorTimeoutMs, Poll, true);
             DeviceManager.AddDevice(CommunicationMonitor);
@@ -438,14 +432,14 @@ namespace ViscaCameraPlugin
             ISocketStatus socket = _comms as ISocketStatus;
             if (socket != null)
             {
-                // device is configured for IP control
+                // the device is configured for IP control
                 _commsIsSerial = false;
                 socket.ConnectionChange += socket_ConnectionChange;
                 SocketStatusFeedback = new IntFeedback(() => (int)socket.ClientStatus);
             }
             else
             {
-                // device is configured for RS232 control
+                // the device is configured for RS232 control
                 _commsIsSerial = true;
             }
 
@@ -454,7 +448,7 @@ namespace ViscaCameraPlugin
 
 
         /// <summary>
-        /// Use the custom activate to connect the device and start the comms monitor
+        /// Use custom activate to connect the device and start the comms monitor
         /// </summary>
         /// <returns></returns>
         public override bool CustomActivate()
@@ -490,7 +484,7 @@ namespace ViscaCameraPlugin
             {
                 ViscaCameraPresetConfig p = preset;
                 Debug.Console(0, this, "Preset {0} Name: {1}", p.Index, p.Name);
-                uint viscaId = p.ViscaId != null ? (uint)p.ViscaId : p.Index;
+                uint viscaId = p.ViscaId ?? p.Index;
 
                 presetIds.Add(p.Index, viscaId);
                 PresetNameFeedbacks.Add(p.Index, new StringFeedback(() => p.Name));
@@ -501,7 +495,7 @@ namespace ViscaCameraPlugin
         #region Overrides of EssentialsBridgeableDevice
 
         /// <summary>
-        /// Link to API method replaces bridge class, this method will be called by the bridge directly
+        /// Link to API method replaces bridge class, the bridge will call this method directly
         /// </summary>
         /// <param name="trilist"></param>
         /// <param name="joinStart"></param>
@@ -537,10 +531,10 @@ namespace ViscaCameraPlugin
                 SocketStatusFeedback.LinkInputSig(trilist.UShortInput[joinMap.Status.JoinNumber]);
 
             // power on
-            trilist.SetSigTrueAction(joinMap.PowerOn.JoinNumber, () => SetPowerOn());
+            trilist.SetSigTrueAction(joinMap.PowerOn.JoinNumber, SetPowerOn);
             PowerFeedback.LinkInputSig(trilist.BooleanInput[joinMap.PowerOn.JoinNumber]);
             // power off
-            trilist.SetSigTrueAction(joinMap.PowerOff.JoinNumber, () => SetPowerOff());
+            trilist.SetSigTrueAction(joinMap.PowerOff.JoinNumber, SetPowerOff);
             PowerFeedback.LinkComplementInputSig(trilist.BooleanInput[joinMap.PowerOff.JoinNumber]);
 
             // home
@@ -596,10 +590,11 @@ namespace ViscaCameraPlugin
             PresetSaved += (o, a) =>
             {
                 trilist.BooleanInput[joinMap.PresetSaved.JoinNumber].BoolValue = true;
-                new CTimer((object x) => trilist.BooleanInput[joinMap.PresetSaved.JoinNumber].BoolValue = false, 3000);
+                CTimer unused = new CTimer(x => trilist.BooleanInput[joinMap.PresetSaved.JoinNumber].BoolValue = false,
+                    3000);
             };
 
-            // preset - analog recall & save by number
+            // preset - analog recall and save by number
             trilist.SetUShortSigAction(joinMap.PresetRecallByNumber.JoinNumber, value =>
             {
                 RecallPresetByNumber(value);
@@ -760,8 +755,8 @@ namespace ViscaCameraPlugin
 
                                     default:
                                         _commandTimer
-                                            .Reset(
-                                                2000); //Wait maximum 2000 ms for response before sending next command
+                                            .Reset(2000);
+                                        //Wait maximum 2000 ms for response before sending the next command
                                         break;
                                 }
 
@@ -786,12 +781,12 @@ namespace ViscaCameraPlugin
             });
         }
 
-        public void QueueCommand(byte[] bytes)
+        protected void QueueCommand(byte[] bytes)
         {
             QueueCommand(eViscaCameraCommand.NoFeedback, bytes);
         }
 
-        public void QueueCommand(eViscaCameraCommand inquiry, byte[] bytes)
+        protected void QueueCommand(eViscaCameraCommand inquiry, byte[] bytes)
         {
             if (!_commandQueue.IsFull)
             {
@@ -807,7 +802,7 @@ namespace ViscaCameraPlugin
         }
 
         /// <summary>
-        /// Send bytes to device
+        /// Send bytes to the device
         /// </summary>
         /// <param name="bytes"></param>
         private void SendBytes(byte[] bytes)
@@ -831,7 +826,7 @@ namespace ViscaCameraPlugin
                     else
                         _counter = 0;
 
-                    byte[] header = new byte[]
+                    byte[] header =
                     {
                         0x01, 0x00, 0x00, Convert.ToByte(bytes.Length), (byte)(_counter << 8), (byte)(_counter << 16),
                         (byte)(_counter << 24), (byte)(_counter << 32)
@@ -847,7 +842,7 @@ namespace ViscaCameraPlugin
             }
         }
 
-        private void Handle_BytesRecieved(object sender, GenericCommMethodReceiveBytesArgs e)
+        private void Handle_BytesReceived(object sender, GenericCommMethodReceiveBytesArgs e)
         {
             try
             {
@@ -903,6 +898,11 @@ namespace ViscaCameraPlugin
         {
             Debug.Console(1, this, "Parsing: {0}, last inquiry: {1}", ComTextHelper.GetEscapedText(message),
                 _lastInquiry.ToString());
+
+            // Message: [0x90, 0x41, 0xFF]
+            // 0xz0 = Address, z = device address + 8, or 9 for visca over IP
+            // 0x4y = ACK (acknowledgment), y = socket number
+            // 0xFF = Terminator
             if (message.Length > 2 && (message[message.Length - 2] >> 4) == 4 &&
                 message[message.Length - 3] == _feedbackAddress)
             {
@@ -914,22 +914,27 @@ namespace ViscaCameraPlugin
 
                 return;
             }
-            else if (message.Length > 3 && (message[message.Length - 2] >> 4) == 4 &&
-                     (message[message.Length - 3] >> 4) == 6 && message[message.Length - 4] == _feedbackAddress)
+
+            // Message: [0x90, 0x61, 0x41, 0xFF]
+            // 0x6y = Error message, y = socket number
+            // 0x41 = Command not executable
+            // 0xFF = Terminator
+            if (message.Length > 3 && (message[message.Length - 2] >> 4) == 4 &&
+                (message[message.Length - 3] >> 4) == 6 && message[message.Length - 4] == _feedbackAddress)
             {
-                if (_lastInquiry == eViscaCameraCommand.AutoTrackOnPresetCmd)
+                switch (_lastInquiry)
                 {
-                    AutoTrackingOn = true;
-                }
-                else if (_lastInquiry == eViscaCameraCommand.AutoTrackOffPresetCmd)
-                {
-                    AutoTrackingOn = false;
-                }
-                else if (_lastInquiry == eViscaCameraCommand.PowerInquiry)
-                {
-                    Debug.Console(0, this,
-                        "Power inquiry received command not executable, possible camera issue. Sending IF Clear.");
-                    IFClear();
+                    case eViscaCameraCommand.AutoTrackOnPresetCmd:
+                        AutoTrackingOn = true;
+                        break;
+                    case eViscaCameraCommand.AutoTrackOffPresetCmd:
+                        AutoTrackingOn = false;
+                        break;
+                    case eViscaCameraCommand.PowerInquiry:
+                        Debug.Console(0, this,
+                            "Power inquiry received command not executable, possible camera issue. Sending IF Clear.");
+                        IFClear();
+                        break;
                 }
 
                 Debug.Console(0, this, "Received command not executable");
@@ -937,8 +942,11 @@ namespace ViscaCameraPlugin
                 readyForNextCommand();
                 return;
             }
-            else if (message.Length > 2 && (message[message.Length - 2] >> 4) == 5 &&
-                     message[message.Length - 3] == _feedbackAddress)
+
+            // Message: [0x90, 0x50, 0x02, 0xFF]
+            // 0x50 = Execution confirmation, 0x02 = Success, 0xFF = Terminator
+            if (message.Length > 2 && (message[message.Length - 2] >> 4) == 5 &&
+                message[message.Length - 3] == _feedbackAddress)
             {
                 Debug.Console(1, this, "Received execution confirmation, last inquiry: {0}", _lastInquiry.ToString());
                 switch (_lastInquiry)
@@ -994,20 +1002,35 @@ namespace ViscaCameraPlugin
                 readyForNextCommand();
                 return;
             }
-            else if (_lastInquiry != eViscaCameraCommand.NoFeedback && message.Length > 3)
+
+            // Message: [0x87, 0x09, 0x04, 0x00, 0xFF]
+            // Vaddio heartbeat from some devices
+            if (message.Length == 5 && (message[message.Length - 5] == 0x87) &&
+                (message[message.Length - 4] == 0x09) &&
+                (message[message.Length - 3] == 0x04) &&
+                (message[message.Length - 2] == 0x00) &&
+                (message[message.Length - 1] == 0xFF))
+            {
+                //Ignore
+                return;
+            }
+
+            if (_lastInquiry != eViscaCameraCommand.NoFeedback && message.Length > 3)
             {
                 switch (_lastInquiry)
                 {
                     case eViscaCameraCommand.PowerInquiry:
                         if (message[message.Length - 3] == 0x50)
                         {
-                            if (message[message.Length - 2] == 0x02)
+                            switch (message[message.Length - 2])
                             {
-                                Power = true;
-                            }
-                            else if (message[message.Length - 2] == 0x03 || message[message.Length - 2] == 0x04)
-                            {
-                                Power = false;
+                                case 0x02:
+                                    Power = true;
+                                    break;
+                                case 0x03:
+                                case 0x04:
+                                    Power = false;
+                                    break;
                             }
 
                             _lastInquiry = eViscaCameraCommand.NoFeedback;
@@ -1021,13 +1044,14 @@ namespace ViscaCameraPlugin
                     case eViscaCameraCommand.FocusInquiry:
                         if (message[message.Length - 3] == 0x50)
                         {
-                            if (message[message.Length - 2] == 0x02)
+                            switch (message[message.Length - 2])
                             {
-                                AutoFocus = true;
-                            }
-                            else if (message[message.Length - 2] == 0x03)
-                            {
-                                AutoFocus = false;
+                                case 0x02:
+                                    AutoFocus = true;
+                                    break;
+                                case 0x03:
+                                    AutoFocus = false;
+                                    break;
                             }
 
                             _lastInquiry = eViscaCameraCommand.NoFeedback;
@@ -1040,16 +1064,9 @@ namespace ViscaCameraPlugin
                         {
                             ushort preset = Convert.ToUInt16(message[message.Length - 2]);
                             Debug.Console(1, this, "Found preset feedback {0}", preset);
-                            if (preset == _config.PrivacyOnPreset)
-                            {
-                                PrivacyOn = true;
-                            }
-                            else
-                            {
-                                PrivacyOn = false;
-                            }
+                            PrivacyOn = preset == _config.PrivacyOnPreset;
 
-                            ActivePreset = (uint)preset;
+                            ActivePreset = preset;
                         }
                         catch
                         {
@@ -1066,10 +1083,8 @@ namespace ViscaCameraPlugin
 
                 return;
             }
-            else
-            {
-                ParseAdditionalFeedback(message);
-            }
+
+            ParseAdditionalFeedback(message);
         }
 
         protected virtual void ParseAdditionalFeedback(byte[] message)
@@ -1097,15 +1112,15 @@ namespace ViscaCameraPlugin
         }
 
         /// <summary>
-        /// Initialize the camera by sending Address Set Broadcast and IF Clear Broadcasst
+        /// Initialize the camera by sending Address Set Broadcast and IF Clear Broadcast
         /// </summary>
-        public virtual void InitializeCamera()
+        protected virtual void InitializeCamera()
         {
             // send address set broadcast
             byte[] cmd = new byte[] { 0x88, 0x30, 0x01, 0xFF };
             QueueCommand(cmd);
 
-            // send IF clear on connection
+            // send an 'IF clear' on connection
             cmd = new byte[] { 0x88, 0x01, 0x00, 0x01, 0xFF };
             QueueCommand(cmd);
         }
@@ -1135,13 +1150,13 @@ namespace ViscaCameraPlugin
             }
         }
 
-        public void PollPower()
+        protected void PollPower()
         {
             byte[] cmd = new byte[] { _address, 0x09, 0x04, 0x00, 0xFF };
             QueueCommand(eViscaCameraCommand.PowerInquiry, cmd);
         }
 
-        public virtual void PollAutoTrack()
+        protected virtual void PollAutoTrack()
         {
             QueueCommand(eViscaCameraCommand.AutoTrackInquiry, _autoTrackingInquiryBytes);
         }
@@ -1367,7 +1382,7 @@ namespace ViscaCameraPlugin
         }
 
         /// <summary>
-        /// Auto focus on/off
+        /// Autofocus on/off
         /// </summary>
         /// <param name="state">sig action true/false</param>
         public void AutoFocusSet(bool state)

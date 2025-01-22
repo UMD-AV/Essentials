@@ -122,8 +122,9 @@ namespace AverCameraPlugin
 
                 return;
             }
-            else if (message.Length > 2 && message[message.Length - 2] == 0x52 &&
-                     message[message.Length - 3] == _feedbackAddress)
+
+            if (message.Length > 2 && message[message.Length - 2] == 0x52 &&
+                message[message.Length - 3] == _feedbackAddress)
             {
                 Debug.Console(1, this, "Received execution confirmation, last inquiry: {0}", _lastInquiry.ToString());
                 switch (_lastInquiry)
@@ -212,7 +213,7 @@ namespace AverCameraPlugin
             }
         }
 
-        public override void PollAutoTrack()
+        protected override void PollAutoTrack()
         {
             PostData("cgi-bin?Get=trk_tracking_on,3&_=X", eAverCameraInquiry.AutoTrackInquiry);
         }
