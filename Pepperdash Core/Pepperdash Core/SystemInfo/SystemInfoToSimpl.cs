@@ -325,10 +325,10 @@ namespace PepperDash.Core.SystemInfo
         /// <summary>
         /// private method to parse console messages
         /// </summary>
-        /// <param name="response"></param>
+        /// <param name="data"></param>
         /// <param name="line"></param>
-        /// <param name="start"></param>
-        /// <param name="end"></param>
+        /// <param name="dataStart"></param>
+        /// <param name="dataEnd"></param>
         /// <returns></returns>
         private string ParseConsoleResponse(string data, string line, string dataStart, string dataEnd)
         {
@@ -340,9 +340,9 @@ namespace PepperDash.Core.SystemInfo
 
             try
             {
-                int linePos = data.IndexOf(line);
-                int startPos = data.IndexOf(dataStart, linePos) + dataStart.Length;
-                int endPos = data.IndexOf(dataEnd, startPos);
+                int linePos = data.IndexOf(line, StringComparison.Ordinal);
+                int startPos = data.IndexOf(dataStart, linePos, StringComparison.Ordinal) + dataStart.Length;
+                int endPos = data.IndexOf(dataEnd, startPos, StringComparison.Ordinal);
                 response = data.Substring(startPos, endPos - startPos).Trim();
             }
             catch (Exception e)
@@ -368,7 +368,7 @@ namespace PepperDash.Core.SystemInfo
             {
                 BoolChangeEventArgs args = new BoolChangeEventArgs(state, type);
                 args.Index = index;
-                BoolChange(this, args);
+                if (BoolChange != null) BoolChange(this, args);
             }
         }
 
@@ -385,7 +385,7 @@ namespace PepperDash.Core.SystemInfo
             {
                 StringChangeEventArgs args = new StringChangeEventArgs(value, type);
                 args.Index = index;
-                StringChange(this, args);
+                if (StringChange != null) StringChange(this, args);
             }
         }
 
@@ -402,7 +402,7 @@ namespace PepperDash.Core.SystemInfo
             {
                 ProcessorChangeEventArgs args = new ProcessorChangeEventArgs(processor, type);
                 args.Index = index;
-                ProcessorChange(this, args);
+                if (ProcessorChange != null) ProcessorChange(this, args);
             }
         }
 
@@ -419,7 +419,7 @@ namespace PepperDash.Core.SystemInfo
             {
                 EthernetChangeEventArgs args = new EthernetChangeEventArgs(ethernet, type);
                 args.Index = index;
-                EthernetChange(this, args);
+                if (EthernetChange != null) EthernetChange(this, args);
             }
         }
 
@@ -436,7 +436,7 @@ namespace PepperDash.Core.SystemInfo
             {
                 ControlSubnetChangeEventArgs args = new ControlSubnetChangeEventArgs(ethernet, type);
                 args.Index = index;
-                ControlSubnetChange(this, args);
+                if (ControlSubnetChange != null) ControlSubnetChange(this, args);
             }
         }
 
@@ -454,7 +454,7 @@ namespace PepperDash.Core.SystemInfo
             {
                 ProgramChangeEventArgs args = new ProgramChangeEventArgs(program, type);
                 args.Index = index;
-                ProgramChange(this, args);
+                if (ProgramChange != null) ProgramChange(this, args);
             }
         }
     }

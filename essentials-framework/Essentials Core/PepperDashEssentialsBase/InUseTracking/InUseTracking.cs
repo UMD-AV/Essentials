@@ -37,8 +37,9 @@ namespace PepperDash.Essentials.Core
 
         /// <summary>
         /// Add a "user" object to this tracker. A user can be added to this tracker 
-        /// multiple times, provided that the label is different
+        /// multiple times if the label is different
         /// </summary>
+        /// <param name="objectToAdd"></param>
         /// <param name="label">A label to identify the instance of the user. Treated like a "role", etc.</param>
         public void AddUser(object objectToAdd, string label)
         {
@@ -48,7 +49,7 @@ namespace PepperDash.Essentials.Core
 
             int prevCount = _Users.Count;
             _Users.Add(new InUseTrackingObject(objectToAdd, label));
-            // if this is the first add, fire an update
+            // if this is the first added, fire an update
             if (prevCount == 0 && _Users.Count > 0)
                 InUseFeedback.FireUpdate();
             InUseCountFeedback.FireUpdate();

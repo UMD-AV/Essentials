@@ -22,8 +22,7 @@ namespace PepperDash.Essentials.Core
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="key"></param>
-        /// <param name="act"></param>
+        /// <param name="item"></param>
         public static void AddJobTimerItem(JobTimerItem item)
         {
             JobTimerItem existing = Items.FirstOrDefault(i => i.Key == item.Key);

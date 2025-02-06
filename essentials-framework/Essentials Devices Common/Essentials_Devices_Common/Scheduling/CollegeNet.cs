@@ -29,7 +29,7 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
         private CTimer scheduleUpdateTimer;
         private CTimer scheduleTimeout;
         private uint scheduleFailCount;
-        private Random randomGenerator;
+        private readonly Random randomGenerator;
         private ushort nextMeetingIndex;
 
         public bool ScheduleOnline { get; private set; }
@@ -44,7 +44,7 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
                 _currentMeeting = value;
                 if (CurrentMeetingUpdated != null)
                 {
-                    CurrentMeetingUpdated(this, new EventArgs());
+                    CurrentMeetingUpdated(this, EventArgs.Empty);
                 }
             }
         }
@@ -59,34 +59,36 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
                 _nextMeeting = value;
                 if (NextMeetingUpdated != null)
                 {
-                    NextMeetingUpdated(this, new EventArgs());
+                    NextMeetingUpdated(this, EventArgs.Empty);
                 }
             }
         }
 
-        private string username;
-        private string password;
+        private readonly string username;
+        private readonly string password;
         private int spaceId;
         private string roomName;
         private HttpsClient secureClient;
-        private CMutex meetingMutex;
-        private JsonSerializerSettings jsonSettings;
+        private readonly CMutex meetingMutex;
+        private readonly JsonSerializerSettings jsonSettings;
 
         public CollegeNet(string key, string name, CollegeNetPropertiesConfig props) :
             base(key, name)
         {
             if (props.spaceId > 0)
             {
-                this.spaceId = props.spaceId;
+                spaceId = props.spaceId;
             }
 
-            this.username = props.username;
-            this.password = props.password;
+            username = props.username;
+            password = props.password;
             meetingMutex = new CMutex();
             randomGenerator = new Random();
-            jsonSettings = new JsonSerializerSettings();
-            jsonSettings.MissingMemberHandling = MissingMemberHandling.Ignore;
-            jsonSettings.NullValueHandling = NullValueHandling.Ignore;
+            jsonSettings = new JsonSerializerSettings
+            {
+                MissingMemberHandling = MissingMemberHandling.Ignore,
+                NullValueHandling = NullValueHandling.Ignore
+            };
             CrestronEnvironment.ProgramStatusEventHandler += CrestronEnvironmentOnProgramStatusEventHandler;
         }
 
@@ -94,9 +96,9 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
         {
             BuildClient();
             ScheduleOnline = false;
-            scheduleTimeout = new CTimer(scheduleTimeoutCallback, Crestron.SimplSharp.Timeout.Infinite);
+            scheduleTimeout = new CTimer(scheduleTimeoutCallback, Timeout.Infinite);
             scheduleUpdateTimer = new CTimer(scheduleUpdateTimerCallback, 5000);
-            updateCurrentMeeting = new CTimer(UpdateCurrentMeetingCallback, Crestron.SimplSharp.Timeout.Infinite);
+            updateCurrentMeeting = new CTimer(UpdateCurrentMeetingCallback, Timeout.Infinite);
             armScheduleUpdateTimer();
             return true;
         }
@@ -236,8 +238,8 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
             SpaceInfoUpdated += (o, a) =>
             {
                 uint count = 0;
-                trilist.StringInput[joinMap.SpaceName.JoinNumber + count].StringValue = SpaceName;
-                trilist.StringInput[joinMap.SpaceInstructions.JoinNumber + count].StringValue = Instructions;
+                trilist.StringInput[joinMap.SpaceName.JoinNumber].StringValue = SpaceName;
+                trilist.StringInput[joinMap.SpaceInstructions.JoinNumber].StringValue = Instructions;
                 if (SpaceFeatures != null)
                 {
                     foreach (Feature feature in SpaceFeatures)
@@ -293,13 +295,13 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
                 Debug.Console(1, this, "Getting https: {0}", data);
                 HttpsClientRequest req = new HttpsClientRequest();
                 string auth = string.Format("Basic {0}",
-                    Convert.ToBase64String(ASCIIEncoding.ASCII.GetBytes(username + ":" + password)));
+                    Convert.ToBase64String(Encoding.ASCII.GetBytes(username + ":" + password)));
                 string url = string.Format("https://webservices.collegenet.com/r25ws/wrd/umd/run/{0}", data);
                 Debug.Console(1, this, "url: {0} auth: {1}", url, auth);
                 req.Header.ContentType = "application/json";
                 req.Header.SetHeaderValue("Authorization", auth);
                 req.Encoding = Encoding.UTF8;
-                req.RequestType = Crestron.SimplSharp.Net.Https.RequestType.Get;
+                req.RequestType = RequestType.Get;
                 req.Url.Parse(url);
                 secureClient.DispatchAsyncEx(req, HttpsCallback, requestName);
             }
@@ -467,7 +469,7 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
             {
                 if (CurrentMeetingUpdated != null)
                 {
-                    CurrentMeetingUpdated(this, new EventArgs());
+                    CurrentMeetingUpdated(this, EventArgs.Empty);
                 }
             }
 
@@ -503,7 +505,6 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
                 if (response.Code < 200 || response.Code >= 300)
                 {
                     Debug.ConsoleWithLog(0, this, "Https client callback code error: {0}", response.Code);
-                    return;
                 }
                 else
                 {
@@ -519,184 +520,191 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
         private void ProcessFeedback(string requestName, string content)
         {
             Debug.Console(1, this, "Processing feedback:{0}", requestName);
-            if (requestName == "Reservations")
+            switch (requestName)
             {
-                try
+                case "Reservations":
                 {
-                    meetingMutex.WaitForMutex();
-                    Meetings = new List<Meeting>();
-
-                    ReservationsResponse response =
-                        JsonConvert.DeserializeObject<ReservationsResponse>(content, jsonSettings);
-                    scheduleTimeout.Stop();
-                    ScheduleOnline = true;
-                    scheduleFailCount = 0;
-                    if (response.reservations != null && response.reservations.reservation != null)
+                    try
                     {
-                        foreach (Reservation reservation in response.reservations.reservation)
-                        {
-                            try
-                            {
-                                bool matchExists = false;
-                                List<Meeting> matchesStart =
-                                    Meetings.FindAll(m => m.Start == reservation.reservation_start_dt);
-                                if (matchesStart.Count > 0)
-                                {
-                                    matchExists = matchesStart.Exists(m => m.End == reservation.reservation_end_dt);
-                                }
+                        meetingMutex.WaitForMutex();
+                        Meetings = new List<Meeting>();
 
-                                if (!matchExists)
+                        ReservationsResponse response =
+                            JsonConvert.DeserializeObject<ReservationsResponse>(content, jsonSettings);
+                        scheduleTimeout.Stop();
+                        ScheduleOnline = true;
+                        scheduleFailCount = 0;
+                        if (response.reservations != null && response.reservations.reservation != null)
+                        {
+                            foreach (Reservation reservation in response.reservations.reservation)
+                            {
+                                try
                                 {
-                                    Meetings.Add(new Meeting()
+                                    bool matchExists = false;
+                                    List<Meeting> matchesStart =
+                                        Meetings.FindAll(m => m.Start == reservation.reservation_start_dt);
+                                    if (matchesStart.Count > 0)
                                     {
-                                        Id = reservation.event_id = reservation.event_id,
-                                        Name = reservation.event_name != null
-                                            ? SimplifyClassName(reservation.event_name)
-                                            : "",
-                                        Title = reservation.event_title != null ? reservation.event_title : "",
-                                        Start = reservation.reservation_start_dt = reservation.reservation_start_dt,
-                                        End = reservation.reservation_end_dt = reservation.reservation_end_dt,
-                                        Type = reservation.event_type_name != null ? reservation.event_type_name : ""
-                                    });
-                                }
-                                else
-                                {
-                                    string newName = SimplifyClassName(reservation.event_name);
-                                    Meeting meeting = matchesStart.First(m => m.End == reservation.reservation_end_dt);
-                                    Debug.Console(0, this, "New overlapping meeting: {0}, newName: {1}, length: {2}",
-                                        meeting.Name, newName, meeting.Name.Length + newName.Length);
-                                    if ((meeting.Name.Length + newName.Length < 50) && !meeting.Name.Contains(newName))
+                                        matchExists = matchesStart.Exists(m => m.End == reservation.reservation_end_dt);
+                                    }
+
+                                    if (!matchExists)
                                     {
-                                        meeting.Name = meeting.Name + "/" + newName;
+                                        Meetings.Add(new Meeting()
+                                        {
+                                            Id = reservation.event_id = reservation.event_id,
+                                            Name = reservation.event_name != null
+                                                ? SimplifyClassName(reservation.event_name)
+                                                : "",
+                                            Title = reservation.event_title ?? "",
+                                            Start = reservation.reservation_start_dt = reservation.reservation_start_dt,
+                                            End = reservation.reservation_end_dt = reservation.reservation_end_dt,
+                                            Type = reservation.event_type_name ?? ""
+                                        });
+                                    }
+                                    else
+                                    {
+                                        string newName = SimplifyClassName(reservation.event_name);
+                                        Meeting meeting =
+                                            matchesStart.First(m => m.End == reservation.reservation_end_dt);
+                                        Debug.Console(0, this,
+                                            "New overlapping meeting: {0}, newName: {1}, length: {2}",
+                                            meeting.Name, newName, meeting.Name.Length + newName.Length);
+                                        if ((meeting.Name.Length + newName.Length < 50) &&
+                                            !meeting.Name.Contains(newName))
+                                        {
+                                            meeting.Name = meeting.Name + "/" + newName;
+                                        }
                                     }
                                 }
-                            }
-                            catch (Exception ex)
-                            {
-                                Debug.ConsoleWithLog(0, this, "Reservations processing exception: {0}", ex.Message);
-                            }
-                        }
-                    }
-
-                    if (SpaceFeatures == null || SpaceFeatures.Count == 0)
-                    {
-                        CrestronInvoke.BeginInvoke((o) =>
-                        {
-                            CrestronEnvironment.Sleep(10000);
-                            GetSpaceInfo();
-                        });
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Debug.ConsoleWithLog(0, this, "Reservations processing exception: {0}", ex.Message);
-                }
-                finally
-                {
-                    meetingMutex.ReleaseMutex();
-                }
-
-                if (MeetingsUpdated != null)
-                {
-                    MeetingsUpdated(this, null);
-                }
-
-                UpdateCurrentMeetingCallback(null);
-            }
-            else if (requestName == "Event")
-            {
-                try
-                {
-                    meetingMutex.WaitForMutex();
-                    EventsResponse response = JsonConvert.DeserializeObject<EventsResponse>(content);
-                    if (CurrentMeeting.Id == response.events._event.event_id)
-                    {
-                        Contact c = null;
-                        foreach (Role role in response.events._event.role)
-                        {
-                            if (role.role_name == "INSTRUCTOR")
-                            {
-                                c = role.contact;
-                                break;
-                            }
-                            else if (role.role_name != "Scheduler")
-                            {
-                                c = role.contact;
+                                catch (Exception ex)
+                                {
+                                    Debug.ConsoleWithLog(0, this, "Reservations processing exception: {0}", ex.Message);
+                                }
                             }
                         }
 
-                        if (c != null)
+                        if (SpaceFeatures == null || SpaceFeatures.Count == 0)
                         {
-                            CurrentMeeting.OrganizerName = c.contact_first_name + " " + c.contact_last_name;
-                            CurrentMeeting.OrganizerEmail = c.email.Replace("@g.umd.edu", "@umd.edu");
-                            if (CurrentMeetingUpdated != null)
+                            CrestronInvoke.BeginInvoke((o) =>
                             {
-                                CurrentMeetingUpdated(this, new EventArgs());
+                                CrestronEnvironment.Sleep(10000);
+                                GetSpaceInfo();
+                            });
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.ConsoleWithLog(0, this, "Reservations processing exception: {0}", ex.Message);
+                    }
+                    finally
+                    {
+                        meetingMutex.ReleaseMutex();
+                    }
+
+                    if (MeetingsUpdated != null)
+                    {
+                        MeetingsUpdated(this, null);
+                    }
+
+                    UpdateCurrentMeetingCallback(null);
+                    break;
+                }
+                case "Event":
+                    try
+                    {
+                        meetingMutex.WaitForMutex();
+                        EventsResponse response = JsonConvert.DeserializeObject<EventsResponse>(content);
+                        if (CurrentMeeting.Id == response.events._event.event_id)
+                        {
+                            Contact c = null;
+                            foreach (Role role in response.events._event.role)
+                            {
+                                if (role.role_name == "INSTRUCTOR")
+                                {
+                                    c = role.contact;
+                                    break;
+                                }
+                                else if (role.role_name != "Scheduler")
+                                {
+                                    c = role.contact;
+                                }
+                            }
+
+                            if (c != null)
+                            {
+                                CurrentMeeting.OrganizerName = c.contact_first_name + " " + c.contact_last_name;
+                                CurrentMeeting.OrganizerEmail = c.email.Replace("@g.umd.edu", "@umd.edu");
+                                if (CurrentMeetingUpdated != null)
+                                {
+                                    CurrentMeetingUpdated(this, EventArgs.Empty);
+                                }
                             }
                         }
                     }
-                }
-                catch (Exception ex)
-                {
-                    Debug.ConsoleWithLog(0, this, "Reservations processing exception: {0}", ex.Message);
-                }
-                finally
-                {
-                    meetingMutex.ReleaseMutex();
-                }
-            }
-            else if (requestName == "Space")
-            {
-                try
-                {
-                    SpaceResponse response = JsonConvert.DeserializeObject<SpaceResponse>(content);
-                    SpaceFeatures = response.Spaces.Space[0].Features;
-                    SpaceName = response.Spaces.Space[0].SpaceName;
-                    Instructions = response.Spaces.Space[0].Instructions;
-                    if (SpaceInfoUpdated != null)
+                    catch (Exception ex)
                     {
-                        SpaceInfoUpdated(this, new EventArgs());
+                        Debug.ConsoleWithLog(0, this, "Reservations processing exception: {0}", ex.Message);
                     }
-                }
-                catch (Exception ex)
-                {
-                    Debug.ConsoleWithLog(0, this, "Spaces processing exception: {0}", ex.Message);
-                }
-            }
-            else if (requestName == "SpacesName")
-            {
-                try
-                {
-                    SpaceResponse response = JsonConvert.DeserializeObject<SpaceResponse>(content);
-                    if (response.Spaces.Space.Count == 1)
+                    finally
                     {
-                        spaceId = response.Spaces.Space[0].SpaceId;
+                        meetingMutex.ReleaseMutex();
                     }
-                    else if (response.Spaces.Space.Count > 1)
+
+                    break;
+                case "Space":
+                    try
                     {
-                        if (response.Spaces.Space.Exists(s => s.SpaceName == roomName))
+                        SpaceResponse response = JsonConvert.DeserializeObject<SpaceResponse>(content);
+                        SpaceFeatures = response.Spaces.Space[0].Features;
+                        SpaceName = response.Spaces.Space[0].SpaceName;
+                        Instructions = response.Spaces.Space[0].Instructions;
+                        if (SpaceInfoUpdated != null)
                         {
-                            Space resultSpace = response.Spaces.Space.Find(s => s.SpaceName == roomName);
-                            spaceId = resultSpace.SpaceId;
+                            SpaceInfoUpdated(this, EventArgs.Empty);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.ConsoleWithLog(0, this, "Spaces processing exception: {0}", ex.Message);
+                    }
+
+                    break;
+                case "SpacesName":
+                    try
+                    {
+                        SpaceResponse response = JsonConvert.DeserializeObject<SpaceResponse>(content);
+                        if (response.Spaces.Space.Count == 1)
+                        {
+                            spaceId = response.Spaces.Space[0].SpaceId;
+                        }
+                        else if (response.Spaces.Space.Count > 1)
+                        {
+                            if (response.Spaces.Space.Exists(s => s.SpaceName == roomName))
+                            {
+                                Space resultSpace = response.Spaces.Space.Find(s => s.SpaceName == roomName);
+                                spaceId = resultSpace.SpaceId;
+                            }
+                            else
+                            {
+                                spaceId = response.Spaces.Space[0].SpaceId;
+                                Debug.ConsoleWithLog(0, this, "SpacesName no exact match found for: {0}, using id {1}",
+                                    roomName, spaceId);
+                            }
                         }
                         else
                         {
-                            spaceId = response.Spaces.Space[0].SpaceId;
-                            Debug.ConsoleWithLog(0, this, "SpacesName no exact match found for: {0}, using id {1}",
-                                roomName, spaceId);
+                            Debug.ConsoleWithLog(0, this, "SpacesName no results found for: {0}", roomName);
                         }
+
+                        GetTodaysReservations();
                     }
-                    else
+                    catch (Exception ex)
                     {
-                        Debug.ConsoleWithLog(0, this, "SpacesName no results found for: {0}", roomName);
+                        Debug.ConsoleWithLog(0, this, "SpacesName processing exception for name: {0}", ex.Message);
                     }
 
-                    GetTodaysReservations();
-                }
-                catch (Exception ex)
-                {
-                    Debug.ConsoleWithLog(0, this, "SpacesName processing exception for name: {0}", ex.Message);
-                }
+                    break;
             }
         }
 
@@ -721,8 +729,7 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
         {
             Debug.Console(1, "Factory attempting to create new CollegeNet Device");
             CollegeNetPropertiesConfig props =
-                Newtonsoft.Json.JsonConvert.DeserializeObject<CollegeNetPropertiesConfig>(
-                    dc.Properties.ToString());
+                JsonConvert.DeserializeObject<CollegeNetPropertiesConfig>(dc.Properties.ToString());
             return new CollegeNet(dc.Key, dc.Name, props);
         }
     }
@@ -1085,7 +1092,7 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
             new JoinDataComplete(new JoinData { JoinNumber = 3, JoinSpan = 1 },
                 new JoinMetadata
                 {
-                    Label = "NextMeetingIndex", JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                    Description = "NextMeetingIndex", JoinCapabilities = eJoinCapabilities.ToSIMPL,
                     JoinType = eJoinType.Analog
                 });
 

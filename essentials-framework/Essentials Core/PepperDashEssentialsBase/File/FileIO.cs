@@ -72,7 +72,6 @@ namespace PepperDash.Essentials.Core
         /// <summary>
         /// Get the data with fileInfo object 
         /// </summary>
-        /// <param name="fileName"></param>
         /// <returns></returns>
         public static string ReadDataFromFile(FileInfo file)
         {
@@ -183,21 +182,16 @@ namespace PepperDash.Essentials.Core
         }
 
         /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="data"></param>
-        /// <param name="filePath"></param>
-        /// <summary>
-        /// 
         /// </summary>
         /// <param name="data"></param>
         /// <param name="filePath"></param>
         public static void WriteDataToFile(string data, string filePath)
         {
-            Thread _WriteFileThread;
-            _WriteFileThread = new Thread((O) => _WriteFileMethod(data, filePath), null,
-                Thread.eThreadStartOptions.CreateSuspended);
-            _WriteFileThread.Priority = Thread.eThreadPriority.LowestPriority;
+            Thread _WriteFileThread = new Thread((O) => _WriteFileMethod(data, filePath), null,
+                Thread.eThreadStartOptions.CreateSuspended)
+            {
+                Priority = Thread.eThreadPriority.LowestPriority
+            };
             _WriteFileThread.Start();
             Debug.Console(0, Debug.ErrorLogLevel.Notice, "New WriteFile Thread");
         }

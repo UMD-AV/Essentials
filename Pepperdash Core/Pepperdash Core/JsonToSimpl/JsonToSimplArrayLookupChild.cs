@@ -11,9 +11,6 @@ namespace PepperDash.Core.JsonToSimpl
 
         private int ArrayIndex;
 
-        /// <summary>
-        /// For <2.4.1 array lookups
-        /// </summary>
         /// <param name="file"></param>
         /// <param name="key"></param>
         /// <param name="pathPrefix"></param>
@@ -29,9 +26,6 @@ namespace PepperDash.Core.JsonToSimpl
         }
 
 
-        /// <summary>
-        /// For newer >=2.4.1 array lookups. 
-        /// </summary>
         /// <param name="file"></param>
         /// <param name="key"></param>
         /// <param name="pathPrefix"></param>

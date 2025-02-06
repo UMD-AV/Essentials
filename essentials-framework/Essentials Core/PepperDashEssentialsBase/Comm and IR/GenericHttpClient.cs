@@ -55,7 +55,7 @@ namespace PepperDash.Essentials.Core
                     if (ResponseRecived != null)
                         ResponseRecived(this,
                             new GenericHttpClientEventArgs(responseReceived.ContentString,
-                                (request as HttpClientRequest).Url.ToString(), error));
+                                ((HttpClientRequest)request).Url.ToString(), error));
                 }
             }
         }

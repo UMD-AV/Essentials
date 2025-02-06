@@ -114,7 +114,6 @@ namespace PepperDash.Essentials.Core
         /// <summary>
         /// Gets the properties on a device
         /// </summary>
-        /// <param name="key"></param>
         /// <returns></returns>
         public static string GetProperties(string deviceObjectPath)
         {
@@ -158,7 +157,6 @@ namespace PepperDash.Essentials.Core
         /// <summary>
         /// Gets the methods on a device
         /// </summary>
-        /// <param name="key"></param>
         /// <returns></returns>
         public static string GetMethods(string deviceObjectPath)
         {

@@ -25,7 +25,7 @@ namespace PepperDash.Core
         /// <summary>
         /// This event will fire when a message is dequeued that includes the source IP and Port info if needed to determine the source of the received data.
         /// </summary>
-        public event EventHandler<GenericUdpReceiveTextExtraArgs> DataRecievedExtra;
+        public event EventHandler<GenericUdpReceiveTextExtraArgs> DataReceivedExtra;
 
         /// <summary>
         /// 
@@ -242,9 +242,9 @@ namespace PepperDash.Core
                 byte[] bytes = server.IncomingDataBuffer.Take(numBytes).ToArray();
                 string str = Encoding.GetEncoding(28591).GetString(bytes, 0, bytes.Length);
 
-                EventHandler<GenericUdpReceiveTextExtraArgs> dataRecivedExtra = DataRecievedExtra;
-                if (dataRecivedExtra != null)
-                    dataRecivedExtra(this, new GenericUdpReceiveTextExtraArgs(str, sourceIp, sourcePort, bytes));
+                EventHandler<GenericUdpReceiveTextExtraArgs> dataReceivedExtra = DataReceivedExtra;
+                if (dataReceivedExtra != null)
+                    dataReceivedExtra(this, new GenericUdpReceiveTextExtraArgs(str, sourceIp, sourcePort, bytes));
 
                 Debug.Console(2, this, "Bytes: {0}", bytes.ToString());
                 EventHandler<GenericCommMethodReceiveBytesArgs> bytesHandler = BytesReceived;

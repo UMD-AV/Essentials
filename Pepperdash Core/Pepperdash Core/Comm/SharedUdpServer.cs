@@ -60,9 +60,9 @@ namespace PepperDash.Core
         /// </summary>
         public event EventHandler<GenericSocketStatusChageEventArgs> ConnectionChange;
 
-        private SharedUdpServer Server;
-        private string _address;
-        private int _port;
+        private readonly SharedUdpServer Server;
+        private readonly string _address;
+        private readonly int _port;
 
         /// <summary>
         /// 

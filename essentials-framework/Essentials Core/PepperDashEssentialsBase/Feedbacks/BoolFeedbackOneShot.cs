@@ -35,9 +35,7 @@ namespace PepperDash.Essentials.Core
         }
 
         /// <summary>
-        /// Starts the 
         /// </summary>
-        /// <param name="timeout"></param>
         public void Start()
         {
             if (Timer == null)

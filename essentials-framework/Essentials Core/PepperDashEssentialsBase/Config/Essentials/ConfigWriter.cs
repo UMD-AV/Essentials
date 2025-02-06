@@ -118,8 +118,8 @@ namespace PepperDash.Essentials.Core.Config
         /// <summary>
         /// Writes
         /// </summary>
-        /// <param name="filepath"></param>
-        /// <param name="o"></param>
+        /// <param name="filePath"></param>
+        /// <param name="configData"></param>
         public static void WriteFile(string filePath, string configData)
         {
             if (WriteTimer != null)

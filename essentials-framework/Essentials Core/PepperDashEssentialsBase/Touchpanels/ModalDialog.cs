@@ -47,10 +47,6 @@ namespace PepperDash.Essentials.Core
         public const uint ModalVisibleJoin = 3999;
 
         /// <summary>
-        /// The seconds value of the countdown timer. Ushort join 3991
-        /// </summary>
-        //public const uint TimerSecondsJoin = 3991;
-        /// <summary>
         /// The full ushort value of the countdown timer for a gauge. Ushort join 3992
         /// </summary>
         public const uint TimerGaugeJoin = 3992;
@@ -121,11 +117,6 @@ namespace PepperDash.Essentials.Core
         /// <summary>
         /// Shows the dialog
         /// </summary>
-        /// <param name="numberOfButtons">Number of buttons to show. 0, 1, 2</param>
-        /// <param name="timeMs">The amount of time to show the dialog. Use 0 for no timeout.</param>
-        /// <param name="decreasingGauge">If the progress bar gauge needs to count down instead of up</param>
-        /// <param name="completeAction">The action to run when the dialog is dismissed. Parameter will be 1 or 2 if button pressed, or 0 if dialog times out</param>
-        /// <returns>True when modal is created.</returns>
         public bool PresentModalDialog(uint numberOfButtons, string title, string iconName,
             string message, string button1Text,
             string button2Text, bool showGauge, bool showCancel, Action<uint> completeAction)

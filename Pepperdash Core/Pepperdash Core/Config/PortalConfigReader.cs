@@ -173,8 +173,6 @@ namespace PepperDash.Core.Config
         /// <summary>
         /// Merge o2 onto o1
         /// </summary>
-        /// <param name="a"></param>
-        /// <param name="b"></param>
         private static JObject Merge(JObject o1, JObject o2, string path)
         {
             foreach (KeyValuePair<string, JToken> o2Prop in o2)

@@ -338,7 +338,7 @@ namespace PepperDash.Core
         {
             try
             {
-                if (serverConfigObject != null || string.IsNullOrEmpty(serverConfigObject.Key))
+                if (serverConfigObject != null)
                 {
                     Key = serverConfigObject.Key;
                     MaxClients = serverConfigObject.MaxClients;
@@ -678,7 +678,7 @@ namespace PepperDash.Core
         /// <summary>
         /// Secure Server Socket Status Changed Callback
         /// </summary>
-        /// <param name="mySecureTCPServer"></param>
+        /// <param name="server"></param>
         /// <param name="clientIndex"></param>
         /// <param name="serverSocketStatus"></param>
         private void TcpServer_SocketStatusChange(TCPServer server, uint clientIndex, SocketStatus serverSocketStatus)
@@ -723,7 +723,7 @@ namespace PepperDash.Core
         /// <summary>
         /// Secure TCP Client Connected to Secure Server Callback
         /// </summary>
-        /// <param name="mySecureTCPServer"></param>
+        /// <param name="server"></param>
         /// <param name="clientIndex"></param>
         private void TcpConnectCallback(TCPServer server, uint clientIndex)
         {
@@ -808,7 +808,7 @@ namespace PepperDash.Core
         /// <summary>
         /// Secure Received Data Async Callback
         /// </summary>
-        /// <param name="mySecureTCPServer"></param>
+        /// <param name="myTCPServer"></param>
         /// <param name="clientIndex"></param>
         /// <param name="numberOfBytesReceived"></param>
         private void TcpServerReceivedDataAsyncCallback(TCPServer myTCPServer, uint clientIndex,

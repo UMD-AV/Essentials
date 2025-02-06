@@ -60,7 +60,6 @@ namespace PepperDash.Essentials.Core
         /// <summary>
         /// Adds a plugin factory method
         /// </summary>
-        /// <param name="dc"></param>
         /// <returns></returns>
         public static void AddFactoryForType(string typeName, Func<DeviceConfig, IKeyed> method)
         {
@@ -172,10 +171,9 @@ namespace PepperDash.Essentials.Core
         /// <summary>
         /// Prints the type names and associated metadata from the FactoryMethods collection.
         /// </summary>
-        /// <param name="command"></param>
         public static void GetDeviceFactoryTypes(string filter)
         {
-            Dictionary<string, DeviceFactoryWrapper> types = new Dictionary<string, DeviceFactoryWrapper>();
+            Dictionary<string, DeviceFactoryWrapper> types;
 
             if (!string.IsNullOrEmpty(filter))
             {

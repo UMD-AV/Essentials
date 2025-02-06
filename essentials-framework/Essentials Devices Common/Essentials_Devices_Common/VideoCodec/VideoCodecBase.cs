@@ -29,10 +29,6 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec
         protected const int MaxParticipants = 100;
         private readonly byte[] _clearBytes = XSigHelpers.ClearOutputs();
 
-        private IHasDirectory _directoryCodec;
-        private BasicTriList _directoryTrilist;
-        private VideoCodecControllerJoinMap _directoryJoinmap;
-
         protected string _timeFormatSpecifier;
         protected string _dateFormatSpecifier;
 
@@ -46,8 +42,7 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec
             MuteFeedback = new BoolFeedback(MuteFeedbackFunc);
             SharingSourceFeedback = new StringFeedback(SharingSourceFeedbackFunc);
             SharingContentIsOnFeedback = new BoolFeedback(SharingContentIsOnFeedbackFunc);
-
-            // TODO [ ] hotfix/videocodecbase-max-meeting-xsig-set
+            
             MeetingsToDisplayFeedback = new IntFeedback(() => MeetingsToDisplay);
 
             InputPorts = new RoutingPortCollection<RoutingInputPort>();
@@ -56,7 +51,7 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec
             ActiveCalls = new List<CodecActiveCallItem>();
         }
 
-        public IBasicCommunication Communication { get; protected set; }
+        protected IBasicCommunication Communication { get; set; }
 
         /// <summary>
         /// An internal pseudo-source that is routable and connected to the osd input
@@ -1051,10 +1046,7 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec
                 (i) => SelectDirectoryEntry(codec, i, trilist, joinMap));
 
             //Special Change for protected directory clear
-
-            trilist.SetBoolSigAction(joinMap.DirectoryClearSelected.JoinNumber,
-                (b) => SelectDirectoryEntry(_directoryCodec, 0, _directoryTrilist, _directoryJoinmap));
-
+            
             // Report feedback for number of contact methods for selected contact
 
             trilist.SetSigFalseAction(joinMap.DirectoryRoot.JoinNumber, codec.SetCurrentDirectoryToRoot);
@@ -1836,7 +1828,6 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec
 
         // Following fields only used for Bridging
         private int _selectedRecentCallItemIndex;
-        private CodecCallHistory.CallHistoryEntry _selectedRecentCallItem;
         private DirectoryItem _selectedDirectoryItem;
 
         private void LinkVideoCodecCallHistoryToApi(IHasCallHistory codec, BasicTriList trilist,
@@ -1883,7 +1874,6 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec
         {
             // Clear out selected item
             _selectedRecentCallItemIndex = 0;
-            _selectedRecentCallItem = null;
             trilist.SetUshort(joinMap.SelectRecentCallItem.JoinNumber, 0);
             trilist.SetString(joinMap.SelectedRecentCallName.JoinNumber, string.Empty);
             trilist.SetString(joinMap.SelectedRecentCallNumber.JoinNumber, string.Empty);

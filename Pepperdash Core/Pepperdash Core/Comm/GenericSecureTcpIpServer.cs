@@ -708,7 +708,7 @@ namespace PepperDash.Core
         /// <summary>
         /// Secure Server Socket Status Changed Callback
         /// </summary>
-        /// <param name="mySecureTCPServer"></param>
+        /// <param name="server"></param>
         /// <param name="clientIndex"></param>
         /// <param name="serverSocketStatus"></param>
         private void SecureServer_SocketStatusChange(SecureTCPServer server, uint clientIndex,
@@ -762,7 +762,7 @@ namespace PepperDash.Core
         /// <summary>
         /// Secure TCP Client Connected to Secure Server Callback
         /// </summary>
-        /// <param name="mySecureTCPServer"></param>
+        /// <param name="server"></param>
         /// <param name="clientIndex"></param>
         private void SecureConnectCallback(SecureTCPServer server, uint clientIndex)
         {

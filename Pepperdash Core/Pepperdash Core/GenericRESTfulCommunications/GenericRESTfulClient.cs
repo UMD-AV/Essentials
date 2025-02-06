@@ -38,6 +38,7 @@ namespace PepperDash.Core.GenericRESTfulCommunications
         /// <param name="url"></param>
         /// <param name="port"></param>
         /// <param name="requestType"></param>
+        /// <param name="contentType"></param>
         /// <param name="username"></param>
         /// <param name="password"></param>
         public void SubmitRequest(string url, ushort port, ushort requestType, string contentType, string username,
@@ -63,6 +64,7 @@ namespace PepperDash.Core.GenericRESTfulCommunications
         /// <param name="url"></param>
         /// <param name="port"></param>
         /// <param name="requestType"></param>
+        /// <param name="contentType"></param>
         /// <param name="username"></param>
         /// <param name="password"></param>
         private void SubmitRequestHttp(string url, ushort port, ushort requestType, string contentType, string username,
@@ -122,6 +124,7 @@ namespace PepperDash.Core.GenericRESTfulCommunications
         /// <param name="url"></param>
         /// <param name="port"></param>
         /// <param name="requestType"></param>
+        /// <param name="contentType"></param>
         /// <param name="username"></param>
         /// <param name="password"></param>
         private void SubmitRequestHttps(string url, ushort port, ushort requestType, string contentType,
@@ -131,7 +134,6 @@ namespace PepperDash.Core.GenericRESTfulCommunications
             {
                 HttpsClient client = new HttpsClient();
                 HttpsClientRequest request = new HttpsClientRequest();
-                HttpsClientResponse response;
 
                 client.KeepAlive = false;
                 client.HostVerification = false;
@@ -150,7 +152,7 @@ namespace PepperDash.Core.GenericRESTfulCommunications
                 request.Url.Parse(url);
                 request.RequestType = (Crestron.SimplSharp.Net.Https.RequestType)requestType;
 
-                response = client.Dispatch(request);
+                HttpsClientResponse response = client.Dispatch(request);
 
                 CrestronConsole.PrintLine(string.Format("SubmitRequestHttp Response[{0}]: {1}", response.Code,
                     response.ContentString.ToString()));
@@ -213,14 +215,16 @@ namespace PepperDash.Core.GenericRESTfulCommunications
             EventHandler<BoolChangeEventArgs> handler = BoolChange;
             if (handler != null)
             {
-                BoolChangeEventArgs args = new BoolChangeEventArgs(state, type);
-                args.Index = index;
-                BoolChange(this, args);
+                BoolChangeEventArgs args = new BoolChangeEventArgs(state, type)
+                {
+                    Index = index
+                };
+                if (BoolChange != null) BoolChange(this, args);
             }
         }
 
         /// <summary>
-        /// Protected mehtod to handle ushort change events
+        /// Protected method to handle ushort change events
         /// </summary>
         /// <param name="value"></param>
         /// <param name="index"></param>
@@ -232,7 +236,7 @@ namespace PepperDash.Core.GenericRESTfulCommunications
             {
                 UshrtChangeEventArgs args = new UshrtChangeEventArgs(value, type);
                 args.Index = index;
-                UshrtChange(this, args);
+                if (UshrtChange != null) UshrtChange(this, args);
             }
         }
 
@@ -249,7 +253,7 @@ namespace PepperDash.Core.GenericRESTfulCommunications
             {
                 StringChangeEventArgs args = new StringChangeEventArgs(value, type);
                 args.Index = index;
-                StringChange(this, args);
+                if (StringChange != null) StringChange(this, args);
             }
         }
     }

@@ -51,6 +51,7 @@ namespace PepperDash.Core
         /// <param name="username"></param>
         /// <param name="password"></param>
         /// <param name="pollingIntervalSeconds"></param>
+        /// <param name="lineEnding"></param>
         public void Connect(string key, string masterAddress, int masterPort,
             string slaveAddress, int slavePort, string username, string password,
             int pollingIntervalSeconds, string lineEnding)

@@ -200,7 +200,7 @@ namespace PepperDash.Core.PasswordManagement
         /// <summary>
         /// Protected ushort change event handler
         /// </summary>
-        /// <param name="state"></param>
+        /// <param name="value"></param>
         /// <param name="index"></param>
         /// <param name="type"></param>
         protected void OnUshrtChange(ushort value, ushort index, ushort type)
@@ -210,7 +210,7 @@ namespace PepperDash.Core.PasswordManagement
             {
                 UshrtChangeEventArgs args = new UshrtChangeEventArgs(value, type);
                 args.Index = index;
-                UshrtChange(this, args);
+                if (UshrtChange != null) UshrtChange(this, args);
             }
         }
 
@@ -227,7 +227,7 @@ namespace PepperDash.Core.PasswordManagement
             {
                 StringChangeEventArgs args = new StringChangeEventArgs(value, type);
                 args.Index = index;
-                StringChange(this, args);
+                if (StringChange != null) StringChange(this, args);
             }
         }
 
@@ -244,7 +244,7 @@ namespace PepperDash.Core.PasswordManagement
             {
                 StringChangeEventArgs args = new StringChangeEventArgs(value, type);
                 args.Index = index;
-                PasswordChange(this, args);
+                if (PasswordChange != null) PasswordChange(this, args);
             }
         }
     }

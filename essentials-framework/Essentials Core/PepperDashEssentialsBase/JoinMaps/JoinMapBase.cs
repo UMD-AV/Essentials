@@ -347,7 +347,7 @@ namespace PepperDash.Essentials.Core
                     join.Value.JoinSpan,
                     join.Key,
                     string.IsNullOrEmpty(join.Value.AttributeName)
-                        ? join.Value.Metadata.Label
+                        ? join.Value.Metadata.Description
                         : join.Value.AttributeName,
                     join.Value.Metadata.JoinType.ToString(),
                     join.Value.Metadata.JoinCapabilities.ToString());

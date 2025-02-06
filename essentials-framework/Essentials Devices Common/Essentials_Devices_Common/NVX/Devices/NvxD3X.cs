@@ -25,7 +25,6 @@ namespace NvxEpi.Devices
         IRouting
     {
         private IHdmiOutput _hdmiOutput;
-        private readonly IUsbStream _usbStream;
 
         public NvxD3X(DeviceConfig config, Func<DmNvxBaseClass> getHardware)
             : base(config, getHardware, false)
@@ -79,7 +78,7 @@ namespace NvxEpi.Devices
 
         public bool IsRemote
         {
-            get { return _usbStream.IsRemote; }
+            get { return false; }
         }
 
         public int NumberOfComPorts

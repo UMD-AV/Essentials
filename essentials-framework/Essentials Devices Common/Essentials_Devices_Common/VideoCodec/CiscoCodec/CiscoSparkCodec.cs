@@ -59,8 +59,6 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.Cisco
 
         public event EventHandler<DirectoryEventArgs> DirectoryResultReturned;
 
-        private CTimer _brandingTimer;
-
         public CommunicationGather PortGather { get; private set; }
 
         public StatusMonitorBase CommunicationMonitor { get; private set; }
@@ -437,8 +435,6 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.Cisco
                 props.UiBranding.BrandingUrl);
 
             BrandingEnabled = props.UiBranding.Enable;
-
-            _brandingUrl = props.UiBranding.BrandingUrl;
         }
 
         private void SetFeedbackActions()
@@ -507,46 +503,6 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.Cisco
             {
                 return;
             }
-
-            string mcBridgeKey = string.Format("mobileControlBridge-{0}", roomKey);
-
-            IMobileControlRoomBridge mcBridge = DeviceManager.GetDeviceForKey(mcBridgeKey) as IMobileControlRoomBridge;
-
-            if (!string.IsNullOrEmpty(_brandingUrl))
-            {
-                Debug.Console(1, this, "Branding URL found: {0}", _brandingUrl);
-                if (_brandingTimer != null)
-                {
-                    _brandingTimer.Stop();
-                    _brandingTimer.Dispose();
-                }
-
-                _brandingTimer = new CTimer((o) =>
-                {
-                    if (_sendMcUrl)
-                    {
-                        SendMcBrandingUrl(mcBridge);
-                        _sendMcUrl = false;
-                    }
-                    else
-                    {
-                        SendBrandingUrl();
-                        _sendMcUrl = true;
-                    }
-                }, 0, 15000);
-            }
-            else if (string.IsNullOrEmpty(_brandingUrl))
-            {
-                Debug.Console(1, this, "No Branding URL found");
-                if (mcBridge == null) return;
-
-                Debug.Console(2, this, "Setting QR code URL: {0}", mcBridge.QrCodeUrl);
-
-                mcBridge.UserCodeChanged += (o, a) => SendMcBrandingUrl(mcBridge);
-                mcBridge.UserPromptedForCode += (o, a) => DisplayUserCode(mcBridge.UserCode);
-
-                SendMcBrandingUrl(mcBridge);
-            }
         }
 
         /// <summary>
@@ -558,42 +514,6 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.Cisco
             EnqueueCommand(string.Format(
                 "xcommand userinterface message alert display title:\"Mobile Control User Code:\" text:\"{0}\" duration: 30",
                 code));
-        }
-
-        private void SendMcBrandingUrl(IMobileControlRoomBridge mcBridge)
-        {
-            if (mcBridge == null)
-            {
-                return;
-            }
-
-            Debug.Console(1, this, "Sending url: {0}", mcBridge.QrCodeUrl);
-
-            EnqueueCommand(
-                "xconfiguration userinterface custommessage: \"Scan the QR code with a mobile phone to get started\"");
-            EnqueueCommand(
-                "xconfiguration userinterface osd halfwakemessage: \"Tap the touch panel or scan the QR code with a mobile phone to get started\"");
-
-            string checksum = !string.IsNullOrEmpty(mcBridge.QrCodeChecksum)
-                ? string.Format("checksum: {0} ", mcBridge.QrCodeChecksum)
-                : string.Empty;
-
-            EnqueueCommand(string.Format(
-                "xcommand userinterface branding fetch {1}type: branding url: {0}",
-                mcBridge.QrCodeUrl, checksum));
-            EnqueueCommand(string.Format(
-                "xcommand userinterface branding fetch {1}type: halfwakebranding url: {0}",
-                mcBridge.QrCodeUrl, checksum));
-        }
-
-        private void SendBrandingUrl()
-        {
-            Debug.Console(1, this, "Sending url: {0}", _brandingUrl);
-
-            EnqueueCommand(string.Format("xcommand userinterface branding fetch type: branding url: {0}",
-                _brandingUrl));
-            EnqueueCommand(string.Format("xcommand userinterface branding fetch type: halfwakebranding url: {0}",
-                _brandingUrl));
         }
 
         /// <summary>
@@ -2508,8 +2428,6 @@ ConnectorID: {2}"
         public string ExternalSourceInputPort { get; private set; }
 
         public bool BrandingEnabled { get; private set; }
-        private string _brandingUrl;
-        private bool _sendMcUrl;
 
         /// <summary>
         /// Adds an external source to the Cisco 

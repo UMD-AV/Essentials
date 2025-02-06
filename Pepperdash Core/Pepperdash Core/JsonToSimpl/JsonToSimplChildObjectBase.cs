@@ -43,11 +43,11 @@ namespace PepperDash.Core.JsonToSimpl
         /// <summary>
         /// Call this before doing anything else
         /// </summary>
-        /// <param name="file"></param>
+        /// <param name="masterUniqueId"></param>
         /// <param name="key"></param>
         /// <param name="pathPrefix"></param>
         /// <param name="pathSuffix"></param>
-        public void Initialize(string masterUniqueId, string key, string pathPrefix, string pathSuffix)
+        protected void Initialize(string masterUniqueId, string key, string pathPrefix, string pathSuffix)
         {
             Key = key;
             PathPrefix = pathPrefix;

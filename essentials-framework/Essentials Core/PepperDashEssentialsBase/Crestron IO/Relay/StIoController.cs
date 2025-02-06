@@ -19,7 +19,7 @@ namespace PepperDash.Essentials.Core
         /// </summary>
         /// <param name="key"></param>
         /// <param name="name"></param>
-        /// <param name="ry104"></param>
+        /// <param name="stIo"></param>
         public StIoController(string key, string name, StIo stIo)
             : base(key, name, stIo)
         {

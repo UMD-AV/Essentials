@@ -81,7 +81,6 @@ namespace PepperDash.Essentials.Core.Timers
         /// <summary>
         /// Executes the Elapsed action from confing when the timer elapses
         /// </summary>
-        /// <param name="o"></param>
         private void TimerElapsedCallback(object action)
         {
             Debug.Console(1, this, Debug.ErrorLogLevel.Notice, "Timer Elapsed. Executing Action");

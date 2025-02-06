@@ -262,6 +262,7 @@ namespace PepperDash.Essentials.Core.Bridges
         /// Prints the join map for a device by key
         /// </summary>
         /// <param name="deviceKey"></param>
+        /// <param name="bridgeKey"></param>
         public void MarkdownJoinMapForDevice(string deviceKey, string bridgeKey)
         {
             JoinMapBaseAdvanced joinMap = JoinMaps[deviceKey];

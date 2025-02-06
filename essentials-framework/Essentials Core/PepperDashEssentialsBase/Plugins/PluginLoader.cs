@@ -119,7 +119,7 @@ namespace PepperDash.Essentials
         /// <summary>
         /// Loads an assembly via Reflection and adds it to the list of loaded assemblies
         /// </summary>
-        /// <param name="fileName"></param>
+        /// <param name="filePath"></param>
         private static LoadedAssembly LoadAssembly(string filePath)
         {
             Assembly assembly = Assembly.LoadFrom(filePath);
@@ -168,7 +168,6 @@ namespace PepperDash.Essentials
         /// <summary>
         /// Checks if the filename matches an already loaded assembly file's name
         /// </summary>
-        /// <param name="filename"></param>
         /// <returns>True if file already matches loaded assembly file.</returns>
         public static bool CheckIfAssemblyLoaded(string name)
         {
@@ -462,6 +461,7 @@ namespace PepperDash.Essentials
         /// </summary>
         /// <param name="type"></param>
         /// <param name="loadPlugin"></param>
+        /// <param name="loadedAssembly"></param>
         private static void LoadCustomLegacyPlugin(CType type, MethodInfo loadPlugin, LoadedAssembly loadedAssembly)
         {
             Debug.Console(2, "LoadPlugin method found in {0}", type.Name);

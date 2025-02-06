@@ -290,7 +290,6 @@ namespace PepperDash.Core
         /// <summary>
         /// Contstructor that sets all properties by calling the initialize method with a config object. 
         /// </summary>
-        /// <param name="serverConfigObject"></param>
         public GenericSecureTcpIpClient_ForServer(string key, TcpClientConfigObject clientConfigObject)
             : base(key)
         {

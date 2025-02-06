@@ -58,7 +58,6 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.ZoomRoom
 
         //private uint _jsonCurlyBraceCounter;
         //private bool _jsonFeedbackMessageIsIncoming;
-        private StringBuilder _jsonMessage;
         private int _previousVolumeLevel;
         private CameraBase _selectedCamera;
         private string _lastDialedMeetingNumber;

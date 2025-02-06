@@ -35,6 +35,7 @@ namespace PepperDash.Essentials.Core
         /// <summary>
         /// 
         /// </summary>
+        /// <param name="parent"></param>
         /// <param name="client"></param>
         /// <param name="pollTime">in MS, >= 5000</param>
         /// <param name="warningTime">in MS, >= 5000</param>
@@ -55,8 +56,7 @@ namespace PepperDash.Essentials.Core
 
             if (IsSocket)
             {
-                (Client as ISocketStatus).ConnectionChange +=
-                    new EventHandler<GenericSocketStatusChageEventArgs>(socket_ConnectionChange);
+                ((ISocketStatus)Client).ConnectionChange += (socket_ConnectionChange);
             }
         }
 
@@ -75,7 +75,7 @@ namespace PepperDash.Essentials.Core
         /// <param name="pollTime"></param>
         /// <param name="warningTime"></param>
         /// <param name="errorTime"></param>
-        /// <param name="pollBytes"></param>
+        /// <param name="pollAction"></param>
         public GenericCommunicationMonitor(IKeyed parent, IBasicCommunication client, long pollTime,
             long warningTime, long errorTime, Action pollAction) :
             base(parent, warningTime, errorTime)
@@ -91,8 +91,7 @@ namespace PepperDash.Essentials.Core
 
             if (IsSocket)
             {
-                (Client as ISocketStatus).ConnectionChange +=
-                    new EventHandler<GenericSocketStatusChageEventArgs>(socket_ConnectionChange);
+                ((ISocketStatus)Client).ConnectionChange += socket_ConnectionChange;
             }
         }
 
@@ -112,8 +111,7 @@ namespace PepperDash.Essentials.Core
         {
             if (IsSocket)
             {
-                (Client as ISocketStatus).ConnectionChange +=
-                    new EventHandler<GenericSocketStatusChageEventArgs>(socket_ConnectionChange);
+                ((ISocketStatus)Client).ConnectionChange += socket_ConnectionChange;
             }
         }
 

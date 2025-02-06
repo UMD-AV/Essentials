@@ -110,7 +110,6 @@
         <Compile Include="JsonToSimpl\JsonToSimplChildObjectBase.cs"/>
         <Compile Include="JsonToSimpl\JsonToSimplFileMaster.cs"/>
         <Compile Include="JsonToSimpl\JsonToSimplFixedPathObject.cs"/>
-        <Compile Include="JsonToSimpl\REMOVE JsonToSimplFixedPathObject.cs"/>
         <Compile Include="JsonToSimpl\JsonToSimplGenericMaster.cs"/>
         <Compile Include="JsonToSimpl\JsonToSimplMaster.cs"/>
         <Compile Include="Network\DiscoveryThings.cs"/>

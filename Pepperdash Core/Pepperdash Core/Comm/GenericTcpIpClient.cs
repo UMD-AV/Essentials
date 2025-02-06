@@ -122,15 +122,6 @@ namespace PepperDash.Core
             get { return ClientStatus.ToString(); }
         }
 
-        [Obsolete]
-        /// <summary>
-        /// Ushort representation of client status
-        /// </summary>
-        public ushort UClientStatus
-        {
-            get { return (ushort)ClientStatus; }
-        }
-
         /// <summary>
         /// Connection failure reason
         /// </summary>

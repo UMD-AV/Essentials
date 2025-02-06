@@ -7,7 +7,6 @@ namespace PepperDash.Essentials.Core
         /// <summary>
         /// Gets the VideoStatusOutputs for the device
         /// </summary>
-        /// <param name="attachDev"></param>
         /// <returns>Attached VideoStatusOutputs or the default if none attached</returns>
         public static VideoStatusOutputs GetVideoStatuses(this IAttachVideoStatus attachedDev)
         {

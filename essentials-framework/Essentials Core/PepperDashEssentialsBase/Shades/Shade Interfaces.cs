@@ -110,18 +110,4 @@ namespace PepperDash.Essentials.Core.Shades
     {
         IntFeedback PositionFeedback { get; }
     }
-
-    /// <summary>
-    /// 
-    /// </summary>
-    public interface ISceneFeedback
-    {
-        void Run();
-        BoolFeedback AllAreAtSceneFeedback { get; }
-    }
-
-    public interface ICrestronBasicShade : IShadesOpenClosedFeedback, IShadesStop,
-        IShadesStopOrMove, IShadesFeedback, IShadesRaiseLowerFeedback
-    {
-    }
 }
