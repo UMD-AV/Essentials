@@ -7,7 +7,7 @@ using Newtonsoft.Json;
 
 namespace PepperDash.Core
 {
-    public class GenericUdpServer : Device, ISocketStatusWithStreamDebugging
+    public class GenericUdpServer : Device, IBasicCommunicationWithStreamDebugging
     {
         private const string SplusKey = "Uninitialized Udp Server";
         public CommunicationStreamDebugging StreamDebugging { get; private set; }
@@ -27,10 +27,6 @@ namespace PepperDash.Core
         /// </summary>
         public event EventHandler<GenericUdpReceiveTextExtraArgs> DataReceivedExtra;
 
-        /// <summary>
-        /// 
-        /// </summary>
-        public event EventHandler<GenericSocketStatusChageEventArgs> ConnectionChange;
 
         /// <summary>
         /// 

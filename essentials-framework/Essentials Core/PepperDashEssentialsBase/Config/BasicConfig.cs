@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 namespace PepperDash.Essentials.Core.Config
 {
@@ -14,13 +13,16 @@ namespace PepperDash.Essentials.Core.Config
 
         [JsonProperty("devices")] public List<DeviceConfig> Devices { get; set; }
 
-        [JsonProperty("joinMaps")] public Dictionary<string, JObject> JoinMaps { get; set; }
+        [JsonProperty("rooms")] public List<RoomConfig> Rooms { get; set; }
 
-        protected BasicConfig()
+        [JsonProperty("uis")] public List<UiConfig> UIs { get; set; }
+
+        public BasicConfig()
         {
             Info = new InfoConfig();
             Devices = new List<DeviceConfig>();
-            JoinMaps = new Dictionary<string, JObject>();
+            Rooms = new List<RoomConfig>();
+            UIs = new List<UiConfig>();
         }
 
         /// <summary>

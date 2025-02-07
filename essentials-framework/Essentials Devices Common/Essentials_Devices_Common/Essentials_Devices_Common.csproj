@@ -466,11 +466,8 @@
         <Compile Include="Environment\Lutron\LutronQSArea.cs"/>
         <Compile Include="Environment\Generic\RelayControlledShade.cs"/>
         <Compile Include="Factory\DeviceFactory.cs"/>
-        <Compile Include="Generic\GenericSource.cs"/>
         <Compile Include="SetTopBox\SetTopBoxPropertiesConfig.cs"/>
         <Compile Include="Audio\GenericAudioOut.cs"/>
-        <Compile Include="DiscPlayer\IRDiscPlayerBase.cs"/>
-        <Compile Include="SetTopBox\IRSetTopBoxBase.cs"/>
         <Compile Include="Properties\AssemblyInfo.cs"/>
         <Compile Include="VideoCodec\CiscoCodec\BookingsDataClasses.cs"/>
         <Compile Include="VideoCodec\CiscoCodec\CallHistoryDataClasses.cs"/>

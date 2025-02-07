@@ -74,8 +74,6 @@ namespace PepperDash.Essentials.Core.Config
 
             try
             {
-                EssentialsConfig config = JObject.Parse(configData).ToObject<EssentialsConfig>();
-
                 ConfigWriter.WriteFile(filePath, configData);
 
                 OnStatusUpdate(eUpdateStatus.WritingConfigFile);

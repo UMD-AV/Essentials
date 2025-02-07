@@ -99,8 +99,8 @@ namespace PepperDash.Essentials
             {
                 CrestronConsole.ConsoleCommandResponse
                     ("Current running configuration. This is the merged system and template configuration");
-                CrestronConsole.ConsoleCommandResponse(Newtonsoft.Json.JsonConvert.SerializeObject
-                    (ConfigReader.ConfigObject, Newtonsoft.Json.Formatting.Indented));
+                CrestronConsole.ConsoleCommandResponse(JsonConvert.SerializeObject
+                    (ConfigReader.ConfigObject, Formatting.Indented));
             }, "showconfig", "Shows the current running merged config", ConsoleAccessLevelEnum.AccessOperator);
 
 
@@ -204,7 +204,7 @@ namespace PepperDash.Essentials
                 if (filesReady)
                 {
                     PluginLoader.LoadPlugins();
-                    if (!ConfigReader.LoadConfig2())
+                    if (!ConfigReader.LoadConfig())
                     {
                         Debug.Console(0, Debug.ErrorLogLevel.Error, "Essentials Load complete with errors");
                         return;
@@ -290,7 +290,7 @@ namespace PepperDash.Essentials
             if (CrestronEnvironment.DevicePlatform == eDevicePlatform.Appliance)
             {
                 DeviceManager.AddDevice(
-                    new PepperDash.Essentials.Core.Monitoring.SystemMonitorController("systemMonitor"));
+                    new Core.Monitoring.SystemMonitorController("systemMonitor"));
             }
 
             foreach (DeviceConfig devConf in ConfigReader.ConfigObject.Devices)
@@ -314,19 +314,19 @@ namespace PepperDash.Essentials
                                 devConf.Type.ToUpper(), Global.ControlSystem.ControllerPrompt.ToUpper());
 
                         // Check if the processor is a DMPS model
-                        if (this.ControllerPrompt.IndexOf("dmps", StringComparison.OrdinalIgnoreCase) > -1)
+                        if (ControllerPrompt.IndexOf("dmps", StringComparison.OrdinalIgnoreCase) > -1)
                         {
                             Debug.Console(2, "Adding DmpsRoutingController for {0} to Device Manager.",
-                                this.ControllerPrompt);
+                                ControllerPrompt);
 
                             DmpsRoutingPropertiesConfig propertiesConfig =
-                                JsonConvert.DeserializeObject<DM.Config.DmpsRoutingPropertiesConfig>(devConf.Properties
-                                    .ToString()) ?? new DM.Config.DmpsRoutingPropertiesConfig();
+                                JsonConvert.DeserializeObject<DmpsRoutingPropertiesConfig>(devConf.Properties
+                                    .ToString()) ?? new DmpsRoutingPropertiesConfig();
 
                             DeviceManager.AddDevice(DmpsRoutingController.GetDmpsRoutingController("switcher01",
-                                this.ControllerPrompt, propertiesConfig));
+                                ControllerPrompt, propertiesConfig));
                         }
-                        else if (this.ControllerPrompt.IndexOf("mpc3", StringComparison.OrdinalIgnoreCase) > -1)
+                        else if (ControllerPrompt.IndexOf("mpc3", StringComparison.OrdinalIgnoreCase) > -1)
                         {
                             Debug.Console(2, "MPC3 processor type detected.  Adding Mpc3TouchpanelController.");
 
@@ -334,9 +334,9 @@ namespace PepperDash.Essentials
                             if (butToken != null)
                             {
                                 Dictionary<string, KeypadButton> buttons = butToken
-                                    .ToObject<Dictionary<string, Essentials.Core.Touchpanels.KeypadButton>>();
+                                    .ToObject<Dictionary<string, KeypadButton>>();
                                 Mpc3TouchpanelController tpController =
-                                    new Essentials.Core.Touchpanels.Mpc3TouchpanelController(devConf.Key,
+                                    new Mpc3TouchpanelController(devConf.Key,
                                         devConf.Name, Global.ControlSystem, buttons);
                                 DeviceManager.AddDevice(tpController);
                             }
@@ -387,7 +387,7 @@ namespace PepperDash.Essentials
 
             string bridges = Encoding.GetEncoding(28591).GetString(PepperDashEssentials.Properties.Resources.umdBridges,
                 0, PepperDashEssentials.Properties.Resources.umdBridges.Length);
-            EssentialsConfig BridgesObject = JObject.Parse(bridges).ToObject<EssentialsConfig>();
+            BasicConfig BridgesObject = JObject.Parse(bridges).ToObject<BasicConfig>();
 
             foreach (DeviceConfig devConf in BridgesObject.Devices)
             {

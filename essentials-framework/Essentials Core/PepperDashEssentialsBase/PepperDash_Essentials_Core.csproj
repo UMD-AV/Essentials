@@ -127,11 +127,11 @@
         <Compile Include="Comm and IR\GenericComm.cs"/>
         <Compile Include="Comm and IR\GenericHttpClient.cs"/>
         <Compile Include="Comm and IR\IRPortHelper.cs"/>
-        <Compile Include="Config\Essentials\ConfigUpdater.cs"/>
-        <Compile Include="Config\Essentials\ConfigReader.cs"/>
-        <Compile Include="Config\Essentials\ConfigWriter.cs"/>
-        <Compile Include="Config\Essentials\EssentialsConfig.cs"/>
-        <Compile Include="Config\SourceDevicePropertiesConfigBase.cs"/>
+        <Compile Include="Config\ConfigReader.cs"/>
+        <Compile Include="Config\ConfigUpdater.cs"/>
+        <Compile Include="Config\ConfigWriter.cs"/>
+        <Compile Include="Config\RoomConfig.cs"/>
+        <Compile Include="Config\UiConfig.cs"/>
         <Compile Include="Crestron IO\C2nIo\C2nIoController.cs"/>
         <Compile Include="Crestron IO\CenIo\CenIoComController.cs"/>
         <Compile Include="Crestron IO\C2nRts\C2nRthsController.cs"/>
@@ -174,9 +174,6 @@
         <Compile Include="Devices\IDspPreset.cs"/>
         <Compile Include="Devices\IProjectorInterfaces.cs"/>
         <Compile Include="Devices\IReconfigurableDevice.cs"/>
-        <Compile Include="Devices\PC\InRoomPc.cs"/>
-        <Compile Include="Devices\PC\Laptop.cs"/>
-        <Compile Include="Devices\PduInterfaces.cs"/>
         <Compile Include="Devices\ReconfigurableDevice.cs"/>
         <Compile Include="Devices\VolumeDeviceChangeEventArgs.cs"/>
         <Compile Include="DeviceTypeInterfaces\IPasswordPrompt.cs"/>
@@ -233,10 +230,8 @@
         <Compile Include="Queues\IQueueMessage.cs"/>
         <Compile Include="Ramps and Increments\ActionIncrementer.cs"/>
         <Compile Include="Config\BasicConfig.cs"/>
-        <Compile Include="Config\ConfigPropertiesHelpers.cs"/>
         <Compile Include="Config\InfoConfig.cs"/>
         <Compile Include="Config\DeviceConfig.cs"/>
-        <Compile Include="Devices\DisplayUiConstants.cs"/>
         <Compile Include="Devices\IUsageTracking.cs"/>
         <Compile Include="Devices\DeviceJsonApi.cs"/>
         <Compile Include="Devices\SourceListItem.cs"/>
@@ -278,7 +273,6 @@
         <Compile Include="Devices\IAttachVideoStatusExtensions.cs"/>
         <Compile Include="Devices\IHasFeedbacks.cs"/>
         <Compile Include="Devices\SmartObjectBaseTypes.cs"/>
-        <Compile Include="Devices\PresentationDeviceType.cs"/>
         <Compile Include="Display\MockDisplay.cs"/>
         <Compile Include="Ethernet\EthernetStatistics.cs"/>
         <Compile Include="Global\Global.cs"/>

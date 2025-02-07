@@ -2,7 +2,7 @@
 
 namespace PepperDash.Essentials.Devices.Common
 {
-    public class SetTopBoxPropertiesConfig : PepperDash.Essentials.Core.Config.SourceDevicePropertiesConfigBase
+    public class SetTopBoxPropertiesConfig
     {
         public bool HasPresets { get; set; }
         public bool HasDvr { get; set; }

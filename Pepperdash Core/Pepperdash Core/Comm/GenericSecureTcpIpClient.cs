@@ -689,9 +689,9 @@ namespace PepperDash.Core
                         }
                         else
                         {
-                            //var bytesHandler = BytesReceived;
-                            //if (bytesHandler != null)
-                            //    bytesHandler(this, new GenericCommMethodReceiveBytesArgs(bytes));
+                            EventHandler<GenericCommMethodReceiveBytesArgs> bytesHandler = BytesReceived;
+                            if (bytesHandler != null)
+                                bytesHandler(this, new GenericCommMethodReceiveBytesArgs(bytes));
                             EventHandler<GenericCommMethodReceiveTextArgs> textHandler = TextReceived;
                             if (textHandler != null)
                                 textHandler(this, new GenericCommMethodReceiveTextArgs(str));

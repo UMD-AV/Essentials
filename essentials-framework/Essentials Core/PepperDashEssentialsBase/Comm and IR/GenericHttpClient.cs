@@ -4,7 +4,7 @@ using PepperDash.Core;
 
 namespace PepperDash.Essentials.Core
 {
-    public class GenericHttpClient : Device, IBasicCommunication
+    public class GenericHttpClient : Device
     {
         public HttpClient Client;
         public event EventHandler<GenericHttpClientEventArgs> ResponseRecived;
@@ -72,8 +72,6 @@ namespace PepperDash.Essentials.Core
 
         #region ICommunicationReceiver Members
 
-        public event EventHandler<GenericCommMethodReceiveBytesArgs> BytesReceived;
-
         public void Connect()
         {
             throw new NotImplementedException();
@@ -88,8 +86,6 @@ namespace PepperDash.Essentials.Core
         {
             get { return true; }
         }
-
-        public event EventHandler<GenericCommMethodReceiveTextArgs> TextReceived;
 
         #endregion
     }

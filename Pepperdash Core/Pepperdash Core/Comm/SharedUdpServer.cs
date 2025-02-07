@@ -9,8 +9,8 @@ namespace PepperDash.Core
 {
     public static class UdpManager
     {
-        public static Dictionary<int, SharedUdpServer> UdpServers = new Dictionary<int, SharedUdpServer>();
-        public static CMutex ServerCreationMutex = new CMutex();
+        public static readonly Dictionary<int, SharedUdpServer> UdpServers = new Dictionary<int, SharedUdpServer>();
+        public static readonly CMutex ServerCreationMutex = new CMutex();
 
         public static SharedUdpServer GetServerForPort(int port, int bufferSize)
         {
@@ -41,7 +41,7 @@ namespace PepperDash.Core
         }
     }
 
-    public class SharedUdpServerDevice : Device, ISocketStatusWithStreamDebugging
+    public class SharedUdpServerDevice : Device, IBasicCommunicationWithStreamDebugging
     {
         public CommunicationStreamDebugging StreamDebugging { get; private set; }
 
@@ -54,11 +54,6 @@ namespace PepperDash.Core
         /// 
         /// </summary>
         public event EventHandler<GenericCommMethodReceiveTextArgs> TextReceived;
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public event EventHandler<GenericSocketStatusChageEventArgs> ConnectionChange;
 
         private readonly SharedUdpServer Server;
         private readonly string _address;
@@ -178,7 +173,7 @@ namespace PepperDash.Core
 
     public class SharedUdpServer
     {
-        public Dictionary<string, SharedUdpServerDevice>
+        public readonly Dictionary<string, SharedUdpServerDevice>
             ServerDevices = new Dictionary<string, SharedUdpServerDevice>();
 
         /// <summary>
@@ -209,7 +204,7 @@ namespace PepperDash.Core
         /// </summary>
         public int BufferSize { get; set; }
 
-        private UDPServer Server;
+        private readonly UDPServer Server;
 
         /// <summary>
         /// 
@@ -234,9 +229,9 @@ namespace PepperDash.Core
             Server.EthernetAdapterToBindTo = EthernetAdapterType.EthernetLANAdapter;
 
             CrestronEnvironment.ProgramStatusEventHandler +=
-                new ProgramStatusEventHandler(CrestronEnvironment_ProgramStatusEventHandler);
+                CrestronEnvironment_ProgramStatusEventHandler;
             CrestronEnvironment.EthernetEventHandler +=
-                new EthernetEventHandler(CrestronEnvironment_EthernetEventHandler);
+                CrestronEnvironment_EthernetEventHandler;
         }
 
         /// <summary>
