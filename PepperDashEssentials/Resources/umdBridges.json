@@ -1211,6 +1211,124 @@
         ]
       },
       "type": "eiscApiAdvanced"
+    },
+    {
+      "key": "bridge-simpl",
+      "group": "api",
+      "name": "eisc-Bridge",
+      "properties": {
+        "control": {
+          "tcpSshProperties": {
+            "address": "127.0.0.2",
+            "port": 0
+          },
+          "ipid": "B3"
+        },
+        "devices": [
+          {
+            "deviceKey": "tp01",
+            "joinStart": 11
+          },
+          {
+            "deviceKey": "tp01",
+            "joinStart": 11
+          },
+          {
+            "deviceKey": "tp02",
+            "joinStart": 21
+          },
+          {
+            "deviceKey": "tp03",
+            "joinStart": 31
+          },
+          {
+            "deviceKey": "tp04",
+            "joinStart": 41
+          },
+          {
+            "deviceKey": "tss01",
+            "joinStart": 51
+          },
+          {
+            "deviceKey": "tss02",
+            "joinStart": 61
+          },
+          {
+            "deviceKey": "room01",
+            "joinStart": 101
+          },
+          {
+            "deviceKey": "room02",
+            "joinStart": 301
+          },
+          {
+            "deviceKey": "room03",
+            "joinStart": 501
+          },
+          {
+            "deviceKey": "room04",
+            "joinStart": 701
+          },
+          {
+            "deviceKey": "room05",
+            "joinStart": 901
+          }
+        ]
+      },
+      "type": "eiscApiAdvanced"
+    },
+    {
+      "key": "bridge-routing",
+      "group": "api",
+      "name": "eisc-Bridge",
+      "properties": {
+        "control": {
+          "tcpSshProperties": {
+            "address": "127.0.0.2",
+            "port": 0
+          },
+          "ipid": "B4"
+        },
+        "devices": [
+          {
+            "deviceKey": "room01-router",
+            "joinStart": 1
+          },
+          {
+            "deviceKey": "room02-router",
+            "joinStart": 101
+          },
+          {
+            "deviceKey": "room03-router",
+            "joinStart": 201
+          },
+          {
+            "deviceKey": "room04-router",
+            "joinStart": 301
+          },
+          {
+            "deviceKey": "room05-router",
+            "joinStart": 401
+          },
+          {
+            "deviceKey": "tp01-router",
+            "joinStart": 501
+          },
+          {
+            "deviceKey": "tp02-router",
+            "joinStart": 701
+          },
+          {
+            "deviceKey": "tp03-router",
+            "joinStart": 901
+          },
+          {
+            "deviceKey": "tp04-router",
+            "joinStart": 1101
+          }
+        ]
+      },
+      "type": "eiscApiAdvanced"
     }
   ]
 }

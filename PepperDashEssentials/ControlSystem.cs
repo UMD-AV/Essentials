@@ -15,6 +15,8 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Text;
 using DynFusion;
+using PepperDash_Essentials_Core.Touchpanels;
+using PepperDash.Essentials.Core.Routing;
 using PepperDash.Essentials.Core.Touchpanels;
 using PepperDash.Essentials.DM.Config;
 
@@ -70,6 +72,10 @@ namespace PepperDash.Essentials
                     ConsoleAccessLevelEnum.AccessOperator);
             }
 
+            CrestronConsole.AddNewConsoleCommand(s => CrestronInvoke.BeginInvoke((o) => Reload()), "loadconfig",
+                "Reloads configuration file at runtime",
+                ConsoleAccessLevelEnum.AccessOperator);
+
             CrestronConsole.AddNewConsoleCommand(PluginLoader.ReportAssemblyVersions, "reportversions",
                 "Reports the versions of the loaded assemblies", ConsoleAccessLevelEnum.AccessOperator);
 
@@ -106,6 +112,10 @@ namespace PepperDash.Essentials
 
             CrestronConsole.AddNewConsoleCommand(DeviceManager.GetRoutingPorts,
                 "getroutingports", "Reports all routing ports, if any.  Requires a device key",
+                ConsoleAccessLevelEnum.AccessOperator);
+
+            CrestronConsole.AddNewConsoleCommand(RouterMain.SetDebug, "routerdebug",
+                "Sets the router debug level. Use device key (ex room01-router) to enable and 'off' to disable all. 'fake' will enable fake feedback",
                 ConsoleAccessLevelEnum.AccessOperator);
 
             if (!Debug.DoNotLoadOnNextBoot)
@@ -278,6 +288,179 @@ namespace PepperDash.Essentials
             DeviceManager.ActivateAll();
         }
 
+        private void Reload()
+        {
+            string jsonString = JsonConvert.SerializeObject(ConfigReader.ConfigObject);
+            BasicConfig oldConfig = JsonConvert.DeserializeObject<BasicConfig>(jsonString);
+
+            if (!ConfigReader.LoadConfig())
+            {
+                Debug.Console(0, Debug.ErrorLogLevel.Error, "Config reload has errors");
+                return;
+            }
+
+            //Delete devices that no longer exist in new config
+            foreach (DeviceConfig oldDev in oldConfig.Devices)
+            {
+                DeviceConfig newDev = ConfigReader.ConfigObject.Devices.Find((d) => d.Key == oldDev.Key);
+                if (newDev != null)
+                {
+                    continue;
+                }
+
+                Debug.Console(0, "Device changed or does not exist in new config, deleting: {0}", oldDev.Key);
+
+                IKeyed dev = DeviceManager.GetDeviceForKey(oldDev.Key);
+                IDisposable disposable = dev as IDisposable;
+                if (disposable != null)
+                {
+                    disposable.Dispose();
+                }
+
+                DeviceManager.RemoveDevice(dev);
+            }
+
+            //Add new devices. If a match already exists, delete and recreate it
+            foreach (DeviceConfig newDev in ConfigReader.ConfigObject.Devices)
+            {
+                if (newDev.Key.StartsWith("processor"))
+                {
+                    continue;
+                }
+
+                DeviceConfig oldDev = oldConfig.Devices.Find((d) => d.Key == newDev.Key);
+                if (oldDev != null)
+                {
+                    string oldDevString = JsonConvert.SerializeObject(oldDev);
+                    string newDevString = JsonConvert.SerializeObject(newDev);
+                    if (newDevString == oldDevString)
+                    {
+                        continue;
+                    }
+
+                    Debug.Console(0, "Device changed, deleting: {0}", oldDev.Key);
+
+                    IKeyed dev = DeviceManager.GetDeviceForKey(oldDev.Key);
+                    IDisposable disposable = dev as IDisposable;
+                    if (disposable != null)
+                    {
+                        disposable.Dispose();
+                    }
+
+                    DeviceManager.RemoveDevice(dev);
+                    List<IKeyed> childDevices =
+                        DeviceManager.AllDevices.FindAll((d) => d.Key.StartsWith(oldDev.Key + "-"));
+                    foreach (IKeyed child in childDevices)
+                    {
+                        Debug.Console(0, "Device changed, deleting: {0}", child.Key);
+                        DeviceManager.RemoveDevice(child);
+                    }
+                }
+
+                LoadNonProcessorDevice(newDev);
+
+                IKeyed newDevice = DeviceManager.GetDeviceForKey(newDev.Key);
+                if (newDevice is Device)
+                {
+                    (newDevice as Device).PreActivate();
+                    (newDevice as Device).Activate();
+                    (newDevice as Device).PostActivate();
+                }
+            }
+
+            //Remove old rooms or refresh
+            foreach (RoomConfig oldRoom in oldConfig.Rooms)
+            {
+                IKeyed oldRoomDevice = DeviceManager.GetDeviceForKey(oldRoom.Key);
+                RoomConfig newRoom = ConfigReader.ConfigObject.Rooms.Find((d) => d.Key == oldRoom.Key);
+                if (newRoom != null)
+                {
+                    Debug.Console(0, "Room match found, refreshing: {0}", oldRoom.Key);
+                    ((Room)oldRoomDevice).RefreshConfig();
+                    continue;
+                }
+
+                Debug.Console(0, "Room does not exist in new config, deleting: {0}", oldRoom.Key);
+                DeviceManager.RemoveDevice(oldRoomDevice);
+            }
+
+            //Add new rooms
+            foreach (RoomConfig newRoomConf in ConfigReader.ConfigObject.Rooms)
+            {
+                RoomConfig newRoom = oldConfig.Rooms.Find((d) => d.Key == newRoomConf.Key);
+                if (newRoom != null)
+                {
+                    continue;
+                }
+
+                Debug.Console(0, "New room found, adding: {0}", newRoomConf.Key);
+                Room newRoomDevice = new Room(newRoomConf);
+                DeviceManager.AddDevice(newRoomDevice);
+            }
+
+            //Remove old uis or refresh
+            foreach (UiConfig oldUi in oldConfig.UIs)
+            {
+                IKeyed oldUiDevice = DeviceManager.GetDeviceForKey(oldUi.Key);
+                UiConfig newUi = ConfigReader.ConfigObject.UIs.Find((d) => d.Key == oldUi.Key);
+                if (newUi != null)
+                {
+                    Debug.Console(0, "UI match found, refreshing: {0}", oldUi.Key);
+                    ((UI)oldUiDevice).RefreshConfig();
+                    continue;
+                }
+
+                Debug.Console(0, "UI does not exist in new config, deleting: {0}", oldUi.Key);
+                DeviceManager.RemoveDevice(oldUiDevice);
+            }
+
+            //Add new uis
+            foreach (UiConfig newUiConf in ConfigReader.ConfigObject.UIs)
+            {
+                UiConfig newUi = oldConfig.UIs.Find((d) => d.Key == newUiConf.Key);
+                if (newUi != null)
+                {
+                    continue;
+                }
+
+                Debug.Console(0, "New ui found, adding: {0}", newUiConf.Key);
+                UI newUiDevice = new UI(newUiConf);
+                DeviceManager.AddDevice(newUiDevice);
+            }
+        }
+
+        private void LoadNonProcessorDevice(DeviceConfig devConf)
+        {
+            Debug.Console(0, Debug.ErrorLogLevel.Notice, "Creating device '{0}', type '{1}'", devConf.Key,
+                devConf.Type);
+
+            // Try local factories first
+            IKeyed newDev = PepperDash.Essentials.Core.DeviceFactory.GetDevice(devConf);
+
+            if (newDev != null)
+            {
+                if (devConf.Type.ToLower() == "fusion")
+                {
+                    Debug.Console(0, "Found fusion device, trying to get embedded resource file");
+                    DynFusionDevice fusionDev = newDev as DynFusionDevice;
+                    if (fusionDev != null)
+                    {
+                        fusionDev.customResourceConfig = Encoding.GetEncoding(28591)
+                            .GetString(PepperDashEssentials.Properties.Resources.dynFusionCustomAttributes, 0,
+                                PepperDashEssentials.Properties.Resources.dynFusionCustomAttributes.Length);
+                        Debug.Console(0, "Got fusion embedded resource file");
+                    }
+                }
+
+                DeviceManager.AddDevice(newDev);
+            }
+            else
+            {
+                Debug.Console(0, Debug.ErrorLogLevel.Error,
+                    "ERROR: Cannot load unknown device type '{0}', key '{1}'.", devConf.Type, devConf.Key);
+            }
+        }
+
         /// <summary>
         /// Reads all devices from config and adds them to DeviceManager
         /// </summary>
@@ -293,15 +476,16 @@ namespace PepperDash.Essentials
                     new Core.Monitoring.SystemMonitorController("systemMonitor"));
             }
 
+            // Add devices
             foreach (DeviceConfig devConf in ConfigReader.ConfigObject.Devices)
             {
                 try
                 {
-                    Debug.Console(0, Debug.ErrorLogLevel.Notice, "Creating device '{0}', type '{1}'", devConf.Key,
-                        devConf.Type);
                     // Skip this to prevent unnecessary warnings
                     if (devConf.Key == "processor")
                     {
+                        Debug.Console(0, Debug.ErrorLogLevel.Notice, "Creating device '{0}', type '{1}'", devConf.Key,
+                            devConf.Type);
                         string prompt = Global.ControlSystem.ControllerPrompt;
 
                         bool typeMatch = string.Equals(devConf.Type, prompt, StringComparison.OrdinalIgnoreCase) ||
@@ -354,29 +538,7 @@ namespace PepperDash.Essentials
                         continue;
                     }
 
-                    // Try local factories first
-                    IKeyed newDev = null ?? PepperDash.Essentials.Core.DeviceFactory.GetDevice(devConf);
-
-                    if (newDev != null)
-                    {
-                        if (devConf.Type.ToLower() == "fusion")
-                        {
-                            Debug.Console(0, "Found fusion device, trying to get embedded resource file");
-                            DynFusionDevice fusionDev = newDev as DynFusionDevice;
-                            if (fusionDev != null)
-                            {
-                                fusionDev.customResourceConfig = Encoding.GetEncoding(28591)
-                                    .GetString(PepperDashEssentials.Properties.Resources.dynFusionCustomAttributes, 0,
-                                        PepperDashEssentials.Properties.Resources.dynFusionCustomAttributes.Length);
-                                Debug.Console(0, "Got fusion embedded resource file");
-                            }
-                        }
-
-                        DeviceManager.AddDevice(newDev);
-                    }
-                    else
-                        Debug.Console(0, Debug.ErrorLogLevel.Error,
-                            "ERROR: Cannot load unknown device type '{0}', key '{1}'.", devConf.Type, devConf.Key);
+                    LoadNonProcessorDevice(devConf);
                 }
                 catch (Exception e)
                 {
@@ -385,10 +547,42 @@ namespace PepperDash.Essentials
                 }
             }
 
+            // Add rooms
+            foreach (RoomConfig roomConf in ConfigReader.ConfigObject.Rooms)
+            {
+                try
+                {
+                    Debug.Console(0, Debug.ErrorLogLevel.Notice, "Creating room '{0}'", roomConf.Key);
+                    Room newRoom = new Room(roomConf);
+                    DeviceManager.AddDevice(newRoom);
+                }
+                catch (Exception e)
+                {
+                    Debug.Console(0, Debug.ErrorLogLevel.Error, "ERROR: Creating room {0}. Skipping room. \r{1}",
+                        roomConf.Key, e);
+                }
+            }
+
+            // Add UIs
+            foreach (UiConfig uiConf in ConfigReader.ConfigObject.UIs)
+            {
+                try
+                {
+                    Debug.Console(0, Debug.ErrorLogLevel.Notice, "Creating ui '{0}'", uiConf.Key);
+                    UI newUi = new UI(uiConf);
+                    DeviceManager.AddDevice(newUi);
+                }
+                catch (Exception e)
+                {
+                    Debug.Console(0, Debug.ErrorLogLevel.Error, "ERROR: Creating ui {0}. Skipping ui. \r{1}",
+                        uiConf.Key, e);
+                }
+            }
+
+            // Add UMD bridges from the embedded resource file
             string bridges = Encoding.GetEncoding(28591).GetString(PepperDashEssentials.Properties.Resources.umdBridges,
                 0, PepperDashEssentials.Properties.Resources.umdBridges.Length);
             BasicConfig BridgesObject = JObject.Parse(bridges).ToObject<BasicConfig>();
-
             foreach (DeviceConfig devConf in BridgesObject.Devices)
             {
                 try

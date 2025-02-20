@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Text;
 using System.Collections.Generic;
+using System.Linq;
 using Crestron.SimplSharp;
 using Crestron.SimplSharpPro.CrestronThread;
 using PepperDash.Core;
@@ -12,7 +13,7 @@ using Crestron.SimplSharpPro.DeviceSupport;
 
 namespace PepperDash.Essentials.Devices.Common.ExtronDsc301
 {
-    public class ExtronDsc301Device : EssentialsBridgeableDevice
+    public class ExtronDsc301Device : EssentialsBridgeableDevice, ITxRoutingWithFeedback, IRoutingFeedback
     {
         public IBasicCommunication Communication { get; private set; }
         public GenericCommunicationMonitor CommunicationMonitor { get; private set; }
@@ -59,7 +60,6 @@ namespace PepperDash.Essentials.Devices.Common.ExtronDsc301
         }
 
         private ushort _inputFb;
-        public IntFeedback InputFb;
 
         private ushort _autoModeInputFb;
         public IntFeedback AutoModeInputFb;
@@ -99,7 +99,8 @@ namespace PepperDash.Essentials.Devices.Common.ExtronDsc301
             _commandTimer = new CTimer(commandTimeout, Timeout.Infinite);
             _feedbackMutex = new CMutex();
 
-            InputFb = new IntFeedback(() => _inputFb);
+            VideoSourceNumericFeedback = new IntFeedback(() => _inputFb);
+            AudioSourceNumericFeedback = new IntFeedback(() => _inputFb);
             AutoModeInputFb = new IntFeedback(() => _autoModeInputFb);
             Input1SyncFb = new BoolFeedback(() => _Input1Sync);
             Input2SyncFb = new BoolFeedback(() => _Input2Sync);
@@ -113,8 +114,7 @@ namespace PepperDash.Essentials.Devices.Common.ExtronDsc301
             Communication.BytesReceived += Communication_BytesReceived;
 
             CommunicationMonitor = new GenericCommunicationMonitor(this, Communication, 3000, 120000, 300000, Poll);
-            CommunicationMonitor.StatusChange +=
-                new EventHandler<MonitorStatusChangeEventArgs>(CommunicationMonitor_StatusChange);
+            CommunicationMonitor.StatusChange += CommunicationMonitor_StatusChange;
             DeviceManager.AddDevice(CommunicationMonitor);
         }
 
@@ -277,15 +277,30 @@ namespace PepperDash.Essentials.Devices.Common.ExtronDsc301
                 AutoModeInputFb.FireUpdate();
 
                 _inputFb = 0;
-                InputFb.FireUpdate();
+                VideoSourceNumericFeedback.FireUpdate();
+                AudioSourceNumericFeedback.FireUpdate();
             }
             else
             {
                 _inputFb = RawInputFb;
-                InputFb.FireUpdate();
+                VideoSourceNumericFeedback.FireUpdate();
+                AudioSourceNumericFeedback.FireUpdate();
 
                 _autoModeInputFb = 0;
                 AutoModeInputFb.FireUpdate();
+            }
+
+            OnSwitchChange(_inputFb);
+        }
+
+        private void OnSwitchChange(ushort input)
+        {
+            RoutingNumericEventArgs e = new RoutingNumericEventArgs(1, input,
+                null, null, eRoutingSignalType.AudioVideo);
+
+            if (NumericSwitchChange != null)
+            {
+                NumericSwitchChange(this, e);
             }
         }
 
@@ -501,7 +516,7 @@ namespace PepperDash.Essentials.Devices.Common.ExtronDsc301
 
             //Routing
             trilist.SetUShortSigAction(joinMap.VideoInput.JoinNumber, RouteInput);
-            InputFb.LinkInputSig(trilist.UShortInput[joinMap.VideoInput.JoinNumber]);
+            VideoSourceNumericFeedback.LinkInputSig(trilist.UShortInput[joinMap.VideoInput.JoinNumber]);
             AutoModeInputFb.LinkInputSig(trilist.UShortInput[joinMap.AutoModeInput.JoinNumber]);
 
             Input0NameFb.FireUpdate();
@@ -521,6 +536,23 @@ namespace PepperDash.Essentials.Devices.Common.ExtronDsc301
         }
 
         #endregion
+
+        public RoutingPortCollection<RoutingInputPort> InputPorts { get; private set; }
+        public RoutingPortCollection<RoutingOutputPort> OutputPorts { get; private set; }
+
+        public void ExecuteSwitch(object inputSelector, object outputSelector, eRoutingSignalType signalType)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void ExecuteNumericSwitch(ushort input, ushort output, eRoutingSignalType type)
+        {
+            RouteInput(input);
+        }
+
+        public IntFeedback VideoSourceNumericFeedback { get; private set; }
+        public IntFeedback AudioSourceNumericFeedback { get; private set; }
+        public event EventHandler<RoutingNumericEventArgs> NumericSwitchChange;
     }
 
     public class Dsc301Command

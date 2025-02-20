@@ -115,7 +115,6 @@ namespace PepperDash.Essentials.Core.Bridges
             JoinMaps = new Dictionary<string, JoinMapBaseAdvanced>();
 
             PropertiesConfig = dc.Properties.ToObject<EiscApiPropertiesConfig>();
-            //PropertiesConfig = JsonConvert.DeserializeObject<EiscApiPropertiesConfig>(dc.Properties.ToString());
 
             Eisc = eisc;
 
@@ -160,13 +159,6 @@ namespace PepperDash.Essentials.Core.Bridges
 
                 Debug.Console(1, this, "Linking Device: '{0}'", device.Key);
 
-                if (!typeof(IBridgeAdvanced).IsAssignableFrom(device.GetType().GetCType()))
-                {
-                    Debug.Console(0, this, Debug.ErrorLogLevel.Notice,
-                        "{0} is not compatible with this bridge type. Please use 'eiscapi' instead, or updae the device.",
-                        device.Key);
-                    continue;
-                }
 
                 IBridgeAdvanced bridge = device as IBridgeAdvanced;
                 if (bridge != null)

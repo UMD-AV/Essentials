@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using System.Collections.Generic;
+using Newtonsoft.Json;
 
 namespace PepperDash.Essentials.Core.Config
 {
@@ -17,5 +18,7 @@ namespace PepperDash.Essentials.Core.Config
         [JsonProperty("userPassword")] public string UserPassword { get; set; }
 
         [JsonProperty("scheduleKey")] public string ScheduleKey { get; set; }
+
+        [JsonProperty("previewRoutes")] public List<Route> PreviewRoutes { get; set; }
     }
 }

@@ -50,8 +50,7 @@ namespace PepperDash.Essentials.DM
         /// <param name="e">Arguments defined as IKeyName sender, output, input, and eRoutingSignalType</param>
         private void OnSwitchChange(RoutingNumericEventArgs e)
         {
-            EventHandler<RoutingNumericEventArgs> newEvent = NumericSwitchChange;
-            if (newEvent != null) newEvent(this, e);
+            if (NumericSwitchChange != null) NumericSwitchChange(this, e);
         }
 
 

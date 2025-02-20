@@ -245,6 +245,7 @@ namespace PepperDash.Core
         /// <returns></returns>
         public override bool Deactivate()
         {
+            AutoReconnect = false;
             RetryTimer.Stop();
             RetryTimer.Dispose();
             if (_client != null)
@@ -286,8 +287,12 @@ namespace PepperDash.Core
                 {
                     //Stop retry timer if running
                     RetryTimer.Stop();
+                    if (_client != null)
+                    {
+                        _client.SocketStatusChange -= Client_SocketStatusChange;
+                    }
+
                     _client = new TCPClient(Hostname, Port, BufferSize);
-                    _client.SocketStatusChange -= Client_SocketStatusChange;
                     _client.SocketStatusChange += Client_SocketStatusChange;
                     DisconnectCalledByUser = false;
                     _client.ConnectToServerAsync(ConnectToServerCallback);

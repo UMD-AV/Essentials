@@ -18,6 +18,7 @@ namespace PepperDash.Essentials.Core.Config
             MissingMemberHandling = MissingMemberHandling.Ignore
         };
 
+        private static StreamReader fs;
         public static BasicConfig ConfigObject { get; private set; }
 
         public static bool LoadConfig()
@@ -50,7 +51,7 @@ namespace PepperDash.Essentials.Core.Config
                 filePath = configFiles[0].FullName;
 
                 // Read the file
-                using (StreamReader fs = new StreamReader(filePath))
+                using (fs = new StreamReader(filePath))
                 {
                     ConfigObject = JsonConvert.DeserializeObject<BasicConfig>(fs.ReadToEnd(), _jsonSettings);
                     Debug.Console(0, Debug.ErrorLogLevel.Notice, "Successfully Loaded Config: {0}", filePath);

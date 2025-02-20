@@ -103,6 +103,33 @@ namespace PepperDash.Essentials.Core.Bridges.JoinMaps
                 JoinType = eJoinType.Analog
             });
 
+
+        [JoinName("DividedPreset")] public JoinDataComplete DividedPreset = new JoinDataComplete(
+            new JoinData
+            {
+                JoinNumber = 3,
+                JoinSpan = 1
+            },
+            new JoinMetadata
+            {
+                Description = "Divided state audio preset index",
+                JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                JoinType = eJoinType.Analog
+            });
+
+        [JoinName("CombinedPreset")] public JoinDataComplete CombinedPreset = new JoinDataComplete(
+            new JoinData
+            {
+                JoinNumber = 4,
+                JoinSpan = 1
+            },
+            new JoinMetadata
+            {
+                Description = "Combined state audio preset index",
+                JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                JoinType = eJoinType.Analog
+            });
+
         #endregion
 
 
@@ -117,6 +144,45 @@ namespace PepperDash.Essentials.Core.Bridges.JoinMaps
             new JoinMetadata
             {
                 Description = "Sensor Name",
+                JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                JoinType = eJoinType.Serial
+            });
+
+        [JoinName("State")] public JoinDataComplete State = new JoinDataComplete(
+            new JoinData
+            {
+                JoinNumber = 2,
+                JoinSpan = 1
+            },
+            new JoinMetadata
+            {
+                Description = "Partition state (auto/manual)",
+                JoinCapabilities = eJoinCapabilities.ToFromSIMPL,
+                JoinType = eJoinType.Serial
+            });
+
+        [JoinName("DividedRoomKey")] public JoinDataComplete DividedRoomKey = new JoinDataComplete(
+            new JoinData
+            {
+                JoinNumber = 3,
+                JoinSpan = 4
+            },
+            new JoinMetadata
+            {
+                Description = "Room keys for UI when divided",
+                JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                JoinType = eJoinType.Serial
+            });
+
+        [JoinName("CombinedRoomKey")] public JoinDataComplete CombinedRoomKey = new JoinDataComplete(
+            new JoinData
+            {
+                JoinNumber = 7,
+                JoinSpan = 4
+            },
+            new JoinMetadata
+            {
+                Description = "Room keys for UI when combined",
                 JoinCapabilities = eJoinCapabilities.ToSIMPL,
                 JoinType = eJoinType.Serial
             });

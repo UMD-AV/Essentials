@@ -9,9 +9,7 @@ namespace PepperDash.Essentials.Core.Config
 
         [JsonProperty("roomName")] public string RoomName { get; set; }
 
-        [JsonProperty("phoneNumber")] public string PhoneNumber { get; set; }
-
-        [JsonProperty("advancedModeDefault")] public bool AdvancedModeDefault { get; set; }
+        [JsonProperty("advancedModeDefault")] public bool AdvancedModeDefaultOn { get; set; }
 
         [JsonProperty("advancedModeToggleVisible")]
         public bool AdvancedModeToggleVisible { get; set; }
@@ -109,12 +107,14 @@ namespace PepperDash.Essentials.Core.Config
         [JsonProperty("key")] public string Key { get; set; }
 
         [JsonProperty("source")] public int? Source { get; set; }
+
+        [JsonProperty("hide")] public bool? Hide { get; set; }
     }
 
     public class Source
     {
         [JsonProperty("name")] public string Name { get; set; }
-        [JsonProperty("helpText")] public string HelpText { get; set; }
+        [JsonProperty("index")] public ushort Index { get; set; }
         [JsonProperty("easyModeVisible")] public bool? EasyModeVisible { get; set; }
         [JsonProperty("advancedModeVisible")] public bool? AdvancedModeVisible { get; set; }
         [JsonProperty("visibleMode")] public string visibleMode { get; set; }
@@ -123,9 +123,6 @@ namespace PepperDash.Essentials.Core.Config
         [JsonProperty("disableDestinations")] public string disableDestinations { get; set; }
         [JsonProperty("deviceKey")] public string DeviceKey { get; set; }
         [JsonProperty("routes")] public List<Route> Routes { get; set; }
-
-        public string Key { get; set; }
-        public ushort Index { get; set; }
         public bool? FeedbackState { get; set; }
         public bool HasAudio { get; set; }
         public bool ContentVisible { get; set; }
@@ -134,28 +131,27 @@ namespace PepperDash.Essentials.Core.Config
     public class Dest
     {
         [JsonProperty("name")] public string Name { get; set; }
+        [JsonProperty("index")] public ushort Index { get; set; }
         [JsonProperty("routes")] public List<Route> Routes { get; set; }
-        [JsonProperty("mainAudioDest")] public string MainAudioDest { get; set; }
         [JsonProperty("visible")] public bool? Visible { get; set; }
         [JsonProperty("visibleMode")] public string visibleMode { get; set; }
         [JsonProperty("overflow")] public bool? Overflow { get; set; }
         [JsonProperty("deviceKey")] public string DeviceKey { get; set; }
 
         public string FeedbackName { get; set; }
-        public string HelpText { get; set; }
         public ushort? FeedbackIndex { get; set; }
         public string SourceDeviceKey { get; set; }
         public ushort? AudioMode { get; set; }
-        public string Key { get; set; }
-        public ushort Index { get; set; }
 
-        //List of destination keys that follow this audio feedback
-        public List<string> AudioFollowers = new List<string>();
+        //List of destination indexes that follow this audio feedback
+        public List<ushort> AudioFollowers = new List<ushort>();
     }
 
     public class RoutingAction
     {
         [JsonProperty("name")] public string Name { get; set; }
+
+        [JsonProperty("index")] public ushort Index { get; set; }
         [JsonProperty("routes")] public List<Route> Routes { get; set; }
     }
 

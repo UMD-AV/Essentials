@@ -71,6 +71,7 @@
         <Compile Include="CommunicationExtras.cs"/>
         <Compile Include="Comm\CommunicationStreamDebugging.cs"/>
         <Compile Include="Comm\ControlPropertiesConfig.cs"/>
+        <Compile Include="Comm\GenericTcpIpClient.cs"/>
         <Compile Include="Comm\SharedUdpServer.cs"/>
         <Compile Include="Comm\GenericSecureTcpIpClient.cs"/>
         <Compile Include="Comm\GenericTcpIpClient_ForServer.cs"/>
@@ -103,7 +104,6 @@
         <Compile Include="Device.cs"/>
         <Compile Include="Comm\GenericTcpIpServer.cs"/>
         <Compile Include="EthernetHelper.cs"/>
-        <Compile Include="Comm\GenericTcpIpClient.cs"/>
         <Compile Include="JsonToSimpl\Constants.cs"/>
         <Compile Include="JsonToSimpl\Global.cs"/>
         <Compile Include="JsonToSimpl\JsonToSimplArrayLookupChild.cs"/>

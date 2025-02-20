@@ -7,7 +7,7 @@ namespace PepperDash.Essentials.Core
     /// <summary>
     /// The handler type for a Room's SourceInfoChange
     /// </summary>
-    public delegate void SourceInfoChangeHandler( /*EssentialsRoomBase room,*/ SourceListItem info, ChangeType type);
+    public delegate void SourceInfoChangeHandler(SourceListItem info, ChangeType type);
 
 
     //*******************************************************************************************
@@ -114,7 +114,7 @@ namespace PepperDash.Essentials.Core
     /// <summary>
     /// Defines an IRmcRouting with a feedback event 
     /// </summary>
-    public interface ITxRoutingWithFeedback : ITxRouting
+    public interface ITxRoutingWithFeedback : ITxRouting, IRoutingFeedback
     {
     }
 

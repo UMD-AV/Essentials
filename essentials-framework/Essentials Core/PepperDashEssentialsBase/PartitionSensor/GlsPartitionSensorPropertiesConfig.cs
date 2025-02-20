@@ -1,8 +1,9 @@
 ﻿using Newtonsoft.Json;
+using PepperDash.Essentials.Core.PartitionSensor;
 
 namespace PepperDash_Essentials_Core.PartitionSensor
 {
-    public class GlsPartitionSensorPropertiesConfig
+    public class GlsPartitionSensorPropertiesConfig : PartitionControllerConfig
     {
         /// <summary>
         /// Sets the sensor sensitivity        

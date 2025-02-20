@@ -114,9 +114,13 @@
         <Compile Include="Bridges\JoinMaps\IBasicCommunicationJoinMap.cs"/>
         <Compile Include="Bridges\JoinMaps\IDigitalInputJoinMap.cs"/>
         <Compile Include="Bridges\JoinMaps\IRBlurayBaseJoinMap.cs"/>
+        <Compile Include="Bridges\JoinMaps\RoomJoinMap.cs"/>
+        <Compile Include="Bridges\JoinMaps\RoomRouterJoinMap.cs"/>
+        <Compile Include="Bridges\JoinMaps\RoutingInterfaceJoinMap.cs"/>
         <Compile Include="Bridges\JoinMaps\SetTopBoxControllerJoinMap.cs"/>
         <Compile Include="Bridges\JoinMaps\StatusSignControllerJoinMap.cs"/>
         <Compile Include="Bridges\JoinMaps\SystemMonitorJoinMap.cs"/>
+        <Compile Include="Bridges\JoinMaps\UiJoinMap.cs"/>
         <Compile Include="Bridges\JoinMaps\VideoCodecControllerJoinMap.cs"/>
         <Compile Include="Comm and IR\CecPortController.cs"/>
         <Compile Include="Comm and IR\CommFactory.cs"/>
@@ -204,8 +208,8 @@
         <Compile Include="Interfaces\ILogStringsWithLevel.cs"/>
         <Compile Include="Occupancy\GlsOccupancySensorPropertiesConfig.cs"/>
         <Compile Include="Occupancy\GlsOirOccupancySensorController.cs"/>
-        <Compile Include="PartitionSensor\EssentialsPartitionController.cs"/>
         <Compile Include="PartitionSensor\GlsPartitionSensorPropertiesConfig.cs"/>
+        <Compile Include="PartitionSensor\PartitionControllerConfig.cs"/>
         <Compile Include="PartitionSensor\IPartitionStateProvider.cs"/>
         <Compile Include="Occupancy\OccupancyAggregatorConfig.cs"/>
         <Compile Include="Queues\ComsMessage.cs"/>
@@ -260,6 +264,12 @@
         <Compile Include="Remotes\Hrxx0WirelessRemoteController.cs"/>
         <Compile Include="Room\Interfaces.cs"/>
         <Compile Include="Room\iOccupancyStatusProvider.cs"/>
+        <Compile Include="Room\Room.cs"/>
+        <Compile Include="Room\Routing\Feedback.cs"/>
+        <Compile Include="Room\Routing\Helpers.cs"/>
+        <Compile Include="Room\Routing\Router.cs"/>
+        <Compile Include="Room\Routing\RouterMain.cs"/>
+        <Compile Include="Room\Routing\RoutingInterface.cs"/>
         <Compile Include="Routing\DummyRoutingInputsDevice.cs"/>
         <Compile Include="InUseTracking\IInUseTracking.cs"/>
         <Compile Include="InUseTracking\InUseTracking.cs"/>
@@ -311,6 +321,7 @@
         <Compile Include="Touchpanels\Keyboards\HabaneroKeyboardController.cs"/>
         <Compile Include="Touchpanels\Mpc3Touchpanel.cs"/>
         <Compile Include="Touchpanels\TriListExtensions.cs"/>
+        <Compile Include="Touchpanels\UI.cs"/>
         <Compile Include="Utilities\ActionSequence.cs"/>
         <Compile Include="VideoStatus\VideoStatusOutputs.cs"/>
         <Compile Include="Crestron\CrestronGenericBaseDevice.cs"/>

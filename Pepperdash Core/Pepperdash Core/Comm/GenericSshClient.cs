@@ -131,7 +131,7 @@ namespace PepperDash.Core
         //Lock object to prevent simulatneous connect/disconnect operations
         private CCriticalSection connectLock = new CCriticalSection();
 
-        private bool DisconnectLogged = false;
+        private bool DisconnectLogged;
 
         /// <summary>
         /// Typical constructor.
@@ -140,8 +140,7 @@ namespace PepperDash.Core
             base(key)
         {
             StreamDebugging = new CommunicationStreamDebugging(key);
-            CrestronEnvironment.ProgramStatusEventHandler +=
-                new ProgramStatusEventHandler(CrestronEnvironment_ProgramStatusEventHandler);
+            CrestronEnvironment.ProgramStatusEventHandler += CrestronEnvironment_ProgramStatusEventHandler;
             Key = key;
             Hostname = hostname;
             Port = port;
@@ -164,8 +163,7 @@ namespace PepperDash.Core
         public GenericSshClient()
             : base(SPlusKey)
         {
-            CrestronEnvironment.ProgramStatusEventHandler +=
-                new ProgramStatusEventHandler(CrestronEnvironment_ProgramStatusEventHandler);
+            CrestronEnvironment.ProgramStatusEventHandler += CrestronEnvironment_ProgramStatusEventHandler;
             AutoReconnectIntervalMs = 5000;
 
             ReconnectTimer = new CTimer(o =>
@@ -195,6 +193,7 @@ namespace PepperDash.Core
                 if (Client != null)
                 {
                     Debug.Console(1, this, "Program stopping. Closing connection");
+                    AutoReconnect = false;
                     Disconnect();
                 }
             }
@@ -205,115 +204,118 @@ namespace PepperDash.Core
         /// </summary>
         public void Connect()
         {
-            // Don't go unless everything is here
-            if (string.IsNullOrEmpty(Hostname) || Port < 1 || Port > 65535
-                || Username == null || Password == null)
+            CrestronInvoke.BeginInvoke((o) =>
             {
-                Debug.Console(0, this, Debug.ErrorLogLevel.Error,
-                    "Connect failed.  Check hostname, port, username and password are set or not null");
-                return;
-            }
-
-            ConnectEnabled = true;
-
-            try
-            {
-                connectLock.Enter();
-                if (IsConnected)
+                // Don't go unless everything is here
+                if (string.IsNullOrEmpty(Hostname) || Port < 1 || Port > 65535
+                    || Username == null || Password == null)
                 {
-                    Debug.Console(1, this, "Connection already connected.  Exiting Connect()");
+                    Debug.Console(0, this, Debug.ErrorLogLevel.Error,
+                        "Connect failed.  Check hostname, port, username and password are set or not null");
+                    return;
                 }
-                else
+
+                ConnectEnabled = true;
+
+                try
                 {
-                    Debug.Console(1, this, "Attempting connect");
-
-                    // Cancel reconnect if running.
-                    ReconnectTimer.Stop();
-
-                    // Cleanup the old client if it already exists
-                    if (Client != null)
+                    connectLock.Enter();
+                    if (IsConnected)
                     {
-                        Debug.Console(1, this, "Cleaning up disconnected client");
-                        KillClient(SocketStatus.SOCKET_STATUS_BROKEN_LOCALLY);
+                        Debug.Console(1, this, "Connection already connected.  Exiting Connect()");
                     }
-
-                    // This handles both password and keyboard-interactive (like on OS-X, 'nixes)
-                    KeyboardInteractiveAuthenticationMethod kauth =
-                        new KeyboardInteractiveAuthenticationMethod(Username);
-                    kauth.AuthenticationPrompt +=
-                        new EventHandler<AuthenticationPromptEventArgs>(kauth_AuthenticationPrompt);
-                    PasswordAuthenticationMethod pauth = new PasswordAuthenticationMethod(Username, Password);
-
-                    Debug.Console(1, this, "Creating new SshClient");
-                    ConnectionInfo connectionInfo = new ConnectionInfo(Hostname, Port, Username, pauth, kauth);
-                    Client = new SshClient(connectionInfo);
-
-                    Client.ErrorOccurred -= Client_ErrorOccurred;
-                    Client.ErrorOccurred += Client_ErrorOccurred;
-
-                    //Attempt to connect
-                    ClientStatus = SocketStatus.SOCKET_STATUS_WAITING;
-                    try
+                    else
                     {
-                        Client.Connect();
-                        TheStream = Client.CreateShellStream("PDTShell", 100, 80, 100, 200, 65534);
-                        TheStream.DataReceived += Stream_DataReceived;
-                        Debug.Console(1, this, Debug.ErrorLogLevel.Notice, "Connected");
-                        ClientStatus = SocketStatus.SOCKET_STATUS_CONNECTED;
-                        DisconnectLogged = false;
-                    }
-                    catch (SshConnectionException e)
-                    {
-                        Exception ie = e.InnerException; // The details are inside!!
-                        Debug.ErrorLogLevel errorLogLevel = DisconnectLogged == true
-                            ? Debug.ErrorLogLevel.None
-                            : Debug.ErrorLogLevel.Error;
+                        Debug.Console(1, this, "Attempting connect");
 
-                        if (ie is SocketException)
-                            Debug.Console(1, this, errorLogLevel, "'{0}' CONNECTION failure: Cannot reach host, ({1})",
-                                Key, ie.Message);
-                        else if (ie is System.Net.Sockets.SocketException)
-                            Debug.Console(1, this, errorLogLevel,
-                                "'{0}' Connection failure: Cannot reach host '{1}' on port {2}, ({3})",
-                                Key, Hostname, Port, ie.GetType());
-                        else if (ie is SshAuthenticationException)
+                        // Cancel reconnect if running.
+                        ReconnectTimer.Stop();
+
+                        // Cleanup the old client if it already exists
+                        if (Client != null)
                         {
-                            Debug.Console(1, this, errorLogLevel, "Authentication failure for username '{0}', ({1})",
-                                Username, ie.Message);
+                            Debug.Console(1, this, "Cleaning up disconnected client");
+                            KillClient(SocketStatus.SOCKET_STATUS_BROKEN_LOCALLY);
                         }
-                        else
-                            Debug.Console(1, this, errorLogLevel, "Error on connect:\r({0})", ie.Message);
 
-                        DisconnectLogged = true;
-                        KillClient(SocketStatus.SOCKET_STATUS_CONNECT_FAILED);
-                        if (AutoReconnect)
+                        // This handles both password and keyboard-interactive (like on OS-X, 'nixes)
+                        KeyboardInteractiveAuthenticationMethod kauth =
+                            new KeyboardInteractiveAuthenticationMethod(Username);
+                        kauth.AuthenticationPrompt += kauth_AuthenticationPrompt;
+                        PasswordAuthenticationMethod pauth = new PasswordAuthenticationMethod(Username, Password);
+
+                        Debug.Console(1, this, "Creating new SshClient");
+                        ConnectionInfo connectionInfo = new ConnectionInfo(Hostname, Port, Username, pauth, kauth);
+                        if (Client != null) Client.ErrorOccurred -= Client_ErrorOccurred;
+                        Client = new SshClient(connectionInfo);
+                        Client.ErrorOccurred += Client_ErrorOccurred;
+
+                        //Attempt to connect
+                        ClientStatus = SocketStatus.SOCKET_STATUS_WAITING;
+                        try
                         {
-                            Debug.Console(1, this, "Checking autoreconnect: {0}, {1}ms", AutoReconnect,
-                                AutoReconnectIntervalMs);
-                            ReconnectTimer.Reset(AutoReconnectIntervalMs);
+                            Client.Connect();
+                            TheStream = Client.CreateShellStream("PDTShell", 100, 80, 100, 200, 65534);
+                            TheStream.DataReceived += Stream_DataReceived;
+                            Debug.Console(1, this, Debug.ErrorLogLevel.Notice, "Connected");
+                            ClientStatus = SocketStatus.SOCKET_STATUS_CONNECTED;
+                            DisconnectLogged = false;
                         }
-                    }
-                    catch (Exception e)
-                    {
-                        Debug.ErrorLogLevel errorLogLevel = DisconnectLogged == true
-                            ? Debug.ErrorLogLevel.None
-                            : Debug.ErrorLogLevel.Error;
-                        Debug.Console(1, this, errorLogLevel, "Unhandled exception on connect:\r({0})", e.Message);
-                        DisconnectLogged = true;
-                        KillClient(SocketStatus.SOCKET_STATUS_CONNECT_FAILED);
-                        if (AutoReconnect)
+                        catch (SshConnectionException e)
                         {
-                            Debug.Console(1, this, "Checking autoreconnect: {0}, {1}ms", AutoReconnect,
-                                AutoReconnectIntervalMs);
-                            ReconnectTimer.Reset(AutoReconnectIntervalMs);
+                            Exception ie = e.InnerException; // The details are inside!!
+                            Debug.ErrorLogLevel errorLogLevel = DisconnectLogged
+                                ? Debug.ErrorLogLevel.None
+                                : Debug.ErrorLogLevel.Error;
+
+                            if (ie is SocketException)
+                                Debug.Console(1, this, errorLogLevel,
+                                    "'{0}' CONNECTION failure: Cannot reach host, ({1})",
+                                    Key, ie.Message);
+                            else if (ie is System.Net.Sockets.SocketException)
+                                Debug.Console(1, this, errorLogLevel,
+                                    "'{0}' Connection failure: Cannot reach host '{1}' on port {2}, ({3})",
+                                    Key, Hostname, Port, ie.GetType());
+                            else if (ie is SshAuthenticationException)
+                            {
+                                Debug.Console(1, this, errorLogLevel,
+                                    "Authentication failure for username '{0}', ({1})",
+                                    Username, ie.Message);
+                            }
+                            else
+                                Debug.Console(1, this, errorLogLevel, "Error on connect:\r({0})", e.Message);
+
+                            DisconnectLogged = true;
+                            KillClient(SocketStatus.SOCKET_STATUS_CONNECT_FAILED);
+                            if (AutoReconnect)
+                            {
+                                Debug.Console(1, this, "Checking autoreconnect: {0}, {1}ms", AutoReconnect,
+                                    AutoReconnectIntervalMs);
+                                ReconnectTimer.Reset(AutoReconnectIntervalMs);
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                            Debug.ErrorLogLevel errorLogLevel = DisconnectLogged
+                                ? Debug.ErrorLogLevel.None
+                                : Debug.ErrorLogLevel.Error;
+                            Debug.Console(1, this, errorLogLevel, "Unhandled exception on connect:\r({0})", e.Message);
+                            DisconnectLogged = true;
+                            KillClient(SocketStatus.SOCKET_STATUS_CONNECT_FAILED);
+                            if (AutoReconnect)
+                            {
+                                Debug.Console(1, this, "Checking autoreconnect: {0}, {1}ms", AutoReconnect,
+                                    AutoReconnectIntervalMs);
+                                ReconnectTimer.Reset(AutoReconnectIntervalMs);
+                            }
                         }
                     }
                 }
-            }
-            finally
-            {
-                connectLock.Leave();
-            }
+                finally
+                {
+                    connectLock.Leave();
+                }
+            });
         }
 
         /// <summary>
@@ -386,7 +388,7 @@ namespace PepperDash.Core
         /// <summary>
         /// Handler for data receive on ShellStream.  Passes data across to queue for line parsing.
         /// </summary>
-        private void Stream_DataReceived(object sender, Crestron.SimplSharp.Ssh.Common.ShellDataEventArgs e)
+        private void Stream_DataReceived(object sender, ShellDataEventArgs e)
         {
             byte[] bytes = e.Data;
             if (bytes.Length > 0)
@@ -420,7 +422,7 @@ namespace PepperDash.Core
         /// Error event handler for client events - disconnect, etc.  Will forward those events via ConnectionChange
         /// event
         /// </summary>
-        private void Client_ErrorOccurred(object sender, Crestron.SimplSharp.Ssh.Common.ExceptionEventArgs e)
+        private void Client_ErrorOccurred(object sender, ExceptionEventArgs e)
         {
             CrestronInvoke.BeginInvoke(o =>
             {

@@ -6,37 +6,69 @@ using PepperDash.Essentials.Core.Config;
 using PepperDash.Essentials.Core.Bridges;
 using Newtonsoft.Json;
 using PepperDash.Essentials.Core.CrestronIO;
+using PepperDash.Essentials.Core.PartitionSensor;
 using PepperDash.Essentials.Core.Bridges.JoinMaps;
 
 namespace PepperDash.Essentials.Devices.Common.Environment
 {
     public class GenericPartitionInput : GenericVersiportDigitalInputDevice
     {
-        private bool invertInput;
+        private readonly bool invertInput;
+        private readonly GenericPartitionInputConfig PropertiesConfig;
 
         public GenericPartitionInput(string key, string name, GenericPartitionInputConfig props)
             : base(key, name, props)
         {
             invertInput = props.InvertInput;
+            PropertiesConfig = props;
         }
 
         public override void LinkToApi(BasicTriList trilist, uint joinStart, string joinMapKey, EiscApiAdvanced bridge)
         {
             GlsPartitionSensorJoinMap joinMap = new GlsPartitionSensorJoinMap(joinStart);
             trilist.BooleanInput[joinMap.IsOnline.JoinNumber].BoolValue = true;
-            trilist.StringInput[joinMap.Name.JoinNumber].StringValue = this.Name;
+            trilist.StringInput[joinMap.Name.JoinNumber].StringValue = Name;
 
             if (!invertInput)
             {
-                this.InputStateFeedback.LinkInputSig(trilist.BooleanInput[joinMap.PartitionSensed.JoinNumber]);
-                this.InputStateFeedback.LinkComplementInputSig(
+                InputStateFeedback.LinkInputSig(trilist.BooleanInput[joinMap.PartitionSensed.JoinNumber]);
+                InputStateFeedback.LinkComplementInputSig(
                     trilist.BooleanInput[joinMap.PartitionNotSensed.JoinNumber]);
             }
             else
             {
-                this.InputStateFeedback.LinkComplementInputSig(
+                InputStateFeedback.LinkComplementInputSig(
                     trilist.BooleanInput[joinMap.PartitionSensed.JoinNumber]);
-                this.InputStateFeedback.LinkInputSig(trilist.BooleanInput[joinMap.PartitionNotSensed.JoinNumber]);
+                InputStateFeedback.LinkInputSig(trilist.BooleanInput[joinMap.PartitionNotSensed.JoinNumber]);
+            }
+
+            //Partition controller joins
+            trilist.StringInput[joinMap.State.JoinNumber].StringValue = PropertiesConfig.State;
+
+            if (PropertiesConfig.Divided != null)
+            {
+                trilist.UShortInput[joinMap.DividedPreset.JoinNumber].UShortValue = PropertiesConfig.Divided.Preset;
+                trilist.StringInput[joinMap.DividedRoomKey.JoinNumber].StringValue =
+                    PropertiesConfig.Divided.Tp01RoomKey;
+                trilist.StringInput[joinMap.DividedRoomKey.JoinNumber + 1].StringValue =
+                    PropertiesConfig.Divided.Tp02RoomKey;
+                trilist.StringInput[joinMap.DividedRoomKey.JoinNumber + 2].StringValue =
+                    PropertiesConfig.Divided.Tp03RoomKey;
+                trilist.StringInput[joinMap.DividedRoomKey.JoinNumber + 3].StringValue =
+                    PropertiesConfig.Divided.Tp04RoomKey;
+            }
+
+            if (PropertiesConfig.Combined != null)
+            {
+                trilist.UShortInput[joinMap.CombinedPreset.JoinNumber].UShortValue = PropertiesConfig.Combined.Preset;
+                trilist.StringInput[joinMap.CombinedRoomKey.JoinNumber].StringValue =
+                    PropertiesConfig.Combined.Tp01RoomKey;
+                trilist.StringInput[joinMap.CombinedRoomKey.JoinNumber + 1].StringValue =
+                    PropertiesConfig.Combined.Tp02RoomKey;
+                trilist.StringInput[joinMap.CombinedRoomKey.JoinNumber + 2].StringValue =
+                    PropertiesConfig.Combined.Tp03RoomKey;
+                trilist.StringInput[joinMap.CombinedRoomKey.JoinNumber + 3].StringValue =
+                    PropertiesConfig.Combined.Tp04RoomKey;
             }
 
             InputStateFeedback.FireUpdate();
@@ -46,6 +78,11 @@ namespace PepperDash.Essentials.Devices.Common.Environment
     public class GenericPartitionInputConfig : IOPortConfig
     {
         [JsonProperty("invertInput")] public bool InvertInput { get; set; }
+        [JsonProperty("state")] public string State { get; set; }
+
+        [JsonProperty("divided")] public RoomState Divided { get; set; }
+
+        [JsonProperty("combined")] public RoomState Combined { get; set; }
     }
 
     public class GenericPartitionInputFactory : EssentialsDeviceFactory<GenericPartitionInput>

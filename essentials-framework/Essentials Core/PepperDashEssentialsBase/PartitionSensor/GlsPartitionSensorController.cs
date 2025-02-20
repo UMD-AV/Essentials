@@ -308,6 +308,35 @@ namespace PepperDash.Essentials.Core
                     FeedbacksFireUpdates();
                 }
             };
+
+            //Partition controller joins
+            trilist.StringInput[joinMap.State.JoinNumber].StringValue = PropertiesConfig.State;
+
+            if (PropertiesConfig.Divided != null)
+            {
+                trilist.UShortInput[joinMap.DividedPreset.JoinNumber].UShortValue = PropertiesConfig.Divided.Preset;
+                trilist.StringInput[joinMap.DividedRoomKey.JoinNumber].StringValue =
+                    PropertiesConfig.Divided.Tp01RoomKey;
+                trilist.StringInput[joinMap.DividedRoomKey.JoinNumber + 1].StringValue =
+                    PropertiesConfig.Divided.Tp02RoomKey;
+                trilist.StringInput[joinMap.DividedRoomKey.JoinNumber + 2].StringValue =
+                    PropertiesConfig.Divided.Tp03RoomKey;
+                trilist.StringInput[joinMap.DividedRoomKey.JoinNumber + 3].StringValue =
+                    PropertiesConfig.Divided.Tp04RoomKey;
+            }
+
+            if (PropertiesConfig.Combined != null)
+            {
+                trilist.UShortInput[joinMap.CombinedPreset.JoinNumber].UShortValue = PropertiesConfig.Combined.Preset;
+                trilist.StringInput[joinMap.CombinedRoomKey.JoinNumber].StringValue =
+                    PropertiesConfig.Combined.Tp01RoomKey;
+                trilist.StringInput[joinMap.CombinedRoomKey.JoinNumber + 1].StringValue =
+                    PropertiesConfig.Combined.Tp02RoomKey;
+                trilist.StringInput[joinMap.CombinedRoomKey.JoinNumber + 2].StringValue =
+                    PropertiesConfig.Combined.Tp03RoomKey;
+                trilist.StringInput[joinMap.CombinedRoomKey.JoinNumber + 3].StringValue =
+                    PropertiesConfig.Combined.Tp04RoomKey;
+            }
         }
 
         private void FeedbacksFireUpdates()

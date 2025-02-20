@@ -17,10 +17,6 @@ namespace PepperDash.Essentials.Core
 
         private static readonly CCriticalSection DeviceCriticalSection = new CCriticalSection();
 
-        private static readonly CEvent AllowAddDevicesCEvent = new CEvent(false, true);
-        //public static List<Device> Devices { get { return _Devices; } }
-        //static List<Device> _Devices = new List<Device>();
-
         private static readonly Dictionary<string, IKeyed> Devices =
             new Dictionary<string, IKeyed>(StringComparer.OrdinalIgnoreCase);
 
@@ -174,27 +170,6 @@ namespace PepperDash.Essentials.Core
             }
         }
 
-        //static void ListMethods(string devKey)
-        //{
-        //    var dev = GetDeviceForKey(devKey);
-        //    if(dev != null)
-        //    {
-        //        var type = dev.GetType().GetCType();
-        //        var methods = type.GetMethods(BindingFlags.Public|BindingFlags.Instance);
-        //        var sb = new StringBuilder();
-        //        sb.AppendLine(string.Format("{2} methods on [{0}] ({1}):", dev.Key, type.Name, methods.Length));
-        //        foreach (var m in methods)
-        //        {
-        //            sb.Append(string.Format("{0}(", m.Name));
-        //            var pars = m.GetParameters();
-        //            foreach (var p in pars)
-        //                sb.Append(string.Format("({1}){0} ", p.Name, p.ParameterType.Name));
-        //            sb.AppendLine(")");
-        //        }
-        //        CrestronConsole.ConsoleCommandResponse(sb.ToString());
-        //    }
-        //}
-
         private static void ListDevices(string s)
         {
             Debug.Console(0, "{0} Devices registered with Device Manager:", Devices.Count);
@@ -227,17 +202,6 @@ namespace PepperDash.Essentials.Core
             statusDev.DumpFeedbacksToConsole(true);
         }
 
-        //static void ListDeviceCommands(string devKey)
-        //{
-        //    var dev = GetDeviceForKey(devKey);
-        //    if (dev == null)
-        //    {
-        //        Debug.Console(0, "Device '{0}' not found", devKey);
-        //        return;
-        //    }
-        //    Debug.Console(0, "This needs to be reworked.  Stay tuned.", devKey);
-        //}
-
         private static void ListDeviceCommStatuses(string input)
         {
             StringBuilder sb = new StringBuilder();
@@ -250,12 +214,6 @@ namespace PepperDash.Essentials.Core
             CrestronConsole.ConsoleCommandResponse(sb.ToString());
         }
 
-
-        //static void DoDeviceCommand(string command)
-        //{
-        //    Debug.Console(0, "Not yet implemented.  Stay tuned");
-        //}
-
         public static void AddDevice(IKeyed newDev)
         {
             try
@@ -266,10 +224,6 @@ namespace PepperDash.Essentials.Core
                         "Currently unable to add devices to Device Manager. Please try again");
                     return;
                 }
-                // Check for device with same key
-                //var existingDevice = _Devices.FirstOrDefault(d => d.Key.Equals(newDev.Key, StringComparison.OrdinalIgnoreCase));
-                ////// If it exists, remove or warn??
-                //if (existingDevice != null)
 
                 if (!AddDeviceEnabled)
                 {
@@ -285,8 +239,6 @@ namespace PepperDash.Essentials.Core
                 }
 
                 Devices.Add(newDev.Key, newDev);
-                //if (!(_Devices.Contains(newDev)))
-                //    _Devices.Add(newDev);
             }
             finally
             {
@@ -340,8 +292,6 @@ namespace PepperDash.Essentials.Core
                     return;
                 if (Devices.ContainsKey(newDev.Key))
                     Devices.Remove(newDev.Key);
-                //if (_Devices.Contains(newDev))
-                //    _Devices.Remove(newDev);
                 else
                     Debug.Console(0, "Device manager: Device '{0}' does not exist in manager.  Cannot remove",
                         newDev.Key);
@@ -354,19 +304,16 @@ namespace PepperDash.Essentials.Core
 
         public static IEnumerable<string> GetDeviceKeys()
         {
-            //return _Devices.Select(d => d.Key).ToList();
             return Devices.Keys;
         }
 
         public static IEnumerable<IKeyed> GetDevices()
         {
-            //return _Devices.Select(d => d.Key).ToList();
             return Devices.Values;
         }
 
         public static IKeyed GetDeviceForKey(string key)
         {
-            //return _Devices.FirstOrDefault(d => d.Key.Equals(key, StringComparison.OrdinalIgnoreCase));
             if (key != null && Devices.ContainsKey(key))
                 return Devices[key];
 
@@ -379,7 +326,6 @@ namespace PepperDash.Essentials.Core
         /// <param name="s"></param>
         public static void SimulateComReceiveOnDevice(string s)
         {
-            // devcomsim:1 xyzabc
             Match match = Regex.Match(s, @"(\S*)\s*(.*)");
             if (match.Groups.Count < 3)
             {

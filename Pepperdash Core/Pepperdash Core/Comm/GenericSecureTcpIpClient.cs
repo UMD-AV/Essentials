@@ -427,6 +427,7 @@ namespace PepperDash.Core
 
         public override bool Deactivate()
         {
+            AutoReconnect = false;
             if (_client != null)
             {
                 _client.SocketStatusChange -= this.Client_SocketStatusChange;
@@ -491,7 +492,7 @@ namespace PepperDash.Core
                 }
 
                 DisconnectCalledByUser = false;
-
+                if (_client != null) _client.SocketStatusChange -= Client_SocketStatusChange;
                 _client = new SecureTCPClient(Hostname, Port, BufferSize);
                 _client.SocketStatusChange += Client_SocketStatusChange;
                 if (HeartbeatEnabled)
