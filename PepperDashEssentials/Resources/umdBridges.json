@@ -1129,6 +1129,14 @@
           {
             "deviceKey": "recorder02",
             "joinStart": 101
+          },
+          {
+            "deviceKey": "panopto01",
+            "joinStart": 201
+          },
+          {
+            "deviceKey": "panopto02",
+            "joinStart": 301
           }
         ]
       }

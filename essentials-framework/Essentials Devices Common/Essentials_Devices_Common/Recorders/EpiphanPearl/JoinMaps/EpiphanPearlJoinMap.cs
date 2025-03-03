@@ -1,6 +1,5 @@
 ﻿using System;
 using PepperDash.Essentials.Core;
-using PepperDash.Essentials.Core.CrestronIO;
 
 namespace PepperDash.Essentials.EpiphanPearl.JoinMaps
 {
@@ -25,19 +24,6 @@ namespace PepperDash.Essentials.EpiphanPearl.JoinMaps
                 JoinCapabilities = eJoinCapabilities.ToSIMPL,
                 JoinType = eJoinType.Serial,
                 Description = "Recorder Name"
-            });
-
-        [JoinName("SetHostname")] public JoinDataComplete SetHostname = new JoinDataComplete(
-            new JoinData
-            {
-                JoinNumber = 1,
-                JoinSpan = 1
-            },
-            new JoinMetadata
-            {
-                JoinCapabilities = eJoinCapabilities.FromSIMPL,
-                JoinType = eJoinType.Serial,
-                Description = "Set Hostname"
             });
 
         [JoinName("RecorderOnline")] public JoinDataComplete RecorderOnline = new JoinDataComplete(

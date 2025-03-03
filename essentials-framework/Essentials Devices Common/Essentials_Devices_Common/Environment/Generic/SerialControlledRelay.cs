@@ -6,7 +6,6 @@ using PepperDash.Core;
 using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Config;
 using PepperDash.Essentials.Core.Bridges;
-using PepperDash.Essentials.Core.CrestronIO;
 
 namespace PepperDash.Essentials.Devices.Common.Environment.Generic
 {

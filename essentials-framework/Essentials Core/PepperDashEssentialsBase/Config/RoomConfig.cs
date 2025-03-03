@@ -68,7 +68,7 @@ namespace PepperDash.Essentials.Core.Config
 
         [JsonProperty("wallplateCapable")] public bool WallplateCapable { get; set; }
 
-        [JsonProperty("physicsDivisible")] public bool PhysicsDivisible { get; set; }
+        [JsonProperty("physicsDivisible")] public bool? PhysicsDivisible { get; set; }
 
         [JsonProperty("mainFaderKey")] public string MainFaderKey { get; set; }
 
@@ -123,9 +123,9 @@ namespace PepperDash.Essentials.Core.Config
         [JsonProperty("disableDestinations")] public string disableDestinations { get; set; }
         [JsonProperty("deviceKey")] public string DeviceKey { get; set; }
         [JsonProperty("routes")] public List<Route> Routes { get; set; }
-        public bool? FeedbackState { get; set; }
-        public bool HasAudio { get; set; }
-        public bool ContentVisible { get; set; }
+        [JsonIgnore] public bool? FeedbackState { get; set; }
+        [JsonIgnore] public bool HasAudio { get; set; }
+        [JsonIgnore] public bool ContentVisible { get; set; }
     }
 
     public class Dest
@@ -138,13 +138,13 @@ namespace PepperDash.Essentials.Core.Config
         [JsonProperty("overflow")] public bool? Overflow { get; set; }
         [JsonProperty("deviceKey")] public string DeviceKey { get; set; }
 
-        public string FeedbackName { get; set; }
-        public ushort? FeedbackIndex { get; set; }
-        public string SourceDeviceKey { get; set; }
-        public ushort? AudioMode { get; set; }
+        [JsonIgnore] public string FeedbackName { get; set; }
+        [JsonIgnore] public ushort? FeedbackIndex { get; set; }
+        [JsonIgnore] public string SourceDeviceKey { get; set; }
+        [JsonIgnore] public ushort? AudioMode { get; set; }
 
         //List of destination indexes that follow this audio feedback
-        public List<ushort> AudioFollowers = new List<ushort>();
+        [JsonIgnore] public List<ushort> AudioFollowers = new List<ushort>();
     }
 
     public class RoutingAction
@@ -157,6 +157,7 @@ namespace PepperDash.Essentials.Core.Config
 
     public class Route
     {
+        [JsonProperty("comment")] public string Comment { get; set; }
         [JsonProperty("key")] public string RouteKey { get; set; }
         [JsonProperty("input")] public ushort? Input { get; set; }
         [JsonProperty("output")] public ushort? Output { get; set; }

@@ -20,20 +20,20 @@ namespace PepperDash.Essentials.PanoptoCloud
         public static string CurrentRecordingLength(this Guid currentRecordingId, DateTime startTime, DateTime endTime)
         {
             return currentRecordingId == Guid.Empty
-                ? String.Empty
-                : String.Format("{0}", (endTime - startTime).TotalMinutes);
+                ? string.Empty
+                : string.Format("{0}", (endTime - startTime).TotalMinutes);
         }
 
         public static string CurrentRecordingTimeRemaining(this Guid currentRecordingId, DateTime endTime)
         {
             return currentRecordingId == Guid.Empty
-                ? String.Empty
-                : String.Format("{0}", Math.Round((endTime - DateTime.Now).TotalMinutes));
+                ? string.Empty
+                : string.Format("{0}", Math.Round((endTime - DateTime.Now).TotalMinutes));
         }
 
         public static bool TryGetValueFromSecureStorage(string key, out string value)
         {
-            value = String.Empty;
+            value = string.Empty;
 
             byte[] bytes;
             eCrestronSecureStorageStatus storageResult = CrestronSecureStorage.Retrieve(key,

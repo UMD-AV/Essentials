@@ -11,14 +11,14 @@ namespace PepperDash.Essentials.Core.Config
     /// <summary>
     /// Responsible for updating config at runtime, and writing the updates out to a local file
     /// </summary>
-    public class ConfigWriter
+    public static class ConfigWriter
     {
-        public const string LocalConfigFolder = "LocalConfig";
+        public static string ConfigLocation;
 
         public const long WriteTimeout = 30000;
 
         public static CTimer WriteTimer;
-        private static CCriticalSection fileLock = new CCriticalSection();
+        private static readonly CCriticalSection fileLock = new CCriticalSection();
 
         /// <summary>
         /// Updates the config properties of a device
@@ -102,17 +102,28 @@ namespace PepperDash.Essentials.Core.Config
         }
 
         /// <summary>
-        /// Writes the current config to a file in the LocalConfig subfolder
+        /// Saves the current config to file
+        /// </summary>
+        /// <returns></returns>
+        public static void SaveConfigFile()
+        {
+            ResetTimer();
+        }
+
+        /// <summary>
+        /// Writes the current config to file
         /// </summary>
         /// <returns></returns>
         private static void WriteConfigFile(object o)
         {
-            string filePath = Global.FilePathPrefix + LocalConfigFolder + Global.DirectorySeparator +
-                              "configurationFile.json";
+            string configData = JsonConvert.SerializeObject(ConfigReader.ConfigObject, Formatting.Indented,
+                new JsonSerializerSettings
+                {
+                    MissingMemberHandling = MissingMemberHandling.Ignore,
+                    NullValueHandling = NullValueHandling.Ignore
+                });
 
-            string configData = JsonConvert.SerializeObject(ConfigReader.ConfigObject);
-
-            WriteFile(filePath, configData);
+            WriteFile(ConfigLocation, configData);
         }
 
         /// <summary>
@@ -120,7 +131,7 @@ namespace PepperDash.Essentials.Core.Config
         /// </summary>
         /// <param name="filePath"></param>
         /// <param name="configData"></param>
-        public static void WriteFile(string filePath, string configData)
+        private static void WriteFile(string filePath, string configData)
         {
             if (WriteTimer != null)
                 WriteTimer.Stop();

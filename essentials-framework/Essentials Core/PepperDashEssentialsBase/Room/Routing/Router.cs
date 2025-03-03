@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 using Crestron.SimplSharp;
+using Crestron.SimplSharpPro;
 using Crestron.SimplSharpPro.DeviceSupport;
 using PepperDash.Core;
 using PepperDash.Essentials.Core.Bridges;
@@ -11,7 +12,7 @@ namespace PepperDash.Essentials.Core.Routing
 {
     public class Router : IKeyName, IBridgeAdvanced
     {
-        public ushort debugLevel = 0;
+        public ushort debugLevel = 1;
         public bool fakeFeedback = false;
         public string Key { get; private set; }
         public string Name { get; private set; }
@@ -32,10 +33,12 @@ namespace PepperDash.Essentials.Core.Routing
         private IRoutingNumericWithFeedback switcher01;
         private IRoutingNumericWithFeedback switcher02;
         private IRoutingNumericWithFeedback switcher03;
-        private Dictionary<ushort, IRoutingNumericWithFeedback> txs;
+        private readonly Dictionary<ushort, IRoutingNumericWithFeedback> txs;
 
         private RoomRouterJoinMap joinMap;
         private BasicTriList routerTriList;
+        private bool allowRoutes;
+        private readonly CTimer allowRoutesTimer;
 
         public Dictionary<uint, IntFeedback> CurrentRouteFeedbacks { get; private set; }
         public Dictionary<uint, StringFeedback> SourceDeviceKeyFeedbacks { get; private set; }
@@ -48,7 +51,10 @@ namespace PepperDash.Essentials.Core.Routing
             Name = roomConfig.RoomName + "-router";
             FeedbackMutex = new CMutex();
             FeedbackTimer = new CTimer(FeedbackTimerCallback, Timeout.Infinite);
+            allowRoutesTimer = new CTimer(allowRoutesTimerCallback, Timeout.Infinite);
             RouterMain.AddRouter(Key, this);
+
+            txs = new Dictionary<ushort, IRoutingNumericWithFeedback>();
 
             CurrentRouteFeedbacks = new Dictionary<uint, IntFeedback>();
             SourceDeviceKeyFeedbacks = new Dictionary<uint, StringFeedback>();
@@ -172,14 +178,9 @@ namespace PepperDash.Essentials.Core.Routing
             if (switcher03 != null)
                 switcher03.NumericSwitchChange += Switcher03OnNumericSwitchChange;
 
-            if (txs == null)
-            {
-                txs = new Dictionary<ushort, IRoutingNumericWithFeedback>();
-            }
-
             for (ushort i = 1; i <= RouterMain.maxSources; i++)
             {
-                if (txs[i] != null)
+                if (txs.ContainsKey(i) && txs[i] != null)
                 {
                     txs[i].NumericSwitchChange -= TxOnNumericSwitchChange;
                 }
@@ -193,7 +194,7 @@ namespace PepperDash.Essentials.Core.Routing
                     txs[i] = GetTx("tx" + i);
                 }
 
-                if (txs[i] != null)
+                if (txs.ContainsKey(i) && txs[i] != null)
                 {
                     txs[i].NumericSwitchChange += TxOnNumericSwitchChange;
                 }
@@ -349,6 +350,8 @@ namespace PepperDash.Essentials.Core.Routing
             joinMap = new RoomRouterJoinMap(joinStart);
             routerTriList = trilist;
 
+            trilist.OnlineStatusChange += TrilistOnOnlineStatusChange;
+
             bridge.AddJoinMap(Key, joinMap);
 
             trilist.SetUShortSigAction(joinMap.RoomActionGo.JoinNumber, FireAction);
@@ -382,6 +385,29 @@ namespace PepperDash.Essentials.Core.Routing
             }
         }
 
+        private void TrilistOnOnlineStatusChange(GenericBase currentDevice, OnlineOfflineEventArgs args)
+        {
+            if (debugLevel > 0)
+            {
+                Debug.Console(0, "Router {0} trilist online status: {1}", Key, args.DeviceOnLine);
+            }
+
+            if (!args.DeviceOnLine)
+            {
+                allowRoutesTimer.Stop();
+                allowRoutes = false;
+            }
+            else
+            {
+                allowRoutesTimer.Reset(5000);
+            }
+        }
+
+        private void allowRoutesTimerCallback(object o)
+        {
+            allowRoutes = true;
+        }
+
         private void UpdateAllFeedback()
         {
             for (ushort i = 0; i <= RouterMain.maxSources; i++)
@@ -399,6 +425,7 @@ namespace PepperDash.Essentials.Core.Routing
 
         public void FireAction(ushort actionIndex)
         {
+            if (!allowRoutes) return;
             if (Actions != null)
             {
                 RoutingAction action = Actions[actionIndex];
@@ -457,6 +484,7 @@ namespace PepperDash.Essentials.Core.Routing
 
         public void RouteByIndex(ushort sourceIndex, ushort destIndex)
         {
+            if (!allowRoutes) return;
             // verify that dictionaries contain source index and dest index before making route
             Source source = Sources[sourceIndex];
             Dest dest = Dests[destIndex];
@@ -482,6 +510,7 @@ namespace PepperDash.Essentials.Core.Routing
 
         public void MakeRoute(List<Route> sourceRoutes, List<Route> destRoutes)
         {
+            if (!allowRoutes) return;
             //First merge the source and dest routes
             List<Route> mergedRoutes = new List<Route>();
             destRoutes.ForEach(x => { mergedRoutes.Add(x.Copy()); });
@@ -664,7 +693,7 @@ namespace PepperDash.Essentials.Core.Routing
             {
                 SourceFeedbackToProcess.Clear();
                 DestFeedbackToProcess.Clear();
-                FeedbackTimer.Dispose();
+                FeedbackTimer.Reset(Timeout.Infinite);
                 FeedbackMutex.ReleaseMutex();
             }
         }
@@ -774,7 +803,7 @@ namespace PepperDash.Essentials.Core.Routing
                         {
                             if (debugLevel > 0)
                             {
-                                Debug.Console(0, "Found matching dest only feedback for {0}: feedback value: {2}",
+                                Debug.Console(0, "Found matching dest only feedback for {0}: feedback value: {1}",
                                     feedback.Value.RouteKey, feedback.Value.FeedbackInput);
                             }
 
@@ -786,8 +815,8 @@ namespace PepperDash.Essentials.Core.Routing
                             //Stop checking feedback once one feedback match has failed
                             if (debugLevel > 0)
                             {
-                                Debug.Console(0, "Router feedback match for {0} failed at {1}", source.Index,
-                                    feedback.Key);
+                                Debug.Console(0, "Router feedback match for {0} failed at {1}", source.Name,
+                                    feedback.Value.RouteKey);
                             }
 
                             match = false;
@@ -806,7 +835,7 @@ namespace PepperDash.Essentials.Core.Routing
                             //Found a perfect match, no need to continue
                             if (debugLevel > 0)
                             {
-                                Debug.Console(0, "Router found matching feedback for {0}: {1}", destIndex,
+                                Debug.Console(0, "Router found matching feedback for {0}: {1}", Dests[destIndex].Name,
                                     sourceMatch.Name);
                             }
 
@@ -817,15 +846,16 @@ namespace PepperDash.Essentials.Core.Routing
                         if (debugLevel > 0)
                         {
                             CrestronConsole.PrintLine(
-                                "Router found matching feedback but source feedback wasn't valid {0}: {1}", destIndex,
+                                "Router found matching feedback but source feedback wasn't valid {0}: {1}",
+                                Dests[destIndex].Name,
                                 sourceMatch.Name);
                         }
                     }
                 }
                 catch (Exception ex)
                 {
-                    Debug.ConsoleWithLog(0, "Exception checking {0} for feedback from {1}: {2}", destIndex,
-                        source.Name, ex.Message);
+                    Debug.ConsoleWithLog(0, "Exception checking {0} for feedback from {1}: {2}", Dests[destIndex].Name,
+                        source.Name, ex);
                 }
             }
 
@@ -834,7 +864,8 @@ namespace PepperDash.Essentials.Core.Routing
             {
                 if (debugLevel > 0)
                 {
-                    CrestronConsole.PrintLine("Router found partial matching feedback for {0}: {1}", destIndex,
+                    CrestronConsole.PrintLine("Router found partial matching feedback for {0}: {1}",
+                        Dests[destIndex].Name,
                         sourceMatch.Name);
                 }
 
@@ -844,7 +875,7 @@ namespace PepperDash.Essentials.Core.Routing
 
             if (debugLevel > 0)
             {
-                Debug.Console(0, "Router found no sources that match feedback for {0}", destIndex);
+                Debug.Console(0, "Router found no sources that match feedback for {0}", Dests[destIndex].Name);
             }
 
             ClearRouteFeedback(destIndex);
@@ -966,7 +997,7 @@ namespace PepperDash.Essentials.Core.Routing
                     case "usbRoute":
                         break;
                     case "txRoute":
-                        if (txs[output] != null)
+                        if (txs.ContainsKey(output) && txs[output] != null)
                         {
                             txs[output].ExecuteNumericSwitch(input, 1, eRoutingSignalType.AudioVideo);
                         }

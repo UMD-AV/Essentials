@@ -6,14 +6,6 @@ namespace PepperDash.Essentials.Core.Bridges
     {
         //Digital
 
-        [JoinName("OccShutdownEnable")] public JoinDataComplete OccShutdownEnable = new JoinDataComplete(
-            new JoinData { JoinNumber = 1, JoinSpan = 1 },
-            new JoinMetadata
-            {
-                Description = "Allow occupancy timer to shutdown room", JoinCapabilities = eJoinCapabilities.ToSIMPL,
-                JoinType = eJoinType.Digital
-            });
-
         [JoinName("WallplateCapable")] public JoinDataComplete WallplateCapable = new JoinDataComplete(
             new JoinData { JoinNumber = 3, JoinSpan = 1 },
             new JoinMetadata
@@ -130,6 +122,15 @@ namespace PepperDash.Essentials.Core.Bridges
             new JoinMetadata
             {
                 Description = "Number of mic batteries to monitor for (fusion can override)",
+                JoinCapabilities = eJoinCapabilities.ToFromSIMPL,
+                JoinType = eJoinType.Analog
+            });
+
+        [JoinName("OccShutdownEnable")] public JoinDataComplete OccShutdownEnable = new JoinDataComplete(
+            new JoinData { JoinNumber = 5, JoinSpan = 1 },
+            new JoinMetadata
+            {
+                Description = "Occupancy shutdown enable feedback from SIMPL",
                 JoinCapabilities = eJoinCapabilities.ToFromSIMPL,
                 JoinType = eJoinType.Analog
             });

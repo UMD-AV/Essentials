@@ -8,8 +8,7 @@ namespace PepperDash.Essentials.PanoptoCloud
         {
         }
 
-        [JoinName("RecorderOnline")]
-        public JoinDataComplete RecorderOnline = new JoinDataComplete(
+        [JoinName("RecorderOnline")] public JoinDataComplete RecorderOnline = new JoinDataComplete(
             new JoinData
             {
                 JoinNumber = 1,
@@ -22,11 +21,10 @@ namespace PepperDash.Essentials.PanoptoCloud
                 Description = "Recorder Online"
             });
 
-        [JoinName("Start")]
-        public JoinDataComplete Start = new JoinDataComplete(
+        [JoinName("Start")] public JoinDataComplete Start = new JoinDataComplete(
             new JoinData
             {
-                JoinNumber = 2,
+                JoinNumber = 1,
                 JoinSpan = 1
             },
             new JoinMetadata
@@ -36,95 +34,10 @@ namespace PepperDash.Essentials.PanoptoCloud
                 Description = "Start Recording"
             });
 
-        [JoinName("Stop")]
-        public JoinDataComplete Stop = new JoinDataComplete(
+        [JoinName("IsPaused")] public JoinDataComplete IsPaused = new JoinDataComplete(
             new JoinData
             {
-                JoinNumber = 3,
-                JoinSpan = 1
-            },
-            new JoinMetadata
-            {
-                JoinCapabilities = eJoinCapabilities.FromSIMPL,
-                JoinType = eJoinType.Digital,
-                Description = "Stop Recording"
-            });
-
-        [JoinName("Pause")]
-        public JoinDataComplete Pause = new JoinDataComplete(
-            new JoinData
-            {
-                JoinNumber = 4,
-                JoinSpan = 1
-            },
-            new JoinMetadata
-            {
-                JoinCapabilities = eJoinCapabilities.FromSIMPL,
-                JoinType = eJoinType.Digital,
-                Description = "Pause Recording"
-            });
-
-        [JoinName("Resume")]
-        public JoinDataComplete Resume = new JoinDataComplete(
-            new JoinData
-            {
-                JoinNumber = 5,
-                JoinSpan = 1
-            },
-            new JoinMetadata
-            {
-                JoinCapabilities = eJoinCapabilities.FromSIMPL,
-                JoinType = eJoinType.Digital,
-                Description = "Resume Recording"
-            });
-
-        [JoinName("Extend")]
-        public JoinDataComplete Extend = new JoinDataComplete(
-            new JoinData
-            {
-                JoinNumber = 6,
-                JoinSpan = 1
-            },
-            new JoinMetadata
-            {
-                JoinCapabilities = eJoinCapabilities.FromSIMPL,
-                JoinType = eJoinType.Digital,
-                Description = "Extend Recording"
-            });
-
-        [JoinName("IncLength")]
-        public JoinDataComplete IncLength = new JoinDataComplete(
-            new JoinData
-            {
-                JoinNumber = 11,
-                JoinSpan = 1
-            },
-            new JoinMetadata
-            {
-                JoinCapabilities = eJoinCapabilities.FromSIMPL,
-                JoinType = eJoinType.Digital,
-                Description = "Increment Length"
-            });
-
-        [JoinName("DecLength")]
-        public JoinDataComplete DecLength = new JoinDataComplete(
-            new JoinData
-            {
-                JoinNumber = 12,
-                JoinSpan = 1
-            },
-            new JoinMetadata
-            {
-                JoinCapabilities = eJoinCapabilities.FromSIMPL,
-                JoinType = eJoinType.Digital,
-                Description = "Decrement Length"
-            });
-
-        [JoinName("IsPaused")]
-        public JoinDataComplete IsPaused = new JoinDataComplete(
-            new JoinData
-            {
-                JoinNumber = 5,
+                JoinNumber = 2,
                 JoinSpan = 1
             },
             new JoinMetadata
@@ -134,11 +47,10 @@ namespace PepperDash.Essentials.PanoptoCloud
                 Description = "Recording Is Paused"
             });
 
-        [JoinName("IsRecording")]
-        public JoinDataComplete IsRecording = new JoinDataComplete(
+        [JoinName("IsRecording")] public JoinDataComplete IsRecording = new JoinDataComplete(
             new JoinData
             {
-                JoinNumber = 6,
+                JoinNumber = 3,
                 JoinSpan = 1
             },
             new JoinMetadata
@@ -148,50 +60,33 @@ namespace PepperDash.Essentials.PanoptoCloud
                 Description = "Recording Is In Progress"
             });
 
-        [JoinName("NextRecordingExists")]
-        public JoinDataComplete NextRecordingExists = new JoinDataComplete(
+        [JoinName("ResetAdHoc")] public JoinDataComplete ResetAdHoc = new JoinDataComplete(
             new JoinData
             {
-                JoinNumber = 20,
+                JoinNumber = 2,
                 JoinSpan = 1
             },
             new JoinMetadata
             {
-                JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                JoinCapabilities = eJoinCapabilities.FromSIMPL,
                 JoinType = eJoinType.Digital,
-                Description = "Next Recording Exists"
+                Description = "Reset ad hoc recording data and settings"
             });
 
-        [JoinName("RecorderStatus")]
-        public JoinDataComplete RecorderStatus = new JoinDataComplete(
-            new JoinData
-            {
-                JoinNumber = 1,
-                JoinSpan = 1
-            },
-            new JoinMetadata
-            {
-                JoinCapabilities = eJoinCapabilities.ToSIMPL,
-                JoinType = eJoinType.Analog,
-                Description = "Recorder Status"
-            });
-
-        [JoinName("DefaultRecordingLength")]
-        public JoinDataComplete DefaultRecordingLength = new JoinDataComplete(
+        [JoinName("SelectCurrentUser")] public JoinDataComplete SelectCurrentUser = new JoinDataComplete(
             new JoinData
             {
                 JoinNumber = 11,
-                JoinSpan = 1
+                JoinSpan = 8
             },
             new JoinMetadata
             {
-                JoinCapabilities = eJoinCapabilities.ToFromSIMPL,
-                JoinType = eJoinType.Analog,
-                Description = "Default Recording Length"
+                JoinCapabilities = eJoinCapabilities.FromSIMPL,
+                JoinType = eJoinType.Digital,
+                Description = "Select current user from search results"
             });
 
-        [JoinName("RecorderName")]
-        public JoinDataComplete RecorderName = new JoinDataComplete(
+        [JoinName("RecordingLength")] public JoinDataComplete RecordingLength = new JoinDataComplete(
             new JoinData
             {
                 JoinNumber = 1,
@@ -200,12 +95,11 @@ namespace PepperDash.Essentials.PanoptoCloud
             new JoinMetadata
             {
                 JoinCapabilities = eJoinCapabilities.ToFromSIMPL,
-                JoinType = eJoinType.Serial,
-                Description = "Recorder Name"
+                JoinType = eJoinType.Analog,
+                Description = "Recording Length"
             });
 
-        [JoinName("RecorderStatusString")]
-        public JoinDataComplete RecorderStatusString = new JoinDataComplete(
+        [JoinName("RecorderStateVal")] public JoinDataComplete RecorderStateVal = new JoinDataComplete(
             new JoinData
             {
                 JoinNumber = 2,
@@ -214,96 +108,89 @@ namespace PepperDash.Essentials.PanoptoCloud
             new JoinMetadata
             {
                 JoinCapabilities = eJoinCapabilities.ToSIMPL,
-                JoinType = eJoinType.Serial,
-                Description = "Recorder Status"
+                JoinType = eJoinType.Analog,
+                Description = "Recorder state string"
             });
 
-        [JoinName("CurrentRecordingId")]
-        public JoinDataComplete CurrentRecordingId = new JoinDataComplete(
+        [JoinName("Name")] public JoinDataComplete Name = new JoinDataComplete(
+            new JoinData
+            {
+                JoinNumber = 1,
+                JoinSpan = 1
+            },
+            new JoinMetadata
+            {
+                JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                JoinType = eJoinType.Serial,
+                Description = "Device name"
+            });
+
+        [JoinName("CurrentUser")] public JoinDataComplete CurrentUser = new JoinDataComplete(
+            new JoinData
+            {
+                JoinNumber = 2,
+                JoinSpan = 1
+            },
+            new JoinMetadata
+            {
+                JoinCapabilities = eJoinCapabilities.ToFromSIMPL,
+                JoinType = eJoinType.Serial,
+                Description = "Current user name for recording folder search"
+            });
+
+        [JoinName("CurrentFolder")] public JoinDataComplete CurrentFolder = new JoinDataComplete(
+            new JoinData
+            {
+                JoinNumber = 3,
+                JoinSpan = 1
+            },
+            new JoinMetadata
+            {
+                JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                JoinType = eJoinType.Serial,
+                Description = "Current folder name for recording"
+            });
+
+        [JoinName("StartRecordingStatus")] public JoinDataComplete StartRecordingStatus = new JoinDataComplete(
+            new JoinData
+            {
+                JoinNumber = 4,
+                JoinSpan = 1
+            },
+            new JoinMetadata
+            {
+                JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                JoinType = eJoinType.Serial,
+                Description = "Status and error messages of recording while starting"
+            });
+
+        [JoinName("UserSearchResults")] public JoinDataComplete UserSearchResults = new JoinDataComplete(
             new JoinData
             {
                 JoinNumber = 11,
-                JoinSpan = 1
+                JoinSpan = 8
             },
             new JoinMetadata
             {
                 JoinCapabilities = eJoinCapabilities.ToSIMPL,
                 JoinType = eJoinType.Serial,
-                Description = "CurrentRecordingId"
+                Description = "User search results"
             });
 
-        [JoinName("CurrentRecordingName")]
-        public JoinDataComplete CurrentRecordingName = new JoinDataComplete(
+        [JoinName("RecorderState")] public JoinDataComplete RecorderState = new JoinDataComplete(
             new JoinData
             {
-                JoinNumber = 12,
+                JoinNumber = 20,
                 JoinSpan = 1
             },
             new JoinMetadata
             {
                 JoinCapabilities = eJoinCapabilities.ToSIMPL,
                 JoinType = eJoinType.Serial,
-                Description = "Recorder Name"
+                Description = "Recorder state string"
             });
 
-        [JoinName("CurrentRecordingStartTime")]
-        public JoinDataComplete CurrentRecordingStartTime = new JoinDataComplete(
-            new JoinData
-            {
-                JoinNumber = 13,
-                JoinSpan = 1
-            },
-            new JoinMetadata
-            {
-                JoinCapabilities = eJoinCapabilities.ToSIMPL,
-                JoinType = eJoinType.Serial,
-                Description = "CurrentRecordingStartTime"
-            });
-
-        [JoinName("CurrentRecordingEndTime")]
-        public JoinDataComplete CurrentRecordingEndTime = new JoinDataComplete(
-            new JoinData
-            {
-                JoinNumber = 14,
-                JoinSpan = 1
-            },
-            new JoinMetadata
-            {
-                JoinCapabilities = eJoinCapabilities.ToSIMPL,
-                JoinType = eJoinType.Serial,
-                Description = "CurrentRecordingEndTime"
-            });
-
-        [JoinName("CurrentRecordingLength")]
-        public JoinDataComplete CurrentRecordingLength = new JoinDataComplete(
-            new JoinData
-            {
-                JoinNumber = 15,
-                JoinSpan = 1
-            },
-            new JoinMetadata
-            {
-                JoinCapabilities = eJoinCapabilities.ToSIMPL,
-                JoinType = eJoinType.Serial,
-                Description = "CurrentRecordingLength"
-            });
-
-        [JoinName("CurrentRecordingMinutesRemaining")]
-        public JoinDataComplete CurrentRecordingMinutesRemaining = new JoinDataComplete(
-            new JoinData
-            {
-                JoinNumber = 16,
-                JoinSpan = 1
-            },
-            new JoinMetadata
-            {
-                JoinCapabilities = eJoinCapabilities.ToSIMPL,
-                JoinType = eJoinType.Serial,
-                Description = "CurrentRecordingMinutesRemaining"
-            });
-
-        [JoinName("NextRecordingId")]
-        public JoinDataComplete NextRecordingId = new JoinDataComplete(
+        [JoinName("SetRecordingName")] public JoinDataComplete SetRecordingName = new JoinDataComplete(
             new JoinData
             {
                 JoinNumber = 21,
@@ -311,13 +198,12 @@ namespace PepperDash.Essentials.PanoptoCloud
             },
             new JoinMetadata
             {
-                JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                JoinCapabilities = eJoinCapabilities.ToFromSIMPL,
                 JoinType = eJoinType.Serial,
-                Description = "NextRecordingId"
+                Description = "Set/get recording name"
             });
 
-        [JoinName("NextRecordingName")]
-        public JoinDataComplete NextRecordingName = new JoinDataComplete(
+        [JoinName("SetRecordingDescription")] public JoinDataComplete SetRecordingDescription = new JoinDataComplete(
             new JoinData
             {
                 JoinNumber = 22,
@@ -325,65 +211,9 @@ namespace PepperDash.Essentials.PanoptoCloud
             },
             new JoinMetadata
             {
-                JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                JoinCapabilities = eJoinCapabilities.ToFromSIMPL,
                 JoinType = eJoinType.Serial,
-                Description = "Recorder Name"
-            });
-
-        [JoinName("NextRecordingStartTime")]
-        public JoinDataComplete NextRecordingStartTime = new JoinDataComplete(
-            new JoinData
-            {
-                JoinNumber = 23,
-                JoinSpan = 1
-            },
-            new JoinMetadata
-            {
-                JoinCapabilities = eJoinCapabilities.ToSIMPL,
-                JoinType = eJoinType.Serial,
-                Description = "NextRecordingStartTime"
-            });
-
-        [JoinName("NextRecordingEndTime")]
-        public JoinDataComplete NextRecordingEndTime = new JoinDataComplete(
-            new JoinData
-            {
-                JoinNumber = 24,
-                JoinSpan = 1
-            },
-            new JoinMetadata
-            {
-                JoinCapabilities = eJoinCapabilities.ToSIMPL,
-                JoinType = eJoinType.Serial,
-                Description = "NextRecordingEndTime"
-            });
-
-        [JoinName("NextRecordingLength")]
-        public JoinDataComplete NextRecordingLength = new JoinDataComplete(
-            new JoinData
-            {
-                JoinNumber = 25,
-                JoinSpan = 1
-            },
-            new JoinMetadata
-            {
-                JoinCapabilities = eJoinCapabilities.ToSIMPL,
-                JoinType = eJoinType.Serial,
-                Description = "NextRecordingLength"
-            });
-
-        [JoinName("NextRecordingMinutesRemaining")]
-        public JoinDataComplete NextRecordingMinutesRemaining = new JoinDataComplete(
-            new JoinData
-            {
-                JoinNumber = 26,
-                JoinSpan = 1
-            },
-            new JoinMetadata
-            {
-                JoinCapabilities = eJoinCapabilities.ToSIMPL,
-                JoinType = eJoinType.Serial,
-                Description = "NextRecordingMinutesRemaining"
+                Description = "Set/get recording description"
             });
     }
 }

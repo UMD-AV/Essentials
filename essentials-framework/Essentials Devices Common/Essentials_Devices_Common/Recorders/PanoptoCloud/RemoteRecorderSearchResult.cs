@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Crestron.SimplSharp;
 
 namespace PepperDash.Essentials.PanoptoCloud
 {
@@ -12,22 +9,22 @@ namespace PepperDash.Essentials.PanoptoCloud
         public string Name { get; set; }
     }
 
-    public class RecoderInfo
+    public class RecorderInfo
     {
         public RemoteRecorderState State { get; set; }
         public Guid Id { get; set; }
         public string Name { get; set; }
         public DefaultRecordingFolder DefaultRecordingFolder { get; set; }
 
-        public RecoderInfo()
+        public RecorderInfo()
         {
             DefaultRecordingFolder = new DefaultRecordingFolder();
             State = RemoteRecorderState.Unknown;
         }
     }
 
-    public class RemoteRecoderSearchResult
+    public class RemoteRecorderSearchResult
     {
-        public List<RecoderInfo> Results { get; set; }
+        public List<RecorderInfo> Results { get; set; }
     }
 }

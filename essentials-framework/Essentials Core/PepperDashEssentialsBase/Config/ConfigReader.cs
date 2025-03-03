@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Linq;
+using Crestron.SimplSharp;
 using Crestron.SimplSharp.CrestronIO;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using PepperDash.Core;
 
 namespace PepperDash.Essentials.Core.Config
@@ -10,7 +10,7 @@ namespace PepperDash.Essentials.Core.Config
     /// <summary>
     /// Loads the ConfigObject from the file
     /// </summary>
-    public class ConfigReader
+    public static class ConfigReader
     {
         private static readonly JsonSerializerSettings _jsonSettings = new JsonSerializerSettings
         {
@@ -49,12 +49,39 @@ namespace PepperDash.Essentials.Core.Config
 
                 // Get the actual file path
                 filePath = configFiles[0].FullName;
+                ConfigWriter.ConfigLocation = filePath;
 
                 // Read the file
                 using (fs = new StreamReader(filePath))
                 {
-                    ConfigObject = JsonConvert.DeserializeObject<BasicConfig>(fs.ReadToEnd(), _jsonSettings);
+                    string config = fs.ReadToEnd();
+                    bool replacedPrefix = false;
+                    //Get a prefix for this processor such as ESJ-0201 for processor ESJ-0201-CP
+                    try
+                    {
+                        string hostname =
+                            CrestronEthernetHelper.GetEthernetParameter(
+                                CrestronEthernetHelper.ETHERNET_PARAMETER_TO_GET.GET_HOSTNAME, 0);
+                        if (!string.IsNullOrEmpty(hostname) && hostname.LastIndexOf('-') != -1)
+                        {
+                            string systemPrefix = hostname.Substring(0, hostname.LastIndexOf('-'));
+                            Debug.Console(0, "Using system prefix: {0}", systemPrefix);
+
+                            if (config.Contains("{{prefix}}"))
+                            {
+                                config = config.Replace("{{prefix}}", systemPrefix);
+                                replacedPrefix = true;
+                            }
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.Console(0, "Exception getting system prefix {0}", e);
+                    }
+
+                    ConfigObject = JsonConvert.DeserializeObject<BasicConfig>(config, _jsonSettings);
                     Debug.Console(0, Debug.ErrorLogLevel.Notice, "Successfully Loaded Config: {0}", filePath);
+                    if (replacedPrefix) ConfigWriter.SaveConfigFile();
                     return true;
                 }
             }

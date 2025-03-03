@@ -11,7 +11,7 @@ namespace PepperDash.Essentials.Core.Config
 
         [JsonProperty("defaultRoomKey")] public string DefaultRoomKey { get; set; }
 
-        [JsonProperty("techPanel")] public bool TechPanel { get; set; }
+        [JsonProperty("techPanel")] public bool? TechPanel { get; set; }
 
         [JsonProperty("techPassword")] public string TechPassword { get; set; }
 

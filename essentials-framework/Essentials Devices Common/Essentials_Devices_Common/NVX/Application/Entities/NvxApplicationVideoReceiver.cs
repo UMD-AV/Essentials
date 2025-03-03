@@ -4,7 +4,6 @@ using System.Linq;
 using NvxEpi.Abstractions;
 using NvxEpi.Abstractions.HdmiOutput;
 using NvxEpi.Application.Config;
-using NvxEpi.Devices;
 using NvxEpi.Features.Routing;
 using NvxEpi.Features.Streams.Video;
 using NvxEpi.Services.InputSwitching;

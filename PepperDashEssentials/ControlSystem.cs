@@ -115,7 +115,7 @@ namespace PepperDash.Essentials
                 ConsoleAccessLevelEnum.AccessOperator);
 
             CrestronConsole.AddNewConsoleCommand(RouterMain.SetDebug, "routerdebug",
-                "Sets the router debug level. Use device key (ex room01-router) to enable and 'off' to disable all. 'fake' will enable fake feedback",
+                "Device key to enable, fake for fake fb, off to disable.",
                 ConsoleAccessLevelEnum.AccessOperator);
 
             if (!Debug.DoNotLoadOnNextBoot)

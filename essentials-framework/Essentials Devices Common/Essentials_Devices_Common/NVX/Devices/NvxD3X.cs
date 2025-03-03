@@ -4,7 +4,6 @@ using Crestron.SimplSharpPro.DeviceSupport;
 using Crestron.SimplSharpPro.DM.Streaming;
 using NvxEpi.Abstractions;
 using NvxEpi.Abstractions.HdmiOutput;
-using NvxEpi.Abstractions.Usb;
 using NvxEpi.Features.Hdmi.Output;
 using NvxEpi.Services.Bridge;
 using NvxEpi.Services.InputPorts;

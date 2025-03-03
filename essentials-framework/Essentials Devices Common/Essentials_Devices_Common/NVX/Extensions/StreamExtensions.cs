@@ -2,7 +2,6 @@ using System;
 using Crestron.SimplSharpPro.DM.Streaming;
 using NvxEpi.Abstractions.Stream;
 using NvxEpi.Devices;
-using NvxEpi.Features.Streams.Video;
 using PepperDash.Core;
 
 namespace NvxEpi.Extensions

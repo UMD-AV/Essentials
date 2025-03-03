@@ -16,8 +16,6 @@ namespace PepperDash.Essentials.Core
         private RoomJoinMap joinMap;
         private BasicTriList roomTriList;
 
-        private Router _router { get; set; }
-
         public Room(RoomConfig config)
         {
             Key = config.Key;
@@ -25,8 +23,8 @@ namespace PepperDash.Essentials.Core
             roomConfig = config;
             try
             {
-                _router = new Router(config);
-                DeviceManager.AddDevice(_router);
+                Router router = new Router(config);
+                DeviceManager.AddDevice(router);
             }
             catch (Exception e)
             {
@@ -40,6 +38,58 @@ namespace PepperDash.Essentials.Core
             joinMap = new RoomJoinMap(joinStart);
             bridge.AddJoinMap(Key, joinMap);
             UpdateBridge();
+
+            //Save from SIMPL
+            trilist.SetStringSigAction(joinMap.RoomName.JoinNumber, SaveRoomName);
+            trilist.SetUShortSigAction(joinMap.NumberOfMicBatteries.JoinNumber, SaveNumberOfMicBatteries);
+            trilist.SetUShortSigAction(joinMap.OccShutdownTimeoutMinutes.JoinNumber, SaveOccShutdownTimeoutMinutes);
+            trilist.SetUShortSigAction(joinMap.OccShutdownEnable.JoinNumber, SaveOccShutdownEnable);
+        }
+
+        private void SaveRoomName(string roomName)
+        {
+            if (roomConfig.RoomName != roomName)
+            {
+                roomConfig.RoomName = roomName;
+                roomTriList.StringInput[joinMap.RoomName.JoinNumber].StringValue = roomName;
+                ConfigWriter.UpdateRoomConfig(roomConfig);
+            }
+        }
+
+        private void SaveNumberOfMicBatteries(ushort numberOfMicBatteries)
+        {
+            if (numberOfMicBatteries == 0) return;
+            if (roomConfig.NumberOfMicBatteries != numberOfMicBatteries)
+            {
+                roomConfig.NumberOfMicBatteries = numberOfMicBatteries;
+                roomTriList.UShortInput[joinMap.NumberOfMicBatteries.JoinNumber].UShortValue = numberOfMicBatteries;
+                ConfigWriter.UpdateRoomConfig(roomConfig);
+            }
+        }
+
+        private void SaveOccShutdownTimeoutMinutes(ushort occShutdownTimeoutMinutes)
+        {
+            if (occShutdownTimeoutMinutes == 0) return;
+            if (roomConfig.OccShutdownMinutes != occShutdownTimeoutMinutes)
+            {
+                roomConfig.OccShutdownMinutes = occShutdownTimeoutMinutes;
+                roomTriList.UShortInput[joinMap.OccShutdownTimeoutMinutes.JoinNumber].UShortValue =
+                    occShutdownTimeoutMinutes;
+                ConfigWriter.UpdateRoomConfig(roomConfig);
+            }
+        }
+
+        private void SaveOccShutdownEnable(ushort occShutdownEnable)
+        {
+            if (occShutdownEnable == 0) return;
+            bool occShutdownEnableBool = occShutdownEnable == 1;
+            if (roomConfig.OccShutdownEnable != occShutdownEnableBool)
+            {
+                roomConfig.OccShutdownEnable = occShutdownEnableBool;
+                roomTriList.UShortInput[joinMap.OccShutdownEnable.JoinNumber].UShortValue =
+                    occShutdownEnableBool ? (ushort)1 : (ushort)2;
+                ConfigWriter.UpdateRoomConfig(roomConfig);
+            }
         }
 
         private void UpdateBridge()
@@ -48,10 +98,11 @@ namespace PepperDash.Essentials.Core
                 return;
 
             //digital
-            roomTriList.BooleanInput[joinMap.OccShutdownEnable.JoinNumber].BoolValue = roomConfig.OccShutdownEnable;
+
             roomTriList.BooleanInput[joinMap.WallplateCapable.JoinNumber].BoolValue = roomConfig.WallplateCapable;
             roomTriList.BooleanInput[joinMap.ServiceNowEnable.JoinNumber].BoolValue = roomConfig.ServiceNowEnable;
-            roomTriList.BooleanInput[joinMap.PhysicsDivisible.JoinNumber].BoolValue = roomConfig.PhysicsDivisible;
+            roomTriList.BooleanInput[joinMap.PhysicsDivisible.JoinNumber].BoolValue =
+                roomConfig.PhysicsDivisible ?? false;
             roomTriList.BooleanInput[joinMap.AdvancedModeDefaultOn.JoinNumber].BoolValue =
                 roomConfig.AdvancedModeDefaultOn;
             roomTriList.BooleanInput[joinMap.AdvancedModeToggleVisible.JoinNumber].BoolValue =
@@ -66,6 +117,8 @@ namespace PepperDash.Essentials.Core
                 (ushort)roomConfig.DefaultMicPreset;
             roomTriList.UShortInput[joinMap.NumberOfMicBatteries.JoinNumber].UShortValue =
                 (ushort)roomConfig.NumberOfMicBatteries;
+            roomTriList.UShortInput[joinMap.OccShutdownEnable.JoinNumber].UShortValue =
+                roomConfig.OccShutdownEnable ? (ushort)1 : (ushort)2;
 
             //serial
             roomTriList.StringInput[joinMap.RoomName.JoinNumber].StringValue = roomConfig.RoomName;

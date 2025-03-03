@@ -45,7 +45,7 @@ namespace PepperDash.Essentials.EpiphanPearl
 
         private List<Event> _scheduledEvents;
         private CTimer _statusTimer;
-        private DeviceConfig devConfig;
+        private readonly DeviceConfig devConfig;
 
         private EpiphanPearlControllerConfiguration _devProperties
         {
@@ -406,7 +406,7 @@ namespace PepperDash.Essentials.EpiphanPearl
 
         private void GetHdmiOutputSetting()
         {
-            string path = string.Format("/displays/D1/settings");
+            string path = "/displays/D1/settings";
 
             BaseResponse<HdmiResult> response = _client.Put<BaseResponse<HdmiResult>>(path);
 
@@ -499,13 +499,13 @@ namespace PepperDash.Essentials.EpiphanPearl
             else
             {
                 Debug.Console(2, this, "No Scheduled Events");
-                for (int i = 0; i < _scheduledRecordings.Count; i++)
+                foreach (ScheduledRecording t in _scheduledRecordings)
                 {
-                    _scheduledRecordings[i].Name = string.Empty;
-                    _scheduledRecordings[i].Id = string.Empty;
-                    _scheduledRecordings[i].Start = string.Empty;
-                    _scheduledRecordings[i].End = string.Empty;
-                    _scheduledRecordings[i].Length = string.Empty;
+                    t.Name = string.Empty;
+                    t.Id = string.Empty;
+                    t.Start = string.Empty;
+                    t.End = string.Empty;
+                    t.Length = string.Empty;
                 }
             }
 
@@ -518,9 +518,9 @@ namespace PepperDash.Essentials.EpiphanPearl
 
             Debug.Console(1, this, "Getting Running Events");
 
-            string runningEventPath = string.Format("/schedule/events/?status=running");
+            string runningEventPath = "/schedule/events/?status=running";
 
-            string pausedEventPath = string.Format("/schedule/events/?status=paused");
+            string pausedEventPath = "/schedule/events/?status=paused";
 
             BaseResponse<List<Event>> response = _client.Get<BaseResponse<List<Event>>>(runningEventPath);
 
@@ -611,13 +611,13 @@ namespace PepperDash.Essentials.EpiphanPearl
 
             HdmiOutputFeedback.FireUpdate();
 
-            for (int i = 0; i < _scheduledRecordings.Count; i++)
+            foreach (ScheduledRecording t in _scheduledRecordings)
             {
-                _scheduledRecordings[i].NameFeedback.FireUpdate();
-                _scheduledRecordings[i].IdFeedback.FireUpdate();
-                _scheduledRecordings[i].StartFeedback.FireUpdate();
-                _scheduledRecordings[i].EndFeedback.FireUpdate();
-                _scheduledRecordings[i].LengthFeedback.FireUpdate();
+                t.NameFeedback.FireUpdate();
+                t.IdFeedback.FireUpdate();
+                t.StartFeedback.FireUpdate();
+                t.EndFeedback.FireUpdate();
+                t.LengthFeedback.FireUpdate();
             }
         }
 

@@ -392,7 +392,7 @@
         <Compile Include="Recorders\PanoptoCloud\PanoptoCloudControllerJoinMap.cs"/>
         <Compile Include="Recorders\PanoptoCloud\PanoptoCloudStatusMonitor.cs"/>
         <Compile Include="Recorders\PanoptoCloud\PanoptoOathClient.cs"/>
-        <Compile Include="Recorders\PanoptoCloud\RemoteRecoderSearchResult.cs"/>
+        <Compile Include="Recorders\PanoptoCloud\RemoteRecorderSearchResult.cs"/>
         <Compile Include="Recorders\PanoptoCloud\RemoteRecorderState.cs"/>
         <Compile Include="Recorders\PanoptoCloud\RemoteRecording.cs"/>
         <Compile Include="Recorders\PanoptoCloud\StartRecordingRequest.cs"/>
@@ -515,7 +515,6 @@
     </ItemGroup>
     <ItemGroup>
         <Folder Include="NVX\"/>
-        <Folder Include="Recorders\PanoptoSoap\"/>
     </ItemGroup>
     <Import Project="$(MSBuildBinPath)\Microsoft.CompactFramework.CSharp.targets"/>
     <ProjectExtensions>

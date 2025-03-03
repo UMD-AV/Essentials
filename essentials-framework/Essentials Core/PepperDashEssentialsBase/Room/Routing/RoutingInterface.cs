@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Crestron.SimplSharp;
+using Crestron.SimplSharpPro;
 using Crestron.SimplSharpPro.DeviceSupport;
 using PepperDash.Core;
 using PepperDash.Essentials.Core.Bridges;
@@ -14,7 +15,7 @@ namespace PepperDash.Essentials.Core.Routing
         public string Key { get; private set; }
         public string Name { get; private set; }
 
-        public ushort debugLevel = 0;
+        public ushort debugLevel;
 
         private ushort _advancedMode;
 
@@ -39,6 +40,8 @@ namespace PepperDash.Essentials.Core.Routing
         private readonly CMutex mutex = new CMutex();
         private readonly CMutex visibilityModeMutex = new CMutex();
         private List<Route> PreviewRoutes;
+        private bool allowRoutes;
+        private readonly CTimer allowRoutesTimer;
 
         public IntFeedback SourceSelectFeedback { get; private set; }
         public IntFeedback AdvancedModeFeedback { get; private set; }
@@ -58,6 +61,7 @@ namespace PepperDash.Essentials.Core.Routing
         {
             Key = uiConfig.Key + "-router";
             Name = uiConfig.Name + "-router";
+            allowRoutesTimer = new CTimer(allowRoutesTimerCallback, Timeout.Infinite);
             ReadConfig(uiConfig);
 
             SourceSelectFeedback = new IntFeedback(() => _selectedSource);
@@ -132,7 +136,7 @@ namespace PepperDash.Essentials.Core.Routing
             }
             catch (Exception ex)
             {
-                ErrorLog.Error("Routing interface register exception: {0}", ex);
+                Debug.ConsoleWithLog(0, "Routing interface register exception: {0}", ex);
                 _router = null;
                 UpdateAllOutputs();
             }
@@ -146,6 +150,8 @@ namespace PepperDash.Essentials.Core.Routing
         {
             RoutingInterfaceJoinMap joinMap = new RoutingInterfaceJoinMap(joinStart);
             bridge.AddJoinMap(Key, joinMap);
+
+            trilist.OnlineStatusChange += TrilistOnOnlineStatusChange;
 
             trilist.SetUShortSigAction(joinMap.SourceSelect.JoinNumber, SelectSource);
             trilist.SetUShortSigAction(joinMap.DestSelect.JoinNumber, SelectDest);
@@ -190,6 +196,29 @@ namespace PepperDash.Essentials.Core.Routing
             }
         }
 
+        private void TrilistOnOnlineStatusChange(GenericBase currentDevice, OnlineOfflineEventArgs args)
+        {
+            if (debugLevel > 0)
+            {
+                Debug.Console(0, "Routing interface {0} trilist online status: {1}", Key, args.DeviceOnLine);
+            }
+
+            if (!args.DeviceOnLine)
+            {
+                allowRoutesTimer.Stop();
+                allowRoutes = false;
+            }
+            else
+            {
+                allowRoutesTimer.Reset(5000);
+            }
+        }
+
+        private void allowRoutesTimerCallback(object o)
+        {
+            allowRoutes = true;
+        }
+
         public void SetDebug(ushort val)
         {
             debugLevel = val;
@@ -225,6 +254,12 @@ namespace PepperDash.Essentials.Core.Routing
 
         public void SelectSource(ushort i)
         {
+            if (debugLevel > 0)
+            {
+                Debug.Console(0, "Routing interface {0} selecting source {1}, allow routes: {2}", Key, i, allowRoutes);
+            }
+
+            if (!allowRoutes) return;
             if (_router != null && _router.Sources != null)
             {
                 Source source = _router.Sources[i];
@@ -270,6 +305,13 @@ namespace PepperDash.Essentials.Core.Routing
 
         public void SelectDest(ushort i)
         {
+            if (debugLevel > 0)
+            {
+                Debug.Console(0, "Routing interface {0} selecting dest {1}, allow routes: {2}", Key, i, allowRoutes);
+            }
+
+            if (!allowRoutes) return;
+
             if (AdvancedMode == 0)
             {
                 //In auto route mode, select dest does nothing
@@ -284,6 +326,8 @@ namespace PepperDash.Essentials.Core.Routing
 
         public void OverridePreview(ushort i)
         {
+            if (!allowRoutes) return;
+
             if (PreviewRoutes != null && _router != null && _router.Sources != null)
             {
                 Source source = _router.Sources[i];

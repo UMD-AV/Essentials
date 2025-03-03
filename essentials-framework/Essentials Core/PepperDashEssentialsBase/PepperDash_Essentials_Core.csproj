@@ -132,7 +132,6 @@
         <Compile Include="Comm and IR\GenericHttpClient.cs"/>
         <Compile Include="Comm and IR\IRPortHelper.cs"/>
         <Compile Include="Config\ConfigReader.cs"/>
-        <Compile Include="Config\ConfigUpdater.cs"/>
         <Compile Include="Config\ConfigWriter.cs"/>
         <Compile Include="Config\RoomConfig.cs"/>
         <Compile Include="Config\UiConfig.cs"/>
@@ -266,7 +265,6 @@
         <Compile Include="Room\iOccupancyStatusProvider.cs"/>
         <Compile Include="Room\Room.cs"/>
         <Compile Include="Room\Routing\Feedback.cs"/>
-        <Compile Include="Room\Routing\Helpers.cs"/>
         <Compile Include="Room\Routing\Router.cs"/>
         <Compile Include="Room\Routing\RouterMain.cs"/>
         <Compile Include="Room\Routing\RoutingInterface.cs"/>

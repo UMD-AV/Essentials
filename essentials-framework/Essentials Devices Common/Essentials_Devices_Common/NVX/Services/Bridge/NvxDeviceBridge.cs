@@ -9,7 +9,6 @@ using PepperDash.Core;
 using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Bridges;
 using NvxEpi.Abstractions.Stream;
-using NvxEpi.Devices;
 
 namespace NvxEpi.Services.Bridge
 {

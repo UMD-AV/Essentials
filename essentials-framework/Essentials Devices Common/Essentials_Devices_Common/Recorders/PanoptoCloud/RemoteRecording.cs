@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Crestron.SimplSharp;
 
 namespace PepperDash.Essentials.PanoptoCloud
 {
@@ -27,6 +24,22 @@ namespace PepperDash.Essentials.PanoptoCloud
         public ScheduledRecording()
         {
             RecorderScheduleEntries = new List<RecorderScheduleEntry>();
+        }
+    }
+
+    public class UserResultsEntry
+    {
+        public Guid Id { get; set; }
+        public string Username { get; set; }
+    }
+
+    public class UserResults
+    {
+        public List<UserResultsEntry> Results { get; set; }
+
+        public UserResults()
+        {
+            Results = new List<UserResultsEntry>();
         }
     }
 }
