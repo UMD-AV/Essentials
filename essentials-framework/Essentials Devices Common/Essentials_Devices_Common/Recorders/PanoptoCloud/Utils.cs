@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Text;
 using Crestron.SimplSharp;
 using Crestron.SimplSharp.Net.Https;
@@ -32,41 +31,21 @@ namespace PepperDash.Essentials.PanoptoCloud
                 : string.Format("{0}", Math.Round((endTime - DateTime.Now).TotalMinutes));
         }
 
-
-        // Rounds a DateTime up to the nearest 5-minute mark.
-        public static DateTime RoundUpToNearest5Minutes(DateTime dt)
+        public static bool TryGetValueFromSecureStorage(string key, out string value)
         {
-            // Number of ticks in 5 minutes.
-            const long ticksPer5Min = TimeSpan.TicksPerMinute * 5;
+            value = string.Empty;
 
-            // Determine how many ticks past the last 5-minute interval.
-            long remainder = dt.Ticks % ticksPer5Min;
-            if (remainder != 0)
-            {
-                // Round up by removing the remainder and adding one full interval.
-                dt = new DateTime(dt.Ticks - remainder + ticksPer5Min);
-            }
+            byte[] bytes;
+            eCrestronSecureStorageStatus storageResult = CrestronSecureStorage.Retrieve(key,
+                false,
+                Encoding.ASCII.GetBytes(key),
+                out bytes);
 
-            // Ensure that seconds and milliseconds are reset to zero.
-            return new DateTime(dt.Year, dt.Month, dt.Day, dt.Hour, dt.Minute, 0);
-        }
+            if (storageResult != eCrestronSecureStorageStatus.Ok)
+                return false;
 
-        // Generates a list of DateTime values at 5-minute intervals between start and end.
-        public static List<DateTime> GenerateTimeIntervals(DateTime start, DateTime end)
-        {
-            List<DateTime> intervals = new List<DateTime>();
-
-            // Round the start time up to the nearest 5 minutes.
-            DateTime current = RoundUpToNearest5Minutes(start);
-
-            // Loop adding 5 minutes at a time until we pass the end time.
-            while (current <= end)
-            {
-                intervals.Add(current);
-                current = current.AddMinutes(5);
-            }
-
-            return intervals;
+            value = Encoding.ASCII.GetString(bytes, 0, bytes.Length);
+            return true;
         }
     }
 }

@@ -14,12 +14,13 @@ using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Bridges;
 using PepperDash.Essentials.Core.Config;
 using PepperDash.Essentials.Core.Devices;
+using PepperDash.Essentials.Core.Recording;
 using Formatting = Newtonsoft.Json.Formatting;
 using RequestType = Crestron.SimplSharp.Net.Https.RequestType;
 
 namespace PepperDash.Essentials.PanoptoCloud
 {
-    public class PanoptoCloudController : ReconfigurableBridgableDevice, ICommunicationMonitor
+    public class PanoptoCloudController : ReconfigurableBridgableDevice, ICommunicationMonitor, IRecordingController
     {
         private readonly string _url;
         private readonly string _username;
@@ -679,51 +680,6 @@ namespace PepperDash.Essentials.PanoptoCloud
             StartRecordingStatus.FireUpdate();
         }
 
-        public void StartRecording()
-        {
-            if (_recorder.Id.Equals(Guid.Empty))
-                return;
-
-            SetStartRecordingStatus("Starting recording. Please wait...", 180000);
-            const string path = "/Panopto/api/v1/scheduledRecordings?resolveConflicts=true";
-            string url = string.Format("{0}{1}", _url, path);
-
-            StartRecordingRequest body = new StartRecordingRequest
-            {
-                Name = string.IsNullOrEmpty(_recordingName) == false
-                    ? _recordingName
-                    : Name + " " + DateTime.Now.ToString("g"),
-                Description = string.IsNullOrEmpty(_recordingDescription) == false
-                    ? _recordingDescription
-                    : Name + " " + DateTime.Now.ToString("g"),
-                Recorders = new List<Recorder> { new Recorder { RemoteRecorderId = _recorder.Id } },
-                //Subtract 5 minutes to allow for a possible clock drift on devices
-                StartTime = DateTime.UtcNow.Subtract(TimeSpan.FromMinutes(5)),
-                EndTime = DateTime.UtcNow.AddMinutes(_recordingLength),
-                FolderId = _currentFolderGuid
-            };
-
-            HttpsClientRequest request = GetDefaultRequestWithAuthHeaders(url, _token, RequestType.Post);
-
-            request.ContentString = JsonConvert.SerializeObject(body);
-            request.Header.AddHeader(new HttpsHeader("Content-Type", "application/json"));
-
-            Debug.Console(1, this, "Attempting to start recording:{0}]\r{1}", request.Url.Url, request.ContentString);
-            using (HttpsClient client = new HttpsClient().WithDefaultSettings())
-            {
-                try
-                {
-                    HttpsClientResponse result = client.Dispatch(request);
-                    ProcessStartRecording(result);
-                }
-                catch (Exception ex)
-                {
-                    SetStartRecordingStatus(string.Format("Failed to start recording: {0}", ex.Message), 60000);
-                    Debug.Console(1, this, "Error starting recording {0}", ex.Message);
-                }
-            }
-        }
-
         public void ProcessStartRecording(HttpsClientResponse response)
         {
             if (response.Code != 200)
@@ -856,6 +812,66 @@ namespace PepperDash.Essentials.PanoptoCloud
             public string Url { get; set; }
             public string Username { get; set; }
             public string RecorderName { get; set; }
+        }
+
+        public void StartRecording(string name, DateTime endTime, Guid folderId)
+        {
+            if (_recorder.Id.Equals(Guid.Empty))
+                return;
+
+            SetStartRecordingStatus("Starting recording. Please wait...", 180000);
+            const string path = "/Panopto/api/v1/scheduledRecordings?resolveConflicts=true";
+            string url = string.Format("{0}{1}", _url, path);
+
+            StartRecordingRequest body = new StartRecordingRequest
+            {
+                Name = string.IsNullOrEmpty(_recordingName) == false
+                    ? _recordingName
+                    : Name + " " + DateTime.Now.ToString("g"),
+                Description = string.IsNullOrEmpty(_recordingDescription) == false
+                    ? _recordingDescription
+                    : Name + " " + DateTime.Now.ToString("g"),
+                Recorders = new List<Recorder> { new Recorder { RemoteRecorderId = _recorder.Id } },
+                //Subtract 5 minutes to allow for a possible clock drift on devices
+                StartTime = DateTime.UtcNow.Subtract(TimeSpan.FromMinutes(5)),
+                EndTime = DateTime.UtcNow.AddMinutes(_recordingLength),
+                FolderId = _currentFolderGuid
+            };
+
+            HttpsClientRequest request = GetDefaultRequestWithAuthHeaders(url, _token, RequestType.Post);
+
+            request.ContentString = JsonConvert.SerializeObject(body);
+            request.Header.AddHeader(new HttpsHeader("Content-Type", "application/json"));
+
+            Debug.Console(1, this, "Attempting to start recording:{0}]\r{1}", request.Url.Url, request.ContentString);
+            using (HttpsClient client = new HttpsClient().WithDefaultSettings())
+            {
+                try
+                {
+                    HttpsClientResponse result = client.Dispatch(request);
+                    ProcessStartRecording(result);
+                }
+                catch (Exception ex)
+                {
+                    SetStartRecordingStatus(string.Format("Failed to start recording: {0}", ex.Message), 60000);
+                    Debug.Console(1, this, "Error starting recording {0}", ex.Message);
+                }
+            }
+        }
+
+        public UserResults SearchUser(string searchText)
+        {
+            throw new NotImplementedException();
+        }
+
+        public KeyValuePair<string, Guid> GetUserFolder(Guid user)
+        {
+            throw new NotImplementedException();
+        }
+
+        public DateTime[] GetRecordingEndTimes()
+        {
+            throw new NotImplementedException();
         }
     }
 }

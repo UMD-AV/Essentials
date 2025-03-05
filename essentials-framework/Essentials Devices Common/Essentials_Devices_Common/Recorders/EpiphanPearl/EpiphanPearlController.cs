@@ -14,7 +14,7 @@ using PepperDash.Essentials.EpiphanPearl.Utilities;
 
 namespace PepperDash.Essentials.EpiphanPearl
 {
-    public class EpiphanPearlController : ReconfigurableBridgableDevice, ICommunicationMonitor, IRecorder
+    public class EpiphanPearlController : ReconfigurableBridgableDevice, ICommunicationMonitor, IDisposable
     {
         private const string RunningStatus = "running";
         private const string PausedStatus = "paused";
@@ -609,6 +609,12 @@ namespace PepperDash.Essentials.EpiphanPearl
         protected override void CustomSetConfig(DeviceConfig config)
         {
             ConfigWriter.UpdateDeviceConfig(config);
+        }
+
+        public void Dispose()
+        {
+            if (_pollTimer != null) _pollTimer.Dispose();
+            if (_statusTimer != null) _statusTimer.Dispose();
         }
     }
 

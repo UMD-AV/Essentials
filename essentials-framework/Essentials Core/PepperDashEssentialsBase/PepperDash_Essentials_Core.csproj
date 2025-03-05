@@ -177,7 +177,6 @@
         <Compile Include="Devices\IDspPreset.cs"/>
         <Compile Include="Devices\IProjectorInterfaces.cs"/>
         <Compile Include="Devices\IReconfigurableDevice.cs"/>
-        <Compile Include="Devices\IRecorder.cs"/>
         <Compile Include="Devices\IRecordingController.cs"/>
         <Compile Include="Devices\IRecordingUi.cs"/>
         <Compile Include="Devices\ReconfigurableDevice.cs"/>
@@ -261,7 +260,6 @@
         <Compile Include="Feedbacks\BoolFeedbackOneShot.cs"/>
         <Compile Include="Ramps and Increments\NumericalHelpers.cs"/>
         <Compile Include="Ramps and Increments\UshortSigIncrementer.cs"/>
-        <Compile Include="Recording\PanoptoController.cs"/>
         <Compile Include="Remotes\ButtonExtensions.cs"/>
         <Compile Include="Remotes\CrestronRemotePropertiesConfig.cs"/>
         <Compile Include="Remotes\Hrxx0WirelessRemoteController.cs"/>
