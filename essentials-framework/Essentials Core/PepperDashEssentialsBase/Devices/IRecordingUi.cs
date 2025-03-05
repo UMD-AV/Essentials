@@ -2,6 +2,7 @@
 {
     public interface IRecordingUi
     {
+        BoolFeedback StartRecordingFailedFeedback { get; }
         BoolFeedback[] EndTimeSelectedFeedback { get; }
         StringFeedback CurrentUserFeedback { get; }
         StringFeedback CurrentFolderFeedback { get; }
@@ -19,5 +20,6 @@
         void RefreshEndTimes();
         void SetCurrentMeetingEndTime(string time);
         void SetNextRecordingStartTime(string time);
+        void CancelAdHoc();
     }
 }

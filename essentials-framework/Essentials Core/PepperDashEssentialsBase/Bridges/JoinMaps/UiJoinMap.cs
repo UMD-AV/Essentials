@@ -91,6 +91,32 @@ namespace PepperDash.Essentials.Core.Bridges
                 Description = "Refresh list of recording end times"
             });
 
+        [JoinName("RecorderCancelAdHoc")] public JoinDataComplete RecorderCancelAdHoc = new JoinDataComplete(
+            new JoinData
+            {
+                JoinNumber = 9,
+                JoinSpan = 1
+            },
+            new JoinMetadata
+            {
+                JoinCapabilities = eJoinCapabilities.FromSIMPL,
+                JoinType = eJoinType.Digital,
+                Description = "Cancel ad hoc recording"
+            });
+
+        [JoinName("RecorderStartFailed")] public JoinDataComplete RecorderStartFailed = new JoinDataComplete(
+            new JoinData
+            {
+                JoinNumber = 9,
+                JoinSpan = 1
+            },
+            new JoinMetadata
+            {
+                JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                JoinType = eJoinType.Digital,
+                Description = "Ad hoc recording start failed"
+            });
+
         [JoinName("RecorderSelectCurrentUser")]
         public JoinDataComplete RecorderSelectCurrentUser = new JoinDataComplete(
             new JoinData

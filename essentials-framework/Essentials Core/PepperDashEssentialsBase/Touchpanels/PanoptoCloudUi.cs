@@ -25,6 +25,7 @@ namespace PepperDash_Essentials_Core.Touchpanels
         private readonly DateTime?[] _endTimes;
         private readonly int _userSearchSize;
         private readonly int _endTimeSize;
+        private string _startRecorderStatus;
 
         public StringFeedback CurrentUserFeedback { get; private set; }
         public StringFeedback CurrentFolderFeedback { get; private set; }
@@ -38,6 +39,7 @@ namespace PepperDash_Essentials_Core.Touchpanels
         private IRecordingController _recordingController;
 
         public StringFeedback StartRecordingStatusFeedback { get; private set; }
+        public BoolFeedback StartRecordingFailedFeedback { get; private set; }
 
         public PanoptoCloudUi(int userSearchSize, int endTimeSize)
         {
@@ -72,6 +74,10 @@ namespace PepperDash_Essentials_Core.Touchpanels
                     new StringFeedback(() =>
                         _endTimes[index] == null ? "" : ((DateTime)_endTimes[index]).ToString("t"));
             }
+
+            StartRecordingStatusFeedback = new StringFeedback(() => _startRecorderStatus ?? _startRecorderStatus);
+            StartRecordingFailedFeedback = new BoolFeedback(() =>
+                _startRecorderStatus != null && _startRecorderStatus.ToLower().Contains("failed"));
         }
 
         public void Update()
@@ -94,14 +100,26 @@ namespace PepperDash_Essentials_Core.Touchpanels
 
         public void SetRecorderKey(string key)
         {
+            if (_recordingController != null)
+            {
+                StartRecordingStatusFeedback.OutputChange -= UpdateRecordingStatusFeedback;
+            }
+
             IKeyed device = DeviceManager.GetDeviceForKey(key);
             _recordingController = device as IRecordingController;
             if (_recordingController != null)
             {
-                StartRecordingStatusFeedback = _recordingController.StartRecordingStatus;
+                StartRecordingStatusFeedback.OutputChange += UpdateRecordingStatusFeedback;
             }
 
             Update();
+        }
+
+        private void UpdateRecordingStatusFeedback(object sender, FeedbackEventArgs args)
+        {
+            _startRecorderStatus = args.StringValue;
+            StartRecordingStatusFeedback.FireUpdate();
+            StartRecordingFailedFeedback.FireUpdate();
         }
 
         public void SearchUser(string name)
@@ -394,6 +412,14 @@ namespace PepperDash_Essentials_Core.Touchpanels
             }
 
             DefaultEndTimes();
+        }
+
+        public void CancelAdHoc()
+        {
+            if (_recordingController != null)
+            {
+                _recordingController.CancelRecord();
+            }
         }
 
         private void ResetUsernameSearchList()

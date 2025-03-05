@@ -309,6 +309,11 @@ namespace PepperDash.Essentials.PanoptoCloud
             return new KeyValuePair<string, Guid>(string.Empty, Guid.Empty);
         }
 
+        public void CancelRecord()
+        {
+            SetStartRecordingStatus("", Timeout.Infinite);
+        }
+
         private string CreateSoapEnvelope(Guid userGuid)
         {
             string clientPassword;
@@ -622,12 +627,6 @@ namespace PepperDash.Essentials.PanoptoCloud
                     Debug.Console(1, this, "Error starting recording {0}", ex.Message);
                 }
             }
-        }
-
-
-        public DateTime[] GetRecordingEndTimes()
-        {
-            throw new NotImplementedException();
         }
     }
 }

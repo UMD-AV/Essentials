@@ -7,10 +7,12 @@ using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Bridges;
 using PepperDash.Essentials.Core.Config;
 using PepperDash.Essentials.Core.Devices;
+using PepperDash.Essentials.Core.Recording;
 using PepperDash.Essentials.EpiphanPearl.Interfaces;
 using PepperDash.Essentials.EpiphanPearl.JoinMaps;
 using PepperDash.Essentials.EpiphanPearl.Models;
 using PepperDash.Essentials.EpiphanPearl.Utilities;
+using PepperDash.Essentials.PanoptoCloud;
 
 namespace PepperDash.Essentials.EpiphanPearl
 {
@@ -47,6 +49,7 @@ namespace PepperDash.Essentials.EpiphanPearl
         private List<Event> _scheduledEvents;
         private readonly CTimer _statusTimer;
         private readonly DeviceConfig devConfig;
+        private IRecordingController _recordingController;
 
         private EpiphanPearlControllerConfiguration _devProperties
         {
@@ -71,6 +74,40 @@ namespace PepperDash.Essentials.EpiphanPearl
             _monitor = new EpiphanCommunicationMonitor(this, 30000, 60000);
             _statusTimer = new CTimer(o => GetRunningEventStatus(), null, Timeout.Infinite, 5000);
             CreateFeedbacks();
+        }
+
+        public override bool CustomActivate()
+        {
+            if (panoptoKey != "")
+            {
+                IKeyed device = DeviceManager.GetDeviceForKey(panoptoKey);
+                _recordingController = device as IRecordingController;
+
+                if (_recordingController != null)
+                {
+                    _recordingController.StartRecordingStatus.OutputChange += StartRecordingStatusChange;
+                }
+            }
+
+            return true;
+        }
+
+        private void StartRecordingStatusChange(object sender, FeedbackEventArgs feedbackEventArgs)
+        {
+            if (feedbackEventArgs.StringValue.Contains("requested"))
+            {
+                Debug.Console(1, this, "Getting scheduled events due to ad hoc start");
+                GetScheduledEvents();
+
+                if (_scheduledEvents != null && _scheduledEvents[0] != null)
+                {
+                    if (_scheduledEvents[0].Start < DateTime.Now.AddMinutes(5))
+                    {
+                        Debug.Console(1, this, "Forcing ad hoc event start");
+                        StartEvent();
+                    }
+                }
+            }
         }
 
         public StatusMonitorBase CommunicationMonitor

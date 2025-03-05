@@ -47,6 +47,7 @@ namespace PepperDash_Essentials_Core.Touchpanels
             trilist.SetSigTrueAction(joinMap.RecorderStartAdHoc.JoinNumber, recordingUI.StartRecording);
             trilist.SetSigTrueAction(joinMap.RecorderResetAdHoc.JoinNumber, recordingUI.ClearAdhocData);
             trilist.SetSigTrueAction(joinMap.RecorderRefreshEndTimes.JoinNumber, recordingUI.RefreshEndTimes);
+            trilist.SetSigTrueAction(joinMap.RecorderCancelAdHoc.JoinNumber, recordingUI.CancelAdHoc);
             trilist.SetStringSigAction(joinMap.SetRecorderKey.JoinNumber, recordingUI.SetRecorderKey);
             trilist.SetStringSigAction(joinMap.RecorderCurrentUser.JoinNumber, recordingUI.SearchUser);
             trilist.SetStringSigAction(joinMap.SetRecordingName.JoinNumber, recordingUI.SetRecordingName);
@@ -55,6 +56,8 @@ namespace PepperDash_Essentials_Core.Touchpanels
             trilist.SetStringSigAction(joinMap.SetNextRecordingStartTime.JoinNumber,
                 recordingUI.SetNextRecordingStartTime);
 
+            recordingUI.StartRecordingFailedFeedback.LinkInputSig(
+                trilist.BooleanInput[joinMap.RecorderStartFailed.JoinNumber]);
             recordingUI.CurrentUserFeedback.LinkInputSig(trilist.StringInput[joinMap.RecorderCurrentUser.JoinNumber]);
             recordingUI.CurrentFolderFeedback.LinkInputSig(
                 trilist.StringInput[joinMap.RecorderCurrentFolder.JoinNumber]);

@@ -10,8 +10,7 @@ namespace PepperDash.Essentials.Core.Recording
         void StartRecording(string name, DateTime? endTime, Guid folderId);
         UserResults SearchUser(string searchText);
         KeyValuePair<string, Guid> GetUserFolder(Guid user);
-
-        DateTime[] GetRecordingEndTimes();
+        void CancelRecord();
     }
 
     public class UserResultsEntry
