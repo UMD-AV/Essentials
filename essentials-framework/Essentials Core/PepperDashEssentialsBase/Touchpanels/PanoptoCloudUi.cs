@@ -13,12 +13,14 @@ namespace PepperDash_Essentials_Core.Touchpanels
         private string searchText;
         private readonly CMutex searchMutex;
 
+        private DateTime? _currentMeetingEndTime;
+        private DateTime? _nextRecordingStartTime;
         private string _currentUser;
         private Guid _currentUserGuid;
         private string _currentFolderName;
         private Guid _currentFolderGuid;
         private string _recordingName;
-        private DateTime _recordingEndTime;
+        private DateTime? _recordingEndTime;
         private readonly KeyValuePair<string, Guid>[] _usernames;
         private readonly DateTime?[] _endTimes;
         private readonly int _userSearchSize;
@@ -35,12 +37,15 @@ namespace PepperDash_Essentials_Core.Touchpanels
 
         private IRecordingController _recordingController;
 
+        public StringFeedback StartRecordingStatusFeedback { get; private set; }
+
         public PanoptoCloudUi(int userSearchSize, int endTimeSize)
         {
             _userSearchSize = userSearchSize;
             _endTimeSize = endTimeSize;
 
-            RecordingEndTime = new StringFeedback(() => _recordingEndTime.ToString("t"));
+            RecordingEndTime =
+                new StringFeedback(() => _recordingEndTime != null ? ((DateTime)_recordingEndTime).ToString("t") : "");
             CurrentUserFeedback = new StringFeedback(() => _currentUser);
             CurrentFolderFeedback = new StringFeedback(() => _currentFolderName);
             RecordingNameFeedback = new StringFeedback(() => _recordingName);
@@ -69,7 +74,6 @@ namespace PepperDash_Essentials_Core.Touchpanels
             }
         }
 
-        //todo
         public void Update()
         {
             RecordingEndTime.FireUpdate();
@@ -90,9 +94,14 @@ namespace PepperDash_Essentials_Core.Touchpanels
 
         public void SetRecorderKey(string key)
         {
-            DeviceManager.GetDevices()
             IKeyed device = DeviceManager.GetDeviceForKey(key);
             _recordingController = device as IRecordingController;
+            if (_recordingController != null)
+            {
+                StartRecordingStatusFeedback = _recordingController.StartRecordingStatus;
+            }
+
+            Update();
         }
 
         public void SearchUser(string name)
@@ -178,6 +187,11 @@ namespace PepperDash_Essentials_Core.Touchpanels
 
         public void SelectCurrentUser(ushort user)
         {
+            if (_recordingController == null)
+            {
+                return;
+            }
+
             if (user < _usernames.Length && !_usernames[user].Value.Equals(Guid.Empty))
             {
                 _currentUser = _usernames[user].Key;
@@ -215,17 +229,171 @@ namespace PepperDash_Essentials_Core.Touchpanels
 
         public void StartRecording()
         {
+            if (_recordingController == null)
+            {
+                return;
+            }
+
             _recordingController.StartRecording(_recordingName, _recordingEndTime, _currentFolderGuid);
+        }
+
+        public void DefaultEndTimes()
+        {
+            // Limit the computed time to no later than 4 hours from now.
+            DateTime maxAllowedTime = DateTime.Now.AddHours(4);
+
+            //Default recording to 1 hour from now
+            DateTime endTime = DateTime.Now.AddHours(1);
+
+            // When meeting end time exists, use the meeting end time.
+            if (_currentMeetingEndTime.HasValue && _currentMeetingEndTime.Value > DateTime.Now)
+            {
+                endTime = _currentMeetingEndTime.Value;
+            }
+
+            // If the next recording exists, set the max time to that time
+            if (_nextRecordingStartTime.HasValue)
+            {
+                DateTime nextRecordingMinus5 = _nextRecordingStartTime.Value.AddMinutes(-5);
+                if (nextRecordingMinus5 < maxAllowedTime)
+                {
+                    maxAllowedTime = nextRecordingMinus5;
+                }
+            }
+
+            // Now check the computed end time vs. the computed max end time
+            if (endTime > maxAllowedTime)
+            {
+                endTime = maxAllowedTime;
+            }
+
+            _currentMeetingEndTime = endTime;
+            List<DateTime> times = GenerateTimeSlots(maxAllowedTime, endTime);
+            for (int i = 0; i < _endTimeSize; i++)
+            {
+                if (i < times.Count)
+                {
+                    _endTimes[i] = times[i];
+                }
+                else
+                {
+                    _endTimes[i] = null;
+                }
+            }
+
+            RefreshEndTimes();
+        }
+
+        public List<DateTime> GenerateTimeSlots(DateTime maxTime, DateTime defaultTime)
+        {
+            // Compute the next 5-minute rounded start time.
+            DateTime start = GetRoundedStartTime(DateTime.Now);
+
+            List<DateTime> slots = new List<DateTime>();
+
+            // Determine cutoff for 5-minute slots.
+            // If the computed start is exactly on a quarter-hour (minutes % 15 == 0),
+            // use the next quarter (i.e., add 15 minutes).
+            // Otherwise, add enough minutes to
+            // reach the next quarter, then add another full 15-minute interval.
+            DateTime cutoff;
+            if (start.Minute % 15 == 0)
+            {
+                cutoff = start.AddMinutes(15);
+            }
+            else
+            {
+                cutoff = start.AddMinutes((15 - (start.Minute % 15)) + 15);
+            }
+
+            // Generate 5-minute slots from the computed start until (but not including) the cutoff,
+            while (start < cutoff && start <= maxTime)
+            {
+                slots.Add(start);
+                start = start.AddMinutes(5);
+            }
+
+            // Generate 15-minute slots starting from cutoff.
+            DateTime slot15 = cutoff;
+            while (slot15 <= maxTime)
+            {
+                slots.Add(slot15);
+                slot15 = slot15.AddMinutes(15);
+            }
+
+            // Ensure the default time is included.
+            if (!slots.Contains(defaultTime))
+            {
+                slots.Add(defaultTime);
+                slots.Sort();
+            }
+
+            return slots;
+        }
+
+        private DateTime GetRoundedStartTime(DateTime now)
+        {
+            // Truncate seconds and milliseconds.
+            DateTime truncated = new DateTime(now.Year, now.Month, now.Day, now.Hour, now.Minute, 0);
+            int remainder = now.Minute % 5;
+            // Normally, add the minutes needed to get to the next 5-minute mark.
+            int minutesToAdd = (remainder == 0) ? 5 : (5 - remainder);
+            DateTime candidate = truncated.AddMinutes(minutesToAdd);
+
+            // If the candidate is less than or equal to one minute away, skip to the following interval.
+            if ((candidate - now) <= TimeSpan.FromMinutes(1))
+            {
+                candidate = candidate.AddMinutes(5);
+            }
+
+            return candidate;
         }
 
         public void RefreshEndTimes()
         {
-            throw new NotImplementedException();
+            for (int i = 0; i < _endTimeSize; i++)
+            {
+                EndTimeSelectedFeedback[i].FireUpdate();
+                EndTimesFeedback[i].FireUpdate();
+            }
         }
 
         public void SetCurrentMeetingEndTime(string time)
         {
-            throw new NotImplementedException();
+            if (string.IsNullOrEmpty(time))
+            {
+                _currentMeetingEndTime = null;
+            }
+
+            try
+            {
+                _currentMeetingEndTime = DateTime.Parse(time);
+            }
+            catch
+            {
+                _currentMeetingEndTime = null;
+            }
+
+            DefaultEndTimes();
+        }
+
+        public void SetNextRecordingStartTime(string time)
+        {
+            if (string.IsNullOrEmpty(time))
+            {
+                _nextRecordingStartTime = null;
+            }
+
+            try
+            {
+                _nextRecordingStartTime = DateTime.Parse(time);
+            }
+            catch
+            {
+                _nextRecordingStartTime = null;
+            }
+
+            DefaultEndTimes();
         }
 
         private void ResetUsernameSearchList()

@@ -6,7 +6,8 @@ namespace PepperDash.Essentials.Core.Recording
 {
     public interface IRecordingController
     {
-        void StartRecording(string name, DateTime endTime, Guid folderId);
+        StringFeedback StartRecordingStatus { get; set; }
+        void StartRecording(string name, DateTime? endTime, Guid folderId);
         UserResults SearchUser(string searchText);
         KeyValuePair<string, Guid> GetUserFolder(Guid user);
 

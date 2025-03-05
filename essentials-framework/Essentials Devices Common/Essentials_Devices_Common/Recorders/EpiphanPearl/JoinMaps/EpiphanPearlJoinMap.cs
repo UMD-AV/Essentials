@@ -52,6 +52,19 @@ namespace PepperDash.Essentials.EpiphanPearl.JoinMaps
                 Description = "HdmiOutputSource Set/Get"
             });
 
+        [JoinName("PanoptoKey")] public JoinDataComplete PanoptoKey = new JoinDataComplete(
+            new JoinData
+            {
+                JoinNumber = 3,
+                JoinSpan = 1
+            },
+            new JoinMetadata
+            {
+                JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                JoinType = eJoinType.Serial,
+                Description = "Panopto Cloud Device Key"
+            });
+
         [JoinName("Start")] public JoinDataComplete Start = new JoinDataComplete(
             new JoinData
             {

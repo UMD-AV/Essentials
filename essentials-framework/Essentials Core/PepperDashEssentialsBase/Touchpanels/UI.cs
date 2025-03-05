@@ -52,11 +52,15 @@ namespace PepperDash_Essentials_Core.Touchpanels
             trilist.SetStringSigAction(joinMap.SetRecordingName.JoinNumber, recordingUI.SetRecordingName);
             trilist.SetStringSigAction(joinMap.SetRecordingMeetingEndTime.JoinNumber,
                 recordingUI.SetCurrentMeetingEndTime);
+            trilist.SetStringSigAction(joinMap.SetNextRecordingStartTime.JoinNumber,
+                recordingUI.SetNextRecordingStartTime);
 
             recordingUI.CurrentUserFeedback.LinkInputSig(trilist.StringInput[joinMap.RecorderCurrentUser.JoinNumber]);
             recordingUI.CurrentFolderFeedback.LinkInputSig(
                 trilist.StringInput[joinMap.RecorderCurrentFolder.JoinNumber]);
             recordingUI.RecordingNameFeedback.LinkInputSig(trilist.StringInput[joinMap.SetRecordingName.JoinNumber]);
+            recordingUI.StartRecordingStatusFeedback.LinkInputSig(
+                trilist.StringInput[joinMap.StartRecordingStatus.JoinNumber]);
 
             for (ushort i = 0; i < _recordingUserSearchSize; i++)
             {

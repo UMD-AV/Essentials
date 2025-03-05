@@ -28,36 +28,13 @@ namespace PepperDash.Essentials.PanoptoCloud
         private readonly CTimer _oauthTimer;
         private readonly CTimer _pollTimer;
         private readonly CTimer _startRecordingStatusTimer;
-        private readonly CTimer _resetAdhocTimer;
-        private const int _userSearchSize = 8;
-        private const int _defaultLength = 60;
         private readonly PanoptoCloudStatusMonitor _monitor;
         private string _token;
         private RecorderInfo _recorder = new RecorderInfo();
-
-        //Ad-hoc recording settings
-        private int _recordingLength = _defaultLength;
-        private string _currentUser;
-        private Guid _currentUserGuid;
-        private string _currentFolderName;
-        private Guid _currentFolderGuid;
-        private string _recordingName;
-        private string _recordingDescription;
         private string _startRecordingStatus;
-        private readonly KeyValuePair<string, Guid>[] _usernames;
-        public readonly StringFeedback CurrentUserFeedback;
-        public readonly StringFeedback CurrentFolderFeedback;
-        public readonly IntFeedback RecordingLength;
-        public readonly StringFeedback[] UsernameFeedback;
-        public readonly StringFeedback RecordingNameFeedback;
-        public readonly StringFeedback RecordingDescriptionFeedback;
 
         //Recorder statuses
-        public readonly IntFeedback RecorderStatusInt;
-        public readonly StringFeedback RecorderStatusString;
-        public readonly StringFeedback StartRecordingStatus;
-        public readonly BoolFeedback IsRecording;
-        public readonly BoolFeedback IsPaused;
+        public StringFeedback StartRecordingStatus { get; set; }
         public readonly BoolFeedback IsOnline;
 
         static PanoptoCloudController()
@@ -152,74 +129,15 @@ namespace PepperDash.Essentials.PanoptoCloud
 
             _monitor = new PanoptoCloudStatusMonitor(this, 120000, 240000);
 
-            _resetAdhocTimer = new CTimer(o => ResetAdHoc(), Timeout.Infinite);
-
-            IsRecording = new BoolFeedback(() =>
-                _recorder != null && (_recorder.State == RemoteRecorderState.Recording ||
-                                      _recorder.State == RemoteRecorderState.Paused));
-
-            IsPaused = new BoolFeedback(() => _recorder != null && (_recorder.State == RemoteRecorderState.Paused));
-
-            RecorderStatusInt = new IntFeedback(() =>
-                _recorder == null ? (int)RemoteRecorderState.Unknown : (int)_recorder.State);
-
-            RecorderStatusString = new StringFeedback(() =>
-                _recorder == null ? RemoteRecorderState.Unknown.ToString() : _recorder.State.ToString());
-
             StartRecordingStatus = new StringFeedback(() => _startRecordingStatus);
-
-            RecordingLength = new IntFeedback(() => _recordingLength);
-
-            CurrentUserFeedback = new StringFeedback(() => _currentUser);
-            CurrentFolderFeedback = new StringFeedback(() => _currentFolderName);
-            RecordingNameFeedback = new StringFeedback(() => _recordingName);
-            RecordingDescriptionFeedback = new StringFeedback(() => _recordingDescription);
-
-            _usernames = new KeyValuePair<string, Guid>[_userSearchSize];
-            UsernameFeedback = new StringFeedback[_userSearchSize];
-            for (int i = 0; i < _userSearchSize; i++)
-            {
-                _usernames[i] = new KeyValuePair<string, Guid>("", Guid.Empty);
-                int index = i;
-                UsernameFeedback[i] = new StringFeedback(() => _usernames[index].Key);
-            }
 
             IsOnline = new BoolFeedback(() => _monitor.IsOnline);
         }
 
         public override bool CustomActivate()
         {
-            RecorderStatusInt.OutputChange += (sender, args) =>
-            {
-                IsRecording.FireUpdate();
-                IsPaused.FireUpdate();
-                RecorderStatusString.FireUpdate();
-
-                if (_recorder != null && _recorder.State == RemoteRecorderState.Recording)
-                {
-                    SetStartRecordingStatus("Recording Started", 10000);
-                }
-            };
-
-            RecorderStatusString.OutputChange +=
-                (sender, args) => Debug.Console(1, this, "Recorder Status:{0}", args.StringValue);
-
-            IsRecording.FireUpdate();
-            IsPaused.FireUpdate();
             IsOnline.FireUpdate();
-            RecorderStatusInt.FireUpdate();
-            RecorderStatusString.FireUpdate();
             StartRecordingStatus.FireUpdate();
-            RecordingLength.FireUpdate();
-            CurrentUserFeedback.FireUpdate();
-            CurrentFolderFeedback.FireUpdate();
-            RecordingNameFeedback.FireUpdate();
-            RecordingDescriptionFeedback.FireUpdate();
-            for (int i = 0; i < _userSearchSize; i++)
-            {
-                UsernameFeedback[i].FireUpdate();
-            }
-
             return base.CustomActivate();
         }
 
@@ -233,12 +151,12 @@ namespace PepperDash.Essentials.PanoptoCloud
 
             if (storageResult != eCrestronSecureStorageStatus.Ok)
             {
-                Debug.Console(1, this, "Failed to store clientId");
+                Debug.Console(0, this, "Failed to store clientId");
                 return;
             }
 
             CrestronSecureStorage.Flush();
-            Debug.Console(1, this, "Succesfully stored clientId");
+            Debug.Console(0, this, "Succesfully stored clientId");
         }
 
         public void SetClientSecret(string clientSecret)
@@ -251,12 +169,12 @@ namespace PepperDash.Essentials.PanoptoCloud
 
             if (storageResult != eCrestronSecureStorageStatus.Ok)
             {
-                Debug.Console(1, this, "Failed to store clientSecret");
+                Debug.Console(0, this, "Failed to store clientSecret");
                 return;
             }
 
             CrestronSecureStorage.Flush();
-            Debug.Console(1, this, "Succesfully stored clientSecret");
+            Debug.Console(0, this, "Succesfully stored clientSecret");
         }
 
         public void SetClientPassword(string clientPassword)
@@ -269,12 +187,12 @@ namespace PepperDash.Essentials.PanoptoCloud
 
             if (storageResult != eCrestronSecureStorageStatus.Ok)
             {
-                Debug.Console(1, this, "Failed to store clientSecret");
+                Debug.Console(0, this, "Failed to store clientPassword");
                 return;
             }
 
             CrestronSecureStorage.Flush();
-            Debug.Console(1, this, "Succesfully stored clientSecret");
+            Debug.Console(0, this, "Succesfully stored clientPassword");
         }
 
         public override void Initialize()
@@ -333,143 +251,62 @@ namespace PepperDash.Essentials.PanoptoCloud
             }
         }
 
-        public void SetCurrentUser(string name)
-        {
-            if (_recorder.Id.Equals(Guid.Empty) || string.IsNullOrEmpty(name))
-                return;
 
-            _resetAdhocTimer.Reset(300000);
-            string url = string.Format("{0}/Panopto/api/v1/users/search?searchQuery={1}", _url, name);
+        public UserResults SearchUser(string searchText)
+        {
+            if (_recorder.Id.Equals(Guid.Empty) || string.IsNullOrEmpty(searchText))
+                return null;
+
+            string url = string.Format("{0}/Panopto/api/v1/users/search?searchQuery={1}", _url, searchText);
 
             HttpsClientRequest request = GetDefaultRequestWithAuthHeaders(url, _token, RequestType.Get);
 
-            Debug.Console(1, this, "Attempting to search user: {0}", name);
+            Debug.Console(1, this, "Attempting to search user: {0}", searchText);
             using (HttpsClient client = new HttpsClient().WithDefaultSettings())
             {
-                bool success = false;
                 try
                 {
                     HttpsClientResponse result = client.Dispatch(request);
-                    success = ProcessUsers(result);
+                    return ProcessUsers(result);
                 }
                 catch (Exception ex)
                 {
                     Debug.Console(1, this, "Error searching user {0}", ex.Message);
                 }
 
-                if (!success)
-                {
-                    _usernames[0] = new KeyValuePair<string, Guid>("No users found", Guid.Empty);
-                    UsernameFeedback[0].FireUpdate();
-                    CurrentUserFeedback.FireUpdate();
+                return null;
+            }
+        }
 
-                    for (int i = 1; i < _userSearchSize; i++)
+        public KeyValuePair<string, Guid> GetUserFolder(Guid user)
+        {
+            string url = string.Format("{0}/Panopto/PublicAPI/4.6/SessionManagement.svc", _url);
+
+            HttpsClientRequest request = new HttpsClientRequest { RequestType = RequestType.Post };
+            request.Header.AddHeader(new HttpsHeader("SOAPAction",
+                "http://tempuri.org/ISessionManagement/GetPersonalFolderForUser"));
+            request.Header.AddHeader(new HttpsHeader("Content-Type", "text/xml"));
+            request.Url.Parse(url);
+
+            string content = CreateSoapEnvelope(user);
+            if (content != null)
+            {
+                request.ContentString = CreateSoapEnvelope(user);
+                using (HttpsClient client = new HttpsClient())
+                {
+                    try
                     {
-                        _usernames[i] = new KeyValuePair<string, Guid>(string.Empty, Guid.Empty);
-                        UsernameFeedback[i].FireUpdate();
+                        HttpsClientResponse result = client.Dispatch(request);
+                        return ProcessGetPersonalFolderForUser(result);
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.Console(1, this, "Error getting user folder {0}", ex.Message);
                     }
                 }
             }
-        }
 
-        private void ResetUsernameSearchList()
-        {
-            for (int i = 0; i < _userSearchSize; i++)
-            {
-                _usernames[i] = new KeyValuePair<string, Guid>(string.Empty, Guid.Empty);
-                UsernameFeedback[i].FireUpdate();
-            }
-        }
-
-        public void ResetAdHoc()
-        {
-            _currentUser = string.Empty;
-            _currentUserGuid = Guid.Empty;
-            CurrentUserFeedback.FireUpdate();
-            _recordingLength = _defaultLength;
-            RecordingLength.FireUpdate();
-            _recordingName = "";
-            RecordingNameFeedback.FireUpdate();
-            _recordingDescription = "";
-            RecordingDescriptionFeedback.FireUpdate();
-            ResetCurrentFolder();
-            ResetUsernameSearchList();
-        }
-
-        public void SelectCurrentUser(int user)
-        {
-            _resetAdhocTimer.Reset(300000);
-            if (user >= _usernames.Length || user < 0)
-            {
-                return;
-            }
-
-            _currentUser = _usernames[user].Key;
-            _currentUserGuid = _usernames[user].Value;
-            UpdateUserFolder();
-            CurrentUserFeedback.FireUpdate();
-
-            ResetUsernameSearchList();
-        }
-
-        private void ResetCurrentFolder()
-        {
-            if (_recorder.DefaultRecordingFolder != null)
-            {
-                _currentFolderGuid = _recorder.DefaultRecordingFolder.Id;
-                _currentFolderName = _recorder.DefaultRecordingFolder.Name;
-            }
-            else
-            {
-                _currentFolderGuid = Guid.Empty;
-                _currentFolderName = string.Empty;
-            }
-
-            CurrentFolderFeedback.FireUpdate();
-        }
-
-        private void UpdateUserFolder()
-        {
-            if (_currentUserGuid.Equals(Guid.Empty))
-            {
-                ResetCurrentFolder();
-            }
-            else
-            {
-                string url = string.Format("{0}/Panopto/PublicAPI/4.6/SessionManagement.svc", _url);
-
-                HttpsClientRequest request = new HttpsClientRequest { RequestType = RequestType.Post };
-                request.Header.AddHeader(new HttpsHeader("SOAPAction",
-                    "http://tempuri.org/ISessionManagement/GetPersonalFolderForUser"));
-                request.Header.AddHeader(new HttpsHeader("Content-Type", "text/xml"));
-                request.Url.Parse(url);
-
-                string content = CreateSoapEnvelope(_currentUserGuid);
-                bool success = false;
-                if (content != null)
-                {
-                    request.ContentString = CreateSoapEnvelope(_currentUserGuid);
-                    using (HttpsClient client = new HttpsClient())
-                    {
-                        try
-                        {
-                            HttpsClientResponse result = client.Dispatch(request);
-                            success = ProcessGetPersonalFolderForUser(result);
-                        }
-                        catch (Exception ex)
-                        {
-                            Debug.Console(1, this, "Error getting user folder {0}", ex.Message);
-                        }
-                    }
-                }
-
-                if (!success)
-                {
-                    ResetCurrentFolder();
-                }
-
-                CurrentFolderFeedback.FireUpdate();
-            }
+            return new KeyValuePair<string, Guid>(string.Empty, Guid.Empty);
         }
 
         private string CreateSoapEnvelope(Guid userGuid)
@@ -510,17 +347,17 @@ namespace PepperDash.Essentials.PanoptoCloud
             return soapEnvelope.ToString();
         }
 
-        private bool ProcessGetPersonalFolderForUser(HttpsClientResponse response)
+        private KeyValuePair<string, Guid> ProcessGetPersonalFolderForUser(HttpsClientResponse response)
         {
             if (response.Code != 200)
             {
                 Debug.Console(1, this, "Error getting user folder... Code:{0}\r{1}", response.Code,
                     response.ContentString);
-                return false;
+                return new KeyValuePair<string, Guid>("", Guid.Empty);
             }
 
-            bool foundId = false;
-            bool foundName = false;
+            Guid id = Guid.Empty;
+            string name = "";
 
             using (StringReader stringReader = new StringReader(response.ContentString))
             using (XmlReader reader =
@@ -537,108 +374,67 @@ namespace PepperDash.Essentials.PanoptoCloud
                             case "Id":
                                 try
                                 {
-                                    _currentFolderGuid = new Guid(reader.ReadElementContentAsString());
+                                    id = new Guid(reader.ReadElementContentAsString());
                                     Debug.Console(1, this, "Success getting user folder guid: {0}\r",
-                                        _currentFolderGuid.ToString());
-                                    foundId = true;
+                                        id.ToString());
                                 }
                                 catch (FormatException)
                                 {
                                     // The input was not in a valid GUID format.
                                     Debug.Console(1, this, "Invalid guid format: {0}\r",
                                         reader.ReadElementContentAsString());
-                                    return false;
                                 }
 
                                 break;
                             // Check for the start element named "Name" in the expected namespace.
                             case "Name":
-                                _currentFolderName = reader.ReadElementContentAsString();
+                                name = reader.ReadElementContentAsString();
                                 Debug.Console(1, this, "Success getting user folder name: {0}\r",
-                                    _currentFolderName);
-                                foundName = true;
+                                    name);
                                 break;
                         }
                     }
                 }
             }
 
-            return foundId && foundName;
+            return new KeyValuePair<string, Guid>(name, id);
         }
 
-        private bool ProcessUsers(HttpsClientResponse response)
+        private UserResults ProcessUsers(HttpsClientResponse response)
         {
             if (response.Code != 200)
             {
                 Debug.Console(1, this, "Error processing users... Code:{0}\r{1}", response.Code,
                     response.ContentString);
-                return false;
+                return null;
             }
 
             using (StreamReader stream = new StreamReader(response.ContentStream))
             {
-                JsonTextReader reader = new JsonTextReader(stream);
-                JsonSerializer serializer = new JsonSerializer();
-
-                UserResults users = serializer.Deserialize<UserResults>(reader);
-                Debug.Console(2, this, "Processing users...\r{0}",
-                    JsonConvert.SerializeObject(users, Formatting.Indented));
-
-                if (users.Results.Count > 50)
+                try
                 {
-                    users.Results = users.Results.Take(50).ToList();
-                }
+                    JsonTextReader reader = new JsonTextReader(stream);
+                    JsonSerializer serializer = new JsonSerializer();
 
-                users.Results.RemoveAll(x => x.Id == Guid.Empty);
+                    UserResults users = serializer.Deserialize<UserResults>(reader);
+                    Debug.Console(2, this, "Processing users...\r{0}",
+                        JsonConvert.SerializeObject(users, Formatting.Indented));
 
-                if (users.Results.Count > 0)
-                {
-                    for (int i = 0; i < _userSearchSize; i++)
+                    if (users.Results.Count > 20)
                     {
-                        if (i < users.Results.Count)
-                        {
-                            _usernames[i] =
-                                new KeyValuePair<string, Guid>(users.Results[i].Username, users.Results[i].Id);
-                        }
-                        else
-                        {
-                            _usernames[i] = new KeyValuePair<string, Guid>(string.Empty, Guid.Empty);
-                        }
-
-                        UsernameFeedback[i].FireUpdate();
+                        users.Results = users.Results.Take(20).ToList();
                     }
 
-                    return true;
+                    users.Results.RemoveAll(x => x.Id == Guid.Empty);
+
+                    return users;
                 }
-
-                return false;
+                catch (Exception e)
+                {
+                    Debug.ConsoleWithLog(0, this, "Exception processing users: {0}", e.Message);
+                    return null;
+                }
             }
-        }
-
-        public void SetRecordingLength(ushort value)
-        {
-            if (value == 0)
-            {
-                return;
-            }
-
-            _resetAdhocTimer.Reset(300000);
-            _recordingLength = Math.Min((ushort)120, Math.Max((ushort)15, value));
-            RecordingLength.FireUpdate();
-        }
-
-        public void SetRecordingName(string value)
-        {
-            _resetAdhocTimer.Reset(300000);
-            _recordingName = value;
-            RecordingNameFeedback.FireUpdate();
-        }
-
-        public void SetRecordingDescription(string value)
-        {
-            _resetAdhocTimer.Reset(300000);
-            _recordingDescription = value;
-            RecordingDescriptionFeedback.FireUpdate();
         }
 
         public void PollRecorder()
@@ -656,12 +452,6 @@ namespace PepperDash.Essentials.PanoptoCloud
             }
 
             _recorder = GetRecorder(_recorderName, _url, _token);
-            if (_recorder.DefaultRecordingFolder != null && _currentFolderGuid != _recorder.DefaultRecordingFolder.Id)
-            {
-                ResetCurrentFolder();
-            }
-
-            RecorderStatusInt.FireUpdate();
 
             Debug.Console(1, this, "Recorder Status:\r{0}",
                 JsonConvert.SerializeObject(_recorder, Formatting.Indented));
@@ -773,33 +563,7 @@ namespace PepperDash.Essentials.PanoptoCloud
                 bridge.AddJoinMap(Key, joinMap);
 
             trilist.StringInput[joinMap.Name.JoinNumber].StringValue = Name;
-
-            trilist.SetSigTrueAction(joinMap.Start.JoinNumber, StartRecording);
-            trilist.SetUShortSigAction(joinMap.RecordingLength.JoinNumber, SetRecordingLength);
-            trilist.SetStringSigAction(joinMap.CurrentUser.JoinNumber, SetCurrentUser);
-            trilist.SetSigTrueAction(joinMap.ResetAdHoc.JoinNumber, ResetAdHoc);
-            trilist.SetStringSigAction(joinMap.SetRecordingName.JoinNumber, SetRecordingName);
-            trilist.SetStringSigAction(joinMap.SetRecordingDescription.JoinNumber, SetRecordingDescription);
-
             IsOnline.LinkInputSig(trilist.BooleanInput[joinMap.RecorderOnline.JoinNumber]);
-            IsRecording.LinkInputSig(trilist.BooleanInput[joinMap.IsRecording.JoinNumber]);
-            IsPaused.LinkInputSig(trilist.BooleanInput[joinMap.IsPaused.JoinNumber]);
-            RecordingLength.LinkInputSig(trilist.UShortInput[joinMap.RecordingLength.JoinNumber]);
-            RecorderStatusInt.LinkInputSig(trilist.UShortInput[joinMap.RecorderStateVal.JoinNumber]);
-            RecorderStatusString.LinkInputSig(trilist.StringInput[joinMap.RecorderState.JoinNumber]);
-            StartRecordingStatus.LinkInputSig(trilist.StringInput[joinMap.StartRecordingStatus.JoinNumber]);
-            CurrentUserFeedback.LinkInputSig(trilist.StringInput[joinMap.CurrentUser.JoinNumber]);
-            CurrentFolderFeedback.LinkInputSig(trilist.StringInput[joinMap.CurrentFolder.JoinNumber]);
-            RecordingNameFeedback.LinkInputSig(trilist.StringInput[joinMap.SetRecordingName.JoinNumber]);
-            RecordingDescriptionFeedback.LinkInputSig(trilist.StringInput[joinMap.SetRecordingDescription.JoinNumber]);
-
-            for (int i = 0; i < _userSearchSize; i++)
-            {
-                int index = i;
-                UsernameFeedback[i].LinkInputSig(trilist.StringInput[joinMap.UserSearchResults.JoinNumber + (uint)i]);
-                trilist.SetSigTrueAction(joinMap.SelectCurrentUser.JoinNumber + (uint)i,
-                    () => SelectCurrentUser(index));
-            }
         }
 
         public StatusMonitorBase CommunicationMonitor
@@ -814,28 +578,29 @@ namespace PepperDash.Essentials.PanoptoCloud
             public string RecorderName { get; set; }
         }
 
-        public void StartRecording(string name, DateTime endTime, Guid folderId)
+        public void StartRecording(string name, DateTime? endTime, Guid folderId)
         {
             if (_recorder.Id.Equals(Guid.Empty))
                 return;
 
             SetStartRecordingStatus("Starting recording. Please wait...", 180000);
-            const string path = "/Panopto/api/v1/scheduledRecordings?resolveConflicts=true";
+            const string path = "/Panopto/api/v1/scheduledRecordings?resolveConflicts=false";
             string url = string.Format("{0}{1}", _url, path);
+            if (endTime == null || endTime < DateTime.Now || endTime > DateTime.Now.AddHours(3))
+            {
+                return;
+            }
 
             StartRecordingRequest body = new StartRecordingRequest
             {
-                Name = string.IsNullOrEmpty(_recordingName) == false
-                    ? _recordingName
-                    : Name + " " + DateTime.Now.ToString("g"),
-                Description = string.IsNullOrEmpty(_recordingDescription) == false
-                    ? _recordingDescription
-                    : Name + " " + DateTime.Now.ToString("g"),
+                Name = string.IsNullOrEmpty(name) == false
+                    ? name
+                    : _recorderName + " " + DateTime.Now.ToString("g"),
+                Description = _recorderName + " " + DateTime.Now.ToString("g"),
                 Recorders = new List<Recorder> { new Recorder { RemoteRecorderId = _recorder.Id } },
-                //Subtract 5 minutes to allow for a possible clock drift on devices
-                StartTime = DateTime.UtcNow.Subtract(TimeSpan.FromMinutes(5)),
-                EndTime = DateTime.UtcNow.AddMinutes(_recordingLength),
-                FolderId = _currentFolderGuid
+                StartTime = DateTime.Now,
+                EndTime = (DateTime)endTime,
+                FolderId = folderId == Guid.Empty ? _recorder.DefaultRecordingFolder.Id : folderId,
             };
 
             HttpsClientRequest request = GetDefaultRequestWithAuthHeaders(url, _token, RequestType.Post);
@@ -859,15 +624,6 @@ namespace PepperDash.Essentials.PanoptoCloud
             }
         }
 
-        public UserResults SearchUser(string searchText)
-        {
-            throw new NotImplementedException();
-        }
-
-        public KeyValuePair<string, Guid> GetUserFolder(Guid user)
-        {
-            throw new NotImplementedException();
-        }
 
         public DateTime[] GetRecordingEndTimes()
         {

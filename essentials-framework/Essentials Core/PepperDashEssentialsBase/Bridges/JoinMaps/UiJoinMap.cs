@@ -153,6 +153,20 @@ namespace PepperDash.Essentials.Core.Bridges
                 Description = "Current folder name for recording"
             });
 
+        [JoinName("SetNextRecordingStartTime")]
+        public JoinDataComplete SetNextRecordingStartTime = new JoinDataComplete(
+            new JoinData
+            {
+                JoinNumber = 8,
+                JoinSpan = 1
+            },
+            new JoinMetadata
+            {
+                JoinCapabilities = eJoinCapabilities.FromSIMPL,
+                JoinType = eJoinType.Serial,
+                Description = "Set the next recording start time"
+            });
+
         [JoinName("SetRecordingName")] public JoinDataComplete SetRecordingName = new JoinDataComplete(
             new JoinData
             {
@@ -175,9 +189,22 @@ namespace PepperDash.Essentials.Core.Bridges
             },
             new JoinMetadata
             {
-                JoinCapabilities = eJoinCapabilities.ToFromSIMPL,
+                JoinCapabilities = eJoinCapabilities.FromSIMPL,
                 JoinType = eJoinType.Serial,
                 Description = "Set current meeting end time for recording purposes"
+            });
+
+        [JoinName("StartRecordingStatus")] public JoinDataComplete StartRecordingStatus = new JoinDataComplete(
+            new JoinData
+            {
+                JoinNumber = 10,
+                JoinSpan = 1
+            },
+            new JoinMetadata
+            {
+                JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                JoinType = eJoinType.Serial,
+                Description = "Start recording status"
             });
 
         [JoinName("RecorderUserSearchResults")]

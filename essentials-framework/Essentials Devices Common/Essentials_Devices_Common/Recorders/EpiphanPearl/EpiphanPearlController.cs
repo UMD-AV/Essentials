@@ -22,6 +22,7 @@ namespace PepperDash.Essentials.EpiphanPearl
         private readonly IEpiphanPearlClient _client;
         private readonly EpiphanCommunicationMonitor _monitor;
         private BoolFeedback _nextEventExistsFeedback;
+        private readonly string panoptoKey;
 
         private CTimer _pollTimer;
 
@@ -66,6 +67,7 @@ namespace PepperDash.Essentials.EpiphanPearl
                 _client = new EpiphanPearlClient(_devProperties.Host, _devProperties.Username, _devProperties.Password);
             }
 
+            panoptoKey = _devProperties.PanoptoKey ?? "";
             _monitor = new EpiphanCommunicationMonitor(this, 30000, 60000);
             _statusTimer = new CTimer(o => GetRunningEventStatus(), null, Timeout.Infinite, 5000);
             CreateFeedbacks();
@@ -163,6 +165,7 @@ namespace PepperDash.Essentials.EpiphanPearl
             }
 
             trilist.StringInput[joinMap.Name.JoinNumber].StringValue = Name;
+            trilist.StringInput[joinMap.PanoptoKey.JoinNumber].StringValue = panoptoKey;
 
             trilist.SetSigTrueAction(joinMap.Start.JoinNumber, StartEvent);
             trilist.SetSigTrueAction(joinMap.Stop.JoinNumber, StopRunningEvent);
@@ -503,9 +506,9 @@ namespace PepperDash.Essentials.EpiphanPearl
 
             Debug.Console(1, this, "Getting Running Events");
 
-            string runningEventPath = "/schedule/events/?status=running";
+            const string runningEventPath = "/schedule/events/?status=running";
 
-            string pausedEventPath = "/schedule/events/?status=paused";
+            const string pausedEventPath = "/schedule/events/?status=paused";
 
             BaseResponse<List<Event>> response = _client.Get<BaseResponse<List<Event>>>(runningEventPath);
 

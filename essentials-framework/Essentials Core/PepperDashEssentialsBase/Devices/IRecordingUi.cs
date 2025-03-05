@@ -6,6 +6,7 @@
         StringFeedback CurrentUserFeedback { get; }
         StringFeedback CurrentFolderFeedback { get; }
         StringFeedback RecordingNameFeedback { get; }
+        StringFeedback StartRecordingStatusFeedback { get; }
         StringFeedback[] UserSearchFeedback { get; }
         StringFeedback[] EndTimesFeedback { get; }
         void SetRecorderKey(string key);
@@ -17,5 +18,6 @@
         void StartRecording();
         void RefreshEndTimes();
         void SetCurrentMeetingEndTime(string time);
+        void SetNextRecordingStartTime(string time);
     }
 }

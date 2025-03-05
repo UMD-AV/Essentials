@@ -11,5 +11,7 @@ namespace PepperDash.Essentials.EpiphanPearl
         [JsonProperty("username")] public string Username { get; set; }
 
         [JsonProperty("password")] public string Password { get; set; }
+
+        [JsonProperty("panoptoKey")] public string PanoptoKey { get; set; }
     }
 }

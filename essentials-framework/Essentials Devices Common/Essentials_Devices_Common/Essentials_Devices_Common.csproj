@@ -395,6 +395,7 @@
         <Compile Include="Recorders\PanoptoCloud\RemoteRecorderSearchResult.cs"/>
         <Compile Include="Recorders\PanoptoCloud\RemoteRecorderState.cs"/>
         <Compile Include="Recorders\PanoptoCloud\RemoteRecording.cs"/>
+        <Compile Include="Recorders\PanoptoCloud\StartRecordingRequest.cs"/>
         <Compile Include="Recorders\PanoptoCloud\Utils.cs"/>
         <Compile Include="Scheduling\CollegeNet.cs"/>
         <Compile Include="Screens\Dalite.cs"/>
