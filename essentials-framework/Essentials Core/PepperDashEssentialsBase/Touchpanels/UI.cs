@@ -16,12 +16,16 @@ namespace PepperDash_Essentials_Core.Touchpanels
         private UiConfig uiConfig;
         private UiJoinMap joinMap;
         private BasicTriList uiTriList;
+        private readonly IRecordingUi recordingUI;
+        private const int _recordingUserSearchSize = 8;
+        private const int _recordingEndTimeSize = 25;
 
         public UI(UiConfig config)
         {
             Key = config.Key;
             Name = config.Name;
             uiConfig = config;
+            recordingUI = new PanoptoCloudUi(_recordingUserSearchSize, _recordingEndTimeSize);
 
             try
             {
@@ -39,6 +43,41 @@ namespace PepperDash_Essentials_Core.Touchpanels
             uiTriList = trilist;
             joinMap = new UiJoinMap(joinStart);
             bridge.AddJoinMap(Key, joinMap);
+
+            trilist.SetSigTrueAction(joinMap.RecorderStartAdHoc.JoinNumber, recordingUI.StartRecording);
+            trilist.SetSigTrueAction(joinMap.RecorderResetAdHoc.JoinNumber, recordingUI.ClearAdhocData);
+            trilist.SetSigTrueAction(joinMap.RecorderRefreshEndTimes.JoinNumber, recordingUI.RefreshEndTimes);
+            trilist.SetStringSigAction(joinMap.SetRecorderKey.JoinNumber, recordingUI.SetRecorderKey);
+            trilist.SetStringSigAction(joinMap.RecorderCurrentUser.JoinNumber, recordingUI.SearchUser);
+            trilist.SetStringSigAction(joinMap.SetRecordingName.JoinNumber, recordingUI.SetRecordingName);
+            trilist.SetStringSigAction(joinMap.SetRecordingMeetingEndTime.JoinNumber,
+                recordingUI.SetCurrentMeetingEndTime);
+
+            recordingUI.CurrentUserFeedback.LinkInputSig(trilist.StringInput[joinMap.RecorderCurrentUser.JoinNumber]);
+            recordingUI.CurrentFolderFeedback.LinkInputSig(
+                trilist.StringInput[joinMap.RecorderCurrentFolder.JoinNumber]);
+            recordingUI.RecordingNameFeedback.LinkInputSig(trilist.StringInput[joinMap.SetRecordingName.JoinNumber]);
+
+            for (ushort i = 0; i < _recordingUserSearchSize; i++)
+            {
+                ushort index = i;
+                recordingUI.UserSearchFeedback[i]
+                    .LinkInputSig(trilist.StringInput[joinMap.RecorderUserSearchResults.JoinNumber + i]);
+                trilist.SetSigTrueAction(joinMap.RecorderSelectCurrentUser.JoinNumber + i,
+                    () => recordingUI.SelectCurrentUser(index));
+            }
+
+            for (ushort i = 0; i < _recordingEndTimeSize; i++)
+            {
+                ushort index = i;
+                recordingUI.EndTimesFeedback[i]
+                    .LinkInputSig(trilist.StringInput[joinMap.RecorderEndTimeResults.JoinNumber + i]);
+                recordingUI.EndTimeSelectedFeedback[i]
+                    .LinkInputSig(trilist.BooleanInput[joinMap.RecorderSelectEndTime.JoinNumber + i]);
+                trilist.SetSigTrueAction(joinMap.RecorderSelectEndTime.JoinNumber + i,
+                    () => recordingUI.SelectRecordingEndTime(index));
+            }
+
             UpdateBridge();
         }
 
@@ -54,7 +93,7 @@ namespace PepperDash_Essentials_Core.Touchpanels
 
         public void RefreshConfig()
         {
-            uiConfig = ConfigReader.ConfigObject.UIs.First((config) => config.Key == Key);
+            uiConfig = ConfigReader.ConfigObject.UIs.First(config => config.Key == Key);
             Name = uiConfig.Name;
             UpdateBridge();
         }

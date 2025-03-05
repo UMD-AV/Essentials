@@ -177,6 +177,9 @@
         <Compile Include="Devices\IDspPreset.cs"/>
         <Compile Include="Devices\IProjectorInterfaces.cs"/>
         <Compile Include="Devices\IReconfigurableDevice.cs"/>
+        <Compile Include="Devices\IRecorder.cs"/>
+        <Compile Include="Devices\IRecordingController.cs"/>
+        <Compile Include="Devices\IRecordingUi.cs"/>
         <Compile Include="Devices\ReconfigurableDevice.cs"/>
         <Compile Include="Devices\VolumeDeviceChangeEventArgs.cs"/>
         <Compile Include="DeviceTypeInterfaces\IPasswordPrompt.cs"/>
@@ -258,6 +261,7 @@
         <Compile Include="Feedbacks\BoolFeedbackOneShot.cs"/>
         <Compile Include="Ramps and Increments\NumericalHelpers.cs"/>
         <Compile Include="Ramps and Increments\UshortSigIncrementer.cs"/>
+        <Compile Include="Recording\PanoptoController.cs"/>
         <Compile Include="Remotes\ButtonExtensions.cs"/>
         <Compile Include="Remotes\CrestronRemotePropertiesConfig.cs"/>
         <Compile Include="Remotes\Hrxx0WirelessRemoteController.cs"/>
@@ -318,6 +322,7 @@
         <Compile Include="Touchpanels\Interfaces.cs"/>
         <Compile Include="Touchpanels\Keyboards\HabaneroKeyboardController.cs"/>
         <Compile Include="Touchpanels\Mpc3Touchpanel.cs"/>
+        <Compile Include="Touchpanels\PanoptoCloudUi.cs"/>
         <Compile Include="Touchpanels\TriListExtensions.cs"/>
         <Compile Include="Touchpanels\UI.cs"/>
         <Compile Include="Utilities\ActionSequence.cs"/>

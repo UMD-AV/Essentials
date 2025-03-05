@@ -7,7 +7,7 @@ using PepperDash.Essentials.EpiphanPearl.Utilities;
 
 namespace PepperDash.Essentials.EpiphanPearl
 {
-    public class EpiphanPearlClient : IEpiphanPearlClient
+    public class EpiphanPearlClient : IEpiphanPearlClient, IDisposable
     {
         private readonly HttpClient _client;
 
@@ -135,7 +135,7 @@ namespace PepperDash.Essentials.EpiphanPearl
                 return null;
             }
         }
-        
+
         public string Delete(string path)
         {
             HttpClientRequest request = CreateRequest(path, RequestType.Delete);
@@ -214,6 +214,11 @@ namespace PepperDash.Essentials.EpiphanPearl
             request.Header.AddHeader(_authHeader);
 
             return request;
+        }
+
+        public void Dispose()
+        {
+            if (_client != null) _client.Dispose();
         }
     }
 }

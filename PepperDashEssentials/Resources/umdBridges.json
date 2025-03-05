@@ -1234,52 +1234,48 @@
         },
         "devices": [
           {
-            "deviceKey": "tp01",
-            "joinStart": 11
-          },
-          {
-            "deviceKey": "tp01",
-            "joinStart": 11
-          },
-          {
-            "deviceKey": "tp02",
-            "joinStart": 21
-          },
-          {
-            "deviceKey": "tp03",
-            "joinStart": 31
-          },
-          {
-            "deviceKey": "tp04",
-            "joinStart": 41
-          },
-          {
-            "deviceKey": "tss01",
-            "joinStart": 51
-          },
-          {
-            "deviceKey": "tss02",
-            "joinStart": 61
-          },
-          {
             "deviceKey": "room01",
-            "joinStart": 101
+            "joinStart": 1
           },
           {
             "deviceKey": "room02",
-            "joinStart": 301
+            "joinStart": 201
           },
           {
             "deviceKey": "room03",
-            "joinStart": 501
+            "joinStart": 401
           },
           {
             "deviceKey": "room04",
-            "joinStart": 701
+            "joinStart": 601
           },
           {
             "deviceKey": "room05",
-            "joinStart": 901
+            "joinStart": 801
+          },
+          {
+            "deviceKey": "tp01",
+            "joinStart": 1001
+          },
+          {
+            "deviceKey": "tp02",
+            "joinStart": 1101
+          },
+          {
+            "deviceKey": "tp03",
+            "joinStart": 1201
+          },
+          {
+            "deviceKey": "tp04",
+            "joinStart": 1301
+          },
+          {
+            "deviceKey": "tss01",
+            "joinStart": 1401
+          },
+          {
+            "deviceKey": "tss02",
+            "joinStart": 1501
           }
         ]
       },

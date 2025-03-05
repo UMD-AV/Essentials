@@ -14,7 +14,7 @@ using PepperDash.Essentials.EpiphanPearl.Utilities;
 
 namespace PepperDash.Essentials.EpiphanPearl
 {
-    public class EpiphanPearlController : ReconfigurableBridgableDevice, ICommunicationMonitor
+    public class EpiphanPearlController : ReconfigurableBridgableDevice, ICommunicationMonitor, IRecorder
     {
         private const string RunningStatus = "running";
         private const string PausedStatus = "paused";
@@ -44,7 +44,7 @@ namespace PepperDash.Essentials.EpiphanPearl
         private StringFeedback _runningEventStartFeedback;
 
         private List<Event> _scheduledEvents;
-        private CTimer _statusTimer;
+        private readonly CTimer _statusTimer;
         private readonly DeviceConfig devConfig;
 
         private EpiphanPearlControllerConfiguration _devProperties
@@ -67,7 +67,7 @@ namespace PepperDash.Essentials.EpiphanPearl
             }
 
             _monitor = new EpiphanCommunicationMonitor(this, 30000, 60000);
-
+            _statusTimer = new CTimer(o => GetRunningEventStatus(), null, Timeout.Infinite, 5000);
             CreateFeedbacks();
         }
 
@@ -78,7 +78,7 @@ namespace PepperDash.Essentials.EpiphanPearl
 
         public override void Initialize()
         {
-            _pollTimer = new CTimer(o => Poll(), null, 0, 10000);
+            _pollTimer = new CTimer(o => Poll(), null, 0, 30000);
 
             _monitor.Start();
         }
@@ -162,7 +162,7 @@ namespace PepperDash.Essentials.EpiphanPearl
                 bridge.AddJoinMap(Key, joinMap);
             }
 
-            trilist.StringInput[joinMap.Name.JoinNumber].StringValue = this.Name;
+            trilist.StringInput[joinMap.Name.JoinNumber].StringValue = Name;
 
             trilist.SetSigTrueAction(joinMap.Start.JoinNumber, StartEvent);
             trilist.SetSigTrueAction(joinMap.Stop.JoinNumber, StopRunningEvent);
@@ -234,23 +234,12 @@ namespace PepperDash.Essentials.EpiphanPearl
 
         private void StartEventStatusTimer()
         {
-            if (_statusTimer != null)
-            {
-                _statusTimer.Stop();
-                _statusTimer.Dispose();
-                _statusTimer = null;
-            }
-
-            _statusTimer = new CTimer(o => GetRunningEventStatus(), null, 0, 5000);
+            _statusTimer.Reset(0, 5000);
         }
 
         private void StopEventStatusTimer()
         {
-            if (_statusTimer == null) return;
-
             _statusTimer.Stop();
-            _statusTimer.Dispose();
-            _statusTimer = null;
         }
 
         public void PauseRunningEvent()
@@ -333,8 +322,6 @@ namespace PepperDash.Essentials.EpiphanPearl
                 Debug.Console(1, this, "Error stopping event: {0}", response.Message);
             }
 
-            //StopEventStatusTimer();
-
             GetRunningEventStatus();
 
             GetRunningEvent();
@@ -374,8 +361,6 @@ namespace PepperDash.Essentials.EpiphanPearl
             }
 
             GetRunningEvent();
-
-            //StartEventStatusTimer();
         }
 
         public void ExtendRunningEvent()
@@ -406,7 +391,7 @@ namespace PepperDash.Essentials.EpiphanPearl
 
         private void GetHdmiOutputSetting()
         {
-            string path = "/displays/D1/settings";
+            const string path = "/displays/D1/settings";
 
             BaseResponse<HdmiResult> response = _client.Put<BaseResponse<HdmiResult>>(path);
 
@@ -538,7 +523,7 @@ namespace PepperDash.Essentials.EpiphanPearl
 
                 UpdateFeedbacks();
 
-                //StartEventStatusTimer();
+                StartEventStatusTimer();
                 return;
             }
 
@@ -550,7 +535,7 @@ namespace PepperDash.Essentials.EpiphanPearl
                 _runningEvent = null;
 
                 UpdateFeedbacks();
-                //StopEventStatusTimer();
+                StopEventStatusTimer();
 
                 return;
             }
@@ -561,14 +546,14 @@ namespace PepperDash.Essentials.EpiphanPearl
 
             if (_runningEvent != null)
             {
-                //StartEventStatusTimer();
+                StartEventStatusTimer();
 
                 Debug.Console(1, this, "Running Event: {0} | {1} | {2} | {3} | ", _runningEvent.Id,
                     _runningEvent.Title, _runningEvent.Start, _runningEvent.Finish);
             }
             else
             {
-                //StopEventStatusTimer();
+                StopEventStatusTimer();
             }
         }
 
@@ -652,11 +637,11 @@ namespace PepperDash.Essentials.EpiphanPearl
             Start = string.Empty;
             End = string.Empty;
 
-            this.NameFeedback = new StringFeedback(() => this.Name);
-            this.IdFeedback = new StringFeedback(() => this.Id);
-            this.StartFeedback = new StringFeedback(() => this.Start);
-            this.EndFeedback = new StringFeedback(() => this.End);
-            this.LengthFeedback = new StringFeedback(() => this.Length);
+            NameFeedback = new StringFeedback(() => Name);
+            IdFeedback = new StringFeedback(() => Id);
+            StartFeedback = new StringFeedback(() => Start);
+            EndFeedback = new StringFeedback(() => End);
+            LengthFeedback = new StringFeedback(() => Length);
         }
     }
 }
