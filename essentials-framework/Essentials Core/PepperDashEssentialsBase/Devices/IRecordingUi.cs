@@ -17,7 +17,7 @@
         void SelectRecordingEndTime(ushort time);
         void ClearAdhocData();
         void StartRecording();
-        void RefreshEndTimes();
+        void SetRecordingSubpageState(bool state);
         void SetCurrentMeetingEndTime(string time);
         void SetNextRecordingStartTime(string time);
         void CancelAdHoc();

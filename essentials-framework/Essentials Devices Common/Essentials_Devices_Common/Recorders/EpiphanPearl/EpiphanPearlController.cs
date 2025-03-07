@@ -12,7 +12,6 @@ using PepperDash.Essentials.EpiphanPearl.Interfaces;
 using PepperDash.Essentials.EpiphanPearl.JoinMaps;
 using PepperDash.Essentials.EpiphanPearl.Models;
 using PepperDash.Essentials.EpiphanPearl.Utilities;
-using PepperDash.Essentials.PanoptoCloud;
 
 namespace PepperDash.Essentials.EpiphanPearl
 {
@@ -24,12 +23,10 @@ namespace PepperDash.Essentials.EpiphanPearl
         private readonly IEpiphanPearlClient _client;
         private readonly EpiphanCommunicationMonitor _monitor;
         private BoolFeedback _nextEventExistsFeedback;
+        private BoolFeedback _nextEventSoonFeedback;
         private readonly string panoptoKey;
-
         private CTimer _pollTimer;
-
         private Event _runningEvent;
-
         private List<ScheduledRecording> _scheduledRecordings;
 
         private StringFeedback _runningEventEndFeedback;
@@ -40,6 +37,8 @@ namespace PepperDash.Essentials.EpiphanPearl
 
         private BoolFeedback _runningEventRunningFeedback;
         private BoolFeedback _runningEventPausedFeedback;
+        private BoolFeedback _Extend5EnabledFeedback;
+        private BoolFeedback _Extend15EnabledFeedback;
 
         private string _hdmiOutputSource;
         public StringFeedback HdmiOutputFeedback;
@@ -71,7 +70,7 @@ namespace PepperDash.Essentials.EpiphanPearl
             }
 
             panoptoKey = _devProperties.PanoptoKey ?? "";
-            _monitor = new EpiphanCommunicationMonitor(this, 30000, 60000);
+            _monitor = new EpiphanCommunicationMonitor(this, 120000, 180000);
             _statusTimer = new CTimer(o => GetRunningEventStatus(), null, Timeout.Infinite, 5000);
             CreateFeedbacks();
         }
@@ -118,20 +117,13 @@ namespace PepperDash.Essentials.EpiphanPearl
         public override void Initialize()
         {
             _pollTimer = new CTimer(o => Poll(), null, 0, 30000);
-
             _monitor.Start();
         }
 
         private void Poll()
         {
-            Debug.Console(1, this, "Getting Scheduled Events");
             GetScheduledEvents();
-
-            Debug.Console(1, this, "Getting Running Events");
             GetRunningEvent();
-
-            Debug.Console(1, this, "Getting Running Event Status");
-            GetRunningEventStatus();
         }
 
         private void CreateFeedbacks()
@@ -148,10 +140,10 @@ namespace PepperDash.Essentials.EpiphanPearl
                 new StringFeedback(() => _runningEvent != null ? _runningEvent.Title : string.Empty);
             _runningEventStartFeedback =
                 new StringFeedback(() =>
-                    _runningEvent != null ? _runningEvent.Start.ToLocalTime().ToString("hh:mm:ss tt") : string.Empty);
+                    _runningEvent != null ? _runningEvent.Start.ToLocalTime().ToString("t") : string.Empty);
             _runningEventEndFeedback =
                 new StringFeedback(() =>
-                    _runningEvent != null ? _runningEvent.Finish.ToLocalTime().ToString("hh:mm:ss tt") : string.Empty);
+                    _runningEvent != null ? _runningEvent.Finish.ToLocalTime().ToString("t") : string.Empty);
             _runningEventIdFeedback = new StringFeedback(() => _runningEvent != null ? _runningEvent.Id : string.Empty);
             _runningEventLengthFeedback = new StringFeedback(() =>
             {
@@ -188,6 +180,15 @@ namespace PepperDash.Essentials.EpiphanPearl
                           _runningEvent.Status.Equals(PausedStatus, StringComparison.InvariantCultureIgnoreCase));
 
             _nextEventExistsFeedback = new BoolFeedback(() => _scheduledEvents.Count > 0);
+            _nextEventSoonFeedback = new BoolFeedback(() =>
+                _scheduledEvents[0] != null && _scheduledEvents[0].Start < DateTime.Now.AddMinutes(10));
+
+            _Extend5EnabledFeedback = new BoolFeedback(() =>
+                _scheduledEvents[0] == null ||
+                (_runningEvent != null && _scheduledEvents[0].Start >= _runningEvent.Finish.AddMinutes(6)));
+            _Extend15EnabledFeedback = new BoolFeedback(() =>
+                _scheduledEvents[0] == null ||
+                (_runningEvent != null && _scheduledEvents[0].Start >= _runningEvent.Finish.AddMinutes(16)));
 
             HdmiOutputFeedback = new StringFeedback(() => _hdmiOutputSource);
         }
@@ -208,7 +209,8 @@ namespace PepperDash.Essentials.EpiphanPearl
             trilist.SetSigTrueAction(joinMap.Stop.JoinNumber, StopRunningEvent);
             trilist.SetSigTrueAction(joinMap.Pause.JoinNumber, PauseRunningEvent);
             trilist.SetSigTrueAction(joinMap.Resume.JoinNumber, ResumeRunningEvent);
-            trilist.SetSigTrueAction(joinMap.Extend.JoinNumber, ExtendRunningEvent);
+            trilist.SetSigTrueAction(joinMap.Extend5.JoinNumber, () => ExtendRunningEvent(5));
+            trilist.SetSigTrueAction(joinMap.Extend15.JoinNumber, () => ExtendRunningEvent(15));
 
             trilist.SetStringSigAction(joinMap.HdmiOutputSource.JoinNumber, SetHdmiOutputSource);
 
@@ -216,6 +218,9 @@ namespace PepperDash.Essentials.EpiphanPearl
 
             _runningEventRunningFeedback.LinkInputSig(trilist.BooleanInput[joinMap.IsRecording.JoinNumber]);
             _runningEventPausedFeedback.LinkInputSig(trilist.BooleanInput[joinMap.IsPaused.JoinNumber]);
+            _Extend5EnabledFeedback.LinkInputSig(trilist.BooleanInput[joinMap.Extend5Enable.JoinNumber]);
+            _Extend15EnabledFeedback.LinkInputSig(trilist.BooleanInput[joinMap.Extend15Enable.JoinNumber]);
+
 
             _runningEventNameFeedback.LinkInputSig(trilist.StringInput[joinMap.CurrentRecordingName.JoinNumber]);
             _runningEventStartFeedback.LinkInputSig(trilist.StringInput[joinMap.CurrentRecordingStartTime.JoinNumber]);
@@ -236,6 +241,7 @@ namespace PepperDash.Essentials.EpiphanPearl
                 .LinkInputSig(trilist.StringInput[joinMap.NextRecordingLength.JoinNumber]);
 
             _nextEventExistsFeedback.LinkInputSig(trilist.BooleanInput[joinMap.NextRecordingExists.JoinNumber]);
+            _nextEventSoonFeedback.LinkInputSig(trilist.BooleanInput[joinMap.NextRecordingSoon.JoinNumber]);
 
             HdmiOutputFeedback.LinkInputSig((trilist.StringInput[joinMap.HdmiOutputSource.JoinNumber]));
 
@@ -307,6 +313,8 @@ namespace PepperDash.Essentials.EpiphanPearl
             {
                 Debug.Console(1, this, "Error pausing event: {0}", response.Message);
             }
+
+            GetRunningEvent();
         }
 
         public void ResumeRunningEvent()
@@ -334,6 +342,8 @@ namespace PepperDash.Essentials.EpiphanPearl
             {
                 Debug.Console(1, this, "Error resuming event: {0}", response.Message);
             }
+
+            GetRunningEvent();
         }
 
         public void StopRunningEvent()
@@ -361,8 +371,6 @@ namespace PepperDash.Essentials.EpiphanPearl
             {
                 Debug.Console(1, this, "Error stopping event: {0}", response.Message);
             }
-
-            GetRunningEventStatus();
 
             GetRunningEvent();
         }
@@ -403,13 +411,13 @@ namespace PepperDash.Essentials.EpiphanPearl
             GetRunningEvent();
         }
 
-        public void ExtendRunningEvent()
+        public void ExtendRunningEvent(ushort time)
         {
             string path = string.Format("/schedule/events/{0}/control/extend", _runningEvent.Id);
 
             ExtendEventRequest body = new ExtendEventRequest
             {
-                Finish = _runningEvent.Finish + new TimeSpan(0, 0, 15, 0)
+                Finish = _runningEvent.Finish + new TimeSpan(0, 0, time, 0)
             };
 
             BaseResponse<string> response = _client.Post<ExtendEventRequest, BaseResponse<string>>(path, body);
@@ -427,6 +435,8 @@ namespace PepperDash.Essentials.EpiphanPearl
             {
                 Debug.Console(1, this, "Error extending event: {0}", response.Message);
             }
+
+            GetRunningEventStatus();
         }
 
         private void GetHdmiOutputSetting()
@@ -479,6 +489,7 @@ namespace PepperDash.Essentials.EpiphanPearl
 
         private void GetScheduledEvents()
         {
+            Debug.Console(1, this, "Getting Scheduled Events");
             DateTime from = DateTime.Now.Date;
 
             DateTime to = from + new TimeSpan(1, 0, 0, 0);
@@ -562,7 +573,6 @@ namespace PepperDash.Essentials.EpiphanPearl
                     _runningEvent.Title, _runningEvent.Start, _runningEvent.Finish);
 
                 UpdateFeedbacks();
-
                 StartEventStatusTimer();
                 return;
             }
@@ -599,6 +609,7 @@ namespace PepperDash.Essentials.EpiphanPearl
 
         private void GetRunningEventStatus()
         {
+            Debug.Console(1, this, "Getting Running Event Status");
             if (_runningEvent == null)
             {
                 Debug.Console(1, this, "No Running Event");
@@ -619,6 +630,8 @@ namespace PepperDash.Essentials.EpiphanPearl
 
             _runningEventRunningFeedback.FireUpdate();
             _runningEventPausedFeedback.FireUpdate();
+            _Extend5EnabledFeedback.FireUpdate();
+            _Extend15EnabledFeedback.FireUpdate();
         }
 
         private void UpdateFeedbacks()
@@ -632,8 +645,10 @@ namespace PepperDash.Essentials.EpiphanPearl
 
             _runningEventRunningFeedback.FireUpdate();
             _runningEventPausedFeedback.FireUpdate();
+            _Extend5EnabledFeedback.FireUpdate();
+            _Extend15EnabledFeedback.FireUpdate();
             _nextEventExistsFeedback.FireUpdate();
-
+            _nextEventSoonFeedback.FireUpdate();
             HdmiOutputFeedback.FireUpdate();
 
             foreach (ScheduledRecording t in _scheduledRecordings)

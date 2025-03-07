@@ -598,9 +598,7 @@ namespace PepperDash.Essentials.PanoptoCloud
 
             StartRecordingRequest body = new StartRecordingRequest
             {
-                Name = string.IsNullOrEmpty(name) == false
-                    ? name
-                    : _recorderName + " " + DateTime.Now.ToString("g"),
+                Name = !string.IsNullOrEmpty(name) ? name : _recorderName + " " + DateTime.Now.ToString("g"),
                 Description = _recorderName + " " + DateTime.Now.ToString("g"),
                 Recorders = new List<Recorder> { new Recorder { RemoteRecorderId = _recorder.Id } },
                 StartTime = DateTime.Now,

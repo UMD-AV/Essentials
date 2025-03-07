@@ -78,7 +78,7 @@ namespace PepperDash.Essentials.Core.Bridges
                 Description = "Reset ad hoc recording data and settings"
             });
 
-        [JoinName("RecorderRefreshEndTimes")] public JoinDataComplete RecorderRefreshEndTimes = new JoinDataComplete(
+        [JoinName("RecorderSubpageActive")] public JoinDataComplete RecorderSubpageActive = new JoinDataComplete(
             new JoinData
             {
                 JoinNumber = 8,
@@ -88,7 +88,7 @@ namespace PepperDash.Essentials.Core.Bridges
             {
                 JoinCapabilities = eJoinCapabilities.FromSIMPL,
                 JoinType = eJoinType.Digital,
-                Description = "Refresh list of recording end times"
+                Description = "Recorder subpage active on UI"
             });
 
         [JoinName("RecorderCancelAdHoc")] public JoinDataComplete RecorderCancelAdHoc = new JoinDataComplete(

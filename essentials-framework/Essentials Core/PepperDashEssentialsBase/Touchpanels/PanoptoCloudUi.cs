@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Crestron.SimplSharp;
 using PepperDash.Core;
 using PepperDash.Essentials.Core;
@@ -22,10 +23,12 @@ namespace PepperDash_Essentials_Core.Touchpanels
         private string _recordingName;
         private DateTime? _recordingEndTime;
         private readonly KeyValuePair<string, Guid>[] _usernames;
-        private readonly DateTime?[] _endTimes;
+        private readonly List<DateTime> _endTimes = new List<DateTime>();
         private readonly int _userSearchSize;
         private readonly int _endTimeSize;
         private string _startRecorderStatus;
+        private bool _subpageActive;
+        private readonly CTimer _refreshEndTimesTimer;
 
         public StringFeedback CurrentUserFeedback { get; private set; }
         public StringFeedback CurrentFolderFeedback { get; private set; }
@@ -52,6 +55,7 @@ namespace PepperDash_Essentials_Core.Touchpanels
             CurrentFolderFeedback = new StringFeedback(() => _currentFolderName);
             RecordingNameFeedback = new StringFeedback(() => _recordingName);
             searchMutex = new CMutex();
+            _refreshEndTimesTimer = new CTimer(RefreshEndTimesCallback, Timeout.Infinite);
 
             _usernames = new KeyValuePair<string, Guid>[_userSearchSize];
             UserSearchFeedback = new StringFeedback[_userSearchSize];
@@ -62,20 +66,22 @@ namespace PepperDash_Essentials_Core.Touchpanels
                 UserSearchFeedback[i] = new StringFeedback(() => _usernames[index].Key);
             }
 
-            _endTimes = new DateTime?[_endTimeSize];
             EndTimeSelectedFeedback = new BoolFeedback[_endTimeSize];
             EndTimesFeedback = new StringFeedback[_endTimeSize];
             for (int i = 0; i < _endTimeSize; i++)
             {
                 int index = i;
                 EndTimeSelectedFeedback[i] =
-                    new BoolFeedback(() => _endTimes[index] != null && _endTimes[index] == _recordingEndTime);
-                EndTimesFeedback[i] =
-                    new StringFeedback(() =>
-                        _endTimes[index] == null ? "" : ((DateTime)_endTimes[index]).ToString("t"));
+                    new BoolFeedback(() => index < _endTimes.Count && _endTimes[index] == _recordingEndTime);
+                EndTimesFeedback[i] = new StringFeedback(() =>
+                    index < _endTimes.Count &&
+                    (_endTimes[index] < _nextRecordingStartTime || _nextRecordingStartTime == null)
+                        ? _endTimes[index].ToString("t")
+                        : "");
             }
 
-            StartRecordingStatusFeedback = new StringFeedback(() => _startRecorderStatus ?? _startRecorderStatus);
+            StartRecordingStatusFeedback =
+                new StringFeedback(() => _startRecorderStatus ?? "");
             StartRecordingFailedFeedback = new BoolFeedback(() =>
                 _startRecorderStatus != null && _startRecorderStatus.ToLower().Contains("failed"));
         }
@@ -91,25 +97,21 @@ namespace PepperDash_Essentials_Core.Touchpanels
                 UserSearchFeedback[i].FireUpdate();
             }
 
-            for (int i = 0; i < _endTimeSize; i++)
-            {
-                UserSearchFeedback[i].FireUpdate();
-                EndTimeSelectedFeedback[i].FireUpdate();
-            }
+            UpdateEndTimesFeedback();
         }
 
         public void SetRecorderKey(string key)
         {
             if (_recordingController != null)
             {
-                StartRecordingStatusFeedback.OutputChange -= UpdateRecordingStatusFeedback;
+                _recordingController.StartRecordingStatus.OutputChange -= UpdateRecordingStatusFeedback;
             }
 
             IKeyed device = DeviceManager.GetDeviceForKey(key);
             _recordingController = device as IRecordingController;
             if (_recordingController != null)
             {
-                StartRecordingStatusFeedback.OutputChange += UpdateRecordingStatusFeedback;
+                _recordingController.StartRecordingStatus.OutputChange += UpdateRecordingStatusFeedback;
             }
 
             Update();
@@ -155,16 +157,13 @@ namespace PepperDash_Essentials_Core.Touchpanels
                     {
                         UserResults results = _recordingController.SearchUser(name);
 
-                        if (results == null)
+                        if (results == null || results.Results.Count == 0)
                         {
                             _usernames[0] = new KeyValuePair<string, Guid>("No users found", Guid.Empty);
-                            UserSearchFeedback[0].FireUpdate();
-                            CurrentUserFeedback.FireUpdate();
 
                             for (int i = 1; i < _userSearchSize; i++)
                             {
                                 _usernames[i] = new KeyValuePair<string, Guid>(string.Empty, Guid.Empty);
-                                UserSearchFeedback[i].FireUpdate();
                             }
                         }
                         else if (results.Results.Count > 0)
@@ -189,6 +188,12 @@ namespace PepperDash_Essentials_Core.Touchpanels
                             {
                                 SelectCurrentUser(0);
                             }
+                        }
+
+                        CurrentUserFeedback.FireUpdate();
+                        for (int i = 0; i < _userSearchSize; i++)
+                        {
+                            UserSearchFeedback[i].FireUpdate();
                         }
                     }
                 }
@@ -224,9 +229,9 @@ namespace PepperDash_Essentials_Core.Touchpanels
             ResetUsernameSearchList();
         }
 
-        public void SelectRecordingEndTime(ushort time)
+        public void SelectRecordingEndTime(ushort index)
         {
-            _recordingEndTime = _endTimes[time];
+            _recordingEndTime = _endTimes[index];
             RecordingEndTime.FireUpdate();
         }
 
@@ -239,8 +244,6 @@ namespace PepperDash_Essentials_Core.Touchpanels
         public void ClearAdhocData()
         {
             ResetUser();
-            _recordingEndTime = DateTime.MinValue;
-            RecordingEndTime.FireUpdate();
             _recordingName = "";
             RecordingNameFeedback.FireUpdate();
         }
@@ -255,163 +258,193 @@ namespace PepperDash_Essentials_Core.Touchpanels
             _recordingController.StartRecording(_recordingName, _recordingEndTime, _currentFolderGuid);
         }
 
-        public void DefaultEndTimes()
+        public void SetRecordingSubpageState(bool state)
         {
-            // Limit the computed time to no later than 4 hours from now.
-            DateTime maxAllowedTime = DateTime.Now.AddHours(4);
+            _subpageActive = state;
+            if (state == false)
+            {
+                ClearAdhocData();
+            }
+            else
+            {
+                _refreshEndTimesTimer.Reset(30000);
+                GenerateNewEndTimes();
+                DefaultEndTime();
+            }
+        }
 
+        private void RefreshEndTimesCallback(object unused)
+        {
+            if (_subpageActive)
+            {
+                _refreshEndTimesTimer.Reset(30000);
+                if (_endTimes[0] < DateTime.Now.AddMinutes(2))
+                {
+                    GenerateNewEndTimes();
+                }
+                else
+                {
+                    UpdateEndTimesFeedback();
+                }
+            }
+        }
+
+        private void GenerateNewEndTimes()
+        {
+            // Compute the next 5-minute rounded start time.
+            DateTime start = GetFirstEndTime();
+
+            _endTimes.Clear();
+            // Generate 5-minute slots from the computed start until the end
+            for (ushort i = 0; i < _endTimeSize; i++)
+            {
+                _endTimes.Add(start);
+                start = start.AddMinutes(5);
+            }
+
+            UpdateEndTimesFeedback();
+            UpdateSelectedTimeFeedback();
+        }
+
+        private DateTime GetFirstEndTime()
+        {
+            return RoundDownToPrevious5MinuteInterval(DateTime.Now.AddMinutes(1)).AddMinutes(5);
+        }
+
+        public void DefaultEndTime()
+        {
             //Default recording to 1 hour from now
-            DateTime endTime = DateTime.Now.AddHours(1);
+            DateTime endTime = RoundUpToNext5MinuteInterval(DateTime.Now).AddHours(1);
 
             // When meeting end time exists, use the meeting end time.
-            if (_currentMeetingEndTime.HasValue && _currentMeetingEndTime.Value > DateTime.Now)
+            if (_currentMeetingEndTime.HasValue && _currentMeetingEndTime.Value.AddMinutes(5) < DateTime.Now)
             {
                 endTime = _currentMeetingEndTime.Value;
             }
 
-            // If the next recording exists, set the max time to that time
-            if (_nextRecordingStartTime.HasValue)
-            {
-                DateTime nextRecordingMinus5 = _nextRecordingStartTime.Value.AddMinutes(-5);
-                if (nextRecordingMinus5 < maxAllowedTime)
-                {
-                    maxAllowedTime = nextRecordingMinus5;
-                }
-            }
-
             // Now check the computed end time vs. the computed max end time
-            if (endTime > maxAllowedTime)
+            if (_nextRecordingStartTime.HasValue && endTime > _nextRecordingStartTime.Value.AddMinutes(-5))
             {
-                endTime = maxAllowedTime;
+                endTime = _nextRecordingStartTime.Value.AddMinutes(-5);
             }
 
-            _currentMeetingEndTime = endTime;
-            List<DateTime> times = GenerateTimeSlots(maxAllowedTime, endTime);
+            DateTime? validEndTime = GetNearestDateTime(endTime);
+
+            _recordingEndTime = validEndTime;
+            RecordingEndTime.FireUpdate();
+            UpdateSelectedTimeFeedback();
+        }
+
+        public DateTime? GetNearestDateTime(DateTime target)
+        {
+            if (_endTimes == null || !_endTimes.Any())
+            {
+                return null;
+            }
+
+            // Order the list by the absolute difference between each DateTime and the target,
+            // and return the first (smallest difference)
+            return _endTimes.OrderBy(dt => Math.Abs((dt - target).Ticks)).First();
+        }
+
+        private DateTime RoundDownToPrevious5MinuteInterval(DateTime dateTime)
+        {
+            // Calculate the minute part rounded down to the previous multiple of 5.
+            int roundedMinutes = dateTime.Minute - (dateTime.Minute % 5);
+
+            // Return a new DateTime with seconds and smaller units reset to 0.
+            return new DateTime(
+                dateTime.Year,
+                dateTime.Month,
+                dateTime.Day,
+                dateTime.Hour,
+                roundedMinutes,
+                0,
+                dateTime.Kind);
+        }
+
+        private DateTime RoundUpToNext5MinuteInterval(DateTime dateTime)
+        {
+            // Calculate the number of ticks in a 5-minute interval.
+            long ticksPerFiveMinutes = TimeSpan.FromMinutes(5).Ticks;
+
+            // Determine the remainder when dividing by the 5-minute interval.
+            long remainderTicks = dateTime.Ticks % ticksPerFiveMinutes;
+
+            // If the DateTime is already on a 5-minute boundary, return it as-is.
+            if (remainderTicks == 0)
+                return dateTime;
+
+            // Calculate the number of ticks needed to reach the next interval.
+            long ticksToAdd = ticksPerFiveMinutes - remainderTicks;
+
+            // Return a new DateTime that is rounded up to the next 5-minute interval.
+            return new DateTime(dateTime.Ticks + ticksToAdd, dateTime.Kind);
+        }
+
+        public void UpdateEndTimesFeedback()
+        {
             for (int i = 0; i < _endTimeSize; i++)
             {
-                if (i < times.Count)
-                {
-                    _endTimes[i] = times[i];
-                }
-                else
-                {
-                    _endTimes[i] = null;
-                }
+                EndTimesFeedback[i].FireUpdate();
             }
-
-            RefreshEndTimes();
         }
 
-        public List<DateTime> GenerateTimeSlots(DateTime maxTime, DateTime defaultTime)
-        {
-            // Compute the next 5-minute rounded start time.
-            DateTime start = GetRoundedStartTime(DateTime.Now);
-
-            List<DateTime> slots = new List<DateTime>();
-
-            // Determine cutoff for 5-minute slots.
-            // If the computed start is exactly on a quarter-hour (minutes % 15 == 0),
-            // use the next quarter (i.e., add 15 minutes).
-            // Otherwise, add enough minutes to
-            // reach the next quarter, then add another full 15-minute interval.
-            DateTime cutoff;
-            if (start.Minute % 15 == 0)
-            {
-                cutoff = start.AddMinutes(15);
-            }
-            else
-            {
-                cutoff = start.AddMinutes((15 - (start.Minute % 15)) + 15);
-            }
-
-            // Generate 5-minute slots from the computed start until (but not including) the cutoff,
-            while (start < cutoff && start <= maxTime)
-            {
-                slots.Add(start);
-                start = start.AddMinutes(5);
-            }
-
-            // Generate 15-minute slots starting from cutoff.
-            DateTime slot15 = cutoff;
-            while (slot15 <= maxTime)
-            {
-                slots.Add(slot15);
-                slot15 = slot15.AddMinutes(15);
-            }
-
-            // Ensure the default time is included.
-            if (!slots.Contains(defaultTime))
-            {
-                slots.Add(defaultTime);
-                slots.Sort();
-            }
-
-            return slots;
-        }
-
-        private DateTime GetRoundedStartTime(DateTime now)
-        {
-            // Truncate seconds and milliseconds.
-            DateTime truncated = new DateTime(now.Year, now.Month, now.Day, now.Hour, now.Minute, 0);
-            int remainder = now.Minute % 5;
-            // Normally, add the minutes needed to get to the next 5-minute mark.
-            int minutesToAdd = (remainder == 0) ? 5 : (5 - remainder);
-            DateTime candidate = truncated.AddMinutes(minutesToAdd);
-
-            // If the candidate is less than or equal to one minute away, skip to the following interval.
-            if ((candidate - now) <= TimeSpan.FromMinutes(1))
-            {
-                candidate = candidate.AddMinutes(5);
-            }
-
-            return candidate;
-        }
-
-        public void RefreshEndTimes()
+        private void UpdateSelectedTimeFeedback()
         {
             for (int i = 0; i < _endTimeSize; i++)
             {
                 EndTimeSelectedFeedback[i].FireUpdate();
-                EndTimesFeedback[i].FireUpdate();
             }
         }
 
         public void SetCurrentMeetingEndTime(string time)
         {
+            DateTime? temp;
             if (string.IsNullOrEmpty(time))
             {
-                _currentMeetingEndTime = null;
+                temp = null;
             }
 
-            try
+            else
             {
-                _currentMeetingEndTime = DateTime.Parse(time);
-            }
-            catch
-            {
-                _currentMeetingEndTime = null;
+                try
+                {
+                    temp = DateTime.Parse(time);
+                }
+                catch
+                {
+                    temp = null;
+                }
             }
 
-            DefaultEndTimes();
+            _currentMeetingEndTime = temp;
         }
 
         public void SetNextRecordingStartTime(string time)
         {
+            DateTime? temp;
             if (string.IsNullOrEmpty(time))
             {
-                _nextRecordingStartTime = null;
+                temp = null;
+            }
+            else
+            {
+                try
+                {
+                    temp = RoundDownToPrevious5MinuteInterval(DateTime.Parse(time));
+                }
+                catch
+                {
+                    temp = null;
+                }
             }
 
-            try
+            if (_nextRecordingStartTime != temp)
             {
-                _nextRecordingStartTime = DateTime.Parse(time);
+                _nextRecordingStartTime = temp;
+                UpdateEndTimesFeedback();
             }
-            catch
-            {
-                _nextRecordingStartTime = null;
-            }
-
-            DefaultEndTimes();
         }
 
         public void CancelAdHoc()
@@ -450,6 +483,7 @@ namespace PepperDash_Essentials_Core.Touchpanels
         public void Dispose()
         {
             if (searchMutex != null) searchMutex.Dispose();
+            if (_refreshEndTimesTimer != null) _refreshEndTimesTimer.Dispose();
         }
     }
 }

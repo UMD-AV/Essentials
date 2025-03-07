@@ -117,17 +117,30 @@ namespace PepperDash.Essentials.EpiphanPearl.JoinMaps
                 Description = "Resume Recording"
             });
 
-        [JoinName("Extend")] public JoinDataComplete Extend = new JoinDataComplete(
+        [JoinName("Extend5")] public JoinDataComplete Extend5 = new JoinDataComplete(
             new JoinData
             {
-                JoinNumber = 6,
+                JoinNumber = 8,
                 JoinSpan = 1
             },
             new JoinMetadata
             {
                 JoinCapabilities = eJoinCapabilities.FromSIMPL,
                 JoinType = eJoinType.Digital,
-                Description = "Extend Recording"
+                Description = "Extend Recording 5 minutes"
+            });
+
+        [JoinName("Extend15")] public JoinDataComplete Extend15 = new JoinDataComplete(
+            new JoinData
+            {
+                JoinNumber = 9,
+                JoinSpan = 1
+            },
+            new JoinMetadata
+            {
+                JoinCapabilities = eJoinCapabilities.FromSIMPL,
+                JoinType = eJoinType.Digital,
+                Description = "Extend Recording 15 minutes"
             });
 
         [JoinName("CurrentRecordingId")] public JoinDataComplete CurrentRecordingId = new JoinDataComplete(
@@ -301,6 +314,32 @@ namespace PepperDash.Essentials.EpiphanPearl.JoinMaps
                 Description = "Recording Is In Progress"
             });
 
+        [JoinName("Extend5Enable")] public JoinDataComplete Extend5Enable = new JoinDataComplete(
+            new JoinData
+            {
+                JoinNumber = 8,
+                JoinSpan = 1
+            },
+            new JoinMetadata
+            {
+                JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                JoinType = eJoinType.Digital,
+                Description = "Extend 5 minutes enabled"
+            });
+
+        [JoinName("Extend15Enable")] public JoinDataComplete Extend15Enable = new JoinDataComplete(
+            new JoinData
+            {
+                JoinNumber = 9,
+                JoinSpan = 1
+            },
+            new JoinMetadata
+            {
+                JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                JoinType = eJoinType.Digital,
+                Description = "Extend 15 minutes enabled"
+            });
+
         [JoinName("NextRecordingExists")] public JoinDataComplete NextRecordingExists = new JoinDataComplete(
             new JoinData
             {
@@ -312,6 +351,19 @@ namespace PepperDash.Essentials.EpiphanPearl.JoinMaps
                 JoinCapabilities = eJoinCapabilities.ToSIMPL,
                 JoinType = eJoinType.Digital,
                 Description = "Next Recording Exists"
+            });
+
+        [JoinName("NextRecordingSoon")] public JoinDataComplete NextRecordingSoon = new JoinDataComplete(
+            new JoinData
+            {
+                JoinNumber = 21,
+                JoinSpan = 1
+            },
+            new JoinMetadata
+            {
+                JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                JoinType = eJoinType.Digital,
+                Description = "Next recording is starting soon"
             });
     }
 }
