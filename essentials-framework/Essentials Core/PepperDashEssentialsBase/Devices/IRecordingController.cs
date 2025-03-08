@@ -11,6 +11,7 @@ namespace PepperDash.Essentials.Core.Recording
         UserResults SearchUser(string searchText);
         KeyValuePair<string, Guid> GetUserFolder(Guid user);
         void CancelRecord();
+        void ResetStartRecordingStatus();
     }
 
     public class UserResultsEntry

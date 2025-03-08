@@ -469,7 +469,7 @@ namespace PepperDash.Essentials.PanoptoCloud
             StartRecordingStatus.FireUpdate();
         }
 
-        private void ResetStartRecordingStatus()
+        public void ResetStartRecordingStatus()
         {
             _startRecordingStatus = "";
             StartRecordingStatus.FireUpdate();
@@ -496,7 +496,9 @@ namespace PepperDash.Essentials.PanoptoCloud
                     Debug.Console(2, this, "Start time:{0}", currentRecording.StartTime.ToShortTimeString());
                     Debug.Console(2, this, "End time:{0}", currentRecording.EndTime.ToShortTimeString());
 
-                    SetStartRecordingStatus("Recording requested. Synching with recorder", Timeout.Infinite);
+                    //Below status will trigger epiphan to sync schedule and start,
+                    //if linked via the device key in config
+                    SetStartRecordingStatus("Recording requested. Synching with recorder", 120000);
                 }
             }
         }
@@ -588,7 +590,7 @@ namespace PepperDash.Essentials.PanoptoCloud
             if (_recorder.Id.Equals(Guid.Empty))
                 return;
 
-            SetStartRecordingStatus("Starting recording. Please wait...", 180000);
+            SetStartRecordingStatus("Starting recording. Please wait...", 60000);
             const string path = "/Panopto/api/v1/scheduledRecordings?resolveConflicts=false";
             string url = string.Format("{0}{1}", _url, path);
             if (endTime == null || endTime < DateTime.Now || endTime > DateTime.Now.AddHours(3))

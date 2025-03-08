@@ -85,6 +85,14 @@ namespace PepperDash.Essentials.EpiphanPearl
                 if (_recordingController != null)
                 {
                     _recordingController.StartRecordingStatus.OutputChange += StartRecordingStatusChange;
+                    _runningEventRunningFeedback.OutputChange += (o, args) =>
+                    {
+                        if (args.BoolValue)
+                        {
+                            //Reset recording start status on panopto controller once recording starts
+                            _recordingController.ResetStartRecordingStatus();
+                        }
+                    };
                 }
             }
 
@@ -100,7 +108,7 @@ namespace PepperDash.Essentials.EpiphanPearl
 
                 if (_scheduledEvents != null && _scheduledEvents[0] != null)
                 {
-                    if (_scheduledEvents[0].Start < DateTime.Now.AddMinutes(5))
+                    if (_scheduledEvents[0].Start.ToLocalTime() < DateTime.Now.AddMinutes(5))
                     {
                         Debug.Console(1, this, "Forcing ad hoc event start");
                         StartEvent();
@@ -525,8 +533,8 @@ namespace PepperDash.Essentials.EpiphanPearl
                         _scheduledEvents[i].Title, _scheduledEvents[i].Start, _scheduledEvents[i].Finish);
                     _scheduledRecordings[i].Name = _scheduledEvents[i].Title;
                     _scheduledRecordings[i].Id = _scheduledEvents[i].Id;
-                    _scheduledRecordings[i].Start = _scheduledEvents[i].Start.ToLocalTime().ToString("hh:mm:ss tt");
-                    _scheduledRecordings[i].End = _scheduledEvents[i].Finish.ToLocalTime().ToString("hh:mm:ss tt");
+                    _scheduledRecordings[i].Start = _scheduledEvents[i].Start.ToLocalTime().ToString("t");
+                    _scheduledRecordings[i].End = _scheduledEvents[i].Finish.ToLocalTime().ToString("t");
 
                     TimeSpan time = _scheduledEvents[i].Finish - _scheduledEvents[i].Start;
                     _scheduledRecordings[i].Length = string.Format("{0}", time);
