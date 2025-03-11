@@ -479,26 +479,44 @@ namespace PepperDash.Essentials.PanoptoCloud
         {
             if (response.Code != 200)
             {
-                SetStartRecordingStatus(string.Format("Failed to start recording: {0}", response.Code), 60000);
-                Debug.Console(1, this, "Error starting recording... Code:{0}\r{1}", response.Code,
+                SetStartRecordingStatus(string.Format("Failed to start recording: {0}", response.ContentString), 60000);
+                try
+                {
+                    ErrorResponse errorResponse = JsonConvert.DeserializeObject<ErrorResponse>(response.ContentString);
+                    SetStartRecordingStatus(
+                        string.Format("Failed to start recording: {0}", errorResponse.Error.Message), 60000);
+                }
+                catch (Exception)
+                {
+                    SetStartRecordingStatus(string.Format("Failed to start recording: {0}", response.Code), 60000);
+                }
+
+                Debug.ConsoleWithLog(0, this,
+                    "Error starting recording... Code:{0}\r{1}", response.Code,
                     response.ContentString);
             }
             else
             {
-                using (StreamReader stream = new StreamReader(response.ContentStream))
+                try
                 {
-                    JsonTextReader reader = new JsonTextReader(stream);
-                    JsonSerializer serializer = new JsonSerializer();
+                    using (StreamReader stream = new StreamReader(response.ContentStream))
+                    {
+                        JsonSerializer serializer = new JsonSerializer();
+                        JsonTextReader reader = new JsonTextReader(stream);
+                        ScheduledRecording currentRecording = serializer.Deserialize<ScheduledRecording>(reader);
+                        Debug.Console(2, this, "Starting recording...\r{0}",
+                            JsonConvert.SerializeObject(currentRecording, Formatting.Indented));
+                        Debug.Console(2, this, "Start time:{0}", currentRecording.StartTime.ToShortTimeString());
+                        Debug.Console(2, this, "End time:{0}", currentRecording.EndTime.ToShortTimeString());
 
-                    ScheduledRecording currentRecording = serializer.Deserialize<ScheduledRecording>(reader);
-                    Debug.Console(2, this, "Starting recording...\r{0}",
-                        JsonConvert.SerializeObject(currentRecording, Formatting.Indented));
-                    Debug.Console(2, this, "Start time:{0}", currentRecording.StartTime.ToShortTimeString());
-                    Debug.Console(2, this, "End time:{0}", currentRecording.EndTime.ToShortTimeString());
-
-                    //Below status will trigger epiphan to sync schedule and start,
-                    //if linked via the device key in config
-                    SetStartRecordingStatus("Recording requested. Synching with recorder", 120000);
+                        //Below status will trigger epiphan to sync schedule and start,
+                        //if linked via the device key in config
+                        SetStartRecordingStatus("Recording requested. Synching with recorder", 120000);
+                    }
+                }
+                catch (Exception e)
+                {
+                    Debug.ConsoleWithLog(0, this, "Exception after starting recording: {0}", e);
                 }
             }
         }
@@ -585,6 +603,7 @@ namespace PepperDash.Essentials.PanoptoCloud
             public string RecorderName { get; set; }
         }
 
+
         public void StartRecording(string name, DateTime? endTime, Guid folderId)
         {
             if (_recorder.Id.Equals(Guid.Empty))
@@ -595,6 +614,8 @@ namespace PepperDash.Essentials.PanoptoCloud
             string url = string.Format("{0}{1}", _url, path);
             if (endTime == null || endTime < DateTime.Now || endTime > DateTime.Now.AddHours(3))
             {
+                SetStartRecordingStatus("Failed to start recording due to invalid end time", 60000);
+                Debug.ConsoleWithLog(0, this, "Failed to start recording due to invalid end time");
                 return;
             }
 
@@ -624,7 +645,7 @@ namespace PepperDash.Essentials.PanoptoCloud
                 catch (Exception ex)
                 {
                     SetStartRecordingStatus(string.Format("Failed to start recording: {0}", ex.Message), 60000);
-                    Debug.Console(1, this, "Error starting recording {0}", ex.Message);
+                    Debug.ConsoleWithLog(0, this, "Error starting recording {0}", ex.Message);
                 }
             }
         }

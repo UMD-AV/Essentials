@@ -13,6 +13,7 @@ namespace PepperDash_Essentials_Core.Touchpanels
         private bool searchLock;
         private string searchText;
         private readonly CMutex searchMutex;
+        private readonly CMutex endTimeMutex;
 
         private DateTime? _currentMeetingEndTime;
         private DateTime? _nextRecordingStartTime;
@@ -55,6 +56,7 @@ namespace PepperDash_Essentials_Core.Touchpanels
             CurrentFolderFeedback = new StringFeedback(() => _currentFolderName);
             RecordingNameFeedback = new StringFeedback(() => _recordingName);
             searchMutex = new CMutex();
+            endTimeMutex = new CMutex();
             _refreshEndTimesTimer = new CTimer(RefreshEndTimesCallback, Timeout.Infinite);
 
             _usernames = new KeyValuePair<string, Guid>[_userSearchSize];
@@ -231,8 +233,17 @@ namespace PepperDash_Essentials_Core.Touchpanels
 
         public void SelectRecordingEndTime(ushort index)
         {
-            _recordingEndTime = _endTimes[index];
-            RecordingEndTime.FireUpdate();
+            endTimeMutex.WaitForMutex();
+            try
+            {
+                _recordingEndTime = _endTimes[index];
+                RecordingEndTime.FireUpdate();
+                UpdateSelectedTimeFeedback();
+            }
+            finally
+            {
+                endTimeMutex.ReleaseMutex();
+            }
         }
 
         public void SetRecordingName(string value)
@@ -269,8 +280,9 @@ namespace PepperDash_Essentials_Core.Touchpanels
             {
                 _refreshEndTimesTimer.Reset(30000);
                 GenerateNewEndTimes();
-                DefaultEndTime();
             }
+
+            DefaultEndTime();
         }
 
         private void RefreshEndTimesCallback(object unused)
@@ -294,21 +306,29 @@ namespace PepperDash_Essentials_Core.Touchpanels
             // Compute the next 5-minute rounded start time.
             DateTime start = GetFirstEndTime();
 
-            _endTimes.Clear();
-            // Generate 5-minute slots from the computed start until the end
-            for (ushort i = 0; i < _endTimeSize; i++)
+            endTimeMutex.WaitForMutex();
+            try
             {
-                _endTimes.Add(start);
-                start = start.AddMinutes(5);
-            }
+                _endTimes.Clear();
+                // Generate 5-minute slots from the computed start until the end
+                for (ushort i = 0; i < _endTimeSize; i++)
+                {
+                    _endTimes.Add(start);
+                    start = start.AddMinutes(5);
+                }
 
-            UpdateEndTimesFeedback();
-            UpdateSelectedTimeFeedback();
+                UpdateEndTimesFeedback();
+                UpdateSelectedTimeFeedback();
+            }
+            finally
+            {
+                endTimeMutex.ReleaseMutex();
+            }
         }
 
         private DateTime GetFirstEndTime()
         {
-            return RoundDownToPrevious5MinuteInterval(DateTime.Now.AddMinutes(1)).AddMinutes(5);
+            return RoundDownToPrevious5MinuteInterval(DateTime.Now.AddMinutes(2)).AddMinutes(5);
         }
 
         public void DefaultEndTime()
@@ -316,8 +336,8 @@ namespace PepperDash_Essentials_Core.Touchpanels
             //Default recording to 1 hour from now
             DateTime endTime = RoundUpToNext5MinuteInterval(DateTime.Now).AddHours(1);
 
-            // When meeting end time exists, use the meeting end time.
-            if (_currentMeetingEndTime.HasValue && _currentMeetingEndTime.Value.AddMinutes(5) < DateTime.Now)
+            // When meeting end time exists and is more than 5 minutes from now, use the meeting end time.
+            if (_currentMeetingEndTime.HasValue && _currentMeetingEndTime.Value.AddMinutes(-5) > DateTime.Now)
             {
                 endTime = _currentMeetingEndTime.Value;
             }
@@ -337,14 +357,22 @@ namespace PepperDash_Essentials_Core.Touchpanels
 
         public DateTime? GetNearestDateTime(DateTime target)
         {
-            if (_endTimes == null || !_endTimes.Any())
+            endTimeMutex.WaitForMutex();
+            try
             {
-                return null;
-            }
+                if (_endTimes == null || !_endTimes.Any())
+                {
+                    return null;
+                }
 
-            // Order the list by the absolute difference between each DateTime and the target,
-            // and return the first (smallest difference)
-            return _endTimes.OrderBy(dt => Math.Abs((dt - target).Ticks)).First();
+                // Order the list by the absolute difference between each DateTime and the target,
+                // and return the first (smallest difference)
+                return _endTimes.OrderBy(dt => Math.Abs((dt - target).Ticks)).First();
+            }
+            finally
+            {
+                endTimeMutex.ReleaseMutex();
+            }
         }
 
         private DateTime RoundDownToPrevious5MinuteInterval(DateTime dateTime)
@@ -384,9 +412,17 @@ namespace PepperDash_Essentials_Core.Touchpanels
 
         public void UpdateEndTimesFeedback()
         {
-            for (int i = 0; i < _endTimeSize; i++)
+            endTimeMutex.WaitForMutex();
+            try
             {
-                EndTimesFeedback[i].FireUpdate();
+                for (int i = 0; i < _endTimeSize; i++)
+                {
+                    EndTimesFeedback[i].FireUpdate();
+                }
+            }
+            finally
+            {
+                endTimeMutex.ReleaseMutex();
             }
         }
 
@@ -419,6 +455,11 @@ namespace PepperDash_Essentials_Core.Touchpanels
             }
 
             _currentMeetingEndTime = temp;
+
+            if (_subpageActive == false)
+            {
+                DefaultEndTime();
+            }
         }
 
         public void SetNextRecordingStartTime(string time)
@@ -438,6 +479,11 @@ namespace PepperDash_Essentials_Core.Touchpanels
                 {
                     temp = null;
                 }
+            }
+
+            if (_subpageActive == false)
+            {
+                DefaultEndTime();
             }
 
             if (_nextRecordingStartTime != temp)

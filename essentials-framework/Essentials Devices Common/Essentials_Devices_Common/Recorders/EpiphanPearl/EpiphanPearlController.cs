@@ -101,19 +101,37 @@ namespace PepperDash.Essentials.EpiphanPearl
 
         private void StartRecordingStatusChange(object sender, FeedbackEventArgs feedbackEventArgs)
         {
-            if (feedbackEventArgs.StringValue.Contains("requested"))
+            try
             {
-                Debug.Console(1, this, "Getting scheduled events due to ad hoc start");
-                GetScheduledEvents();
-
-                if (_scheduledEvents != null && _scheduledEvents[0] != null)
+                if (feedbackEventArgs.StringValue.Contains("requested"))
                 {
-                    if (_scheduledEvents[0].Start.ToLocalTime() < DateTime.Now.AddMinutes(5))
+                    CrestronInvoke.BeginInvoke((o) =>
                     {
-                        Debug.Console(1, this, "Forcing ad hoc event start");
-                        StartEvent();
-                    }
+                        Debug.Console(1, this, "Getting scheduled events due to ad hoc start");
+                        GetScheduledEvents();
+                        int count = 0;
+                        while (!_runningEventRunningFeedback.BoolValue && count < 120)
+                        {
+                            GetRunningEvent();
+
+                            if (_scheduledEvents.Count > 0 && !_runningEventRunningFeedback.BoolValue)
+                            {
+                                if (_scheduledEvents[0].Start.ToLocalTime() < DateTime.Now.AddMinutes(5))
+                                {
+                                    Debug.Console(1, this, "Forcing ad hoc event start");
+                                    StartEvent();
+                                }
+                            }
+
+                            CrestronEnvironment.Sleep(1000);
+                            count++;
+                        }
+                    });
                 }
+            }
+            catch (Exception e)
+            {
+                Debug.Console(0, this, "Exception after ad-hoc start: {0}", e);
             }
         }
 
@@ -180,7 +198,8 @@ namespace PepperDash.Essentials.EpiphanPearl
             _runningEventRunningFeedback =
                 new BoolFeedback(
                     () => _runningEvent != null &&
-                          _runningEvent.Status.Equals(RunningStatus, StringComparison.InvariantCultureIgnoreCase));
+                          (_runningEvent.Status.Equals(RunningStatus, StringComparison.InvariantCultureIgnoreCase) ||
+                           _runningEvent.Status.Equals(PausedStatus, StringComparison.InvariantCultureIgnoreCase)));
 
             _runningEventPausedFeedback =
                 new BoolFeedback(
@@ -188,15 +207,17 @@ namespace PepperDash.Essentials.EpiphanPearl
                           _runningEvent.Status.Equals(PausedStatus, StringComparison.InvariantCultureIgnoreCase));
 
             _nextEventExistsFeedback = new BoolFeedback(() => _scheduledEvents.Count > 0);
-            _nextEventSoonFeedback = new BoolFeedback(() =>
-                _scheduledEvents[0] != null && _scheduledEvents[0].Start < DateTime.Now.AddMinutes(10));
+            _nextEventSoonFeedback = new BoolFeedback(() => _scheduledEvents.Count > 0 &&
+                                                            _scheduledEvents[0].Start < DateTime.UtcNow.AddMinutes(10));
 
             _Extend5EnabledFeedback = new BoolFeedback(() =>
-                _scheduledEvents[0] == null ||
-                (_runningEvent != null && _scheduledEvents[0].Start >= _runningEvent.Finish.AddMinutes(6)));
+                _scheduledEvents.Count < 0 ||
+                (_runningEvent != null && _scheduledEvents.Count > 0 && _scheduledEvents[0].Start >=
+                    _runningEvent.Finish.AddMinutes(6)));
             _Extend15EnabledFeedback = new BoolFeedback(() =>
-                _scheduledEvents[0] == null ||
-                (_runningEvent != null && _scheduledEvents[0].Start >= _runningEvent.Finish.AddMinutes(16)));
+                _scheduledEvents.Count < 0 ||
+                (_runningEvent != null && _scheduledEvents.Count > 0 &&
+                 _scheduledEvents[0].Start >= _runningEvent.Finish.AddMinutes(16)));
 
             HdmiOutputFeedback = new StringFeedback(() => _hdmiOutputSource);
         }
@@ -594,7 +615,6 @@ namespace PepperDash.Essentials.EpiphanPearl
 
                 UpdateFeedbacks();
                 StopEventStatusTimer();
-
                 return;
             }
 

@@ -247,6 +247,19 @@ namespace PepperDash.Essentials.Core.Bridges
                 Description = "User search results"
             });
 
+        [JoinName("RecorderEndTime")] public JoinDataComplete RecorderEndTime = new JoinDataComplete(
+            new JoinData
+            {
+                JoinNumber = 20,
+                JoinSpan = 1
+            },
+            new JoinMetadata
+            {
+                JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                JoinType = eJoinType.Serial,
+                Description = "Recording end time selected"
+            });
+
         [JoinName("RecorderEndTimeResults")] public JoinDataComplete RecorderEndTimeResults = new JoinDataComplete(
             new JoinData
             {

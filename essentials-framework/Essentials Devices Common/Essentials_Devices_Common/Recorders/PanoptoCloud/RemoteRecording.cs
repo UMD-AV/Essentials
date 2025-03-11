@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Newtonsoft.Json;
 
 namespace PepperDash.Essentials.PanoptoCloud
 {
@@ -25,5 +26,21 @@ namespace PepperDash.Essentials.PanoptoCloud
         {
             RecorderScheduleEntries = new List<RecorderScheduleEntry>();
         }
+    }
+
+    public class ErrorResponse
+    {
+        [JsonProperty("Error")] public ErrorDetail Error { get; set; }
+    }
+
+    public class ErrorDetail
+    {
+        [JsonProperty("ErrorCode")] public string ErrorCode { get; set; }
+
+        [JsonProperty("Message")] public string Message { get; set; }
+
+        [JsonProperty("Success")] public bool Success { get; set; }
+
+        [JsonProperty("ErrorSource")] public object ErrorSource { get; set; }
     }
 }

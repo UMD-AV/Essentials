@@ -64,6 +64,7 @@ namespace PepperDash_Essentials_Core.Touchpanels
             recordingUI.RecordingNameFeedback.LinkInputSig(trilist.StringInput[joinMap.SetRecordingName.JoinNumber]);
             recordingUI.StartRecordingStatusFeedback.LinkInputSig(
                 trilist.StringInput[joinMap.StartRecordingStatus.JoinNumber]);
+            recordingUI.RecordingEndTime.LinkInputSig(trilist.StringInput[joinMap.RecorderEndTime.JoinNumber]);
 
             for (ushort i = 0; i < _recordingUserSearchSize; i++)
             {

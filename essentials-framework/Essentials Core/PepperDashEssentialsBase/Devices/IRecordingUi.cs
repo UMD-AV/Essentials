@@ -8,6 +8,7 @@
         StringFeedback CurrentFolderFeedback { get; }
         StringFeedback RecordingNameFeedback { get; }
         StringFeedback StartRecordingStatusFeedback { get; }
+        StringFeedback RecordingEndTime { get; }
         StringFeedback[] UserSearchFeedback { get; }
         StringFeedback[] EndTimesFeedback { get; }
         void SetRecorderKey(string key);
