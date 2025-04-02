@@ -353,7 +353,7 @@ namespace PepperDash.Essentials.EpiphanPearl.JoinMaps
                 Description = "Next Recording Exists"
             });
 
-        [JoinName("NextRecordingSoon")] public JoinDataComplete NextRecordingSoon = new JoinDataComplete(
+        [JoinName("NextRecordingIn5m")] public JoinDataComplete NextRecordingIn5m = new JoinDataComplete(
             new JoinData
             {
                 JoinNumber = 21,
@@ -363,7 +363,20 @@ namespace PepperDash.Essentials.EpiphanPearl.JoinMaps
             {
                 JoinCapabilities = eJoinCapabilities.ToSIMPL,
                 JoinType = eJoinType.Digital,
-                Description = "Next recording is starting soon"
+                Description = "Next recording is starting in 5m"
+            });
+
+        [JoinName("NextRecordingIn10m")] public JoinDataComplete NextRecordingIn10m = new JoinDataComplete(
+            new JoinData
+            {
+                JoinNumber = 22,
+                JoinSpan = 1
+            },
+            new JoinMetadata
+            {
+                JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                JoinType = eJoinType.Digital,
+                Description = "Next recording is starting in 10m"
             });
     }
 }

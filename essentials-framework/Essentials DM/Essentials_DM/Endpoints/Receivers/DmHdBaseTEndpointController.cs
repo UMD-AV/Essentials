@@ -33,6 +33,20 @@ namespace PepperDash.Essentials.DM
             rmc.Register();
         }
 
+        public HDBaseTRxController(string key, string name, HDBaseTReceiverDmLite rmc)
+            : base(key, name, rmc)
+        {
+            DmIn = new RoutingInputPort(DmPortName.DmIn, eRoutingSignalType.AudioVideo,
+                eRoutingPortConnectionType.DmCat, 0, this);
+            HDBaseTSink = new RoutingOutputPort(DmPortName.HdmiOut, eRoutingSignalType.AudioVideo,
+                eRoutingPortConnectionType.Hdmi, null, this) { Port = Rmc };
+
+            InputPorts = new RoutingPortCollection<RoutingInputPort> { DmIn };
+            OutputPorts = new RoutingPortCollection<RoutingOutputPort> { HDBaseTSink };
+            PreventRegistration = true;
+            rmc.Register();
+        }
+
         public override void LinkToApi(BasicTriList trilist, uint joinStart, string joinMapKey, EiscApiAdvanced bridge)
         {
             DmRmcControllerJoinMap joinMap = new DmRmcControllerJoinMap(joinStart);

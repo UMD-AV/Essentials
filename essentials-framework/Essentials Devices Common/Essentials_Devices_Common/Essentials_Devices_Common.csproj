@@ -49,6 +49,9 @@
         <Prefer32bit>true</Prefer32bit>
     </PropertyGroup>
     <ItemGroup>
+        <Reference Include="Crestron.SimplSharpPro.AudioDistribution">
+            <HintPath>..\..\..\..\..\Program Files (x86)\Crestron\Cresdb\Programming\Libraries\Crestron.SimplSharpPro.AudioDistribution.dll</HintPath>
+        </Reference>
         <Reference Include="Crestron.SimplSharpPro.DeviceSupport, Version=1.0.0.0, Culture=neutral, PublicKeyToken=1099c178b3b54c3b, processorArchitecture=MSIL">
             <SpecificVersion>False</SpecificVersion>
             <HintPath>..\..\..\..\..\..\..\..\..\ProgramData\Crestron\SDK\SSPDevices\Crestron.SimplSharpPro.DeviceSupport.dll</HintPath>
@@ -120,6 +123,7 @@
         <Compile Include="AudioCodec\MockAC\MockAC.cs"/>
         <Compile Include="AudioCodec\MockAC\MockAcPropertiesConfig.cs"/>
         <Compile Include="Audio\Amplifier.cs"/>
+        <Compile Include="Audio\CrestronNaxAmp\CrestronNaxAmp.cs"/>
         <Compile Include="AvBridges\VaddioBridge\VaddioBridgeConfig.cs"/>
         <Compile Include="AvBridges\VaddioBridge\VaddioBridgeDevice.cs"/>
         <Compile Include="AvBridges\VaddioBridge\VaddioBridgeJoinMap.cs"/>
@@ -495,6 +499,8 @@
         <Compile Include="VideoCodec\ZoomRoom\ZoomRoomJoinMap.cs"/>
         <Compile Include="VideoCodec\ZoomRoom\ZoomRoomPropertiesConfig.cs"/>
         <Compile Include="Video\ExtronDsc301.cs"/>
+        <Compile Include="Video\LightwareUcx\LightwareUcx.cs"/>
+        <Compile Include="Video\LightwareUcx\LightwareUcxWebSocket.cs"/>
         <None Include="packages.config"/>
         <None Include="Properties\ControlSystem.cfg"/>
     </ItemGroup>

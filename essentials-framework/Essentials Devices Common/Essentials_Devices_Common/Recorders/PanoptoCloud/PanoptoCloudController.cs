@@ -25,6 +25,7 @@ namespace PepperDash.Essentials.PanoptoCloud
         private readonly string _url;
         private readonly string _username;
         private readonly string _recorderName;
+        private readonly string _searchPrefix;
         private readonly CTimer _oauthTimer;
         private readonly CTimer _pollTimer;
         private readonly CTimer _startRecordingStatusTimer;
@@ -120,6 +121,7 @@ namespace PepperDash.Essentials.PanoptoCloud
             _url = props.Url;
             _username = props.Username;
             _recorderName = props.RecorderName;
+            _searchPrefix = props.SearchPrefix ?? "";
 
             _oauthTimer = new CTimer(o => UpdateToken(), Timeout.Infinite);
 
@@ -257,6 +259,7 @@ namespace PepperDash.Essentials.PanoptoCloud
             if (_recorder.Id.Equals(Guid.Empty) || string.IsNullOrEmpty(searchText))
                 return null;
 
+            searchText = _searchPrefix + searchText;
             string url = string.Format("{0}/Panopto/api/v1/users/search?searchQuery={1}", _url, searchText);
 
             HttpsClientRequest request = GetDefaultRequestWithAuthHeaders(url, _token, RequestType.Get);
@@ -431,6 +434,11 @@ namespace PepperDash.Essentials.PanoptoCloud
                     }
 
                     users.Results.RemoveAll(x => x.Id == Guid.Empty);
+                    if (!string.IsNullOrEmpty(_searchPrefix))
+                        foreach (UserResultsEntry user in users.Results)
+                        {
+                            user.Username = user.Username.Replace(_searchPrefix, "");
+                        }
 
                     return users;
                 }
@@ -601,6 +609,7 @@ namespace PepperDash.Essentials.PanoptoCloud
             public string Url { get; set; }
             public string Username { get; set; }
             public string RecorderName { get; set; }
+            public string SearchPrefix { get; set; }
         }
 
 

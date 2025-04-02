@@ -513,7 +513,7 @@ namespace PepperDash.Essentials.Core.Routing
                 }
             }
 
-            return true;
+            return false;
         }
 
         private bool GetDestEnabled(ushort destIndex)

@@ -21,7 +21,6 @@ namespace ViscaCameraPlugin
         private bool _queueWaiting;
         private bool _commandReady = true;
         private readonly bool _commsIsSerial;
-        private readonly bool _useHeader;
         private bool _offlineIFClearSent;
         private uint _counter;
         protected readonly bool _autoTrackingCapable;
@@ -398,9 +397,6 @@ namespace ViscaCameraPlugin
             if (_config.PrivacyOffPreset != null && _config.PrivacyOffPreset <= PresetMax)
                 _privacyOffPreset = config.PrivacyOffPreset;
 
-            if (_config.Control.Method.ToString().ToLower().StartsWith("udp"))
-                _useHeader = true;
-
             if (_config.TrackingCmdType != null && _config.TrackingCmdType == "aver")
             {
                 _autoTrackingOnBytes = new byte[] { _address, 0x01, 0x04, 0x7D, 0x02, 0x00, 0xFF };
@@ -436,6 +432,10 @@ namespace ViscaCameraPlugin
                 _commsIsSerial = false;
                 socket.ConnectionChange += socket_ConnectionChange;
                 SocketStatusFeedback = new IntFeedback(() => (int)socket.ClientStatus);
+            }
+            else if (_config.Control.Method.ToString().ToLower().StartsWith("udp"))
+            {
+                _commsIsSerial = false;
             }
             else
             {
@@ -818,27 +818,22 @@ namespace ViscaCameraPlugin
                 _comms.SendBytes(bytes);
             else
             {
-                if (_useHeader)
-                {
-                    // VISCA-over-IP counter
-                    if (_counter != 0xFFFFFFFF)
-                        _counter++;
-                    else
-                        _counter = 0;
-
-                    byte[] header =
-                    {
-                        0x01, 0x00, 0x00, Convert.ToByte(bytes.Length), (byte)(_counter << 8), (byte)(_counter << 16),
-                        (byte)(_counter << 24), (byte)(_counter << 32)
-                    };
-
-                    byte[] cmd = new byte[header.Length + bytes.Length];
-                    header.CopyTo(cmd, 0);
-                    bytes.CopyTo(cmd, header.Length);
-                    _comms.SendBytes(cmd);
-                }
+                // VISCA-over-IP counter
+                if (_counter != 0xFFFFFFFF)
+                    _counter++;
                 else
-                    _comms.SendBytes(bytes);
+                    _counter = 0;
+
+                byte[] header =
+                {
+                    0x01, 0x00, 0x00, Convert.ToByte(bytes.Length), (byte)(_counter << 8), (byte)(_counter << 16),
+                    (byte)(_counter << 24), (byte)(_counter << 32)
+                };
+
+                byte[] cmd = new byte[header.Length + bytes.Length];
+                header.CopyTo(cmd, 0);
+                bytes.CopyTo(cmd, header.Length);
+                _comms.SendBytes(cmd);
             }
         }
 

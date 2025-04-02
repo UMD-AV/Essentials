@@ -12,6 +12,7 @@ using PepperDash.Essentials.Core.DeviceInfo;
 using PepperDash.Essentials.DM.Config;
 using PepperDash.Essentials.Core.Config;
 using Crestron.SimplSharpPro.DM.Endpoints;
+using PepperDash_Essentials_DM.Chassis;
 using Feedback = PepperDash.Essentials.Core.Feedback;
 
 
@@ -58,8 +59,7 @@ namespace PepperDash.Essentials.DM
             if (scaler != null)
             {
                 HdmiOutputBlankedFeedback = new BoolFeedback(() => scaler.HdmiOutput.BlankEnabledFeedback.BoolValue);
-                scaler.HdmiOutput.OutputStreamChange +=
-                    new EndpointOutputStreamChangeEventHandler(HdmiOutput_OutputStreamChange);
+                scaler.HdmiOutput.OutputStreamChange += HdmiOutput_OutputStreamChange;
             }
         }
 
@@ -255,12 +255,21 @@ namespace PepperDash.Essentials.DM
 
     public abstract class DmHdBaseTControllerBase : CrestronGenericBridgeableBaseDevice
     {
-        protected HDBaseTBase Rmc;
+        protected readonly IComPorts Rmc;
 
         /// <summary>
         ///  Make a Crestron RMC and put it in here
         /// </summary>
         protected DmHdBaseTControllerBase(string key, string name, HDBaseTBase rmc)
+            : base(key, name, rmc)
+        {
+            Rmc = rmc;
+        }
+
+        /// <summary>
+        ///  Make a Crestron RMC and put it in here
+        /// </summary>
+        protected DmHdBaseTControllerBase(string key, string name, HDBaseTReceiverDmLite rmc)
             : base(key, name, rmc)
         {
             Rmc = rmc;
@@ -277,6 +286,9 @@ namespace PepperDash.Essentials.DM
 
         private static readonly Dictionary<string, Func<string, string, uint, DMOutput, CrestronGenericBaseDevice>>
             ChassisDict;
+
+        private static readonly Dictionary<string, Func<string, string, HdPsXxx, DMOutput, CrestronGenericBaseDevice>>
+            HdpsDict;
 
         static DmRmcHelper()
         {
@@ -384,6 +396,11 @@ namespace PepperDash.Essentials.DM
                 { "hdbasetrx", (k, n, i, d) => new HDBaseTRxController(k, n, new HDRx3CB(i, d)) },
                 { "dmrmc4k100c1g", (k, n, i, d) => new DmRmc4k100C1GController(k, n, new DmRmc4K100C1G(i, d)) }
             };
+
+            HdpsDict = new Dictionary<string, Func<string, string, HdPsXxx, DMOutput, CrestronGenericBaseDevice>>
+            {
+                { "hdbasetrx", (k, n, s, d) => new HDBaseTRxController(k, n, new HDBaseTReceiverDmLite(d, s)) },
+            };
         }
 
         /// <summary>
@@ -436,7 +453,6 @@ namespace PepperDash.Essentials.DM
                         !Global.ControlSystemIsDmps4k3xxType)
                     {
                         rx = GetDmRmcControllerForDmps4k(key, name, typeName, dmps, props.ParentOutputNumber);
-                        useChassisForOfflineFeedback = false;
                         Debug.Console(0, "DM endpoint output {0} does not support online feedback on a DMPS3-4K-150",
                             num);
                         rx.IsOnline.SetValueFunc(() => true);
@@ -452,7 +468,6 @@ namespace PepperDash.Essentials.DM
                     rx = GetDmRmcControllerForDmps(key, name, typeName, ipid, dmps, props.ParentOutputNumber);
                     if (typeName == "hdbasetrx" || typeName == "dmrmc4k100c1g")
                     {
-                        useChassisForOfflineFeedback = false;
                         Debug.Console(0, "DM endpoint output {0} does not support online feedback on a DMPS3", num);
                         rx.IsOnline.SetValueFunc(() => true);
                     }
@@ -476,7 +491,8 @@ namespace PepperDash.Essentials.DM
 
                 return rx;
             }
-            else if (parentDev is DmChassisController)
+
+            if (parentDev is DmChassisController)
             {
                 DmChassisController controller = parentDev as DmChassisController;
                 Switch chassis = controller.Chassis;
@@ -508,7 +524,6 @@ namespace PepperDash.Essentials.DM
                         rx = GetDmRmcControllerForCpu2Chassis(key, name, typeName, ipid, chassis, num, parentDev);
                         if (typeName == "hdbasetrx" || typeName == "dmrmc4k100c1g")
                         {
-                            useChassisForOfflineFeedback = false;
                             Debug.Console(0,
                                 "DM endpoint output {0} does not support online feedback on a legacy DM chassis", num);
                             rx.IsOnline.SetValueFunc(() => true);
@@ -539,12 +554,50 @@ namespace PepperDash.Essentials.DM
                     return null;
                 }
             }
-            else
+
+            if (parentDev is HdPsXxxController)
             {
-                Debug.Console(0, "Cannot create DM device '{0}'. '{1}' is not a DM Chassis or DMPS.",
-                    key, pKey);
-                return null;
+                HdPsXxxController controller = parentDev as HdPsXxxController;
+                uint num = props.ParentOutputNumber;
+                Debug.Console(1, "Creating HDPS device '{0}'. Output number '{1}'.", key, num);
+
+                if (num <= 0 || num > controller.OutputPorts.Count)
+                {
+                    Debug.Console(0, "Cannot create HDPS device '{0}'. Output number '{1}' is out of range",
+                        key, num);
+                    return null;
+                }
+
+                // Catch constructor failures, mainly dues to IPID
+                try
+                {
+                    rx = GetDmRmcControllerForHdps(key, name, typeName, controller, num);
+
+                    Debug.Console(0,
+                        "DM endpoint output {0} does not have direct online feedback, changing online feedback to chassis",
+                        num);
+                    rx.IsOnline.SetValueFunc(() => controller.OutputEndpointOnlineFeedbacks[num].BoolValue);
+                    controller.OutputEndpointOnlineFeedbacks[num].OutputChange += (o, a) =>
+                    {
+                        foreach (Feedback feedback in rx.Feedbacks)
+                        {
+                            if (feedback != null)
+                                feedback.FireUpdate();
+                        }
+                    };
+
+                    return rx;
+                }
+                catch (Exception e)
+                {
+                    Debug.Console(0, "[{0}] WARNING: Cannot create DM-RMC device: {1}", key, e.Message);
+                    return null;
+                }
             }
+
+            Debug.Console(0, "Cannot create DM device '{0}'. '{1}' is not a DM Chassis, DMPS, or HDPS.",
+                key, pKey);
+            return null;
         }
 
         private static CrestronGenericBaseDevice GetDmRmcControllerForCpu2Chassis(string key, string name,
@@ -620,6 +673,30 @@ namespace PepperDash.Essentials.DM
 
             Debug.Console(0, Debug.ErrorLogLevel.Error,
                 "Cannot create DM-RMC of type '{0}' to output {1} on DMPS-4K chassis", typeName, num);
+            return null;
+        }
+
+        private static CrestronGenericBaseDevice GetDmRmcControllerForHdps(string key, string name, string typeName,
+            HdPsXxxController controller, uint num)
+        {
+            Func<string, string, HdPsXxx, DMOutput, CrestronGenericBaseDevice> hdpsHandler;
+            if (HdpsDict.TryGetValue(typeName.ToLower(), out hdpsHandler))
+            {
+                HdPsXxxDmLiteOutput output = controller.Chassis.HdmiDmLiteOutputs[num].DmLiteOutput;
+
+                if (output != null)
+                {
+                    return hdpsHandler(key, name, controller.Chassis, output);
+                }
+
+                Debug.Console(0, Debug.ErrorLogLevel.Error,
+                    "Cannot attach DM-RMC of type '{0}' to output {1} on HDPS chassis. Output is not a DM Output.",
+                    typeName, num);
+                return null;
+            }
+
+            Debug.Console(0, Debug.ErrorLogLevel.Error,
+                "Cannot create DM-RMC of type '{0}' to output {1} on HDPS chassis", typeName, num);
             return null;
         }
 

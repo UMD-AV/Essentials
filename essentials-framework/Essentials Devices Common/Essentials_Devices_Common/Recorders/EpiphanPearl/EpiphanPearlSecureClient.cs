@@ -62,7 +62,7 @@ namespace PepperDash.Essentials.EpiphanPearl
             HttpsClientRequest request = CreateRequest(path, Crestron.SimplSharp.Net.Https.RequestType.Post);
 
             request.Header.ContentType = "application/json";
-            request.ContentString = body != null ? JsonConvert.ToString(body) : string.Empty;
+            request.ContentString = body != null ? JsonConvert.SerializeObject(body) : string.Empty;
 
             string response = SendRequest(request);
 
@@ -77,8 +77,8 @@ namespace PepperDash.Essentials.EpiphanPearl
             }
             catch (Exception ex)
             {
-                Debug.Console(0, "[TResponse Post<TBody, TResponse>] Exception sending to {0}: {1}", request.Url,
-                    ex.Message);
+                Debug.Console(0, "[TResponse Post<TBody, TResponse>] Exception sending to {0}: {1}\r{2}", request.Url,
+                    ex.Message, response);
                 Debug.Console(2, "Stack Trace: {0}", ex.StackTrace);
 
                 if (ex.InnerException == null) return null;
@@ -150,15 +150,44 @@ namespace PepperDash.Essentials.EpiphanPearl
 
         private string SendRequest(HttpsClientRequest request)
         {
+            if (request == null)
+            {
+                Debug.Console(0, "[SendRequest] Request is null");
+                return null;
+            }
+
+            if (_client == null)
+            {
+                Debug.Console(0, "[SendRequest] HttpClient is null");
+                return null;
+            }
+
             try
             {
-                //Debug.Console(0, "Request to {0): {1}", request.Url, request.ContentString);
+                Debug.Console(0, "Request to {0}: {1}", request.Url, request.ContentString);
                 HttpsClientResponse response = _client.Dispatch(request);
 
-                //Debug.Console(0, "Response from request to {0}: {1} {2}", request.Url, response.Code,
-                //response.ContentString);
+                if (response == null)
+                {
+                    Debug.Console(2, "[SendRequest] Response is null after dispatching request to {0}", request.Url);
+                    return null;
+                }
 
-                return response.ContentString;
+                Debug.Console(0, "Response from request to {0}: {1} {2}", request.Url, response.Code,
+                    response.ContentString);
+
+                try
+                {
+                    // Attempt to parse the response content as a string
+                    string contentString = response.ContentString;
+                    return contentString;
+                }
+                catch (Exception ex)
+                {
+                    Debug.Console(2, "[SendRequest] Error converting response to string for URL {0}: {1}", request.Url,
+                        ex.Message);
+                    return null;
+                }
             }
             catch (Exception ex)
             {

@@ -280,6 +280,11 @@ namespace PepperDash.Core
         /// <param name="text"></param>
         public void SendText(string text)
         {
+            if (!IsConnected)
+            {
+                Connect();
+            }
+
             byte[] bytes = Encoding.GetEncoding(28591).GetBytes(text);
 
             if (IsConnected && Server != null)
@@ -298,6 +303,11 @@ namespace PepperDash.Core
         /// <param name="bytes"></param>
         public void SendBytes(byte[] bytes)
         {
+            if (!IsConnected)
+            {
+                Connect();
+            }
+
             if (StreamDebugging.TxStreamDebuggingIsEnabled)
                 Debug.Console(0, this, "Sending {0} bytes: '{1}'", bytes.Length, ComTextHelper.GetEscapedText(bytes));
 

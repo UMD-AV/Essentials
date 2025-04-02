@@ -14,6 +14,7 @@ namespace PepperDash_Essentials_Core.Touchpanels
         private string searchText;
         private readonly CMutex searchMutex;
         private readonly CMutex endTimeMutex;
+        private ushort _selectIndex;
 
         private DateTime? _currentMeetingEndTime;
         private DateTime? _nextRecordingStartTime;
@@ -133,21 +134,22 @@ namespace PepperDash_Essentials_Core.Touchpanels
                 return;
             }
 
+            searchText = name;
+
             CrestronInvoke.BeginInvoke((o) =>
             {
                 if (!searchLock)
                 {
-                    searchText = name;
                     searchLock = true;
                 }
                 else
                 {
-                    searchText = name;
                     return;
                 }
 
                 searchMutex.WaitForMutex();
                 searchLock = false;
+                name = searchText;
                 try
                 {
                     if (searchText.Length == 0)
@@ -233,16 +235,20 @@ namespace PepperDash_Essentials_Core.Touchpanels
 
         public void SelectRecordingEndTime(ushort index)
         {
-            endTimeMutex.WaitForMutex();
-            try
+            _selectIndex = index;
+            if (endTimeMutex.WaitForMutex(100))
             {
-                _recordingEndTime = _endTimes[index];
-                RecordingEndTime.FireUpdate();
-                UpdateSelectedTimeFeedback();
-            }
-            finally
-            {
-                endTimeMutex.ReleaseMutex();
+                try
+                {
+                    CrestronEnvironment.Sleep(250);
+                    _recordingEndTime = _endTimes[_selectIndex];
+                    RecordingEndTime.FireUpdate();
+                    UpdateSelectedTimeFeedback();
+                }
+                finally
+                {
+                    endTimeMutex.ReleaseMutex();
+                }
             }
         }
 
@@ -529,6 +535,7 @@ namespace PepperDash_Essentials_Core.Touchpanels
         public void Dispose()
         {
             if (searchMutex != null) searchMutex.Dispose();
+            if (endTimeMutex != null) endTimeMutex.Dispose();
             if (_refreshEndTimesTimer != null) _refreshEndTimesTimer.Dispose();
         }
     }

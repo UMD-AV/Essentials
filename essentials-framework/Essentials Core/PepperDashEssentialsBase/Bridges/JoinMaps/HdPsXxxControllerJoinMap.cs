@@ -7,66 +7,10 @@ namespace PepperDash_Essentials_Core.Bridges
     {
         #region Digital
 
-        [JoinName("EnableAutoRoute")] public JoinDataComplete EnableAutoRoute = new JoinDataComplete(
-            new JoinData
-            {
-                JoinNumber = 1,
-                JoinSpan = 1
-            },
-            new JoinMetadata
-            {
-                Description = "Enable Automatic Routing on Xx1 Switchers",
-                JoinCapabilities = eJoinCapabilities.ToFromSIMPL,
-                JoinType = eJoinType.Digital
-            });
-
-
-        [JoinName("InputSync")] public JoinDataComplete InputSync = new JoinDataComplete(
-            new JoinData
-            {
-                JoinNumber = 2,
-                JoinSpan = 8
-            },
-            new JoinMetadata
-            {
-                Description = "Device Input Sync",
-                JoinCapabilities = eJoinCapabilities.ToSIMPL,
-                JoinType = eJoinType.Digital
-            });
-
-
-        [JoinName("EnableInputHdcp")] public JoinDataComplete EnableInputHdcp = new JoinDataComplete(
-            new JoinData
-            {
-                JoinNumber = 11,
-                JoinSpan = 8
-            },
-            new JoinMetadata
-            {
-                Description = "Device Enable Input Hdcp",
-                JoinCapabilities = eJoinCapabilities.ToFromSIMPL,
-                JoinType = eJoinType.Digital
-            });
-
-
-        [JoinName("DisableInputHdcp")] public JoinDataComplete DisableInputHdcp = new JoinDataComplete(
-            new JoinData
-            {
-                JoinNumber = 21,
-                JoinSpan = 8
-            },
-            new JoinMetadata
-            {
-                Description = "Device Disnable Input Hdcp",
-                JoinCapabilities = eJoinCapabilities.ToFromSIMPL,
-                JoinType = eJoinType.Digital
-            });
-
-
         [JoinName("IsOnline")] public JoinDataComplete IsOnline = new JoinDataComplete(
             new JoinData
             {
-                JoinNumber = 30,
+                JoinNumber = 11,
                 JoinSpan = 1
             },
             new JoinMetadata
@@ -76,21 +20,37 @@ namespace PepperDash_Essentials_Core.Bridges
                 JoinType = eJoinType.Digital
             });
 
+        [JoinName("InputSync")] public JoinDataComplete InputSync = new JoinDataComplete(
+            new JoinData
+            {
+                JoinNumber = 100,
+                JoinSpan = 8
+            },
+            new JoinMetadata
+            {
+                Description = "Device Input Sync",
+                JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                JoinType = eJoinType.Digital
+            });
+
+        [JoinName("OutputEndpointOnline")] public JoinDataComplete OutputEndpointOnline = new JoinDataComplete(
+            new JoinData { JoinNumber = 700, JoinSpan = 32 },
+            new JoinMetadata
+            {
+                Description = "DM Chassis Output Endpoint Online", JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                JoinType = eJoinType.Digital
+            });
+
         #endregion
 
 
         #region Analog
 
         [JoinName("OutputRoute")] public JoinDataComplete OutputRoute = new JoinDataComplete(
-            new JoinData
-            {
-                JoinNumber = 11,
-                JoinSpan = 2
-            },
+            new JoinData { JoinNumber = 100, JoinSpan = 32 },
             new JoinMetadata
             {
-                Description = "Device Output Route Set/Get",
-                JoinCapabilities = eJoinCapabilities.ToFromSIMPL,
+                Description = "DM Chassis Output Route Set / Get", JoinCapabilities = eJoinCapabilities.ToFromSIMPL,
                 JoinType = eJoinType.Analog
             });
 
@@ -112,46 +72,47 @@ namespace PepperDash_Essentials_Core.Bridges
                 JoinType = eJoinType.Serial
             });
 
-
-        [JoinName("InputName")] public JoinDataComplete InputName = new JoinDataComplete(
-            new JoinData
-            {
-                JoinNumber = 2,
-                JoinSpan = 8
-            },
+        [JoinName("InputNames")] public JoinDataComplete InputNames = new JoinDataComplete(
+            new JoinData { JoinNumber = 100, JoinSpan = 32 },
             new JoinMetadata
             {
-                Description = "Device Input Name",
-                JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                Description = "DM Chassis Input Name", JoinCapabilities = eJoinCapabilities.ToSIMPL,
                 JoinType = eJoinType.Serial
             });
 
-
-        [JoinName("OutputName")] public JoinDataComplete OutputName = new JoinDataComplete(
-            new JoinData
-            {
-                JoinNumber = 11,
-                JoinSpan = 2
-            },
+        [JoinName("OutputNames")] public JoinDataComplete OutputNames = new JoinDataComplete(
+            new JoinData { JoinNumber = 300, JoinSpan = 32 },
             new JoinMetadata
             {
-                Description = "Device Output Name",
-                JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                Description = "DM Chassis Output Name", JoinCapabilities = eJoinCapabilities.ToSIMPL,
                 JoinType = eJoinType.Serial
             });
 
+        [JoinName("InputVideoNames")] public JoinDataComplete InputVideoNames =
+            new JoinDataComplete(new JoinData { JoinNumber = 500, JoinSpan = 32 },
+                new JoinMetadata
+                {
+                    Description = "DM Chassis Video Input Names",
+                    JoinCapabilities = eJoinCapabilities.ToFromSIMPL,
+                    JoinType = eJoinType.Serial
+                });
 
-        [JoinName("OutputRoutedName")] public JoinDataComplete OutputRoutedName = new JoinDataComplete(
-            new JoinData
-            {
-                JoinNumber = 16,
-                JoinSpan = 2
-            },
+        [JoinName("OutputVideoNames")] public JoinDataComplete OutputVideoNames =
+            new JoinDataComplete(new JoinData { JoinNumber = 900, JoinSpan = 32 },
+                new JoinMetadata
+                {
+                    Description = "DM Chassis Video Output Names",
+                    JoinCapabilities = eJoinCapabilities.ToFromSIMPL,
+                    JoinType = eJoinType.Serial
+                });
+
+        [JoinName("OutputCurrentVideoInputNames")]
+        public JoinDataComplete OutputCurrentVideoInputNames = new JoinDataComplete(
+            new JoinData { JoinNumber = 1200, JoinSpan = 32 },
             new JoinMetadata
             {
-                Description = "Device Output Route Name",
-                JoinCapabilities = eJoinCapabilities.ToSIMPL,
-                JoinType = eJoinType.Serial
+                Description = "DM Chassis Video Output Currently Routed Video Input Name",
+                JoinCapabilities = eJoinCapabilities.ToSIMPL, JoinType = eJoinType.Serial
             });
 
         #endregion

@@ -170,6 +170,7 @@ namespace PepperDash.Core.SystemInfo
                     CrestronEthernetHelper.GetAdapterdIdForSpecifiedAdapterType(EthernetAdapterType.EthernetCSAdapter);
                 if (!adapterId.Equals(EthernetAdapterType.EthernetUnknownAdapter))
                 {
+                    CrestronConsole.PrintLine("Found control subnet");
                     adapter.Enabled = 1;
                     adapter.IsInAutomaticMode = (ushort)(CrestronEthernetHelper.IsControlSubnetInAutomaticMode ? 1 : 0);
                     adapter.MacAddress =
@@ -181,6 +182,10 @@ namespace PepperDash.Core.SystemInfo
                         CrestronEthernetHelper.ETHERNET_PARAMETER_TO_GET.GET_CURRENT_IP_MASK, adapterId);
                     adapter.RouterPrefix = CrestronEthernetHelper.GetEthernetParameter(
                         CrestronEthernetHelper.ETHERNET_PARAMETER_TO_GET.GET_CONTROL_SUBNET_ROUTER_PREFIX, adapterId);
+                }
+                else
+                {
+                    CrestronConsole.PrintLine("No control subnet");
                 }
             }
             catch (Exception e)

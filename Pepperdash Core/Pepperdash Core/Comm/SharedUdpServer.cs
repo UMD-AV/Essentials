@@ -226,7 +226,29 @@ namespace PepperDash.Core
 
             Server = new UDPServer();
             Server.RemotePortNumber = port;
-            Server.EthernetAdapterToBindTo = EthernetAdapterType.EthernetLANAdapter;
+            Server.AddressToAcceptConnectionFrom = "0.0.0.0";
+
+            short adapterId;
+            try
+            {
+                adapterId = CrestronEthernetHelper.GetAdapterdIdForSpecifiedAdapterType(EthernetAdapterType
+                    .EthernetCSAdapter);
+            }
+            catch
+            {
+                adapterId = 0;
+            }
+
+            if (adapterId == 0)
+            {
+                Server.EthernetAdapterToBindTo = EthernetAdapterType.EthernetUnknownAdapter;
+                CrestronConsole.PrintLine("Using unknown adapter for udp due to no control subnet");
+            }
+            else
+            {
+                Server.EthernetAdapterToBindTo = EthernetAdapterType.EthernetLANAdapter;
+                CrestronConsole.PrintLine("Using ethernet adapter for udp");
+            }
 
             CrestronEnvironment.ProgramStatusEventHandler +=
                 CrestronEnvironment_ProgramStatusEventHandler;
@@ -277,10 +299,11 @@ namespace PepperDash.Core
             }
 
             SocketErrorCodes status = Server.EnableUDPServer("0.0.0.0", Port, Port);
-            Debug.Console(2, "UDP SocketErrorCode: {0}", status);
+            Debug.Console(1, "UDP SocketErrorCode: {0}", status);
 
             if (status == SocketErrorCodes.SOCKET_OK)
             {
+                Debug.Console(1, "UDP Connected");
                 isConnected = true;
                 // Start receiving data
                 Server.ReceiveDataAsync(Receive);
@@ -342,6 +365,12 @@ namespace PepperDash.Core
         /// <param name="port"></param>
         public void SendData(byte[] bytes, int length, string address, int port)
         {
+            if (!IsConnected)
+            {
+                Debug.Console(1, "UDP SendData not connected, reconnecting...");
+                Connect();
+            }
+
             SocketErrorCodes status = Server.SendData(bytes, bytes.Length, address, port);
             Debug.Console(1, "UDP SendData SocketErrorCode: {0}, address: {1}, port: {2}", status.ToString(), address,
                 port.ToString());
