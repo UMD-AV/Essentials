@@ -164,7 +164,7 @@ namespace PepperDash.Essentials.EpiphanPearl
 
             try
             {
-                Debug.Console(0, "Request to {0}: {1}", request.Url, request.ContentString);
+                Debug.Console(1, "Request to {0}: {1}", request.Url, request.ContentString);
                 HttpsClientResponse response = _client.Dispatch(request);
 
                 if (response == null)
@@ -173,7 +173,7 @@ namespace PepperDash.Essentials.EpiphanPearl
                     return null;
                 }
 
-                Debug.Console(0, "Response from request to {0}: {1} {2}", request.Url, response.Code,
+                Debug.Console(1, "Response from request to {0}: {1} {2}", request.Url, response.Code,
                     response.ContentString);
 
                 try

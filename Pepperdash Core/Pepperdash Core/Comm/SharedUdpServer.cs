@@ -371,9 +371,7 @@ namespace PepperDash.Core
                 Connect();
             }
 
-            SocketErrorCodes status = Server.SendData(bytes, bytes.Length, address, port);
-            Debug.Console(1, "UDP SendData SocketErrorCode: {0}, address: {1}, port: {2}", status.ToString(), address,
-                port.ToString());
+            Server.SendData(bytes, bytes.Length, address, port);
         }
     }
 }

@@ -45,6 +45,8 @@ namespace PepperDash.Essentials.Core.Routing
         public Dictionary<uint, StringFeedback> DestDeviceKeyFeedbacks { get; private set; }
         public Dictionary<uint, StringFeedback> CurrentRouteNameFeedbacks { get; private set; }
 
+        public event EventHandler<UshrtChangeEventArgs> DestinationFeedbackChanged;
+
         public Router(RoomConfig roomConfig)
         {
             Key = roomConfig.Key + "-router";
@@ -905,7 +907,6 @@ namespace PepperDash.Essentials.Core.Routing
                 }
             }
 
-
             UpdateDestinationFeedback(destIndex);
         }
 
@@ -946,13 +947,17 @@ namespace PepperDash.Essentials.Core.Routing
                 ErrorLog.Error("Exception in UpdateRouteFeedback Step 2: dest: {0}, {1}", dest.Name, ex);
             }
 
-
             UpdateDestinationFeedback(destIndex);
         }
 
         private void UpdateDestinationFeedback(ushort destIndex)
         {
             CurrentRouteFeedbacks[destIndex].FireUpdate();
+            CurrentRouteNameFeedbacks[destIndex].FireUpdate();
+            if (DestinationFeedbackChanged != null)
+            {
+                DestinationFeedbackChanged(this, new UshrtChangeEventArgs(destIndex, 0));
+            }
         }
 
         private void MakeDeviceRoute(string key, ushort output, ushort input)
@@ -992,7 +997,7 @@ namespace PepperDash.Essentials.Core.Routing
                         break;
                     case "displayRoute":
                         routerTriList.StringInput[joinMap.DisplayInputCmd.JoinNumber + output - 1].StringValue =
-                            output.ToString();
+                            input.ToString();
                         break;
                     case "usbRoute":
                         break;

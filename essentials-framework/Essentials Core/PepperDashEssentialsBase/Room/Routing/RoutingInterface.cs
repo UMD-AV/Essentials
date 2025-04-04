@@ -130,7 +130,17 @@ namespace PepperDash.Essentials.Core.Routing
                 else
                 {
                     RouterKey = newRouterKey;
+                    if (_router != null)
+                    {
+                        _router.DestinationFeedbackChanged -= DestinationFeedbackChangedHandler;
+                    }
+
                     _router = RouterMain.GetRouter(newRouterKey);
+                    if (_router != null)
+                    {
+                        _router.DestinationFeedbackChanged += DestinationFeedbackChangedHandler;
+                    }
+
                     UpdateAllOutputs();
                 }
             }
@@ -144,6 +154,11 @@ namespace PepperDash.Essentials.Core.Routing
             {
                 mutex.ReleaseMutex();
             }
+        }
+
+        private void DestinationFeedbackChangedHandler(object sender, UshrtChangeEventArgs e)
+        {
+            UpdateDestinationFeedback(e.IntValue);
         }
 
         public void LinkToApi(BasicTriList trilist, uint joinStart, string joinMapKey, EiscApiAdvanced bridge)

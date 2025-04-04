@@ -44,7 +44,7 @@ namespace CrestronNaxAmp
         /// <param name="name">String</param>
         /// <param name="ampBase"></param>
         public CrestronNaxAmp(string key, string name, DmNaxAmpX300Base ampBase)
-            : base(key, name)
+            : base(key, name, ampBase)
         {
             _amp = ampBase;
 
@@ -53,16 +53,19 @@ namespace CrestronNaxAmp
             _amp.OnZoneChange += OnZoneChange;
 
             AmpFaultFeedback = new BoolFeedback(() => _ampFaultState);
-            MuteFeedback = new BoolFeedback[_amp.Zones.Count];
-            VolumeFeedback = new IntFeedback[_amp.Zones.Count];
-            ZoneNameFeedback = new StringFeedback[_amp.Zones.Count];
+            MuteFeedback = new BoolFeedback[_amp.Zones.Count + 1];
+            VolumeFeedback = new IntFeedback[_amp.Zones.Count + 1];
+            ZoneNameFeedback = new StringFeedback[_amp.Zones.Count + 1];
 
-            for (ushort i = 0; i < _amp.Zones.Count; i++)
+            for (ushort i = 1; i <= _amp.Zones.Count; i++)
             {
                 ushort zone = i;
-                MuteFeedback[zone] = new BoolFeedback(() => _amp.Zones[zone].MuteOnFeedback.BoolValue);
-                VolumeFeedback[zone] = new IntFeedback(() => _amp.Zones[zone].VolumeFeedback.UShortValue);
-                ZoneNameFeedback[zone] = new StringFeedback(() => _amp.Zones[zone].Name.StringValue);
+                MuteFeedback[zone] = new BoolFeedback(() =>
+                    _amp.Zones[zone].MuteOnFeedback != null && _amp.Zones[zone].MuteOnFeedback.BoolValue);
+                VolumeFeedback[zone] = new IntFeedback(() =>
+                    _amp.Zones[zone].VolumeFeedback != null ? _amp.Zones[zone].VolumeFeedback.UShortValue : 0);
+                ZoneNameFeedback[zone] = new StringFeedback(() =>
+                    _amp.Zones[zone].Name.StringValue != null ? _amp.Zones[zone].Name.StringValue : "");
             }
         }
 
@@ -82,37 +85,37 @@ namespace CrestronNaxAmp
             //From Plugin to Simpl
             IsOnline.LinkInputSig(trilist.BooleanInput[joinMap.IsOnline.JoinNumber]);
             AmpFaultFeedback.LinkInputSig(trilist.BooleanInput[joinMap.AmpFault.JoinNumber]);
-            trilist.StringInput[joinMap.Name.JoinNumber].StringValue = this.Name;
-            trilist.StringInput[joinMap.Presets.JoinNumber + 1].StringValue = "Default Volume";
+            trilist.StringInput[joinMap.Name.JoinNumber].StringValue = Name;
+            trilist.StringInput[joinMap.Presets.JoinNumber].StringValue = "Default Volume";
 
             //From Simpl to Plugin
             trilist.SetSigTrueAction(joinMap.Presets.JoinNumber, () => SetDefaultVolume());
 
             //Link each zone to the bridge
-            for (ushort i = 0; i < _amp.Zones.Count; i++)
+            for (ushort i = 1; i <= _amp.Zones.Count; i++)
             {
                 ushort zone = i;
 
-                MuteFeedback[i].LinkInputSig(trilist.BooleanInput[joinMap.ChannelMuteToggle.JoinNumber + i]);
-                VolumeFeedback[i].LinkInputSig(trilist.UShortInput[joinMap.ChannelVolume.JoinNumber + i]);
-                ZoneNameFeedback[i].LinkInputSig(trilist.StringInput[joinMap.ChannelName.JoinNumber + i]);
+                MuteFeedback[i].LinkInputSig(trilist.BooleanInput[joinMap.ChannelMuteToggle.JoinNumber + i - 1]);
+                VolumeFeedback[i].LinkInputSig(trilist.UShortInput[joinMap.ChannelVolume.JoinNumber + i - 1]);
+                ZoneNameFeedback[i].LinkInputSig(trilist.StringInput[joinMap.ChannelName.JoinNumber + i - 1]);
 
-                trilist.UShortInput[joinMap.ChannelType.JoinNumber + i].UShortValue = 0;
-                trilist.BooleanInput[joinMap.ChannelVisible.JoinNumber + i].BoolValue = true;
+                trilist.UShortInput[joinMap.ChannelType.JoinNumber + i - 1].UShortValue = 0;
+                trilist.BooleanInput[joinMap.ChannelVisible.JoinNumber + i - 1].BoolValue = true;
 
-                trilist.SetSigTrueAction(joinMap.ChannelMuteToggle.JoinNumber + i, () => MuteToggle(zone));
-                trilist.SetSigTrueAction(joinMap.ChannelMuteOn.JoinNumber + i, () => MuteOn(zone));
-                trilist.SetSigTrueAction(joinMap.ChannelMuteOff.JoinNumber + i, () => MuteOff(zone));
+                trilist.SetSigTrueAction(joinMap.ChannelMuteToggle.JoinNumber + i - 1, () => MuteToggle(zone));
+                trilist.SetSigTrueAction(joinMap.ChannelMuteOn.JoinNumber + i - 1, () => MuteOn(zone));
+                trilist.SetSigTrueAction(joinMap.ChannelMuteOff.JoinNumber + i - 1, () => MuteOff(zone));
 
-                trilist.SetSigFalseAction(joinMap.EnableLevelSend.JoinNumber + i, () =>
+                trilist.SetSigFalseAction(joinMap.EnableLevelSend.JoinNumber + i - 1, () =>
                 {
                     CrestronEnvironment.Sleep(100);
-                    SetVolume(zone, trilist.UShortOutput[joinMap.ChannelVolume.JoinNumber + zone].UShortValue);
+                    SetVolume(zone, trilist.UShortOutput[joinMap.ChannelVolume.JoinNumber + zone - 1].UShortValue);
                 });
 
-                trilist.SetUShortSigAction(joinMap.ChannelVolume.JoinNumber + i, u =>
+                trilist.SetUShortSigAction(joinMap.ChannelVolume.JoinNumber + i - 1, u =>
                 {
-                    if (trilist.BooleanOutput[joinMap.EnableLevelSend.JoinNumber + zone].BoolValue)
+                    if (trilist.BooleanOutput[joinMap.EnableLevelSend.JoinNumber + zone - 1].BoolValue)
                     {
                         SetVolume(zone, u);
                     }
@@ -125,8 +128,10 @@ namespace CrestronNaxAmp
             bool check = false;
             foreach (DmNaxXZone zone in _amp.Zones)
             {
-                if (zone.DcOffsetFaultFeedback.BoolValue || zone.OverCurrentFaultFeedback.BoolValue ||
-                    zone.OverTemperatureFaultFeedback.BoolValue || zone.OverOrUnderVoltageFaultFeedback.BoolValue)
+                if ((zone.DcOffsetFaultFeedback != null && zone.DcOffsetFaultFeedback.BoolValue) ||
+                    (zone.OverCurrentFaultFeedback != null && zone.OverCurrentFaultFeedback.BoolValue) ||
+                    (zone.OverTemperatureFaultFeedback != null && zone.OverTemperatureFaultFeedback.BoolValue) ||
+                    (zone.OverOrUnderVoltageFaultFeedback != null && zone.OverOrUnderVoltageFaultFeedback.BoolValue))
                 {
                     check = true;
                     Debug.ConsoleWithLog(0, this, "Amp Fault Detected");
@@ -140,7 +145,7 @@ namespace CrestronNaxAmp
 
         public void MuteOff(ushort zone)
         {
-            if (zone < _amp.Zones.Count)
+            if (_amp.Zones[zone] != null)
             {
                 _amp.Zones[zone].MuteOff();
             }
@@ -148,7 +153,7 @@ namespace CrestronNaxAmp
 
         public void MuteOn(ushort zone)
         {
-            if (zone < _amp.Zones.Count)
+            if (_amp.Zones[zone] != null)
             {
                 _amp.Zones[zone].MuteOn();
             }
@@ -156,7 +161,7 @@ namespace CrestronNaxAmp
 
         public void MuteToggle(ushort zone)
         {
-            if (zone < _amp.Zones.Count)
+            if (_amp.Zones[zone] != null)
             {
                 if (_amp.Zones[zone].MuteOnFeedback.BoolValue)
                 {
@@ -171,7 +176,7 @@ namespace CrestronNaxAmp
 
         public void SetVolume(ushort zone, ushort value)
         {
-            if (zone < _amp.Zones.Count)
+            if (_amp.Zones[zone] != null)
             {
                 _amp.Zones[zone].Volume.UShortValue = value;
             }
@@ -179,9 +184,12 @@ namespace CrestronNaxAmp
 
         public void SetDefaultVolume()
         {
-            for (ushort i = 0; i < _amp.Zones.Count; i++)
+            for (ushort i = 1; i <= _amp.Zones.Count; i++)
             {
-                _amp.Zones[i].Volume.UShortValue = _amp.Zones[i].StartupVolumeFeedback.UShortValue;
+                if (_amp.Zones[i] != null && _amp.Zones[i].StartupVolumeFeedback != null)
+                {
+                    _amp.Zones[i].Volume.UShortValue = _amp.Zones[i].StartupVolumeFeedback.UShortValue;
+                }
             }
         }
 
@@ -192,8 +200,8 @@ namespace CrestronNaxAmp
 
         private void OnZoneChange(object dev, ZoneEventArgs args)
         {
-            Debug.Console(2, this, "OnZoneChange Index:{0}, EventId:{1}", args.Index, args.EventId);
-            if (args.Index >= _amp.Zones.Count)
+            Debug.Console(2, this, "OnZoneChange Index:{0}, EventId:{1}", args.Zone.Number, args.EventId);
+            if (args.Index > _amp.Zones.Count)
             {
                 return;
             }
@@ -201,10 +209,10 @@ namespace CrestronNaxAmp
             switch (args.EventId)
             {
                 case ZoneEventIds.VolumeFeedbackEventId:
-                    VolumeFeedback[args.Index].FireUpdate();
+                    VolumeFeedback[args.Zone.Number].FireUpdate();
                     break;
                 case ZoneEventIds.MuteOnFeedbackEventId:
-                    MuteFeedback[args.Index].FireUpdate();
+                    MuteFeedback[args.Zone.Number].FireUpdate();
                     break;
                 case ZoneEventIds.DcOffsetFaultEventId:
                 case ZoneEventIds.OverCurrentFaultEventId:

@@ -215,7 +215,9 @@ namespace PepperDash_Essentials_DM.Chassis
                     new IntFeedback(() => output.VideoOutFeedback == null ? 0 : (int)output.VideoOutFeedback.Number));
 
                 OutputEndpointOnlineFeedbacks.Add(index,
-                    new BoolFeedback(() => output.DmLiteOutput != null && output.DmLiteOutput.EndpointOnlineFeedback));
+                    new BoolFeedback(() =>
+                        output.DmLiteOutput != null &&
+                        output.DmLiteOutput.DmLiteOutputPort.RemoteReceiverDetectedFeedback.BoolValue));
             }
         }
 
@@ -492,7 +494,7 @@ namespace PepperDash_Essentials_DM.Chassis
         {
             switch (args.EventId)
             {
-                case DMOutputEventIds.EndpointOnlineEventId:
+                case DMOutputEventIds.RemoteReceiverDetectedEventId:
                 {
                     Debug.Console(1, this, "Event ID {0}: Updating endpoint online feedback", args.EventId);
                     uint output = args.Number;
