@@ -1,160 +1,138 @@
 ﻿using System;
-using System.Text;
 using System.Collections.Generic;
 using Crestron.SimplSharp;
 using Crestron.SimplSharpPro.CrestronThread;
 using PepperDash.Core;
 using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Bridges;
-using Newtonsoft.Json;
 using PepperDash.Essentials.Core.Config;
 using Crestron.SimplSharpPro.DeviceSupport;
 
 namespace PepperDash.Essentials.Devices.Common.LightwareUcx
 {
-    public class LightwareUcxDevice : EssentialsBridgeableDevice, ITxRoutingWithFeedback, IRoutingFeedback
+    public class LightwareUcxDevice : EssentialsBridgeableDevice, IRoutingNumericWithFeedback, IDisposable
     {
-        public IBasicCommunication Communication { get; private set; }
+        private const ushort maxInputs = 5;
+        private const ushort maxOutputs = 4;
+
+        private readonly List<string> VideoInputs = new List<string>();
+        private readonly List<string> VideoOutputs = new List<string>();
+        private readonly List<string> AudioInputs = new List<string>();
+        private readonly List<string> AudioOutputs = new List<string>();
+        private readonly List<string> UsbInputs = new List<string>();
+        private readonly List<string> UsbOutputs = new List<string>();
+        public ISocketStatus Communication { get; private set; }
         public GenericCommunicationMonitor CommunicationMonitor { get; private set; }
-        private CrestronQueue<string> _commandQueue;
-        private CMutex _commandMutex;
-        private CTimer _commandTimer;
-        private CMutex _feedbackMutex;
-        private byte[] _incomingBuffer = { };
+        private readonly CrestronQueue<string> _commandQueue;
+        private readonly CMutex _commandMutex;
+        private readonly CTimer _commandTimer;
+        private readonly CTimer _subscriptionTimer;
+        private readonly CMutex _feedbackMutex;
         private bool _queueWaiting;
         private bool _commandReady = true;
-        private bool _autoSwitchFb;
 
-        public bool AutoSwitchFb
-        {
-            get { return _autoSwitchFb; }
-            set
-            {
-                if (_autoSwitchFb == value) return;
-                _autoSwitchFb = value;
-                CalculateInputFb();
-            }
-        }
+        public Dictionary<uint, string> VideoInputNames { get; set; }
+        public Dictionary<uint, string> VideoOutputNames { get; set; }
+        public Dictionary<uint, string> AudioInputNames { get; set; }
+        public Dictionary<uint, string> AudioOutputNames { get; set; }
 
-        private ushort _rawInputFb;
+        private readonly bool[] _videoInputSyncFb = new bool[maxInputs];
+        private readonly ushort[] _videoOutputRouteFb = new ushort[maxOutputs];
+        private readonly ushort[] _audioOutputRouteFb = new ushort[maxOutputs];
+        private readonly string[] _outputVideoRouteNameFb = new string[maxOutputs];
+        private readonly string[] _outputAudioRouteNameFb = new string[maxOutputs];
+        private ushort _usbOutputRouteFb;
 
-        public ushort RawInputFb
-        {
-            get { return _rawInputFb; }
-            set
-            {
-                if (_rawInputFb == value || _rawInputFb > 5) return;
-                _rawInputFb = value;
+        public FeedbackCollection<BoolFeedback> VideoInputSyncFeedbacks { get; private set; }
+        public FeedbackCollection<IntFeedback> VideoOutputRouteFeedbacks { get; private set; }
+        public FeedbackCollection<IntFeedback> AudioOutputRouteFeedbacks { get; private set; }
+        public IntFeedback UsbOutputRouteFeedback { get; private set; }
+        public FeedbackCollection<StringFeedback> VideoInputNameFeedbacks { get; private set; }
+        public FeedbackCollection<StringFeedback> AudioInputNameFeedbacks { get; private set; }
+        public FeedbackCollection<StringFeedback> VideoOutputNameFeedbacks { get; private set; }
+        public FeedbackCollection<StringFeedback> AudioOutputNameFeedbacks { get; private set; }
+        public FeedbackCollection<StringFeedback> OutputVideoRouteNameFeedbacks { get; private set; }
+        public FeedbackCollection<StringFeedback> OutputAudioRouteNameFeedbacks { get; private set; }
+        public StringFeedback DeviceNameFeedback { get; private set; }
 
-                CalculateInputFb();
-            }
-        }
-
-        private ushort _inputFb;
-
-        private ushort _autoModeInputFb;
-        public readonly IntFeedback AutoModeInputFb;
-
-        private bool _Input1Sync;
-        public readonly BoolFeedback Input1SyncFb;
-
-        private bool _Input2Sync;
-        public readonly BoolFeedback Input2SyncFb;
-
-        private bool _Input3Sync;
-        public readonly BoolFeedback Input3SyncFb;
-
-        private bool _Input4Sync;
-        public readonly BoolFeedback Input4SyncFb;
-
-        private string _Input1VideoName;
-        public StringFeedback Input1VideoNameFb;
-
-        private string _Input2VideoName;
-        public StringFeedback Input2VideoNameFb;
-
-        private string _Input3VideoName;
-        public StringFeedback Input3VideoNameFb;
-
-        private string _Input4VideoName;
-        public StringFeedback Input4VideoNameFb;
-
-        private string _Input1UsbName;
-        public StringFeedback Input1UsbNameFb;
-
-        private string _Input2UsbName;
-        public StringFeedback Input2UsbNameFb;
-
-        private string _Input3UsbName;
-        public StringFeedback Input3UsbNameFb;
-
-        private string _Input4UsbName;
-        public StringFeedback Input4UsbNameFb;
-
-        public LightwareUcxDevice(string key, string name, IBasicCommunication comm,
-            LightwareUcxPropertiesConfig config)
+        public LightwareUcxDevice(string key, string name, ISocketStatus comm,
+            LightwareUcxPropertiesConfig props)
             : base(key, name)
         {
-            _Input1VideoName = config.Input1VideoName ?? "";
-            _Input2VideoName = config.Input2VideoName ?? "";
-            _Input3VideoName = config.Input3VideoName ?? "";
-            _Input4VideoName = config.Input4VideoName ?? "";
-
-            _Input1UsbName = config.Input1UsbName ?? "";
-            _Input2UsbName = config.Input2UsbName ?? "";
-            _Input3UsbName = config.Input3UsbName ?? "";
-            _Input4UsbName = config.Input4UsbName ?? "";
-
-            _commandQueue = new CrestronQueue<string>(20);
+            _commandQueue = new CrestronQueue<string>(50);
             _commandMutex = new CMutex();
             _commandTimer = new CTimer(commandTimeout, Timeout.Infinite);
             _feedbackMutex = new CMutex();
+            _subscriptionTimer = new CTimer(subscriptionCallback, Timeout.Infinite);
 
-            VideoSourceNumericFeedback = new IntFeedback(() => _inputFb);
-            AudioSourceNumericFeedback = new IntFeedback(() => _inputFb);
-            AutoModeInputFb = new IntFeedback(() => _autoModeInputFb);
-            Input1SyncFb = new BoolFeedback(() => _Input1Sync);
-            Input2SyncFb = new BoolFeedback(() => _Input2Sync);
-            Input3SyncFb = new BoolFeedback(() => _Input3Sync);
-            Input4SyncFb = new BoolFeedback(() => _Input4Sync);
-            Input1VideoNameFb = new StringFeedback(() => _Input1VideoName);
-            Input2VideoNameFb = new StringFeedback(() => _Input2VideoName);
-            Input3VideoNameFb = new StringFeedback(() => _Input3VideoName);
-            Input4VideoNameFb = new StringFeedback(() => _Input4VideoName);
-            Input1UsbNameFb = new StringFeedback(() => _Input1UsbName);
-            Input2UsbNameFb = new StringFeedback(() => _Input2UsbName);
-            Input3UsbNameFb = new StringFeedback(() => _Input3UsbName);
-            Input4UsbNameFb = new StringFeedback(() => _Input4UsbName);
+            VideoInputNames = props.VideoInputNames ?? new Dictionary<uint, string>();
+            AudioInputNames = props.AudioInputNames ?? new Dictionary<uint, string>();
+            VideoOutputNames = props.VideoOutputNames ?? new Dictionary<uint, string>();
+            AudioOutputNames = props.AudioOutputNames ?? new Dictionary<uint, string>();
 
-            switch (config.Control.Method)
+            DeviceNameFeedback = new StringFeedback(() => Name);
+            VideoInputSyncFeedbacks = new FeedbackCollection<BoolFeedback>();
+            VideoOutputRouteFeedbacks = new FeedbackCollection<IntFeedback>();
+            AudioOutputRouteFeedbacks = new FeedbackCollection<IntFeedback>();
+            VideoInputNameFeedbacks = new FeedbackCollection<StringFeedback>();
+            AudioInputNameFeedbacks = new FeedbackCollection<StringFeedback>();
+            VideoOutputNameFeedbacks = new FeedbackCollection<StringFeedback>();
+            AudioOutputNameFeedbacks = new FeedbackCollection<StringFeedback>();
+            OutputVideoRouteNameFeedbacks = new FeedbackCollection<StringFeedback>();
+            OutputAudioRouteNameFeedbacks = new FeedbackCollection<StringFeedback>();
+            InputPorts = new RoutingPortCollection<RoutingInputPort>();
+            OutputPorts = new RoutingPortCollection<RoutingOutputPort>();
+
+            Communication = comm;
+            Communication.ConnectionChange += CommunicationOnConnectionChange;
+            CommunicationGather gather = new CommunicationGather(Communication, "/r/n");
+            gather.LineReceived += GatherOnLineReceived;
+            CommunicationMonitor = new GenericCommunicationMonitor(this, Communication, 30000, 120000, 300000, Poll);
+            DeviceManager.AddDevice(CommunicationMonitor);
+
+            for (uint i = 0; i < maxInputs; i++)
             {
-                case eControlMethod.Wss:
-                    Communication = new LightwareUcxWebSocket(key + "-websocket", config.Control);
-                    break;
-                case eControlMethod.Tcpip:
-                    Communication = comm;
-                    Communication.BytesReceived += Communication_BytesReceived;
-                    break;
+                uint index = i;
+                VideoInputSyncFeedbacks.Add(new BoolFeedback(() => _videoInputSyncFb[index]));
+                VideoInputNameFeedbacks.Add(new StringFeedback(() =>
+                    VideoInputNames.ContainsKey(index) && VideoInputNames[index] != null
+                        ? VideoInputNames[index]
+                        : ""));
+                AudioInputNameFeedbacks.Add(new StringFeedback(() =>
+                    AudioInputNames.ContainsKey(index) && AudioInputNames[index] != null
+                        ? AudioInputNames[index]
+                        : ""));
             }
 
-
-            CommunicationMonitor = new GenericCommunicationMonitor(this, Communication, 3000, 120000, 300000, Poll);
-            CommunicationMonitor.StatusChange += CommunicationMonitor_StatusChange;
-            DeviceManager.AddDevice(CommunicationMonitor);
-        }
-
-        public override bool CustomActivate()
-        {
-            Communication.Connect();
-            CommunicationMonitor.Start();
-            return base.CustomActivate();
-        }
-
-        public void CommunicationMonitor_StatusChange(object o, MonitorStatusChangeEventArgs e)
-        {
-            if (e.Status == MonitorStatus.IsOk)
+            for (uint i = 0; i < maxOutputs; i++)
             {
-                Subscribe();
+                uint index = i;
+                VideoOutputNameFeedbacks.Add(new StringFeedback(() =>
+                    VideoOutputNames.ContainsKey(index) && VideoOutputNames[index] != null
+                        ? VideoOutputNames[index]
+                        : ""));
+                VideoOutputRouteFeedbacks.Add(new IntFeedback(() => _videoOutputRouteFb[index]));
+                OutputVideoRouteNameFeedbacks.Add(new StringFeedback(() => _outputVideoRouteNameFb[index] == null
+                    ? "None"
+                    : _outputVideoRouteNameFb[index]));
+                AudioOutputNameFeedbacks.Add(new StringFeedback(() =>
+                    AudioOutputNames.ContainsKey(index) && AudioOutputNames[index] != null
+                        ? AudioOutputNames[index]
+                        : ""));
+                AudioOutputRouteFeedbacks.Add(new IntFeedback(() => _audioOutputRouteFb[index]));
+                OutputAudioRouteNameFeedbacks.Add(new StringFeedback(() => _outputAudioRouteNameFb[index] == null
+                    ? "None"
+                    : _outputAudioRouteNameFb[index]));
+            }
+
+            UsbOutputRouteFeedback = new IntFeedback(() => _usbOutputRouteFb);
+        }
+
+        private void CommunicationOnConnectionChange(object sender, GenericSocketStatusChageEventArgs e)
+        {
+            if (e.Client.IsConnected)
+            {
+                UpdateAllData();
             }
             else
             {
@@ -162,12 +140,46 @@ namespace PepperDash.Essentials.Devices.Common.LightwareUcx
             }
         }
 
+        private void UpdateAllData()
+        {
+            QueueCommand("GET /V1/MEDIA/VIDEO/XP");
+            QueueCommand("GET /V1/MEDIA/AUDIO/XP");
+            QueueCommand("GET /V1/MEDIA/USB/XP");
+        }
+
+        public override bool CustomActivate()
+        {
+            Debug.Console(0, this, "Starting comms");
+            Communication.Connect();
+            CommunicationMonitor.Start();
+            return base.CustomActivate();
+        }
+
         private void Subscribe()
         {
-            QueueCommand("OPEN /V1/MEDIA/VIDEO/I1.SignalPresent");
-            QueueCommand("OPEN /V1/MEDIA/VIDEO/I2.SignalPresent");
-            QueueCommand("OPEN /V1/MEDIA/VIDEO/I3.SignalPresent");
-            QueueCommand("OPEN /V1/MEDIA/VIDEO/I4.SignalPresent");
+            foreach (string i in VideoInputs)
+            {
+                QueueCommand(string.Format("OPEN /V1/MEDIA/VIDEO/{0}", i));
+                QueueCommand(string.Format("GETALL /V1/MEDIA/VIDEO/{0}", i));
+            }
+
+            foreach (string o in VideoOutputs)
+            {
+                QueueCommand(string.Format("OPEN /V1/MEDIA/VIDEO/XP/{0}", o));
+                QueueCommand(string.Format("GETALL /V1/MEDIA/VIDEO/XP/{0}", o));
+            }
+
+            foreach (string o in AudioOutputs)
+            {
+                QueueCommand(string.Format("OPEN /V1/MEDIA/AUDIO/XP/{0}", o));
+                QueueCommand(string.Format("GETALL /V1/MEDIA/AUDIO/XP/{0}", o));
+            }
+
+            foreach (string o in UsbOutputs)
+            {
+                QueueCommand(string.Format("OPEN /V1/MEDIA/USB/XP/{0}", o));
+                QueueCommand(string.Format("GETALL /V1/MEDIA/USB/XP/{0}", o));
+            }
         }
 
         private void commandTimeout(object o)
@@ -177,9 +189,15 @@ namespace PepperDash.Essentials.Devices.Common.LightwareUcx
             ProcessQueue();
         }
 
+        private void subscriptionCallback(object o)
+        {
+            Debug.Console(1, this, "Subscriptions lost, resubscribing");
+            Subscribe();
+        }
+
         protected void readyForNextCommand()
         {
-            _commandTimer.Stop(); //No need for timeout on last command
+            _commandTimer.Stop();
             _commandReady = true;
             ProcessQueue();
         }
@@ -247,57 +265,34 @@ namespace PepperDash.Essentials.Devices.Common.LightwareUcx
             }
         }
 
-        public void RouteInput(ushort input)
+        public void RouteVideoInput(ushort input, ushort output)
         {
-            if (input == 0)
+            if (input <= VideoInputs.Count && output > 0 && output <= VideoOutputs.Count)
             {
-                AutoSwitchOn();
-            }
-            else
-            {
-                AutoSwitchOff();
-                QueueCommand(string.Format("{0}!\r", input));
+                QueueCommand(string.Format("CALL /V1/MEDIA/VIDEO/XP:switch(I{0}:O{1})", input, output));
             }
         }
 
-        public void AutoSwitchOn()
+        public void RouteAudioInput(ushort input, ushort output)
         {
-            QueueCommand("SET /V1/MEDIA/VIDEO/AUTOSELECT/O1.Policy=Last Detect");
-        }
-
-        public void AutoSwitchOff()
-        {
-            QueueCommand("SET /V1/MEDIA/VIDEO/AUTOSELECT/O1.Policy=Off");
-        }
-
-        private void CalculateInputFb()
-        {
-            if (AutoSwitchFb)
+            if (input <= AudioInputs.Count && output > 0 && output <= AudioOutputs.Count)
             {
-                _autoModeInputFb = RawInputFb;
-                AutoModeInputFb.FireUpdate();
-
-                _inputFb = 0;
-                VideoSourceNumericFeedback.FireUpdate();
-                AudioSourceNumericFeedback.FireUpdate();
+                QueueCommand(string.Format("CALL /V1/MEDIA/AUDIO/XP:switch(I{0}:O{1})", input, output));
             }
-            else
-            {
-                _inputFb = RawInputFb;
-                VideoSourceNumericFeedback.FireUpdate();
-                AudioSourceNumericFeedback.FireUpdate();
-
-                _autoModeInputFb = 0;
-                AutoModeInputFb.FireUpdate();
-            }
-
-            OnSwitchChange(_inputFb);
         }
 
-        private void OnSwitchChange(ushort input)
+        public void RouteUsbInput(ushort input, ushort output)
         {
-            RoutingNumericEventArgs e = new RoutingNumericEventArgs(1, input,
-                null, null, eRoutingSignalType.AudioVideo);
+            if (input <= UsbInputs.Count && output == 1)
+            {
+                QueueCommand(string.Format("CALL /V1/MEDIA/USB/XP:switch(U{0}:H1)", input));
+            }
+        }
+
+        private void OnSwitchChange(ushort input, ushort output, eRoutingSignalType signalType)
+        {
+            RoutingNumericEventArgs e = new RoutingNumericEventArgs(output, input,
+                null, null, signalType);
 
             if (NumericSwitchChange != null)
             {
@@ -305,54 +300,17 @@ namespace PepperDash.Essentials.Devices.Common.LightwareUcx
             }
         }
 
-        /// <summary>
-        /// Communication bytes received
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e">Event args</param>
-        private void Communication_BytesReceived(object sender, GenericCommMethodReceiveBytesArgs e)
+        private void GatherOnLineReceived(object sender, GenericCommMethodReceiveTextArgs e)
         {
             try
             {
                 _feedbackMutex.WaitForMutex();
-
-                // Append the incoming bytes to whatever is in the buffer
-                byte[] newBytes = new byte[_incomingBuffer.Length + e.Bytes.Length];
-                _incomingBuffer.CopyTo(newBytes, 0);
-                e.Bytes.CopyTo(newBytes, _incomingBuffer.Length);
-
-                // Look for CRLF and process when found
-                int start = 0;
-                for (int i = 1; i < newBytes.Length; i++)
-                {
-                    if (newBytes[i] == 0x0A && newBytes[i - 1] == 0x0D)
-                    {
-                        byte[] message = new byte[i - start - 1];
-
-                        //Copy bytes to new array without the CRLF and then process
-                        Array.Copy(newBytes, start, message, 0, i - start - 1);
-                        start = i + 1;
-                        CrestronInvoke.BeginInvoke((o) => processResponse(message));
-                    }
-                }
-
-                int extraDataLength = newBytes.Length - start;
-                if (extraDataLength > 0 && extraDataLength < 30)
-                {
-                    // Copy data after last CRLF to new incoming buffer
-                    _incomingBuffer = new byte[extraDataLength];
-                    Array.Copy(newBytes, start, _incomingBuffer, 0, extraDataLength);
-                }
-                else
-                {
-                    _incomingBuffer = new byte[] { };
-                }
+                processResponse(e.Text);
             }
             catch (Exception ex)
             {
                 Debug.LogError(Debug.ErrorLogLevel.Warning,
-                    string.Format("ExtronDsc exception parsing feedback: {0}, {1}", ex.Message,
-                        ComTextHelper.GetEscapedText(_incomingBuffer)));
+                    string.Format("Lightware exception parsing feedback: {0}, {1}", ex.Message, e.Text));
             }
             finally
             {
@@ -360,13 +318,214 @@ namespace PepperDash.Essentials.Devices.Common.LightwareUcx
             }
         }
 
-        private void processResponse(byte[] response)
+        private void processResponse(string response)
         {
-            if (response.Length < 1)
-                return;
-            string responseText = Encoding.GetEncoding(28591).GetString(response, 0, response.Length);
-            Debug.Console(0, this, "Parsing: {0}", ComTextHelper.GetDebugText(responseText));
+            Debug.Console(0, this, "Parsing: {0}", response);
+
+            string[] responseArray = response.Split(' ');
+            switch (responseArray[0])
+            {
+                case "CHG":
+                    Debug.Console(2, this, "Change notification");
+                    ProcessProperty(responseArray[1]);
+                    break;
+                case "o-":
+                    //Subscription notification
+                    Debug.Console(2, this, "Subscription notification");
+                    _subscriptionTimer.Stop();
+                    break;
+                case "n-":
+                    Debug.Console(2, this, "Node");
+                    ProcessNode(responseArray[1]);
+                    break;
+                case "nE":
+                    Debug.Console(2, this, "Error response for a node");
+                    break;
+                case "nm":
+                    Debug.Console(2, this, "Manual for a node");
+                    break;
+                case "pr":
+                    Debug.Console(2, this, "Read-only property");
+                    ProcessProperty(responseArray[1]);
+                    break;
+                case "pw":
+                    Debug.Console(2, this, "Read-write property");
+                    ProcessProperty(responseArray[1]);
+                    break;
+                case "pE":
+                    Debug.Console(2, this, "Error for the property");
+                    break;
+                case "pm":
+                    Debug.Console(2, this, "Manual for the property");
+                    break;
+                case "m-":
+                    Debug.Console(2, this, "Method");
+                    break;
+                case "mO":
+                    Debug.Console(2, this, "Response after a successful method execution");
+                    break;
+                case "mF":
+                    Debug.Console(2, this, "Response after a failed method execution");
+                    break;
+                case "mE":
+                    Debug.Console(2, this, "Error for a method");
+                    break;
+                case "mm":
+                    Debug.Console(2, this, "Manual for a method");
+                    break;
+                default:
+                    Debug.Console(2, this, "Unknown response code");
+                    break;
+            }
+
             readyForNextCommand();
+        }
+
+        private void ProcessNode(string node)
+        {
+            // Split the path into segments
+            string[] segments = node.Split('/');
+            if (segments.Length == 6 && segments[1] == "V1" && segments[2] == "MEDIA" && segments[4] == "XP")
+            {
+                switch (segments[3])
+                {
+                    case "VIDEO":
+                        if (segments[5].StartsWith("I") && !VideoInputs.Contains(segments[5]))
+                        {
+                            VideoInputs.Add(segments[5]);
+                        }
+                        else if (segments[5].StartsWith("O") && !VideoOutputs.Contains(segments[5]))
+                        {
+                            VideoOutputs.Add(segments[5]);
+                        }
+
+                        break;
+                    case "AUDIO":
+                        if (segments[5].StartsWith("I") && !AudioInputs.Contains(segments[5]))
+                        {
+                            AudioInputs.Add(segments[5]);
+                        }
+                        else if (segments[5].StartsWith("O") && !AudioOutputs.Contains(segments[5]))
+                        {
+                            AudioOutputs.Add(segments[5]);
+                        }
+
+                        break;
+                    case "USB":
+                        if (segments[5].StartsWith("U") && !UsbInputs.Contains(segments[5]))
+                        {
+                            UsbInputs.Add(segments[5]);
+                        }
+                        else if (segments[5].StartsWith("H") && !UsbOutputs.Contains(segments[5]))
+                        {
+                            UsbOutputs.Add(segments[5]);
+                        }
+
+                        break;
+                }
+            }
+        }
+
+        private void ProcessProperty(string path)
+        {
+            // Split the path into segments
+            string[] segments = path.Split('/', '.', '=');
+            switch (segments[1])
+            {
+                case "V1":
+                    switch (segments[2])
+                    {
+                        case "MEDIA":
+                        {
+                            switch (segments[3])
+                            {
+                                case "VIDEO":
+                                    ProcessVideoProperties(segments);
+                                    break;
+                                case "AUDIO":
+                                    ProcessAudioProperties(segments);
+                                    break;
+                                case "USB":
+                                    ProcessUsbProperties(segments);
+                                    break;
+                            }
+
+                            break;
+                        }
+                    }
+
+                    break;
+            }
+        }
+
+        private void ProcessVideoProperties(string[] segments)
+        {
+            if (segments[4] == "XP")
+            {
+                if (segments[5].StartsWith("O") && segments[6] == "ConnectedSource")
+                {
+                    int output = VideoOutputs.IndexOf(segments[5]);
+                    int input = VideoInputs.IndexOf(segments[7]) + 1;
+                    if (output >= 0 && input >= 0)
+                    {
+                        _videoOutputRouteFb[output] = (ushort)input;
+                        VideoOutputRouteFeedbacks[output].FireUpdate();
+                        OutputVideoRouteNameFeedbacks[output].FireUpdate();
+                        OnSwitchChange((ushort)input, (ushort)(output + 1), eRoutingSignalType.Video);
+                    }
+                }
+            }
+            else if (segments[5] == "SignalPresent")
+            {
+                int input = VideoInputs.IndexOf(segments[4]);
+                if (input >= 0)
+                {
+                    _videoInputSyncFb[input] = segments[6] == "true";
+                    VideoInputSyncFeedbacks[input].FireUpdate();
+                }
+            }
+        }
+
+        private void ProcessAudioProperties(string[] segments)
+        {
+            switch (segments[4])
+            {
+                case "XP":
+                    if (segments[5].StartsWith("O") && segments[6] == "ConnectedSource")
+                    {
+                        int output = AudioOutputs.IndexOf(segments[5]);
+                        int input = AudioInputs.IndexOf(segments[7]) + 1;
+                        if (output >= 0 && input >= 0)
+                        {
+                            _audioOutputRouteFb[output] = (ushort)input;
+                            AudioOutputRouteFeedbacks[output].FireUpdate();
+                            OutputAudioRouteNameFeedbacks[output].FireUpdate();
+                            OnSwitchChange((ushort)input, (ushort)(output + 1), eRoutingSignalType.Audio);
+                        }
+                    }
+
+                    break;
+            }
+        }
+
+        private void ProcessUsbProperties(string[] segments)
+        {
+            switch (segments[4])
+            {
+                case "XP":
+                    if (segments[5].StartsWith("U") && segments[6] == "ConnectedSource")
+                    {
+                        int input = UsbInputs.IndexOf(segments[7]) + 1;
+                        if (input >= 0)
+                        {
+                            _usbOutputRouteFb = (ushort)input;
+                            UsbOutputRouteFeedback.FireUpdate();
+                            OnSwitchChange((ushort)input, 1, eRoutingSignalType.UsbOutput);
+                        }
+                    }
+
+                    break;
+            }
         }
 
         #region IBridge Members
@@ -380,29 +539,65 @@ namespace PepperDash.Essentials.Devices.Common.LightwareUcx
             }
 
             CommunicationMonitor.IsOnlineFeedback.LinkInputSig(trilist.BooleanInput[joinMap.IsOnline.JoinNumber]);
+            trilist.StringInput[joinMap.Name.JoinNumber].StringValue = Name;
 
-            //Names
-            trilist.StringInput[joinMap.Name.JoinNumber].StringValue = this.Name;
-            Input1VideoNameFb.LinkInputSig(trilist.StringInput[joinMap.Input1Name.JoinNumber]);
-            Input2VideoNameFb.LinkInputSig(trilist.StringInput[joinMap.Input2Name.JoinNumber]);
-            Input3VideoNameFb.LinkInputSig(trilist.StringInput[joinMap.Input3Name.JoinNumber]);
-            Input4VideoNameFb.LinkInputSig(trilist.StringInput[joinMap.Input4Name.JoinNumber]);
+            for (ushort i = 0; i <= VideoInputNames.Count; i++)
+            {
+                //Digital
+                VideoInputSyncFeedbacks[i]
+                    .LinkInputSig(trilist.BooleanInput[joinMap.VideoSyncStatus.JoinNumber + i]);
 
-            //Video Sync
-            Input1SyncFb.LinkInputSig(trilist.BooleanInput[joinMap.Input1VideoSyncStatus.JoinNumber]);
-            Input2SyncFb.LinkInputSig(trilist.BooleanInput[joinMap.Input2VideoSyncStatus.JoinNumber]);
-            Input3SyncFb.LinkInputSig(trilist.BooleanInput[joinMap.Input3VideoSyncStatus.JoinNumber]);
-            Input4SyncFb.LinkInputSig(trilist.BooleanInput[joinMap.Input4VideoSyncStatus.JoinNumber]);
+                //Serial                
+                VideoInputNameFeedbacks[i]
+                    .LinkInputSig(trilist.StringInput[joinMap.InputNames.JoinNumber + i]);
+                VideoInputNameFeedbacks[i]
+                    .LinkInputSig(trilist.StringInput[joinMap.InputVideoNames.JoinNumber + i]);
+            }
 
-            //Routing
-            trilist.SetUShortSigAction(joinMap.VideoInput.JoinNumber, RouteInput);
-            VideoSourceNumericFeedback.LinkInputSig(trilist.UShortInput[joinMap.VideoInput.JoinNumber]);
-            AutoModeInputFb.LinkInputSig(trilist.UShortInput[joinMap.AutoModeInput.JoinNumber]);
+            for (ushort i = 0; i <= VideoOutputNames.Count; i++)
+            {
+                ushort output = i;
+                //Analog
+                VideoOutputRouteFeedbacks[i]
+                    .LinkInputSig(trilist.UShortInput[joinMap.OutputVideo.JoinNumber + i]);
+                trilist.SetUShortSigAction(joinMap.OutputVideo.JoinNumber + i,
+                    (a) => ExecuteNumericSwitch(a, output, eRoutingSignalType.Video));
 
-            Input1VideoNameFb.FireUpdate();
-            Input2VideoNameFb.FireUpdate();
-            Input3VideoNameFb.FireUpdate();
-            Input4VideoNameFb.FireUpdate();
+                //Serial
+                VideoOutputNameFeedbacks[i]
+                    .LinkInputSig(trilist.StringInput[joinMap.OutputNames.JoinNumber + i]);
+                VideoOutputNameFeedbacks[i]
+                    .LinkInputSig(trilist.StringInput[joinMap.OutputVideoNames.JoinNumber + i]);
+                OutputVideoRouteNameFeedbacks[i]
+                    .LinkInputSig(trilist.StringInput[joinMap.OutputCurrentVideoInputNames.JoinNumber + i]);
+            }
+
+            for (ushort i = 0; i <= AudioInputNames.Count; i++)
+            {
+                //Serial                
+                AudioInputNameFeedbacks[i]
+                    .LinkInputSig(trilist.StringInput[joinMap.InputAudioNames.JoinNumber + i]);
+            }
+
+            for (ushort i = 0; i <= AudioOutputNames.Count; i++)
+            {
+                ushort output = i;
+                //Analog
+                AudioOutputRouteFeedbacks[i]
+                    .LinkInputSig(trilist.UShortInput[joinMap.OutputAudio.JoinNumber + i]);
+                trilist.SetUShortSigAction(joinMap.OutputAudio.JoinNumber + i,
+                    (a) => ExecuteNumericSwitch(a, output, eRoutingSignalType.Audio));
+
+                //Serial
+                AudioOutputNameFeedbacks[i]
+                    .LinkInputSig(trilist.StringInput[joinMap.OutputAudioNames.JoinNumber + i]);
+                OutputAudioRouteNameFeedbacks[i]
+                    .LinkInputSig(trilist.StringInput[joinMap.OutputCurrentAudioInputNames.JoinNumber + i]);
+            }
+
+            UsbOutputRouteFeedback.LinkInputSig(trilist.UShortInput[joinMap.OutputUsb.JoinNumber + 1]);
+            trilist.SetUShortSigAction(joinMap.OutputUsb.JoinNumber + 1,
+                (a) => ExecuteNumericSwitch(a, 0, eRoutingSignalType.UsbOutput));
         }
 
         #endregion
@@ -411,8 +606,12 @@ namespace PepperDash.Essentials.Devices.Common.LightwareUcx
 
         public void Poll()
         {
-            //Query HDCP Notification
-            QueueCommand("OPEN");
+            if (Communication.IsConnected)
+            {
+                _subscriptionTimer.Reset(5000);
+                //Query open subscriptions
+                QueueCommand("OPEN");
+            }
         }
 
         #endregion
@@ -427,29 +626,30 @@ namespace PepperDash.Essentials.Devices.Common.LightwareUcx
 
         public void ExecuteNumericSwitch(ushort input, ushort output, eRoutingSignalType type)
         {
-            RouteInput(input);
+            switch (type)
+            {
+                case eRoutingSignalType.Video:
+                    RouteVideoInput(input, output);
+                    break;
+                case eRoutingSignalType.Audio:
+                    RouteAudioInput(input, output);
+                    break;
+                case eRoutingSignalType.UsbOutput:
+                    RouteUsbInput(input, output);
+                    break;
+            }
         }
 
-        public IntFeedback VideoSourceNumericFeedback { get; private set; }
-        public IntFeedback AudioSourceNumericFeedback { get; private set; }
         public event EventHandler<RoutingNumericEventArgs> NumericSwitchChange;
-    }
 
-    public class LightwareUcxPropertiesConfig
-    {
-        [JsonProperty("input1VideoName")] public string Input1VideoName { get; set; }
-        [JsonProperty("input2VideoName")] public string Input2VideoName { get; set; }
-        [JsonProperty("input3VideoName")] public string Input3VideoName { get; set; }
-        [JsonProperty("input4VideoName")] public string Input4VideoName { get; set; }
-        [JsonProperty("input1UsbName")] public string Input1UsbName { get; set; }
-        [JsonProperty("input2UsbName")] public string Input2UsbName { get; set; }
-        [JsonProperty("input3UsbName")] public string Input3UsbName { get; set; }
-        [JsonProperty("input4UsbName")] public string Input4UsbName { get; set; }
-        [JsonProperty("output1VideoName")] public string Output1VideoName { get; set; }
-        [JsonProperty("output2VideoName")] public string Output2VideoName { get; set; }
-        [JsonProperty("output3VideoName")] public string Output3VideoName { get; set; }
-
-        [JsonProperty("control")] public ControlPropertiesConfig Control { get; set; }
+        public void Dispose()
+        {
+            if (_commandQueue != null) _commandQueue.Dispose();
+            if (_commandMutex != null) _commandMutex.Dispose();
+            if (_commandTimer != null) _commandTimer.Dispose();
+            if (_feedbackMutex != null) _feedbackMutex.Dispose();
+            if (_subscriptionTimer != null) _subscriptionTimer.Dispose();
+        }
     }
 
     public class LightwareUcxFactory : EssentialsDeviceFactory<LightwareUcxDevice>
@@ -463,173 +663,16 @@ namespace PepperDash.Essentials.Devices.Common.LightwareUcx
         {
             Debug.Console(1, "Factory Attempting to create new Lightware Ucx device");
 
-            IBasicCommunication comms = CommFactory.CreateCommForDevice(dc);
+            ISocketStatus comms = CommFactory.CreateCommForDevice(dc) as ISocketStatus;
+            if (comms == null)
+            {
+                Debug.ConsoleWithLog(0, "Lightware Ucx device needs to use a socket for comms");
+                return null;
+            }
+
             LightwareUcxPropertiesConfig config = dc.Properties.ToObject<LightwareUcxPropertiesConfig>();
 
             return new LightwareUcxDevice(dc.Key, dc.Name, comms, config);
-        }
-    }
-
-    public class LightwareUcxJoinMap : JoinMapBaseAdvanced
-    {
-        [JoinName("IsOnline")] public JoinDataComplete IsOnline = new JoinDataComplete(
-            new JoinData { JoinNumber = 1, JoinSpan = 1 },
-            new JoinMetadata
-            {
-                Description = "DM TX Online", JoinCapabilities = eJoinCapabilities.ToSIMPL, JoinType = eJoinType.Digital
-            });
-
-        [JoinName("VideoSyncStatus")] public JoinDataComplete VideoSyncStatus = new JoinDataComplete(
-            new JoinData { JoinNumber = 2, JoinSpan = 1 },
-            new JoinMetadata
-            {
-                Description = "DM TX Video Sync", JoinCapabilities = eJoinCapabilities.ToSIMPL,
-                JoinType = eJoinType.Digital
-            });
-
-        [JoinName("FreeRunEnabled")] public JoinDataComplete FreeRunEnabled = new JoinDataComplete(
-            new JoinData { JoinNumber = 3, JoinSpan = 1 },
-            new JoinMetadata
-            {
-                Description = "DM TX Enable Free Run Set / Get", JoinCapabilities = eJoinCapabilities.ToFromSIMPL,
-                JoinType = eJoinType.Digital
-            });
-
-        [JoinName("Input1VideoSyncStatus")] public JoinDataComplete Input1VideoSyncStatus = new JoinDataComplete(
-            new JoinData { JoinNumber = 4, JoinSpan = 1 },
-            new JoinMetadata
-            {
-                Description = "Input 1 Video Sync Status", JoinCapabilities = eJoinCapabilities.ToSIMPL,
-                JoinType = eJoinType.Digital
-            });
-
-        [JoinName("Input2VideoSyncStatus")] public JoinDataComplete Input2VideoSyncStatus = new JoinDataComplete(
-            new JoinData { JoinNumber = 5, JoinSpan = 1 },
-            new JoinMetadata
-            {
-                Description = "Input 2 Video Sync Status", JoinCapabilities = eJoinCapabilities.ToSIMPL,
-                JoinType = eJoinType.Digital
-            });
-
-        [JoinName("Input3VideoSyncStatus")] public JoinDataComplete Input3VideoSyncStatus = new JoinDataComplete(
-            new JoinData { JoinNumber = 6, JoinSpan = 1 },
-            new JoinMetadata
-            {
-                Description = "Input 3 Video Sync Status", JoinCapabilities = eJoinCapabilities.ToSIMPL,
-                JoinType = eJoinType.Digital
-            });
-
-        [JoinName("Input4VideoSyncStatus")] public JoinDataComplete Input4VideoSyncStatus = new JoinDataComplete(
-            new JoinData { JoinNumber = 7, JoinSpan = 1 },
-            new JoinMetadata
-            {
-                Description = "Input 4 Video Sync Status", JoinCapabilities = eJoinCapabilities.ToSIMPL,
-                JoinType = eJoinType.Digital
-            });
-
-        [JoinName("CurrentInputResolution")] public JoinDataComplete CurrentInputResolution = new JoinDataComplete(
-            new JoinData { JoinNumber = 1, JoinSpan = 1 },
-            new JoinMetadata
-            {
-                Description = "DM TX Current Input Resolution", JoinCapabilities = eJoinCapabilities.ToSIMPL,
-                JoinType = eJoinType.Serial
-            });
-
-        [JoinName("Name")] public JoinDataComplete Name = new JoinDataComplete(
-            new JoinData { JoinNumber = 2, JoinSpan = 1 },
-            new JoinMetadata
-            {
-                Description = "DM TX Name", JoinCapabilities = eJoinCapabilities.ToSIMPL, JoinType = eJoinType.Serial
-            });
-
-        [JoinName("Input0Name")] public JoinDataComplete Input0Name = new JoinDataComplete(
-            new JoinData { JoinNumber = 3, JoinSpan = 1 },
-            new JoinMetadata
-            {
-                Description = "DM TX Input 0 (Auto Switch) Name", JoinCapabilities = eJoinCapabilities.ToSIMPL,
-                JoinType = eJoinType.Serial
-            });
-
-        [JoinName("Input1Name")] public JoinDataComplete Input1Name = new JoinDataComplete(
-            new JoinData { JoinNumber = 4, JoinSpan = 1 },
-            new JoinMetadata
-            {
-                Description = "DM TX Input 1 Name", JoinCapabilities = eJoinCapabilities.ToSIMPL,
-                JoinType = eJoinType.Serial
-            });
-
-        [JoinName("Input2Name")] public JoinDataComplete Input2Name = new JoinDataComplete(
-            new JoinData { JoinNumber = 5, JoinSpan = 1 },
-            new JoinMetadata
-            {
-                Description = "DM TX Input 2 Name", JoinCapabilities = eJoinCapabilities.ToSIMPL,
-                JoinType = eJoinType.Serial
-            });
-
-        [JoinName("Input3Name")] public JoinDataComplete Input3Name = new JoinDataComplete(
-            new JoinData { JoinNumber = 6, JoinSpan = 1 },
-            new JoinMetadata
-            {
-                Description = "DM TX Input 3 Name", JoinCapabilities = eJoinCapabilities.ToSIMPL,
-                JoinType = eJoinType.Serial
-            });
-
-        [JoinName("Input4Name")] public JoinDataComplete Input4Name = new JoinDataComplete(
-            new JoinData { JoinNumber = 7, JoinSpan = 1 },
-            new JoinMetadata
-            {
-                Description = "DM TX Input 4 Name", JoinCapabilities = eJoinCapabilities.ToSIMPL,
-                JoinType = eJoinType.Serial
-            });
-
-        [JoinName("VideoInput")] public JoinDataComplete VideoInput = new JoinDataComplete(
-            new JoinData { JoinNumber = 1, JoinSpan = 1 },
-            new JoinMetadata
-            {
-                Description = "DM TX Video Input Set / Get", JoinCapabilities = eJoinCapabilities.ToFromSIMPL,
-                JoinType = eJoinType.Analog
-            });
-
-        [JoinName("AudioInput")] public JoinDataComplete AudioInput = new JoinDataComplete(
-            new JoinData { JoinNumber = 2, JoinSpan = 1 },
-            new JoinMetadata
-            {
-                Description = "DM TX Audio Input Set / Get", JoinCapabilities = eJoinCapabilities.ToFromSIMPL,
-                JoinType = eJoinType.Analog
-            });
-
-        [JoinName("AutoModeInput")] public JoinDataComplete AutoModeInput = new JoinDataComplete(
-            new JoinData { JoinNumber = 3, JoinSpan = 1 },
-            new JoinMetadata
-            {
-                Description = "DM TX Auto Mode Input Get", JoinCapabilities = eJoinCapabilities.ToSIMPL,
-                JoinType = eJoinType.Analog
-            });
-
-        [JoinName("HdcpSupportCapability")] public JoinDataComplete HdcpSupportCapability = new JoinDataComplete(
-            new JoinData { JoinNumber = 3, JoinSpan = 1 },
-            new JoinMetadata
-            {
-                Description = "DM TX HDCP Support Capability", JoinCapabilities = eJoinCapabilities.ToSIMPL,
-                JoinType = eJoinType.Analog
-            });
-
-        /// <summary>
-        /// Constructor to use when instantiating this Join Map without inheriting from it
-        /// </summary>
-        /// <param name="joinStart">Join this join map will start at</param>
-        public LightwareUcxJoinMap(uint joinStart)
-            : this(joinStart, typeof(LightwareUcxJoinMap))
-        {
-        }
-
-        /// <summary>
-        /// Constructor to use when extending this Join map
-        /// </summary>
-        /// <param name="joinStart">Join this join map will start at</param>
-        /// <param name="type">Type of the child join map</param>
-        protected LightwareUcxJoinMap(uint joinStart, Type type) : base(joinStart, type)
-        {
         }
     }
 }

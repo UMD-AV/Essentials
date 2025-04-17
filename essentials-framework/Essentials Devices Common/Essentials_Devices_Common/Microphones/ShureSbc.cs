@@ -100,7 +100,7 @@ namespace PepperDash.Essentials.Devices.Common.ShureSbc
         }
 
         /// <summary>
-        /// Deivce error feedback
+        /// Device error feedback
         /// </summary>
         public StringFeedback ErrorFeedback { get; private set; }
 
@@ -167,7 +167,7 @@ namespace PepperDash.Essentials.Devices.Common.ShureSbc
             ISocketStatus socket = _comms as ISocketStatus;
             if (socket != null)
             {
-                // device comms is IP **ELSE** device comms is RS232
+                // device comms is Ethernet, otherwise device comms is RS232
                 socket.ConnectionChange += socket_ConnectionChange;
                 SocketStatusFeedback = new IntFeedback(() => (int)socket.ClientStatus);
             }
@@ -191,7 +191,7 @@ namespace PepperDash.Essentials.Devices.Common.ShureSbc
         private void armBatteryCheckTimer()
         {
             //Try to arm check for 5 AM
-            //This will typically run at 4 AM then adjust to 5 AM
+            //This will typically run at 4 AM then adjust to 5 AM.
             //The purpose of running at 4 AM is to check in case of DST that we didn't jump forward 1 hour
             DateTime now = DateTime.Now;
             DateTime fiveAM = DateTime.Today.AddHours(5);
@@ -808,7 +808,7 @@ namespace PepperDash.Essentials.Devices.Common.ShureSbc
         /// <summary>
         /// Get device online feedback
         /// </summary>
-        [JoinName("IsOnline")] public JoinDataComplete IsOnline = new JoinDataComplete(
+        [JoinName("IsOnline")] public readonly JoinDataComplete IsOnline = new JoinDataComplete(
             new JoinData
             {
                 JoinNumber = 1,
@@ -824,7 +824,7 @@ namespace PepperDash.Essentials.Devices.Common.ShureSbc
         /// <summary>
         /// Refresh all data
         /// </summary>
-        [JoinName("RefreshData")] public JoinDataComplete RefreshData = new JoinDataComplete(
+        [JoinName("RefreshData")] public readonly JoinDataComplete RefreshData = new JoinDataComplete(
             new JoinData
             {
                 JoinNumber = 2,
@@ -840,7 +840,7 @@ namespace PepperDash.Essentials.Devices.Common.ShureSbc
         /// <summary>
         /// Get enabled feedback for a battery
         /// </summary>
-        [JoinName("BatteryEnabled")] public JoinDataComplete BatteryEnabled = new JoinDataComplete(
+        [JoinName("TxEnabled")] public readonly JoinDataComplete BatteryEnabled = new JoinDataComplete(
             new JoinData
             {
                 JoinNumber = 11,
@@ -856,7 +856,7 @@ namespace PepperDash.Essentials.Devices.Common.ShureSbc
         /// <summary>
         /// Get present feedback for a battery
         /// </summary>
-        [JoinName("BatteryPresent")] public JoinDataComplete BatteryPresent = new JoinDataComplete(
+        [JoinName("TxDocked")] public readonly JoinDataComplete BatteryPresent = new JoinDataComplete(
             new JoinData
             {
                 JoinNumber = 21,
@@ -872,7 +872,7 @@ namespace PepperDash.Essentials.Devices.Common.ShureSbc
         /// <summary>
         /// Get present feedback for a battery at 5AM
         /// </summary>
-        [JoinName("BatteryPresent5AM")] public JoinDataComplete BatteryPresent5AM = new JoinDataComplete(
+        [JoinName("TxDocked5AM")] public readonly JoinDataComplete BatteryPresent5AM = new JoinDataComplete(
             new JoinData
             {
                 JoinNumber = 31,
@@ -888,7 +888,7 @@ namespace PepperDash.Essentials.Devices.Common.ShureSbc
         /// <summary>
         /// Report battery check ran at 5AM
         /// </summary>
-        [JoinName("Battery5AMCheckRan")] public JoinDataComplete Battery5AMCheckRan = new JoinDataComplete(
+        [JoinName("Docked5AMCheckRan")] public readonly JoinDataComplete Battery5AMCheckRan = new JoinDataComplete(
             new JoinData
             {
                 JoinNumber = 40,
@@ -909,7 +909,7 @@ namespace PepperDash.Essentials.Devices.Common.ShureSbc
         /// Get device socket status join map
         /// </summary>
         /// <see cref="Crestron.SimplSharp.CrestronSockets.SocketStatus"/>
-        [JoinName("SocketStatus")] public JoinDataComplete SocketStatus = new JoinDataComplete(
+        [JoinName("SocketStatus")] public readonly JoinDataComplete SocketStatus = new JoinDataComplete(
             new JoinData
             {
                 JoinNumber = 1,
@@ -926,7 +926,7 @@ namespace PepperDash.Essentials.Devices.Common.ShureSbc
         /// Get device monitor status join map
         /// </summary>
         /// <see cref="PepperDash.Essentials.Core.MonitorStatus"/>
-        [JoinName("MonitorStatus")] public JoinDataComplete MonitorStatus = new JoinDataComplete(
+        [JoinName("MonitorStatus")] public readonly JoinDataComplete MonitorStatus = new JoinDataComplete(
             new JoinData
             {
                 JoinNumber = 2,
@@ -947,7 +947,7 @@ namespace PepperDash.Essentials.Devices.Common.ShureSbc
         /// 254 = error,
         /// 255 = unknown
         /// </remarks>
-        [JoinName("PercentCharge")] public JoinDataComplete PercentCharge = new JoinDataComplete(
+        [JoinName("PercentCharge")] public readonly JoinDataComplete PercentCharge = new JoinDataComplete(
             new JoinData
             {
                 JoinNumber = 11,
@@ -968,7 +968,7 @@ namespace PepperDash.Essentials.Devices.Common.ShureSbc
         /// 254 = error,
         /// 255 = unknown
         /// </remarks>
-        [JoinName("PercentHealth")] public JoinDataComplete PercentHealth = new JoinDataComplete(
+        [JoinName("PercentHealth")] public readonly JoinDataComplete PercentHealth = new JoinDataComplete(
             new JoinData
             {
                 JoinNumber = 21,
@@ -989,7 +989,7 @@ namespace PepperDash.Essentials.Devices.Common.ShureSbc
         /// 254 = error,
         /// 255 = unknown
         /// </remarks>
-        [JoinName("TemperatureF")] public JoinDataComplete TemperatureF = new JoinDataComplete(
+        [JoinName("TemperatureF")] public readonly JoinDataComplete TemperatureF = new JoinDataComplete(
             new JoinData
             {
                 JoinNumber = 31,
@@ -1005,7 +1005,7 @@ namespace PepperDash.Essentials.Devices.Common.ShureSbc
         /// <summary>
         /// Get battery error
         /// </summary>
-        [JoinName("BatteryError")] public JoinDataComplete BatteryError = new JoinDataComplete(
+        [JoinName("BatteryError")] public readonly JoinDataComplete BatteryError = new JoinDataComplete(
             new JoinData
             {
                 JoinNumber = 41,
@@ -1023,9 +1023,9 @@ namespace PepperDash.Essentials.Devices.Common.ShureSbc
         #region Serial
 
         /// <summary>
-        /// Get device name
+        /// Get the device name
         /// </summary>
-        [JoinName("DeviceName")] public JoinDataComplete DeviceName = new JoinDataComplete(
+        [JoinName("DeviceName")] public readonly JoinDataComplete DeviceName = new JoinDataComplete(
             new JoinData
             {
                 JoinNumber = 1,
@@ -1039,9 +1039,9 @@ namespace PepperDash.Essentials.Devices.Common.ShureSbc
             });
 
         /// <summary>
-        /// Get device model
+        /// Get the device model
         /// </summary>
-        [JoinName("DeviceModel")] public JoinDataComplete DeviceModel = new JoinDataComplete(
+        [JoinName("DeviceModel")] public readonly JoinDataComplete DeviceModel = new JoinDataComplete(
             new JoinData
             {
                 JoinNumber = 2,
@@ -1055,25 +1055,26 @@ namespace PepperDash.Essentials.Devices.Common.ShureSbc
             });
 
         /// <summary>
-        /// Get device firmware version
+        /// Get the device firmware version
         /// </summary>
-        [JoinName("DeviceFirmwareVersion")] public JoinDataComplete DeviceFirmwareVersion = new JoinDataComplete(
-            new JoinData
-            {
-                JoinNumber = 4,
-                JoinSpan = 1
-            },
-            new JoinMetadata
-            {
-                Description = "Device Firmware Version",
-                JoinCapabilities = eJoinCapabilities.ToSIMPL,
-                JoinType = eJoinType.Serial
-            });
+        [JoinName("DeviceFirmwareVersion")] public readonly JoinDataComplete DeviceFirmwareVersion =
+            new JoinDataComplete(
+                new JoinData
+                {
+                    JoinNumber = 4,
+                    JoinSpan = 1
+                },
+                new JoinMetadata
+                {
+                    Description = "Device Firmware Version",
+                    JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                    JoinType = eJoinType.Serial
+                });
 
         /// <summary>
-        /// Get battery error text
+        /// Get the battery error text
         /// </summary>
-        [JoinName("BatteryErrorText")] public JoinDataComplete BatteryErrorText = new JoinDataComplete(
+        [JoinName("BatteryErrorText")] public readonly JoinDataComplete BatteryErrorText = new JoinDataComplete(
             new JoinData
             {
                 JoinNumber = 11,
@@ -1087,9 +1088,9 @@ namespace PepperDash.Essentials.Devices.Common.ShureSbc
             });
 
         /// <summary>
-        /// Get battery state text
+        /// Get the battery state text
         /// </summary>
-        [JoinName("BatteryStateText")] public JoinDataComplete BatteryStateText = new JoinDataComplete(
+        [JoinName("TxStatusText")] public readonly JoinDataComplete BatteryStateText = new JoinDataComplete(
             new JoinData
             {
                 JoinNumber = 21,
@@ -1164,9 +1165,5 @@ namespace PepperDash.Essentials.Devices.Common.ShureSbc
     public class ShureSbcPropertiesConfig
     {
         [JsonProperty("size")] public int size { get; set; }
-
-        public ShureSbcPropertiesConfig()
-        {
-        }
     }
 }

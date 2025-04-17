@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using Crestron.SimplSharp;
 using Crestron.SimplSharpPro;
 using Crestron.SimplSharpPro.DeviceSupport;
@@ -14,22 +15,7 @@ namespace CrestronNaxAmp
     public class CrestronNaxAmp : CrestronGenericBridgeableBaseDevice
     {
         private readonly DmNaxAmpX300Base _amp;
-
-        /// <summary>
-        /// Mute feedback
-        /// </summary>
-        public BoolFeedback[] MuteFeedback { get; private set; }
-
-        /// <summary>
-        /// Volume feedback
-        /// </summary>
-        public IntFeedback[] VolumeFeedback { get; private set; }
-
-        /// <summary>
-        /// Zone name feedback
-        /// </summary>
-        public StringFeedback[] ZoneNameFeedback { get; private set; }
-
+        private readonly List<NaxFader> _faders;
         private bool _ampFaultState;
 
         /// <summary>
@@ -43,29 +29,31 @@ namespace CrestronNaxAmp
         /// <param name="key">String</param>
         /// <param name="name">String</param>
         /// <param name="ampBase"></param>
-        public CrestronNaxAmp(string key, string name, DmNaxAmpX300Base ampBase)
+        /// <param name="config"></param>
+        public CrestronNaxAmp(string key, string name, DmNaxAmpX300Base ampBase, CrestronNaxAmpPropertiesConfig config)
             : base(key, name, ampBase)
         {
             _amp = ampBase;
+            _faders = new List<NaxFader>();
 
             //Link feedback
             _amp.OnlineStatusChange += IsOnlineFeedback_OutputChange;
             _amp.OnZoneChange += OnZoneChange;
 
             AmpFaultFeedback = new BoolFeedback(() => _ampFaultState);
-            MuteFeedback = new BoolFeedback[_amp.Zones.Count + 1];
-            VolumeFeedback = new IntFeedback[_amp.Zones.Count + 1];
-            ZoneNameFeedback = new StringFeedback[_amp.Zones.Count + 1];
 
-            for (ushort i = 1; i <= _amp.Zones.Count; i++)
+            foreach (CrestronNaxFaderConfig faderConfig in config.Faders)
             {
-                ushort zone = i;
-                MuteFeedback[zone] = new BoolFeedback(() =>
-                    _amp.Zones[zone].MuteOnFeedback != null && _amp.Zones[zone].MuteOnFeedback.BoolValue);
-                VolumeFeedback[zone] = new IntFeedback(() =>
-                    _amp.Zones[zone].VolumeFeedback != null ? _amp.Zones[zone].VolumeFeedback.UShortValue : 0);
-                ZoneNameFeedback[zone] = new StringFeedback(() =>
-                    _amp.Zones[zone].Name.StringValue != null ? _amp.Zones[zone].Name.StringValue : "");
+                NaxFader newFader = new NaxFader(faderConfig);
+                foreach (uint zone in faderConfig.Zones)
+                {
+                    if (_amp.Zones[zone] != null)
+                    {
+                        newFader.AddNaxZone(_amp.Zones[zone]);
+                    }
+                }
+
+                _faders.Add(newFader);
             }
         }
 
@@ -92,34 +80,37 @@ namespace CrestronNaxAmp
             trilist.SetSigTrueAction(joinMap.Presets.JoinNumber, () => SetDefaultVolume());
 
             //Link each zone to the bridge
-            for (ushort i = 1; i <= _amp.Zones.Count; i++)
+            uint i = 0;
+            foreach (NaxFader fader in _faders)
             {
-                ushort zone = i;
+                NaxFader faderLocal = fader;
+                uint zone = i;
+                fader.MuteFeedback.LinkInputSig(trilist.BooleanInput[joinMap.ChannelMuteToggle.JoinNumber + i]);
+                fader.VolumeFeedback.LinkInputSig(trilist.UShortInput[joinMap.ChannelVolume.JoinNumber + i]);
+                fader.ZoneNameFeedback.LinkInputSig(trilist.StringInput[joinMap.ChannelName.JoinNumber + i]);
 
-                MuteFeedback[i].LinkInputSig(trilist.BooleanInput[joinMap.ChannelMuteToggle.JoinNumber + i - 1]);
-                VolumeFeedback[i].LinkInputSig(trilist.UShortInput[joinMap.ChannelVolume.JoinNumber + i - 1]);
-                ZoneNameFeedback[i].LinkInputSig(trilist.StringInput[joinMap.ChannelName.JoinNumber + i - 1]);
+                trilist.UShortInput[joinMap.ChannelType.JoinNumber + i].UShortValue = 0;
+                trilist.BooleanInput[joinMap.ChannelVisible.JoinNumber + i].BoolValue = true;
 
-                trilist.UShortInput[joinMap.ChannelType.JoinNumber + i - 1].UShortValue = 0;
-                trilist.BooleanInput[joinMap.ChannelVisible.JoinNumber + i - 1].BoolValue = true;
+                trilist.SetSigTrueAction(joinMap.ChannelMuteToggle.JoinNumber + i, faderLocal.MuteToggle);
 
-                trilist.SetSigTrueAction(joinMap.ChannelMuteToggle.JoinNumber + i - 1, () => MuteToggle(zone));
-                trilist.SetSigTrueAction(joinMap.ChannelMuteOn.JoinNumber + i - 1, () => MuteOn(zone));
-                trilist.SetSigTrueAction(joinMap.ChannelMuteOff.JoinNumber + i - 1, () => MuteOff(zone));
+                trilist.SetSigTrueAction(joinMap.ChannelMuteOn.JoinNumber + i, faderLocal.MuteOn);
+                trilist.SetSigTrueAction(joinMap.ChannelMuteOff.JoinNumber + i, faderLocal.MuteOff);
 
-                trilist.SetSigFalseAction(joinMap.EnableLevelSend.JoinNumber + i - 1, () =>
+                trilist.SetSigFalseAction(joinMap.EnableLevelSend.JoinNumber + i, () =>
                 {
                     CrestronEnvironment.Sleep(100);
-                    SetVolume(zone, trilist.UShortOutput[joinMap.ChannelVolume.JoinNumber + zone - 1].UShortValue);
+                    faderLocal.SetVolume(trilist.UShortOutput[joinMap.ChannelVolume.JoinNumber + zone].UShortValue);
                 });
 
-                trilist.SetUShortSigAction(joinMap.ChannelVolume.JoinNumber + i - 1, u =>
+                trilist.SetUShortSigAction(joinMap.ChannelVolume.JoinNumber + i, u =>
                 {
-                    if (trilist.BooleanOutput[joinMap.EnableLevelSend.JoinNumber + zone - 1].BoolValue)
+                    if (trilist.BooleanOutput[joinMap.EnableLevelSend.JoinNumber + zone].BoolValue)
                     {
-                        SetVolume(zone, u);
+                        faderLocal.SetVolume(u);
                     }
                 });
+                i++;
             }
         }
 
@@ -143,45 +134,6 @@ namespace CrestronNaxAmp
             AmpFaultFeedback.FireUpdate();
         }
 
-        public void MuteOff(ushort zone)
-        {
-            if (_amp.Zones[zone] != null)
-            {
-                _amp.Zones[zone].MuteOff();
-            }
-        }
-
-        public void MuteOn(ushort zone)
-        {
-            if (_amp.Zones[zone] != null)
-            {
-                _amp.Zones[zone].MuteOn();
-            }
-        }
-
-        public void MuteToggle(ushort zone)
-        {
-            if (_amp.Zones[zone] != null)
-            {
-                if (_amp.Zones[zone].MuteOnFeedback.BoolValue)
-                {
-                    MuteOff(zone);
-                }
-                else
-                {
-                    MuteOn(zone);
-                }
-            }
-        }
-
-        public void SetVolume(ushort zone, ushort value)
-        {
-            if (_amp.Zones[zone] != null)
-            {
-                _amp.Zones[zone].Volume.UShortValue = value;
-            }
-        }
-
         public void SetDefaultVolume()
         {
             for (ushort i = 1; i <= _amp.Zones.Count; i++)
@@ -189,6 +141,7 @@ namespace CrestronNaxAmp
                 if (_amp.Zones[i] != null && _amp.Zones[i].StartupVolumeFeedback != null)
                 {
                     _amp.Zones[i].Volume.UShortValue = _amp.Zones[i].StartupVolumeFeedback.UShortValue;
+                    _amp.Zones[i].MuteOff();
                 }
             }
         }
@@ -209,10 +162,27 @@ namespace CrestronNaxAmp
             switch (args.EventId)
             {
                 case ZoneEventIds.VolumeFeedbackEventId:
-                    VolumeFeedback[args.Zone.Number].FireUpdate();
+                {
+                    foreach (NaxFader fader in _faders)
+                    {
+                        if (fader.Zones.Contains(args.Zone.Number))
+                        {
+                            fader.VolumeFeedback.FireUpdate();
+                        }
+                    }
+
                     break;
+                }
+
                 case ZoneEventIds.MuteOnFeedbackEventId:
-                    MuteFeedback[args.Zone.Number].FireUpdate();
+                    foreach (NaxFader fader in _faders)
+                    {
+                        if (fader.Zones.Contains(args.Zone.Number))
+                        {
+                            fader.MuteFeedback.FireUpdate();
+                        }
+                    }
+
                     break;
                 case ZoneEventIds.DcOffsetFaultEventId:
                 case ZoneEventIds.OverCurrentFaultEventId:
@@ -220,6 +190,80 @@ namespace CrestronNaxAmp
                 case ZoneEventIds.OverOrUnderVoltageFaultEventId:
                     UpdateAmpFaultStatus();
                     break;
+            }
+        }
+    }
+
+    public class NaxFader
+    {
+        private readonly List<DmNaxXZone> _zones = new List<DmNaxXZone>();
+        public readonly List<uint> Zones;
+        public uint Permissions { get; private set; }
+        public bool IsMic { get; private set; }
+        public readonly BoolFeedback MuteFeedback;
+        public readonly IntFeedback VolumeFeedback;
+        public readonly StringFeedback ZoneNameFeedback;
+
+        public NaxFader(CrestronNaxFaderConfig config)
+        {
+            Zones = config.Zones;
+            Permissions = config.Permissions ?? 0;
+            IsMic = config.IsMic ?? false;
+            MuteFeedback = new BoolFeedback(() =>
+            {
+                return _zones.Any(zone => zone.MuteOnFeedback != null && zone.MuteOnFeedback.BoolValue);
+            });
+            VolumeFeedback = new IntFeedback(() => (from zone in _zones
+                where zone.VolumeFeedback != null
+                select zone.VolumeFeedback.UShortValue).FirstOrDefault());
+
+            ZoneNameFeedback = new StringFeedback(() => config.Label ?? "");
+        }
+
+        public void AddNaxZone(DmNaxXZone zone)
+        {
+            _zones.Add(zone);
+        }
+
+        public void MuteOff()
+        {
+            foreach (DmNaxXZone z in _zones)
+            {
+                z.MuteOff();
+            }
+        }
+
+        public void MuteOn()
+        {
+            foreach (DmNaxXZone z in _zones)
+            {
+                z.MuteOn();
+            }
+        }
+
+        public void MuteToggle()
+        {
+            if (MuteFeedback.BoolValue)
+            {
+                foreach (DmNaxXZone z in _zones)
+                {
+                    z.MuteOff();
+                }
+            }
+            else
+            {
+                foreach (DmNaxXZone z in _zones)
+                {
+                    z.MuteOn();
+                }
+            }
+        }
+
+        public void SetVolume(ushort value)
+        {
+            foreach (DmNaxXZone z in _zones)
+            {
+                z.Volume.UShortValue = value;
             }
         }
     }
@@ -247,9 +291,11 @@ namespace CrestronNaxAmp
             switch (type)
             {
                 case ("x300residential"):
-                    return new CrestronNaxAmp(dc.Key, dc.Name, new DmNaxAmpX300Residential(ipid, Global.ControlSystem));
+                    return new CrestronNaxAmp(dc.Key, dc.Name, new DmNaxAmpX300Residential(ipid, Global.ControlSystem),
+                        props);
                 case ("x300commercial"):
-                    return new CrestronNaxAmp(dc.Key, dc.Name, new DmNaxAmpX300Commercial(ipid, Global.ControlSystem));
+                    return new CrestronNaxAmp(dc.Key, dc.Name, new DmNaxAmpX300Commercial(ipid, Global.ControlSystem),
+                        props);
                 default:
                     return null;
             }
@@ -261,6 +307,19 @@ namespace CrestronNaxAmp
     public class CrestronNaxAmpPropertiesConfig
     {
         [JsonProperty("control")] public ControlPropertiesConfig Control { get; set; }
+
+        [JsonProperty("faders")] public List<CrestronNaxFaderConfig> Faders { get; set; }
+    }
+
+    public class CrestronNaxFaderConfig
+    {
+        [JsonProperty("label")] public string Label { get; set; }
+
+        [JsonProperty("isMic")] public bool? IsMic { get; set; }
+
+        [JsonProperty("permissions")] public uint? Permissions { get; set; }
+
+        [JsonProperty("zones")] public List<uint> Zones { get; set; }
     }
 
     /// <summary>

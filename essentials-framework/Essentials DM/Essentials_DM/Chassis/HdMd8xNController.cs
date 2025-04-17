@@ -16,7 +16,7 @@ using Feedback = PepperDash.Essentials.Core.Feedback;
 namespace PepperDash.Essentials.DM.Chassis
 {
     [Description("Wrapper class for all HdMd8xN switchers")]
-    public class HdMd8xNController : CrestronGenericBridgeableBaseDevice, IRoutingNumericWithFeedback, IHasFeedback
+    public class HdMd8xNController : CrestronGenericBridgeableBaseDevice, IRoutingNumericWithFeedback
     {
         private HdMd8xN _Chassis;
 

@@ -214,6 +214,7 @@
         <Compile Include="Environment\nLight\nLight.cs"/>
         <Compile Include="Environment\Overflow\Overflow.cs"/>
         <Compile Include="Microphones\Catchbox.cs"/>
+        <Compile Include="Microphones\ShureMxwapxd2.cs"/>
         <Compile Include="Microphones\ShureUlxd.cs"/>
         <Compile Include="Microphones\ShureSbc.cs"/>
         <Compile Include="Microphones\ShureMxa.cs"/>
@@ -500,7 +501,8 @@
         <Compile Include="VideoCodec\ZoomRoom\ZoomRoomPropertiesConfig.cs"/>
         <Compile Include="Video\ExtronDsc301.cs"/>
         <Compile Include="Video\LightwareUcx\LightwareUcx.cs"/>
-        <Compile Include="Video\LightwareUcx\LightwareUcxWebSocket.cs"/>
+        <Compile Include="Video\LightwareUcx\LightwareUcxJoinMap.cs"/>
+        <Compile Include="Video\LightwareUcx\LightwareUcxPropertiesConfig.cs"/>
         <None Include="packages.config"/>
         <None Include="Properties\ControlSystem.cfg"/>
     </ItemGroup>
