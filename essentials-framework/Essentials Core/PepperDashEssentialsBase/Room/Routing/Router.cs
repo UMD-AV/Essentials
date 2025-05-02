@@ -12,7 +12,7 @@ namespace PepperDash.Essentials.Core.Routing
 {
     public class Router : IKeyName, IBridgeAdvanced
     {
-        public ushort debugLevel = 1;
+        public ushort debugLevel = 0;
         public bool fakeFeedback = false;
         public string Key { get; private set; }
         public string Name { get; private set; }
@@ -391,7 +391,7 @@ namespace PepperDash.Essentials.Core.Routing
         {
             if (debugLevel > 0)
             {
-                Debug.Console(0, "Router {0} trilist online status: {1}", Key, args.DeviceOnLine);
+                Debug.Console(1, "Router {0} trilist online status: {1}", Key, args.DeviceOnLine);
             }
 
             if (!args.DeviceOnLine)

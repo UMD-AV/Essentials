@@ -1142,6 +1142,31 @@
       }
     },
     {
+      "key": "bridge-usb",
+      "name": "USB Bridge",
+      "group": "api",
+      "type": "eiscApiAdvanced",
+      "properties": {
+        "control": {
+          "tcpSshProperties": {
+            "address": "127.0.0.2",
+            "port": 0
+          },
+          "ipId": "AD"
+        },
+        "devices": [
+          {
+            "deviceKey": "usb01",
+            "joinStart": 1
+          },
+          {
+            "deviceKey": "usb02",
+            "joinStart": 2001
+          }
+        ]
+      }
+    },
+    {
       "key": "bridge-sysInfo",
       "group": "api",
       "name": "eisc-Bridge",

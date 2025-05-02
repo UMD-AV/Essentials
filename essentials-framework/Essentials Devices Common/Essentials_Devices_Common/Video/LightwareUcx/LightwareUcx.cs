@@ -13,7 +13,8 @@ namespace PepperDash.Essentials.Devices.Common.LightwareUcx
     public class LightwareUcxDevice : EssentialsBridgeableDevice, IRoutingNumericWithFeedback, IDisposable
     {
         private const ushort maxInputs = 5;
-        private const ushort maxOutputs = 4;
+        private const ushort maxVideoOutputs = 3;
+        private const ushort maxAudioOutputs = 1;
 
         private readonly List<string> VideoInputs = new List<string>();
         private readonly List<string> VideoOutputs = new List<string>();
@@ -30,36 +31,51 @@ namespace PepperDash.Essentials.Devices.Common.LightwareUcx
         private readonly CMutex _feedbackMutex;
         private bool _queueWaiting;
         private bool _commandReady = true;
+        private bool configSent;
+        private bool _usbAutoRouteFb;
+        private int _requestedUsbRoute = -1;
 
         public Dictionary<uint, string> VideoInputNames { get; set; }
         public Dictionary<uint, string> VideoOutputNames { get; set; }
         public Dictionary<uint, string> AudioInputNames { get; set; }
         public Dictionary<uint, string> AudioOutputNames { get; set; }
+        public Dictionary<uint, string> UsbInputNames { get; set; }
 
         private readonly bool[] _videoInputSyncFb = new bool[maxInputs];
-        private readonly ushort[] _videoOutputRouteFb = new ushort[maxOutputs];
-        private readonly ushort[] _audioOutputRouteFb = new ushort[maxOutputs];
-        private readonly string[] _outputVideoRouteNameFb = new string[maxOutputs];
-        private readonly string[] _outputAudioRouteNameFb = new string[maxOutputs];
+        private readonly ushort[] _videoOutputRouteFb = new ushort[maxVideoOutputs];
+        private readonly ushort[] _audioOutputRouteFb = new ushort[maxAudioOutputs];
+        private readonly string[] _outputVideoRouteNameFb = new string[maxVideoOutputs];
+        private readonly string[] _outputAudioRouteNameFb = new string[maxAudioOutputs];
+        private readonly string[] _videoInputResolutionFb = new string[maxInputs];
+        private readonly bool[] _outputConnectedFb = new bool[maxVideoOutputs];
+        private readonly bool[] _usbConnectedFb = new bool[maxInputs];
+        private readonly Dictionary<uint, bool> _outputMonitoringEnabled;
         private ushort _usbOutputRouteFb;
+        private readonly IList<string> configSettings;
 
         public FeedbackCollection<BoolFeedback> VideoInputSyncFeedbacks { get; private set; }
         public FeedbackCollection<IntFeedback> VideoOutputRouteFeedbacks { get; private set; }
         public FeedbackCollection<IntFeedback> AudioOutputRouteFeedbacks { get; private set; }
         public IntFeedback UsbOutputRouteFeedback { get; private set; }
+        public BoolFeedback UsbAutoRouteFeedback { get; private set; }
         public FeedbackCollection<StringFeedback> VideoInputNameFeedbacks { get; private set; }
         public FeedbackCollection<StringFeedback> AudioInputNameFeedbacks { get; private set; }
+
+        public FeedbackCollection<StringFeedback> UsbInputNameFeedbacks { get; private set; }
         public FeedbackCollection<StringFeedback> VideoOutputNameFeedbacks { get; private set; }
         public FeedbackCollection<StringFeedback> AudioOutputNameFeedbacks { get; private set; }
         public FeedbackCollection<StringFeedback> OutputVideoRouteNameFeedbacks { get; private set; }
         public FeedbackCollection<StringFeedback> OutputAudioRouteNameFeedbacks { get; private set; }
+        public FeedbackCollection<StringFeedback> VideoInputResolutionFeedbacks { get; private set; }
+        public FeedbackCollection<BoolFeedback> OutputConnectedFeedbacks { get; private set; }
+        public FeedbackCollection<BoolFeedback> UsbConnectedFeedbacks { get; private set; }
         public StringFeedback DeviceNameFeedback { get; private set; }
 
         public LightwareUcxDevice(string key, string name, ISocketStatus comm,
             LightwareUcxPropertiesConfig props)
             : base(key, name)
         {
-            _commandQueue = new CrestronQueue<string>(50);
+            _commandQueue = new CrestronQueue<string>(500);
             _commandMutex = new CMutex();
             _commandTimer = new CTimer(commandTimeout, Timeout.Infinite);
             _feedbackMutex = new CMutex();
@@ -69,6 +85,10 @@ namespace PepperDash.Essentials.Devices.Common.LightwareUcx
             AudioInputNames = props.AudioInputNames ?? new Dictionary<uint, string>();
             VideoOutputNames = props.VideoOutputNames ?? new Dictionary<uint, string>();
             AudioOutputNames = props.AudioOutputNames ?? new Dictionary<uint, string>();
+            UsbInputNames = props.UsbInputNames ?? new Dictionary<uint, string>();
+
+            configSettings = props.Config ?? new List<string>();
+            _outputMonitoringEnabled = props.OutputMonitoringEnabled ?? new Dictionary<uint, bool>();
 
             DeviceNameFeedback = new StringFeedback(() => Name);
             VideoInputSyncFeedbacks = new FeedbackCollection<BoolFeedback>();
@@ -76,16 +96,20 @@ namespace PepperDash.Essentials.Devices.Common.LightwareUcx
             AudioOutputRouteFeedbacks = new FeedbackCollection<IntFeedback>();
             VideoInputNameFeedbacks = new FeedbackCollection<StringFeedback>();
             AudioInputNameFeedbacks = new FeedbackCollection<StringFeedback>();
+            UsbInputNameFeedbacks = new FeedbackCollection<StringFeedback>();
             VideoOutputNameFeedbacks = new FeedbackCollection<StringFeedback>();
             AudioOutputNameFeedbacks = new FeedbackCollection<StringFeedback>();
             OutputVideoRouteNameFeedbacks = new FeedbackCollection<StringFeedback>();
             OutputAudioRouteNameFeedbacks = new FeedbackCollection<StringFeedback>();
+            VideoInputResolutionFeedbacks = new FeedbackCollection<StringFeedback>();
+            OutputConnectedFeedbacks = new FeedbackCollection<BoolFeedback>();
+            UsbConnectedFeedbacks = new FeedbackCollection<BoolFeedback>();
             InputPorts = new RoutingPortCollection<RoutingInputPort>();
             OutputPorts = new RoutingPortCollection<RoutingOutputPort>();
 
             Communication = comm;
             Communication.ConnectionChange += CommunicationOnConnectionChange;
-            CommunicationGather gather = new CommunicationGather(Communication, "/r/n");
+            CommunicationGather gather = new CommunicationGather(Communication, "\r\n");
             gather.LineReceived += GatherOnLineReceived;
             CommunicationMonitor = new GenericCommunicationMonitor(this, Communication, 30000, 120000, 300000, Poll);
             DeviceManager.AddDevice(CommunicationMonitor);
@@ -95,29 +119,43 @@ namespace PepperDash.Essentials.Devices.Common.LightwareUcx
                 uint index = i;
                 VideoInputSyncFeedbacks.Add(new BoolFeedback(() => _videoInputSyncFb[index]));
                 VideoInputNameFeedbacks.Add(new StringFeedback(() =>
-                    VideoInputNames.ContainsKey(index) && VideoInputNames[index] != null
-                        ? VideoInputNames[index]
+                    VideoInputNames.ContainsKey(index + 1) && VideoInputNames[index + 1] != null
+                        ? VideoInputNames[index + 1]
                         : ""));
                 AudioInputNameFeedbacks.Add(new StringFeedback(() =>
-                    AudioInputNames.ContainsKey(index) && AudioInputNames[index] != null
-                        ? AudioInputNames[index]
+                    AudioInputNames.ContainsKey(index + 1) && AudioInputNames[index + 1] != null
+                        ? AudioInputNames[index + 1]
                         : ""));
+                UsbInputNameFeedbacks.Add(new StringFeedback(() =>
+                    UsbInputNames.ContainsKey(index + 1) && UsbInputNames[index + 1] != null
+                        ? UsbInputNames[index + 1]
+                        : ""));
+                VideoInputResolutionFeedbacks.Add(new StringFeedback(() => _videoInputResolutionFb[index] == null
+                    ? ""
+                    : _videoInputResolutionFb[index]));
+                UsbConnectedFeedbacks.Add(new BoolFeedback(() => _usbConnectedFb[index]));
             }
 
-            for (uint i = 0; i < maxOutputs; i++)
+            for (uint i = 0; i < maxVideoOutputs; i++)
             {
                 uint index = i;
                 VideoOutputNameFeedbacks.Add(new StringFeedback(() =>
-                    VideoOutputNames.ContainsKey(index) && VideoOutputNames[index] != null
-                        ? VideoOutputNames[index]
+                    VideoOutputNames.ContainsKey(index + 1) && VideoOutputNames[index + 1] != null
+                        ? VideoOutputNames[index + 1]
                         : ""));
                 VideoOutputRouteFeedbacks.Add(new IntFeedback(() => _videoOutputRouteFb[index]));
                 OutputVideoRouteNameFeedbacks.Add(new StringFeedback(() => _outputVideoRouteNameFb[index] == null
                     ? "None"
                     : _outputVideoRouteNameFb[index]));
+                OutputConnectedFeedbacks.Add(new BoolFeedback(() => _outputConnectedFb[index]));
+            }
+
+            for (uint i = 0; i < maxAudioOutputs; i++)
+            {
+                uint index = i;
                 AudioOutputNameFeedbacks.Add(new StringFeedback(() =>
-                    AudioOutputNames.ContainsKey(index) && AudioOutputNames[index] != null
-                        ? AudioOutputNames[index]
+                    AudioOutputNames.ContainsKey(index + 1) && AudioOutputNames[index + 1] != null
+                        ? AudioOutputNames[index + 1]
                         : ""));
                 AudioOutputRouteFeedbacks.Add(new IntFeedback(() => _audioOutputRouteFb[index]));
                 OutputAudioRouteNameFeedbacks.Add(new StringFeedback(() => _outputAudioRouteNameFb[index] == null
@@ -126,13 +164,14 @@ namespace PepperDash.Essentials.Devices.Common.LightwareUcx
             }
 
             UsbOutputRouteFeedback = new IntFeedback(() => _usbOutputRouteFb);
+            UsbAutoRouteFeedback = new BoolFeedback(() => _usbAutoRouteFb);
         }
 
         private void CommunicationOnConnectionChange(object sender, GenericSocketStatusChageEventArgs e)
         {
             if (e.Client.IsConnected)
             {
-                UpdateAllData();
+                UpdateAllNodes();
             }
             else
             {
@@ -140,7 +179,7 @@ namespace PepperDash.Essentials.Devices.Common.LightwareUcx
             }
         }
 
-        private void UpdateAllData()
+        private void UpdateAllNodes()
         {
             QueueCommand("GET /V1/MEDIA/VIDEO/XP");
             QueueCommand("GET /V1/MEDIA/AUDIO/XP");
@@ -149,36 +188,69 @@ namespace PepperDash.Essentials.Devices.Common.LightwareUcx
 
         public override bool CustomActivate()
         {
-            Debug.Console(0, this, "Starting comms");
+            Debug.Console(1, this, "Starting comms");
             Communication.Connect();
             CommunicationMonitor.Start();
             return base.CustomActivate();
         }
 
+        private void SendConfiguration()
+        {
+            foreach (string setting in configSettings)
+            {
+                QueueCommand(string.Format("SET {0}", setting));
+            }
+
+            configSent = true;
+        }
+
         private void Subscribe()
         {
+            if (VideoInputs.Count == 0)
+            {
+                UpdateAllNodes();
+            }
+
+            if (!configSent)
+            {
+                SendConfiguration();
+            }
+
             foreach (string i in VideoInputs)
             {
+                Debug.Console(1, this, "Subscribing video input {0}", i);
                 QueueCommand(string.Format("OPEN /V1/MEDIA/VIDEO/{0}", i));
                 QueueCommand(string.Format("GETALL /V1/MEDIA/VIDEO/{0}", i));
             }
 
             foreach (string o in VideoOutputs)
             {
+                Debug.Console(1, this, "Subscribing video output {0}", o);
                 QueueCommand(string.Format("OPEN /V1/MEDIA/VIDEO/XP/{0}", o));
                 QueueCommand(string.Format("GETALL /V1/MEDIA/VIDEO/XP/{0}", o));
             }
 
             foreach (string o in AudioOutputs)
             {
+                Debug.Console(1, this, "Subscribing audio output {0}", o);
                 QueueCommand(string.Format("OPEN /V1/MEDIA/AUDIO/XP/{0}", o));
                 QueueCommand(string.Format("GETALL /V1/MEDIA/AUDIO/XP/{0}", o));
             }
 
+            foreach (string i in UsbInputs)
+            {
+                Debug.Console(1, this, "Subscribing usb input {0}", i);
+                QueueCommand(string.Format("OPEN /V1/MEDIA/USB/XP/{0}", i));
+                QueueCommand(string.Format("GETALL /V1/MEDIA/USB/XP/{0}", i));
+            }
+
             foreach (string o in UsbOutputs)
             {
+                Debug.Console(1, this, "Subscribing usb output {0}", o);
                 QueueCommand(string.Format("OPEN /V1/MEDIA/USB/XP/{0}", o));
                 QueueCommand(string.Format("GETALL /V1/MEDIA/USB/XP/{0}", o));
+                QueueCommand(string.Format("OPEN /V1/MEDIA/USB/AUTOSELECT/{0}", o));
+                QueueCommand(string.Format("GETALL /V1/MEDIA/USB/AUTOSELECT/{0}", o));
             }
         }
 
@@ -204,7 +276,7 @@ namespace PepperDash.Essentials.Devices.Common.LightwareUcx
 
         private void ProcessQueue()
         {
-            CrestronInvoke.BeginInvoke((o) =>
+            CrestronInvoke.BeginInvoke(o =>
             {
                 //Thread safe queue processing below
                 if (_queueWaiting == false)
@@ -254,7 +326,7 @@ namespace PepperDash.Essentials.Devices.Common.LightwareUcx
         {
             if (!_commandQueue.IsFull)
             {
-                Debug.Console(0, this, "Queueing command: {0}", cmd);
+                Debug.Console(2, this, "Queueing command: {0}", cmd);
                 _commandQueue.TryToEnqueue(cmd);
                 ProcessQueue();
             }
@@ -267,25 +339,57 @@ namespace PepperDash.Essentials.Devices.Common.LightwareUcx
 
         public void RouteVideoInput(ushort input, ushort output)
         {
-            if (input <= VideoInputs.Count && output > 0 && output <= VideoOutputs.Count)
-            {
-                QueueCommand(string.Format("CALL /V1/MEDIA/VIDEO/XP:switch(I{0}:O{1})", input, output));
-            }
+            QueueCommand(string.Format("CALL /V1/MEDIA/VIDEO/XP:switch({0}{1}:O{2})", input != 0 ? "I" : "", input,
+                output));
         }
 
         public void RouteAudioInput(ushort input, ushort output)
         {
-            if (input <= AudioInputs.Count && output > 0 && output <= AudioOutputs.Count)
+            if (output > 0 && output <= AudioOutputs.Count)
             {
-                QueueCommand(string.Format("CALL /V1/MEDIA/AUDIO/XP:switch(I{0}:O{1})", input, output));
+                string outputString = AudioOutputs[output - 1];
+                QueueCommand(string.Format("CALL /V1/MEDIA/AUDIO/XP:switch({0}{1}:{2})", input != 0 ? "I" : "", input,
+                    outputString));
+            }
+        }
+
+        private void ProcessUsbRoute()
+        {
+            if (_requestedUsbRoute != -1)
+            {
+                QueueCommand(string.Format("CALL /V1/MEDIA/USB/XP:switch({0}{1}:H1)",
+                    _requestedUsbRoute != 0 ? "U" : "",
+                    _requestedUsbRoute));
             }
         }
 
         public void RouteUsbInput(ushort input, ushort output)
         {
-            if (input <= UsbInputs.Count && output == 1)
+            if (output == 1)
             {
-                QueueCommand(string.Format("CALL /V1/MEDIA/USB/XP:switch(U{0}:H1)", input));
+                if (_requestedUsbRoute == -1)
+                {
+                    _requestedUsbRoute = input;
+                    ProcessUsbRoute();
+                }
+                else
+                {
+                    _requestedUsbRoute = input;
+                }
+
+
+                CrestronInvoke.BeginInvoke(o =>
+                {
+                    ushort count = 0;
+                    //blink feedback while changing for up to ten seconds
+                    while (_requestedUsbRoute == input && input > 0 && count < 5)
+                    {
+                        _usbOutputRouteFb = count % 2 == 0 ? input : (ushort)0;
+                        UsbOutputRouteFeedback.FireUpdate();
+                        CrestronEnvironment.Sleep(1000);
+                        count++;
+                    }
+                });
             }
         }
 
@@ -320,8 +424,6 @@ namespace PepperDash.Essentials.Devices.Common.LightwareUcx
 
         private void processResponse(string response)
         {
-            Debug.Console(0, this, "Parsing: {0}", response);
-
             string[] responseArray = response.Split(' ');
             switch (responseArray[0])
             {
@@ -474,16 +576,43 @@ namespace PepperDash.Essentials.Devices.Common.LightwareUcx
                         OnSwitchChange((ushort)input, (ushort)(output + 1), eRoutingSignalType.Video);
                     }
                 }
-            }
-            else if (segments[5] == "SignalPresent")
-            {
-                int input = VideoInputs.IndexOf(segments[4]);
-                if (input >= 0)
+                else if (segments[5].StartsWith("O") && segments[6] == "Connected")
                 {
-                    _videoInputSyncFb[input] = segments[6] == "true";
-                    VideoInputSyncFeedbacks[input].FireUpdate();
+                    int output = VideoOutputs.IndexOf(segments[5]);
+                    string state = segments[7];
+                    if (output >= 0)
+                    {
+                        _outputConnectedFb[output] = state == "true";
+                        OutputConnectedFeedbacks[output].FireUpdate();
+                    }
                 }
             }
+            else
+                switch (segments[5])
+                {
+                    case "SignalPresent":
+                    {
+                        int input = VideoInputs.IndexOf(segments[4]);
+                        if (input >= 0)
+                        {
+                            _videoInputSyncFb[input] = segments[6] == "true";
+                            VideoInputSyncFeedbacks[input].FireUpdate();
+                        }
+
+                        break;
+                    }
+                    case "ActiveResolution":
+                    {
+                        int input = VideoInputs.IndexOf(segments[4]);
+                        if (input >= 0)
+                        {
+                            _videoInputResolutionFb[input] = segments[6];
+                            VideoInputResolutionFeedbacks[input].FireUpdate();
+                        }
+
+                        break;
+                    }
+                }
         }
 
         private void ProcessAudioProperties(string[] segments)
@@ -510,10 +639,11 @@ namespace PepperDash.Essentials.Devices.Common.LightwareUcx
 
         private void ProcessUsbProperties(string[] segments)
         {
+            Debug.Console(1, this, "Proccessing usb properties: {0} {1} {2}", segments[5], segments[6], segments[7]);
             switch (segments[4])
             {
                 case "XP":
-                    if (segments[5].StartsWith("U") && segments[6] == "ConnectedSource")
+                    if (segments[5].StartsWith("H1") && segments[6] == "ConnectedSource")
                     {
                         int input = UsbInputs.IndexOf(segments[7]) + 1;
                         if (input >= 0)
@@ -521,7 +651,35 @@ namespace PepperDash.Essentials.Devices.Common.LightwareUcx
                             _usbOutputRouteFb = (ushort)input;
                             UsbOutputRouteFeedback.FireUpdate();
                             OnSwitchChange((ushort)input, 1, eRoutingSignalType.UsbOutput);
+                            if (_requestedUsbRoute == input)
+                            {
+                                _requestedUsbRoute = -1;
+                            }
+                            else
+                            {
+                                ProcessUsbRoute();
+                            }
                         }
+                    }
+                    else if (segments[5].StartsWith("U") && segments[6] == "Connected")
+                    {
+                        int input = UsbInputs.IndexOf(segments[5]) + 1;
+                        if (input >= 0)
+                        {
+                            _usbConnectedFb[input - 1] = segments[7] == "true";
+                            Debug.Console(1, this, "Processing usb connected input: {0}", input,
+                                _usbConnectedFb[input - 1]);
+                            UsbConnectedFeedbacks[input - 1].FireUpdate();
+                        }
+                    }
+
+                    break;
+
+                case "AUTOSELECT":
+                    if (segments[5] == "H1" && segments[6] == "Policy")
+                    {
+                        _usbAutoRouteFb = segments[7].ToLower().StartsWith("last");
+                        UsbAutoRouteFeedback.FireUpdate();
                     }
 
                     break;
@@ -541,63 +699,159 @@ namespace PepperDash.Essentials.Devices.Common.LightwareUcx
             CommunicationMonitor.IsOnlineFeedback.LinkInputSig(trilist.BooleanInput[joinMap.IsOnline.JoinNumber]);
             trilist.StringInput[joinMap.Name.JoinNumber].StringValue = Name;
 
-            for (ushort i = 0; i <= VideoInputNames.Count; i++)
+            for (ushort i = 0; i < maxInputs; i++)
             {
                 //Digital
                 VideoInputSyncFeedbacks[i]
-                    .LinkInputSig(trilist.BooleanInput[joinMap.VideoSyncStatus.JoinNumber + i]);
+                    .LinkInputSig(trilist.BooleanInput[joinMap.VideoSyncStatus.JoinNumber + i + 1]);
+                UsbConnectedFeedbacks[i]
+                    .LinkInputSig(trilist.BooleanInput[joinMap.UsbHostAvailable.JoinNumber + i + 1]);
+                UsbAutoRouteFeedback.LinkInputSig(trilist.BooleanInput[joinMap.UsbAutoRouteToggle.JoinNumber]);
+                trilist.SetSigTrueAction(joinMap.UsbAutoRouteToggle.JoinNumber, () => ToggleUsbAutoRoute());
 
                 //Serial                
                 VideoInputNameFeedbacks[i]
-                    .LinkInputSig(trilist.StringInput[joinMap.InputNames.JoinNumber + i]);
+                    .LinkInputSig(trilist.StringInput[joinMap.InputNames.JoinNumber + i + 1]);
                 VideoInputNameFeedbacks[i]
-                    .LinkInputSig(trilist.StringInput[joinMap.InputVideoNames.JoinNumber + i]);
+                    .LinkInputSig(trilist.StringInput[joinMap.InputVideoNames.JoinNumber + i + 1]);
+                VideoInputResolutionFeedbacks[i]
+                    .LinkInputSig(trilist.StringInput[joinMap.InputCurrentResolution.JoinNumber + i + 1]);
+                AudioInputNameFeedbacks[i]
+                    .LinkInputSig(trilist.StringInput[joinMap.InputAudioNames.JoinNumber + i + 1]);
+                UsbInputNameFeedbacks[i]
+                    .LinkInputSig(trilist.StringInput[joinMap.InputUsbNames.JoinNumber + i + 1]);
             }
 
-            for (ushort i = 0; i <= VideoOutputNames.Count; i++)
+            for (ushort i = 0; i < maxVideoOutputs; i++)
             {
-                ushort output = i;
+                ushort output = (ushort)(i + 1);
+                //Digital
+                OutputConnectedFeedbacks[i]
+                    .LinkInputSig(trilist.BooleanInput[joinMap.OutputVideoConnected.JoinNumber + output]);
+                trilist.BooleanInput[joinMap.OutputMonitoringEnabled.JoinNumber + output].BoolValue =
+                    _outputMonitoringEnabled.ContainsKey(output) && _outputMonitoringEnabled[output];
+
                 //Analog
                 VideoOutputRouteFeedbacks[i]
-                    .LinkInputSig(trilist.UShortInput[joinMap.OutputVideo.JoinNumber + i]);
-                trilist.SetUShortSigAction(joinMap.OutputVideo.JoinNumber + i,
-                    (a) => ExecuteNumericSwitch(a, output, eRoutingSignalType.Video));
+                    .LinkInputSig(trilist.UShortInput[joinMap.OutputVideo.JoinNumber + output]);
+                trilist.SetUShortSigAction(joinMap.OutputVideo.JoinNumber + output,
+                    a => ExecuteNumericSwitch(a, output, eRoutingSignalType.Video));
 
                 //Serial
                 VideoOutputNameFeedbacks[i]
-                    .LinkInputSig(trilist.StringInput[joinMap.OutputNames.JoinNumber + i]);
+                    .LinkInputSig(trilist.StringInput[joinMap.OutputNames.JoinNumber + output]);
                 VideoOutputNameFeedbacks[i]
-                    .LinkInputSig(trilist.StringInput[joinMap.OutputVideoNames.JoinNumber + i]);
+                    .LinkInputSig(trilist.StringInput[joinMap.OutputVideoNames.JoinNumber + output]);
                 OutputVideoRouteNameFeedbacks[i]
-                    .LinkInputSig(trilist.StringInput[joinMap.OutputCurrentVideoInputNames.JoinNumber + i]);
+                    .LinkInputSig(trilist.StringInput[joinMap.OutputCurrentVideoInputNames.JoinNumber + output]);
             }
 
-            for (ushort i = 0; i <= AudioInputNames.Count; i++)
+            for (ushort i = 0; i < maxAudioOutputs; i++)
             {
-                //Serial                
-                AudioInputNameFeedbacks[i]
-                    .LinkInputSig(trilist.StringInput[joinMap.InputAudioNames.JoinNumber + i]);
-            }
-
-            for (ushort i = 0; i <= AudioOutputNames.Count; i++)
-            {
-                ushort output = i;
+                ushort output = (ushort)(i + 1);
                 //Analog
                 AudioOutputRouteFeedbacks[i]
-                    .LinkInputSig(trilist.UShortInput[joinMap.OutputAudio.JoinNumber + i]);
-                trilist.SetUShortSigAction(joinMap.OutputAudio.JoinNumber + i,
-                    (a) => ExecuteNumericSwitch(a, output, eRoutingSignalType.Audio));
+                    .LinkInputSig(trilist.UShortInput[joinMap.OutputAudio.JoinNumber + output]);
+                trilist.SetUShortSigAction(joinMap.OutputAudio.JoinNumber + output,
+                    a => ExecuteNumericSwitch(a, output, eRoutingSignalType.Audio));
 
                 //Serial
                 AudioOutputNameFeedbacks[i]
-                    .LinkInputSig(trilist.StringInput[joinMap.OutputAudioNames.JoinNumber + i]);
+                    .LinkInputSig(trilist.StringInput[joinMap.OutputAudioNames.JoinNumber + output]);
                 OutputAudioRouteNameFeedbacks[i]
-                    .LinkInputSig(trilist.StringInput[joinMap.OutputCurrentAudioInputNames.JoinNumber + i]);
+                    .LinkInputSig(trilist.StringInput[joinMap.OutputCurrentAudioInputNames.JoinNumber + output]);
             }
 
             UsbOutputRouteFeedback.LinkInputSig(trilist.UShortInput[joinMap.OutputUsb.JoinNumber + 1]);
             trilist.SetUShortSigAction(joinMap.OutputUsb.JoinNumber + 1,
-                (a) => ExecuteNumericSwitch(a, 0, eRoutingSignalType.UsbOutput));
+                a => ExecuteNumericSwitch(a, 1, eRoutingSignalType.UsbOutput));
+
+
+            UpdateAllFeedbacks();
+        }
+
+        private void ToggleUsbAutoRoute()
+        {
+            if (_usbAutoRouteFb)
+            {
+                QueueCommand("SET /V1/MEDIA/USB/AUTOSELECT/H1.Policy=Off");
+            }
+            else
+            {
+                QueueCommand("SET /V1/MEDIA/USB/AUTOSELECT/H1.Policy=Last detect");
+            }
+        }
+
+        private void UpdateAllFeedbacks()
+        {
+            DeviceNameFeedback.FireUpdate();
+            UsbOutputRouteFeedback.FireUpdate();
+            UsbAutoRouteFeedback.FireUpdate();
+
+            foreach (StringFeedback feedback in VideoInputNameFeedbacks)
+            {
+                feedback.FireUpdate();
+            }
+
+            foreach (BoolFeedback feedback in VideoInputSyncFeedbacks)
+            {
+                feedback.FireUpdate();
+            }
+
+            foreach (IntFeedback feedback in VideoOutputRouteFeedbacks)
+            {
+                feedback.FireUpdate();
+            }
+
+            foreach (IntFeedback feedback in AudioOutputRouteFeedbacks)
+            {
+                feedback.FireUpdate();
+            }
+
+            foreach (StringFeedback feedback in VideoOutputNameFeedbacks)
+            {
+                feedback.FireUpdate();
+            }
+
+            foreach (StringFeedback feedback in AudioInputNameFeedbacks)
+            {
+                feedback.FireUpdate();
+            }
+
+            foreach (StringFeedback feedback in AudioOutputNameFeedbacks)
+            {
+                feedback.FireUpdate();
+            }
+
+            foreach (StringFeedback feedback in UsbInputNameFeedbacks)
+            {
+                feedback.FireUpdate();
+            }
+
+            foreach (StringFeedback feedback in OutputVideoRouteNameFeedbacks)
+            {
+                feedback.FireUpdate();
+            }
+
+            foreach (StringFeedback feedback in OutputAudioRouteNameFeedbacks)
+            {
+                feedback.FireUpdate();
+            }
+
+            foreach (StringFeedback feedback in VideoInputResolutionFeedbacks)
+            {
+                feedback.FireUpdate();
+            }
+
+            foreach (BoolFeedback feedback in OutputConnectedFeedbacks)
+            {
+                feedback.FireUpdate();
+            }
+
+            foreach (BoolFeedback feedback in UsbConnectedFeedbacks)
+            {
+                feedback.FireUpdate();
+            }
         }
 
         #endregion
@@ -626,6 +880,8 @@ namespace PepperDash.Essentials.Devices.Common.LightwareUcx
 
         public void ExecuteNumericSwitch(ushort input, ushort output, eRoutingSignalType type)
         {
+            Debug.Console(1, "Making numeric switch input:{0} output:{1} type:{2}", input, output, type);
+
             switch (type)
             {
                 case eRoutingSignalType.Video:

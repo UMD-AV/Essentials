@@ -21,11 +21,45 @@ namespace PepperDash.Essentials.Devices.Common.LightwareUcx
                 JoinType = eJoinType.Digital
             });
 
+        [JoinName("UsbAutoRouteToggle")] public JoinDataComplete UsbAutoRouteToggle = new JoinDataComplete(
+            new JoinData { JoinNumber = 21, JoinSpan = 1 },
+            new JoinMetadata
+            {
+                Description = "USB Auto Route set/get", JoinCapabilities = eJoinCapabilities.ToFromSIMPL,
+                JoinType = eJoinType.Digital
+            });
+
         [JoinName("VideoSyncStatus")] public JoinDataComplete VideoSyncStatus = new JoinDataComplete(
             new JoinData { JoinNumber = 100, JoinSpan = 10 },
             new JoinMetadata
             {
                 Description = "Input Video Sync", JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                JoinType = eJoinType.Digital
+            });
+
+        [JoinName("OutputVideoConnected")] public JoinDataComplete OutputVideoConnected = new JoinDataComplete(
+            new JoinData { JoinNumber = 200, JoinSpan = 10 },
+            new JoinMetadata
+            {
+                Description = "Output Video Connected", JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                JoinType = eJoinType.Digital
+            });
+
+        [JoinName("OutputMonitoringEnabled")] public JoinDataComplete OutputMonitoringEnabled = new JoinDataComplete(
+            new JoinData { JoinNumber = 300, JoinSpan = 10 },
+            new JoinMetadata
+            {
+                Description = "Enabled monitoring of video output connection",
+                JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                JoinType = eJoinType.Digital
+            });
+
+        [JoinName("UsbHostAvailable")] public JoinDataComplete UsbHostAvailable = new JoinDataComplete(
+            new JoinData { JoinNumber = 500, JoinSpan = 10 },
+            new JoinMetadata
+            {
+                Description = "Usb host is available/connected",
+                JoinCapabilities = eJoinCapabilities.ToSIMPL,
                 JoinType = eJoinType.Digital
             });
 
@@ -51,22 +85,6 @@ namespace PepperDash.Essentials.Devices.Common.LightwareUcx
             {
                 Description = "Switcher Output USB Set / Get", JoinCapabilities = eJoinCapabilities.ToFromSIMPL,
                 JoinType = eJoinType.Analog
-            });
-
-        [JoinName("HdcpSupportState")] public JoinDataComplete HdcpSupportState = new JoinDataComplete(
-            new JoinData { JoinNumber = 1000, JoinSpan = 10 },
-            new JoinMetadata
-            {
-                Description = "Switcher Input HDCP Support State", JoinCapabilities = eJoinCapabilities.ToFromSIMPL,
-                JoinType = eJoinType.Analog
-            });
-
-        [JoinName("NoRouteName")] public JoinDataComplete NoRouteName = new JoinDataComplete(
-            new JoinData { JoinNumber = 100, JoinSpan = 1 },
-            new JoinMetadata
-            {
-                Description = "Switcher No Route Name", JoinCapabilities = eJoinCapabilities.ToSIMPL,
-                JoinType = eJoinType.Serial
             });
 
         [JoinName("InputNames")] public JoinDataComplete InputNames = new JoinDataComplete(
@@ -146,6 +164,15 @@ namespace PepperDash.Essentials.Devices.Common.LightwareUcx
                 Description = "Switcher Input Current Resolution", JoinCapabilities = eJoinCapabilities.ToSIMPL,
                 JoinType = eJoinType.Serial
             });
+
+        [JoinName("InputUsbNames")] public JoinDataComplete InputUsbNames =
+            new JoinDataComplete(new JoinData { JoinNumber = 1800, JoinSpan = 10 },
+                new JoinMetadata
+                {
+                    Description = "Switcher Usb Input Names",
+                    JoinCapabilities = eJoinCapabilities.ToFromSIMPL,
+                    JoinType = eJoinType.Serial
+                });
 
         /// <summary>
         /// Constructor to use when instantiating this Join Map without inheriting from it

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using Crestron.SimplSharp;
 using Crestron.SimplSharpPro.DeviceSupport;
 using PepperDash.Core;
@@ -199,15 +200,16 @@ namespace PepperDash.Essentials.EpiphanPearl
             });
 
             _runningEventRunningFeedback =
-                new BoolFeedback(
-                    () => _runningEvent != null &&
-                          (_runningEvent.Status.Equals(RunningStatus, StringComparison.InvariantCultureIgnoreCase) ||
-                           _runningEvent.Status.Equals(PausedStatus, StringComparison.InvariantCultureIgnoreCase)));
+                new BoolFeedback(() => _runningEvent != null &&
+                                       (_runningEvent.Status.Equals(RunningStatus,
+                                            StringComparison.InvariantCultureIgnoreCase) ||
+                                        _runningEvent.Status.Equals(PausedStatus,
+                                            StringComparison.InvariantCultureIgnoreCase)));
 
             _runningEventPausedFeedback =
-                new BoolFeedback(
-                    () => _runningEvent != null &&
-                          _runningEvent.Status.Equals(PausedStatus, StringComparison.InvariantCultureIgnoreCase));
+                new BoolFeedback(() => _runningEvent != null &&
+                                       _runningEvent.Status.Equals(PausedStatus,
+                                           StringComparison.InvariantCultureIgnoreCase));
 
             _nextEventExistsFeedback = new BoolFeedback(() => _scheduledEvents.Count > 0);
             _nextEventIn5mFeedback = new BoolFeedback(() => _scheduledEvents.Count > 0 &&
@@ -556,8 +558,10 @@ namespace PepperDash.Essentials.EpiphanPearl
                         _scheduledEvents[i].Title, _scheduledEvents[i].Start, _scheduledEvents[i].Finish);
                     _scheduledRecordings[i].Name = _scheduledEvents[i].Title;
                     _scheduledRecordings[i].Id = _scheduledEvents[i].Id;
-                    _scheduledRecordings[i].Start = _scheduledEvents[i].Start.ToLocalTime().ToString("t");
-                    _scheduledRecordings[i].End = _scheduledEvents[i].Finish.ToLocalTime().ToString("t");
+                    _scheduledRecordings[i].Start =
+                        _scheduledEvents[i].Start.ToLocalTime().ToString("t", new CultureInfo("en-US"));
+                    _scheduledRecordings[i].End = _scheduledEvents[i].Finish.ToLocalTime()
+                        .ToString("t", new CultureInfo("en-US"));
 
                     TimeSpan time = _scheduledEvents[i].Finish - _scheduledEvents[i].Start;
                     _scheduledRecordings[i].Length = string.Format("{0}", time);
@@ -669,8 +673,8 @@ namespace PepperDash.Essentials.EpiphanPearl
             if (_scheduledEvents.Count > 0)
             {
                 Debug.Console(1, this, "Scheduled event found, calculating extend enable: {0}, {1}",
-                    _scheduledEvents[0].Start.ToLocalTime().ToString("t"),
-                    _runningEvent.Finish.ToLocalTime().ToString("t"));
+                    _scheduledEvents[0].Start.ToLocalTime().ToString("t", new CultureInfo("en-US")),
+                    _runningEvent.Finish.ToLocalTime().ToString("t", new CultureInfo("en-US")));
                 _Extend5Enabled = _scheduledEvents[0].Start >=
                     _runningEvent.Finish.AddMinutes(6) && _runningEvent.Finish < DateTime.UtcNow.AddHours(6);
                 _Extend15Enabled = _scheduledEvents[0].Start >=
