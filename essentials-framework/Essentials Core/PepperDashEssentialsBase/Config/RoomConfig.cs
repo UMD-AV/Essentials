@@ -117,6 +117,7 @@ namespace PepperDash.Essentials.Core.Config
         [JsonProperty("index")] public ushort Index { get; set; }
         [JsonProperty("easyModeVisible")] public bool? EasyModeVisible { get; set; }
         [JsonProperty("advancedModeVisible")] public bool? AdvancedModeVisible { get; set; }
+        [JsonProperty("techVisible")] public bool? techVisible { get; set; }
         [JsonProperty("visibleMode")] public string visibleMode { get; set; }
         [JsonProperty("overflow")] public bool? Overflow { get; set; }
         [JsonProperty("videoSyncKey")] public string VideoSyncKey { get; set; }
@@ -134,6 +135,7 @@ namespace PepperDash.Essentials.Core.Config
         [JsonProperty("index")] public ushort Index { get; set; }
         [JsonProperty("routes")] public List<Route> Routes { get; set; }
         [JsonProperty("visible")] public bool? Visible { get; set; }
+        [JsonProperty("techVisible")] public bool? techVisible { get; set; }
         [JsonProperty("visibleMode")] public string visibleMode { get; set; }
         [JsonProperty("overflow")] public bool? Overflow { get; set; }
         [JsonProperty("deviceKey")] public string DeviceKey { get; set; }

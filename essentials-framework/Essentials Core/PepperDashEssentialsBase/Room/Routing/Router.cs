@@ -300,13 +300,10 @@ namespace PepperDash.Essentials.Core.Routing
             //Process Actions
             if (Actions != null)
             {
-                if (debugLevel > 0)
+                foreach (RoutingAction action in roomConfig.Actions)
                 {
-                    foreach (RoutingAction action in roomConfig.Actions)
-                    {
-                        Actions.Add(action.Index, action);
-                        Debug.Console(0, "Action loaded: {0}", action.Index);
-                    }
+                    Actions.Add(action.Index, action);
+                    Debug.Console(0, "Action loaded: {0}", action.Index);
                 }
             }
 

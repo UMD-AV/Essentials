@@ -126,10 +126,10 @@ namespace PepperDash.Core
 
         private ShellStream TheStream;
 
-        private CTimer ReconnectTimer;
+        private readonly CTimer ReconnectTimer;
 
-        //Lock object to prevent simulatneous connect/disconnect operations
-        private CCriticalSection connectLock = new CCriticalSection();
+        //Lock object to prevent simultaneous connect/disconnect operations
+        private readonly CCriticalSection connectLock = new CCriticalSection();
 
         private bool DisconnectLogged;
 

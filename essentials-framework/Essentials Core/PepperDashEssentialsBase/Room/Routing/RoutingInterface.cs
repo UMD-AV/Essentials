@@ -13,7 +13,14 @@ namespace PepperDash.Essentials.Core.Routing
     public class RoutingInterface : IKeyName, IBridgeAdvanced
     {
         public string Key { get; private set; }
-        public string Name { get; private set; }
+
+        public string Name
+        {
+            get;
+            private
+            set;
+        }
+
 
         public ushort debugLevel;
 
@@ -21,7 +28,15 @@ namespace PepperDash.Essentials.Core.Routing
 
         public ushort AdvancedMode
         {
-            get { return _advancedMode; }
+            get
+            {
+                if (_techPanel)
+                {
+                    return 1;
+                }
+
+                return _advancedMode;
+            }
             set
             {
                 _advancedMode = value;
@@ -31,6 +46,7 @@ namespace PepperDash.Essentials.Core.Routing
 
         private readonly List<string> _visibleModes = new List<string>();
         private ushort _overflowMode;
+        private bool _techPanel;
 
         public string RouterKey { get; private set; }
         private Router _router;
@@ -107,6 +123,8 @@ namespace PepperDash.Essentials.Core.Routing
                 PreviewRoutes = uiConfig.PreviewRoutes;
                 Debug.Console(0, "Preview routes found, count: {0}", PreviewRoutes.Count);
             }
+
+            _techPanel = uiConfig.TechPanel ?? false;
         }
 
 
@@ -406,6 +424,13 @@ namespace PepperDash.Essentials.Core.Routing
             if (_router != null && _router.Sources != null && _router.Sources.ContainsKey(sourceIndex))
             {
                 Source source = _router.Sources[sourceIndex];
+
+                //Check for tech panel mode
+                if (_techPanel)
+                {
+                    return source.techVisible ?? false;
+                }
+
                 //Check for visible mode defined but not enabled
                 if (!string.IsNullOrEmpty(source.visibleMode) &&
                     !_visibleModes.Contains(source.visibleMode.ToLower()))
@@ -509,6 +534,13 @@ namespace PepperDash.Essentials.Core.Routing
             if (_router != null && _router.Dests != null && _router.Dests.ContainsKey(destIndex))
             {
                 Dest dest = _router.Dests[destIndex];
+
+                //Check for tech panel mode
+                if (_techPanel)
+                {
+                    return dest.techVisible ?? false;
+                }
+
                 //Check for visible mode defined but not enabled
                 if (!string.IsNullOrEmpty(dest.visibleMode) &&
                     !_visibleModes.Contains(dest.visibleMode.ToLower()))

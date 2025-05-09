@@ -163,10 +163,10 @@ namespace PepperDash.Core
         }
 
         //Lock object to prevent simulatneous connect/disconnect operations
-        private CCriticalSection connectLock = new CCriticalSection();
+        private readonly CCriticalSection connectLock = new CCriticalSection();
 
         // private Timer for auto reconnect
-        private CTimer RetryTimer;
+        private readonly CTimer RetryTimer;
 
         /// <summary>
         /// Constructor
@@ -180,13 +180,13 @@ namespace PepperDash.Core
         {
             StreamDebugging = new CommunicationStreamDebugging(key);
             CrestronEnvironment.ProgramStatusEventHandler +=
-                new ProgramStatusEventHandler(CrestronEnvironment_ProgramStatusEventHandler);
+                CrestronEnvironment_ProgramStatusEventHandler;
             AutoReconnectIntervalMs = 5000;
             Hostname = address;
             Port = port;
             BufferSize = bufferSize;
 
-            RetryTimer = new CTimer(o => { Reconnect(); }, Timeout.Infinite);
+            RetryTimer = new CTimer(o => { WaitAndTryReconnect(); }, Timeout.Infinite);
         }
 
         /// <summary>
@@ -198,11 +198,11 @@ namespace PepperDash.Core
         {
             StreamDebugging = new CommunicationStreamDebugging(key);
             CrestronEnvironment.ProgramStatusEventHandler +=
-                new ProgramStatusEventHandler(CrestronEnvironment_ProgramStatusEventHandler);
+                CrestronEnvironment_ProgramStatusEventHandler;
             AutoReconnectIntervalMs = 5000;
             BufferSize = 2000;
 
-            RetryTimer = new CTimer(o => { Reconnect(); }, Timeout.Infinite);
+            RetryTimer = new CTimer(o => { WaitAndTryReconnect(); }, Timeout.Infinite);
         }
 
         /// <summary>
@@ -212,11 +212,11 @@ namespace PepperDash.Core
             : base(SplusKey)
         {
             CrestronEnvironment.ProgramStatusEventHandler +=
-                new ProgramStatusEventHandler(CrestronEnvironment_ProgramStatusEventHandler);
+                CrestronEnvironment_ProgramStatusEventHandler;
             AutoReconnectIntervalMs = 5000;
             BufferSize = 2000;
 
-            RetryTimer = new CTimer(o => { Reconnect(); }, Timeout.Infinite);
+            RetryTimer = new CTimer(o => { WaitAndTryReconnect(); }, Timeout.Infinite);
         }
 
         /// <summary>
@@ -285,8 +285,7 @@ namespace PepperDash.Core
                 }
                 else
                 {
-                    //Stop retry timer if running
-                    RetryTimer.Stop();
+                    RetryTimer.Reset(AutoReconnectIntervalMs);
                     if (_client != null)
                     {
                         _client.SocketStatusChange -= Client_SocketStatusChange;
@@ -372,7 +371,8 @@ namespace PepperDash.Core
             if (c.ClientStatus != SocketStatus.SOCKET_STATUS_CONNECTED)
             {
                 Debug.Console(0, this, "Server connection result: {0}", c.ClientStatus);
-                WaitAndTryReconnect();
+                RetryTimer.Reset(AutoReconnectIntervalMs);
+                
             }
             else
             {
@@ -381,7 +381,7 @@ namespace PepperDash.Core
         }
 
         /// <summary>
-        /// Disconnects, waits and attemtps to connect again
+        /// Disconnects, waits and attempts to connect again
         /// </summary>
         private void WaitAndTryReconnect()
         {
@@ -393,8 +393,11 @@ namespace PepperDash.Core
                     if (!IsConnected && AutoReconnect && !DisconnectCalledByUser && _client != null)
                     {
                         DisconnectClient();
-                        Debug.Console(1, this, "Attempting reconnect, status={0}", _client.ClientStatus);
+                        Debug.Console(1, this, "Attempting reconnect, status={0}, interval = {1} seconds",
+                            _client.ClientStatus,
+                            AutoReconnectIntervalMs / 1000);
                         RetryTimer.Reset(AutoReconnectIntervalMs);
+                        Connect();
                     }
                 }
                 finally
