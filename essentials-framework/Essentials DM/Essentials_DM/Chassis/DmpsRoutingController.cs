@@ -1213,6 +1213,8 @@ namespace PepperDash.Essentials.DM
                 {
                     Debug.Console(2, this, "DMSwitchVideo:{0} Routed Input:{1} Output:{2}'", this.Name,
                         outputCard.VideoOutFeedback.Number, output);
+                    OnSwitchChange(new RoutingNumericEventArgs(output, outputCard.VideoOutFeedback.Number,
+                        eRoutingSignalType.Video));
                 }
 
                 if (VideoOutputFeedbacks.ContainsKey(output))
@@ -1246,6 +1248,8 @@ namespace PepperDash.Essentials.DM
                     {
                         Debug.Console(2, this, "DMSwitchAudio:{0} Routed Input:{1} Output:{2}'", this.Name,
                             outputCard.AudioOutFeedback.Number, output);
+                        OnSwitchChange(new RoutingNumericEventArgs(output, outputCard.VideoOutFeedback.Number,
+                            eRoutingSignalType.Audio));
                     }
                 }
                 else
@@ -1260,6 +1264,8 @@ namespace PepperDash.Essentials.DM
                         {
                             Debug.Console(2, this, "DMSwitchAudio:{0} Routed Input:{1} Output:{2}'", Name,
                                 outputCard.AudioOutSourceFeedback, output);
+                            OnSwitchChange(new RoutingNumericEventArgs(output, outputCard.VideoOutFeedback.Number,
+                                eRoutingSignalType.Video));
                         }
                     }
                 }
