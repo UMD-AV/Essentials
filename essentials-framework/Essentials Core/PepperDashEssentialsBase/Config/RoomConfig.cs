@@ -74,8 +74,6 @@ namespace PepperDash.Essentials.Core.Config
 
         [JsonProperty("privacyFaderKey")] public string PrivacyFaderKey { get; set; }
 
-        [JsonProperty("lecternMicFaderKey")] public string LecternMicFaderKey { get; set; }
-
         [JsonProperty("overflowInFaderKey")] public string OverflowInFaderKey { get; set; }
 
         [JsonProperty("overflowOutFaderKey")] public string OverflowOutFaderKey { get; set; }
@@ -100,6 +98,8 @@ namespace PepperDash.Essentials.Core.Config
         [JsonProperty("techVisible")] public bool TechVisible { get; set; }
 
         [JsonProperty("userVisible")] public bool UserVisible { get; set; }
+
+        [JsonProperty("muteOnly")] public bool? MuteOnly { get; set; }
     }
 
     public class Camera

@@ -170,10 +170,14 @@ namespace PepperDash.Essentials.EpiphanPearl
                 new StringFeedback(() => _runningEvent != null ? _runningEvent.Title : string.Empty);
             _runningEventStartFeedback =
                 new StringFeedback(() =>
-                    _runningEvent != null ? _runningEvent.Start.ToLocalTime().ToString("t") : string.Empty);
+                    _runningEvent != null
+                        ? _runningEvent.Start.ToLocalTime().ToString("t", new CultureInfo("en-US"))
+                        : string.Empty);
             _runningEventEndFeedback =
                 new StringFeedback(() =>
-                    _runningEvent != null ? _runningEvent.Finish.ToLocalTime().ToString("t") : string.Empty);
+                    _runningEvent != null
+                        ? _runningEvent.Finish.ToLocalTime().ToString("t", new CultureInfo("en-US"))
+                        : string.Empty);
             _runningEventIdFeedback = new StringFeedback(() => _runningEvent != null ? _runningEvent.Id : string.Empty);
             _runningEventLengthFeedback = new StringFeedback(() =>
             {

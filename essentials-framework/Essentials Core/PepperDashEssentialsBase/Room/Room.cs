@@ -136,7 +136,6 @@ namespace PepperDash.Essentials.Core
             roomTriList.StringInput[joinMap.ShadesKey.JoinNumber + 1].StringValue = roomConfig.Shades02Key;
             roomTriList.StringInput[joinMap.MainFaderKey.JoinNumber].StringValue = roomConfig.MainFaderKey;
             roomTriList.StringInput[joinMap.PrivacyFaderKey.JoinNumber].StringValue = roomConfig.PrivacyFaderKey;
-            roomTriList.StringInput[joinMap.LecternMicFaderKey.JoinNumber].StringValue = roomConfig.LecternMicFaderKey;
             roomTriList.StringInput[joinMap.OverflowInFaderKey.JoinNumber].StringValue = roomConfig.OverflowInFaderKey;
             roomTriList.StringInput[joinMap.OverflowOutFaderKey.JoinNumber].StringValue =
                 roomConfig.OverflowOutFaderKey;
@@ -189,6 +188,9 @@ namespace PepperDash.Essentials.Core
 
                         roomTriList.BooleanInput[joinMap.FaderVisibleTech.JoinNumber + (uint)i].BoolValue =
                             roomConfig.Faders[i].TechVisible;
+
+                        roomTriList.BooleanInput[joinMap.FaderMuteOnly.JoinNumber + (uint)i].BoolValue =
+                            roomConfig.Faders[i].MuteOnly ?? false;
 
                         roomTriList.StringInput[joinMap.FaderName.JoinNumber + (uint)i].StringValue =
                             roomConfig.Faders[i].Name;

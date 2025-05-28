@@ -87,6 +87,16 @@ namespace PepperDash.Essentials.Core.Bridges
             }
         );
 
+        [JoinName("FaderMuteOnly")] public JoinDataComplete FaderMuteOnly = new JoinDataComplete(
+            new JoinData { JoinNumber = 61, JoinSpan = 40 },
+            new JoinMetadata
+            {
+                Description = "The dsp object only has mute control",
+                JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                JoinType = eJoinType.Digital
+            }
+        );
+
         //Analog
 
         [JoinName("OccShutdownTimeoutMinutes")]
@@ -238,15 +248,6 @@ namespace PepperDash.Essentials.Core.Bridges
 
         [JoinName("PrivacyFaderKey")] public JoinDataComplete PrivacyFaderKey = new JoinDataComplete(
             new JoinData { JoinNumber = 14, JoinSpan = 1 },
-            new JoinMetadata
-            {
-                Description = "Device keys for various devices",
-                JoinCapabilities = eJoinCapabilities.ToSIMPL,
-                JoinType = eJoinType.Serial
-            });
-
-        [JoinName("LecternMicFaderKey")] public JoinDataComplete LecternMicFaderKey = new JoinDataComplete(
-            new JoinData { JoinNumber = 15, JoinSpan = 1 },
             new JoinMetadata
             {
                 Description = "Device keys for various devices",
