@@ -556,66 +556,8 @@ namespace PepperDash.Essentials.DM
                         }
 
                         return 0;
-                        ;
                     });
-                    AudioOutputFeedbacks[outputCard.Number] = new IntFeedback(() =>
-                    {
-                        if (!Global.ControlSystemIsDmps4k3xxType)
-                        {
-                            if (outputCard.AudioOutFeedback != null)
-                            {
-                                return (ushort)outputCard.AudioOutFeedback.Number;
-                            }
-
-                            return 0;
-                        }
-                        else
-                        {
-                            if (outputCard is Card.Dmps3DmOutputBackend || outputCard is Card.Dmps3HdmiOutputBackend)
-                            {
-                                //Special cases for DMPS-4K digital audio output
-                                if (DigitalAudioOutputs[outputCard.Number].AudioSourceNumericFeedback.UShortValue == 0)
-                                    return 0;
-                                else if (DigitalAudioOutputs[outputCard.Number].AudioSourceNumericFeedback
-                                             .UShortValue == 1)
-                                    return (ushort)Dmps.SwitcherInputs.Count + 5;
-                                else if (DigitalAudioOutputs[outputCard.Number].AudioSourceNumericFeedback
-                                             .UShortValue == 2)
-                                    return (ushort)Dmps.SwitcherInputs.Count + 6;
-                                else if (DigitalAudioOutputs[outputCard.Number].AudioSourceNumericFeedback
-                                             .UShortValue == 3)
-                                    return (ushort)outputCard.VideoOutFeedback.Number;
-                                else
-                                    return 0;
-                            }
-                            else if (outputCard.AudioOutSourceFeedback == eDmps34KAudioOutSource.NoRoute)
-                            {
-                                //Fixes for weird audio indexing on DMPS3-4K
-                                return 0;
-                            }
-                            else if (outputCard.AudioOutSourceFeedback == eDmps34KAudioOutSource.AirMedia8)
-                            {
-                                //Fixes for weird audio indexing on DMPS3-4K
-                                return 8;
-                            }
-                            else if (outputCard.AudioOutSourceFeedback == eDmps34KAudioOutSource.AirMedia9)
-                            {
-                                //Fixes for weird audio indexing on DMPS3-4K
-                                return 9;
-                            }
-                            else if ((ushort)outputCard.AudioOutSourceFeedback <= 5)
-                            {
-                                //Move analog inputs to after regular dm cards
-                                return (ushort)outputCard.AudioOutSourceFeedback + (ushort)Dmps.SwitcherInputs.Count -
-                                       1;
-                            }
-                            else
-                            {
-                                //Fixes for weird audio indexing on DMPS3-4K
-                                return (ushort)outputCard.AudioOutSourceFeedback - 5;
-                            }
-                        }
-                    });
+                    AudioOutputFeedbacks[outputCard.Number] = new IntFeedback(() => GetAudioFeedback(outputCard));
 
                     OutputNameFeedbacks[outputCard.Number] = new StringFeedback(() =>
                     {
@@ -623,9 +565,10 @@ namespace PepperDash.Essentials.DM
                         {
                             return OutputNames[outputCard.Number];
                         }
-                        else if (outputCard.NameFeedback != null &&
-                                 outputCard.NameFeedback != CrestronControlSystem.NullStringOutputSig &&
-                                 !string.IsNullOrEmpty(outputCard.NameFeedback.StringValue))
+
+                        if (outputCard.NameFeedback != null &&
+                            outputCard.NameFeedback != CrestronControlSystem.NullStringOutputSig &&
+                            !string.IsNullOrEmpty(outputCard.NameFeedback.StringValue))
                         {
                             Debug.Console(2, this, "Output Card {0} Name: {1}", outputCard.Number,
                                 outputCard.NameFeedback.StringValue);
@@ -657,25 +600,23 @@ namespace PepperDash.Essentials.DM
                         {
                             if (outputCard is Card.Dmps3DmOutputBackend || outputCard is Card.Dmps3HdmiOutputBackend)
                             {
-                                //Special cases for DMPS-4K digital audio output
-                                if (DigitalAudioOutputs[outputCard.Number].AudioSourceNumericFeedback.UShortValue == 0)
-                                    return NoRouteText;
-                                else if (DigitalAudioOutputs[outputCard.Number].AudioSourceNumericFeedback
-                                             .UShortValue == 1)
-                                    return "Digital Mix 1";
-                                else if (DigitalAudioOutputs[outputCard.Number].AudioSourceNumericFeedback
-                                             .UShortValue == 2)
-                                    return "Digital Mix 2";
-                                else if (DigitalAudioOutputs[outputCard.Number].AudioSourceNumericFeedback
-                                             .UShortValue == 3)
-                                    return outputCard.VideoOutFeedback.NameFeedback.StringValue;
-                                else
-                                    return NoRouteText;
+                                switch (DigitalAudioOutputs[outputCard.Number].AudioSourceNumericFeedback.UShortValue)
+                                {
+                                    //Special cases for DMPS-4K digital audio output
+                                    case 0:
+                                        return NoRouteText;
+                                    case 1:
+                                        return "Digital Mix 1";
+                                    case 2:
+                                        return "Digital Mix 2";
+                                    case 3:
+                                        return outputCard.VideoOutFeedback.NameFeedback.StringValue;
+                                    default:
+                                        return NoRouteText;
+                                }
                             }
-                            else
-                            {
-                                return outputCard.AudioOutSourceFeedback.ToString();
-                            }
+
+                            return outputCard.AudioOutSourceFeedback.ToString();
                         }
 
                         return NoRouteText;
@@ -689,6 +630,63 @@ namespace PepperDash.Essentials.DM
                 {
                     Debug.LogError(Debug.ErrorLogLevel.Error,
                         string.Format("DMPS Controller exception creating output card: {0}", ex));
+                }
+            }
+        }
+
+        private int GetAudioFeedback(DMOutput outputCard)
+        {
+            if (!Global.ControlSystemIsDmps4k3xxType)
+            {
+                if (outputCard.AudioOutFeedback != null)
+                {
+                    return (ushort)outputCard.AudioOutFeedback.Number;
+                }
+
+                return 0;
+            }
+
+            if (outputCard is Card.Dmps3DmOutputBackend || outputCard is Card.Dmps3HdmiOutputBackend)
+            {
+                switch (DigitalAudioOutputs[outputCard.Number].AudioSourceNumericFeedback.UShortValue)
+                {
+                    //Special cases for DMPS-4K digital audio output
+                    case 0:
+                        return 0;
+                    case 1:
+                        return (ushort)Dmps.SwitcherInputs.Count + 5;
+                    case 2:
+                        return (ushort)Dmps.SwitcherInputs.Count + 6;
+                    case 3:
+                        return (ushort)outputCard.VideoOutFeedback.Number;
+                    default:
+                        return 0;
+                }
+            }
+
+            switch (outputCard.AudioOutSourceFeedback)
+            {
+                case eDmps34KAudioOutSource.NoRoute:
+                    //Fixes for weird audio indexing on DMPS3-4K
+                    return 0;
+                case eDmps34KAudioOutSource.AirMedia8:
+                    //Fixes for weird audio indexing on DMPS3-4K
+                    return 8;
+                case eDmps34KAudioOutSource.AirMedia9:
+                    //Fixes for weird audio indexing on DMPS3-4K
+                    return 9;
+                default:
+                {
+                    if ((ushort)outputCard.AudioOutSourceFeedback <= 5)
+                    {
+                        //Move analog inputs to after regular dm cards
+                        return (ushort)outputCard.AudioOutSourceFeedback +
+                               (ushort)Dmps.SwitcherInputs.Count -
+                               1;
+                    }
+
+                    //Fixes for weird audio indexing on DMPS3-4K
+                    return (ushort)outputCard.AudioOutSourceFeedback - 5;
                 }
             }
         }
@@ -1174,8 +1172,8 @@ namespace PepperDash.Essentials.DM
             }
             catch (Exception e)
             {
-                Debug.Console(0, Debug.ErrorLogLevel.Notice,
-                    "DMSwitch Input Change:{0} Input:{1} Event:{2}\rException: {3}", this.Name, args.Number,
+                Debug.ConsoleWithLog(0, this,
+                    "DMSwitch Input Change:{0} Input:{1} Event:{2}\rException: {3}", Name, args.Number,
                     args.EventId.ToString(), e.ToString());
             }
         }
@@ -1198,105 +1196,154 @@ namespace PepperDash.Essentials.DM
                 VolumeControls[args.Number].VolumeEventFromChassis();
             }
             else if (args.EventId == DMOutputEventIds.OnlineFeedbackEventId
+                     && OutputEndpointOnlineFeedbacks.ContainsKey(output) ||
+                     args.EventId == DMOutputEventIds.EndpointOnlineEventId
                      && OutputEndpointOnlineFeedbacks.ContainsKey(output))
             {
                 OutputEndpointOnlineFeedbacks[output].FireUpdate();
             }
-            else if (args.EventId == DMOutputEventIds.EndpointOnlineEventId
-                     && OutputEndpointOnlineFeedbacks.ContainsKey(output))
-            {
-                OutputEndpointOnlineFeedbacks[output].FireUpdate();
-            }
-            else if (args.EventId == DMOutputEventIds.VideoOutEventId)
-            {
-                if (outputCard != null && outputCard.VideoOutFeedback != null)
+            else
+                switch (args.EventId)
                 {
-                    Debug.Console(2, this, "DMSwitchVideo:{0} Routed Input:{1} Output:{2}'", this.Name,
-                        outputCard.VideoOutFeedback.Number, output);
-                    OnSwitchChange(new RoutingNumericEventArgs(output, outputCard.VideoOutFeedback.Number,
-                        eRoutingSignalType.Video));
-                }
-
-                if (VideoOutputFeedbacks.ContainsKey(output))
-                {
-                    VideoOutputFeedbacks[output].FireUpdate();
-                }
-
-                if (OutputVideoRouteNameFeedbacks.ContainsKey(output))
-                {
-                    OutputVideoRouteNameFeedbacks[output].FireUpdate();
-                }
-
-                if (outputCard is Card.Dmps3DmOutputBackend || outputCard is Card.Dmps3HdmiOutputBackend)
-                {
-                    if (AudioOutputFeedbacks.ContainsKey(output))
-                    {
-                        AudioOutputFeedbacks[output].FireUpdate();
-                    }
-
-                    if (OutputAudioRouteNameFeedbacks.ContainsKey(output))
-                    {
-                        OutputAudioRouteNameFeedbacks[output].FireUpdate();
-                    }
-                }
-            }
-            else if (args.EventId == DMOutputEventIds.AudioOutEventId)
-            {
-                if (!Global.ControlSystemIsDmps4k3xxType)
-                {
-                    if (outputCard != null && outputCard.AudioOutFeedback != null)
-                    {
-                        Debug.Console(2, this, "DMSwitchAudio:{0} Routed Input:{1} Output:{2}'", this.Name,
-                            outputCard.AudioOutFeedback.Number, output);
-                        OnSwitchChange(new RoutingNumericEventArgs(output, outputCard.VideoOutFeedback.Number,
-                            eRoutingSignalType.Audio));
-                    }
-                }
-                else
-                {
-                    if (outputCard != null)
-                    {
-                        if (outputCard is Card.Dmps3DmOutputBackend || outputCard is Card.Dmps3HdmiOutputBackend)
+                    case DMOutputEventIds.VideoOutEventId:
+                        try
                         {
-                            DigitalAudioOutputs[output].AudioSourceNumericFeedback.FireUpdate();
+                            if (outputCard != null && outputCard.VideoOutFeedback != null)
+                            {
+                                Debug.Console(2, this, "DMSwitchVideo:{0} Routed Input:{1} Output:{2}'", Name,
+                                    outputCard.VideoOutFeedback.Number, output);
+                                OnSwitchChange(new RoutingNumericEventArgs(output, outputCard.VideoOutFeedback.Number,
+                                    eRoutingSignalType.Video));
+                            }
+                            else if (outputCard != null)
+                            {
+                                Debug.Console(2, this, "DMSwitchVideo:{0} Routed Input:{1} Output:{2}'", Name,
+                                    0, output);
+                                OnSwitchChange(new RoutingNumericEventArgs(output, 0,
+                                    eRoutingSignalType.Video));
+                            }
+
+                            if (VideoOutputFeedbacks.ContainsKey(output))
+                            {
+                                VideoOutputFeedbacks[output].FireUpdate();
+                            }
+
+                            if (OutputVideoRouteNameFeedbacks.ContainsKey(output))
+                            {
+                                OutputVideoRouteNameFeedbacks[output].FireUpdate();
+                            }
+
+                            if (outputCard is Card.Dmps3DmOutputBackend || outputCard is Card.Dmps3HdmiOutputBackend)
+                            {
+                                if (AudioOutputFeedbacks.ContainsKey(output))
+                                {
+                                    AudioOutputFeedbacks[output].FireUpdate();
+                                }
+
+                                if (OutputAudioRouteNameFeedbacks.ContainsKey(output))
+                                {
+                                    OutputAudioRouteNameFeedbacks[output].FireUpdate();
+                                }
+                            }
                         }
-                        else
+                        catch (Exception e)
                         {
-                            Debug.Console(2, this, "DMSwitchAudio:{0} Routed Input:{1} Output:{2}'", Name,
-                                outputCard.AudioOutSourceFeedback, output);
-                            OnSwitchChange(new RoutingNumericEventArgs(output, outputCard.VideoOutFeedback.Number,
-                                eRoutingSignalType.Video));
+                            Debug.ConsoleWithLog(0, this,
+                                "DMSwitch Output Change:{0} Input:{1} Event:{2}\rException: {3}", Name,
+                                args.Number,
+                                args.EventId.ToString(), e.ToString());
                         }
+
+                        break;
+                    case DMOutputEventIds.AudioOutEventId:
+                        try
+                        {
+                            if (!Global.ControlSystemIsDmps4k3xxType)
+                            {
+                                if (outputCard != null)
+                                {
+                                    if (outputCard.AudioOutFeedback != null)
+                                    {
+                                        Debug.Console(2, this, "DMSwitchAudio:{0} Routed Input:{1} Output:{2}'",
+                                            Name,
+                                            outputCard.AudioOutFeedback.Number, output);
+                                        OnSwitchChange(new RoutingNumericEventArgs(output,
+                                            outputCard.AudioOutFeedback.Number,
+                                            eRoutingSignalType.Audio));
+                                    }
+                                    else
+                                    {
+                                        Debug.Console(2, this, "DMSwitchAudio:{0} Routed Input:{1} Output:{2}'",
+                                            Name,
+                                            0, output);
+                                        OnSwitchChange(new RoutingNumericEventArgs(output, 0,
+                                            eRoutingSignalType.Audio));
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                if (outputCard != null)
+                                {
+                                    if (outputCard is Card.Dmps3DmOutputBackend ||
+                                        outputCard is Card.Dmps3HdmiOutputBackend)
+                                    {
+                                        DigitalAudioOutputs[output].AudioSourceNumericFeedback.FireUpdate();
+                                    }
+                                    else
+                                    {
+                                        Debug.Console(2, this, "DMSwitchAudio:{0} Routed Input:{1} Output:{2}'", Name,
+                                            outputCard.AudioOutSourceFeedback, output);
+                                    }
+
+                                    OnSwitchChange(new RoutingNumericEventArgs(output,
+                                        (uint)GetAudioFeedback(outputCard),
+                                        eRoutingSignalType.Audio));
+                                }
+                            }
+
+                            if (AudioOutputFeedbacks.ContainsKey(output))
+                            {
+                                AudioOutputFeedbacks[output].FireUpdate();
+                            }
+
+                            if (OutputAudioRouteNameFeedbacks.ContainsKey(output))
+                            {
+                                OutputAudioRouteNameFeedbacks[output].FireUpdate();
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                            Debug.ConsoleWithLog(0, this,
+                                "DMSwitch Output Change:{0} Input:{1} Event:{2}\rException: {3}", Name,
+                                args.Number,
+                                args.EventId.ToString(), e.ToString());
+                        }
+
+                        break;
+                    default:
+                    {
+                        if (args.EventId == DMOutputEventIds.OutputNameEventId
+                            && OutputNameFeedbacks.ContainsKey(output))
+                        {
+                            OutputNameFeedbacks[output].FireUpdate();
+                        }
+                        else if (args.EventId == DMOutputEventIds.DigitalMixerAudioSourceFeedBackEventId)
+                        {
+                            if (AudioOutputFeedbacks.ContainsKey(output))
+                            {
+                                AudioOutputFeedbacks[output].FireUpdate();
+                            }
+
+                            if (OutputAudioRouteNameFeedbacks.ContainsKey(output))
+                            {
+                                OutputAudioRouteNameFeedbacks[output].FireUpdate();
+                            }
+                        }
+
+                        break;
                     }
                 }
-
-                if (AudioOutputFeedbacks.ContainsKey(output))
-                {
-                    AudioOutputFeedbacks[output].FireUpdate();
-                }
-
-                if (OutputAudioRouteNameFeedbacks.ContainsKey(output))
-                {
-                    OutputAudioRouteNameFeedbacks[output].FireUpdate();
-                }
-            }
-            else if (args.EventId == DMOutputEventIds.OutputNameEventId
-                     && OutputNameFeedbacks.ContainsKey(output))
-            {
-                OutputNameFeedbacks[output].FireUpdate();
-            }
-            else if (args.EventId == DMOutputEventIds.DigitalMixerAudioSourceFeedBackEventId)
-            {
-                if (AudioOutputFeedbacks.ContainsKey(output))
-                {
-                    AudioOutputFeedbacks[output].FireUpdate();
-                }
-
-                if (OutputAudioRouteNameFeedbacks.ContainsKey(output))
-                {
-                    OutputAudioRouteNameFeedbacks[output].FireUpdate();
-                }
-            }
         }
 
         private void Dmps_DMSystemChange(Switch device, DMSystemEventArgs args)

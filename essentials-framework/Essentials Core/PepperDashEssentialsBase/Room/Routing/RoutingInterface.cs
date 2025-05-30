@@ -606,6 +606,13 @@ namespace PepperDash.Essentials.Core.Routing
             AdvancedMode = mode;
 
             UpdateAllSourceVisibility();
+            //Update all source audio visible feedback
+            for (ushort i = 0;
+                 i <= RouterMain.maxSources;
+                 i++)
+            {
+                SourceAudioVisibleFeedbacks[i].FireUpdate();
+            }
 
             if (_router != null && _router.Dests.ContainsKey(0))
             {
