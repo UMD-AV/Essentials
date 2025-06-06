@@ -15,7 +15,7 @@ namespace PepperDash.Essentials.EpiphanPearl.Utilities
         public override void Start()
         {
             _isStarted = true;
-            UpdateTimers();
+            StartErrorTimers();
         }
 
         public override void Stop()
@@ -29,21 +29,12 @@ namespace PepperDash.Essentials.EpiphanPearl.Utilities
             if (isOnline)
             {
                 Status = MonitorStatus.IsOk;
-            }
-
-            UpdateTimers();
-        }
-
-        public void UpdateTimers()
-        {
-            if (!_isStarted)
-                return;
-
-            if (Status == MonitorStatus.IsOk)
-            {
                 StopErrorTimers();
                 return;
             }
+
+            if (!_isStarted)
+                return;
 
             StartErrorTimers();
         }

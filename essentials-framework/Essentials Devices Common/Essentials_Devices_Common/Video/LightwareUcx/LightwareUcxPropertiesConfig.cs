@@ -6,9 +6,9 @@ namespace PepperDash.Essentials.Devices.Common.LightwareUcx
 {
     public class LightwareUcxPropertiesConfig
     {
-        [JsonProperty("videoinputNames")] public Dictionary<uint, string> VideoInputNames { get; set; }
-        [JsonProperty("audioinputNames")] public Dictionary<uint, string> AudioInputNames { get; set; }
-        [JsonProperty("usbinputNames")] public Dictionary<uint, string> UsbInputNames { get; set; }
+        [JsonProperty("videoInputNames")] public Dictionary<uint, string> VideoInputNames { get; set; }
+        [JsonProperty("audioInputNames")] public Dictionary<uint, string> AudioInputNames { get; set; }
+        [JsonProperty("usbInputNames")] public Dictionary<uint, string> UsbInputNames { get; set; }
         [JsonProperty("videoOutputNames")] public Dictionary<uint, string> VideoOutputNames { get; set; }
         [JsonProperty("audioOutputNames")] public Dictionary<uint, string> AudioOutputNames { get; set; }
 

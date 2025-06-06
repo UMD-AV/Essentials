@@ -26,11 +26,11 @@ namespace ViscaCameraPlugin
 
         [JsonProperty("privacyOffPreset")] public uint? PrivacyOffPreset { get; set; }
 
-        [JsonProperty("pollTimeMs")] public long PollTimeMs { get; set; }
+        [JsonProperty("pollTimeMs")] public long? PollTimeMs { get; set; }
 
-        [JsonProperty("warningTimeoutMs")] public long WarningTimeoutMs { get; set; }
+        [JsonProperty("warningTimeoutMs")] public long? WarningTimeoutMs { get; set; }
 
-        [JsonProperty("errorTimeoutMs")] public long ErrorTimeoutMs { get; set; }
+        [JsonProperty("errorTimeoutMs")] public long? ErrorTimeoutMs { get; set; }
 
         [JsonProperty("autoTracking")] public bool AutoTracking { get; set; }
 

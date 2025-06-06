@@ -36,7 +36,7 @@ namespace ViscaCameraPlugin
         private const uint AddressMax = 7;
 
         private readonly long _pollTimeMs = 60000; // 60s
-        private readonly long _warningTimeoutMs = 18000; // 180s
+        private readonly long _warningTimeoutMs = 180000; // 180s
         private readonly long _errorTimeoutMs = 300000; // 300s
 
 
@@ -364,14 +364,16 @@ namespace ViscaCameraPlugin
             if (_config.AutoTracking)
                 _autoTrackingCapable = true;
 
-            if (_config.PollTimeMs > 0 && _config.PollTimeMs != _pollTimeMs)
-                _pollTimeMs = _config.PollTimeMs;
+            if (_config.PollTimeMs > 0 && _config.PollTimeMs != _pollTimeMs && _config.PollTimeMs != null)
+                _pollTimeMs = (long)_config.PollTimeMs;
 
-            if (_config.WarningTimeoutMs > 0 && _config.WarningTimeoutMs != _warningTimeoutMs)
-                _warningTimeoutMs = _config.WarningTimeoutMs;
+            if (_config.WarningTimeoutMs > 0 && _config.WarningTimeoutMs != _warningTimeoutMs &&
+                _config.WarningTimeoutMs != null)
+                _warningTimeoutMs = (long)_config.WarningTimeoutMs;
 
-            if (_config.ErrorTimeoutMs > 0 && _config.ErrorTimeoutMs != _errorTimeoutMs)
-                _errorTimeoutMs = _config.ErrorTimeoutMs;
+            if (_config.ErrorTimeoutMs > 0 && _config.ErrorTimeoutMs != _errorTimeoutMs &&
+                _config.ErrorTimeoutMs != null)
+                _errorTimeoutMs = (long)_config.ErrorTimeoutMs;
 
             if (_config.Address > 0 && _config.Address <= AddressMax && _config.Address != _address)
             {
