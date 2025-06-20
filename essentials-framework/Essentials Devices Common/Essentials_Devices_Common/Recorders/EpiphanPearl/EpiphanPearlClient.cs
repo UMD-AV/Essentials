@@ -103,6 +103,42 @@ namespace PepperDash.Essentials.EpiphanPearl
             return Post<TResponse>(path, RequestType.Put);
         }
 
+        public TResponse Put<TBody, TResponse>(string path, TBody body) where TBody : class where TResponse : class
+        {
+            HttpClientRequest request = CreateRequest(path, RequestType.Put);
+
+            request.Header.ContentType = "application/json";
+            request.ContentString = body != null ? JsonConvert.SerializeObject(body) : string.Empty;
+
+            Debug.Console(2, "Put request: {0} - {1}", request.Url, request.ContentString);
+
+            string response = SendRequest(request);
+
+            if (response == null)
+            {
+                return null;
+            }
+
+            try
+            {
+                return JsonConvert.DeserializeObject<TResponse>(response);
+            }
+            catch (Exception ex)
+            {
+                Debug.Console(0, "[TResponse Put<TBody, TResponse>] Exception sending to {0}: {1}", request.Url,
+                    ex.Message);
+                Debug.Console(2, "Stack Trace: {0}", ex.StackTrace);
+
+                if (ex.InnerException == null) return null;
+
+                Debug.Console(0, "[TResponse Put<TBody, TResponse>] Exception sending to {0}: {1}", request.Url,
+                    ex.InnerException.Message);
+                Debug.Console(2, "Stack Trace: {0}", ex.InnerException.StackTrace);
+
+                return null;
+            }
+        }
+
         private TResponse Post<TResponse>(string path, RequestType requestType)
             where TResponse : class
         {

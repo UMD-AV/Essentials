@@ -4,6 +4,17 @@ namespace PepperDash.Essentials.Core.Bridges
 {
     public class UiJoinMap : JoinMapBaseAdvanced
     {
+        //Digital
+
+        [JoinName("TechPanel")] public JoinDataComplete TechPanel = new JoinDataComplete(
+            new JoinData { JoinNumber = 1, JoinSpan = 1 },
+            new JoinMetadata
+            {
+                Description = "UI is Tech Panel",
+                JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                JoinType = eJoinType.Digital
+            });
+
         //Serial
 
         [JoinName("Name")] public JoinDataComplete Name = new JoinDataComplete(

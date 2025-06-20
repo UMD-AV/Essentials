@@ -12,5 +12,9 @@
         TResponse Post<TResponse>(string path) where TResponse : class;
 
         TResponse Put<TResponse>(string path) where TResponse : class;
+
+        TResponse Put<TBody, TResponse>(string path, TBody body)
+            where TBody : class
+            where TResponse : class;
     }
 }

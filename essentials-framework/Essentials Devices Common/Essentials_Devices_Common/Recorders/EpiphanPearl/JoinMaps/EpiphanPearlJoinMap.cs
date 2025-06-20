@@ -52,6 +52,45 @@ namespace PepperDash.Essentials.EpiphanPearl.JoinMaps
                 Description = "HdmiOutputSource Set/Get"
             });
 
+        [JoinName("Channel1Layout")] public JoinDataComplete Channel1Layout = new JoinDataComplete(
+            new JoinData
+            {
+                JoinNumber = 5,
+                JoinSpan = 1
+            },
+            new JoinMetadata
+            {
+                JoinCapabilities = eJoinCapabilities.ToFromSIMPL,
+                JoinType = eJoinType.Serial,
+                Description = "Channel1Layout Set/Get"
+            });
+
+        [JoinName("Channel2Layout")] public JoinDataComplete Channel2Layout = new JoinDataComplete(
+            new JoinData
+            {
+                JoinNumber = 6,
+                JoinSpan = 1
+            },
+            new JoinMetadata
+            {
+                JoinCapabilities = eJoinCapabilities.ToFromSIMPL,
+                JoinType = eJoinType.Serial,
+                Description = "Channel2Layout Set/Get"
+            });
+
+        [JoinName("Channel3Layout")] public JoinDataComplete Channel3Layout = new JoinDataComplete(
+            new JoinData
+            {
+                JoinNumber = 7,
+                JoinSpan = 1
+            },
+            new JoinMetadata
+            {
+                JoinCapabilities = eJoinCapabilities.ToFromSIMPL,
+                JoinType = eJoinType.Serial,
+                Description = "Channel3Layout Set/Get"
+            });
+
         [JoinName("PanoptoKey")] public JoinDataComplete PanoptoKey = new JoinDataComplete(
             new JoinData
             {
@@ -377,6 +416,45 @@ namespace PepperDash.Essentials.EpiphanPearl.JoinMaps
                 JoinCapabilities = eJoinCapabilities.ToSIMPL,
                 JoinType = eJoinType.Digital,
                 Description = "Next recording is starting in 10m"
+            });
+
+        [JoinName("Steam1Url")] public JoinDataComplete Stream1Url = new JoinDataComplete(
+            new JoinData
+            {
+                JoinNumber = 31,
+                JoinSpan = 1
+            },
+            new JoinMetadata
+            {
+                JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                JoinType = eJoinType.Serial,
+                Description = "Stream 1 URL"
+            });
+
+        [JoinName("Steam2Url")] public JoinDataComplete Stream2Url = new JoinDataComplete(
+            new JoinData
+            {
+                JoinNumber = 32,
+                JoinSpan = 1
+            },
+            new JoinMetadata
+            {
+                JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                JoinType = eJoinType.Serial,
+                Description = "Stream 2 URL"
+            });
+
+        [JoinName("Steam3Url")] public JoinDataComplete Stream3Url = new JoinDataComplete(
+            new JoinData
+            {
+                JoinNumber = 33,
+                JoinSpan = 1
+            },
+            new JoinMetadata
+            {
+                JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                JoinType = eJoinType.Serial,
+                Description = "Stream 3 URL"
             });
     }
 }

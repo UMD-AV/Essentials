@@ -15,7 +15,7 @@ namespace PepperDash.Essentials.Core.Bridges
             });
 
         [JoinName("DestVisible")] public JoinDataComplete DestVisible = new JoinDataComplete(
-            new JoinData { JoinNumber = 33, JoinSpan = 16 },
+            new JoinData { JoinNumber = 33, JoinSpan = 20 },
             new JoinMetadata
             {
                 Description = "Dest visible feedback", JoinCapabilities = eJoinCapabilities.ToSIMPL,
@@ -23,7 +23,7 @@ namespace PepperDash.Essentials.Core.Bridges
             });
 
         [JoinName("DestEnable")] public JoinDataComplete DestEnable = new JoinDataComplete(
-            new JoinData { JoinNumber = 49, JoinSpan = 16 },
+            new JoinData { JoinNumber = 53, JoinSpan = 20 },
             new JoinMetadata
             {
                 Description = "Dest enable feedback", JoinCapabilities = eJoinCapabilities.ToSIMPL,
@@ -31,7 +31,7 @@ namespace PepperDash.Essentials.Core.Bridges
             });
 
         [JoinName("SourceAudioVisible")] public JoinDataComplete SourceAudioVisible = new JoinDataComplete(
-            new JoinData { JoinNumber = 65, JoinSpan = 32 },
+            new JoinData { JoinNumber = 73, JoinSpan = 32 },
             new JoinMetadata
             {
                 Description = "Source audio visible feedback", JoinCapabilities = eJoinCapabilities.ToSIMPL,
@@ -39,7 +39,7 @@ namespace PepperDash.Essentials.Core.Bridges
             });
 
         [JoinName("SourceContentVisible")] public JoinDataComplete SourceContentVisible = new JoinDataComplete(
-            new JoinData { JoinNumber = 97, JoinSpan = 32 },
+            new JoinData { JoinNumber = 105, JoinSpan = 32 },
             new JoinMetadata
             {
                 Description = "Source content visible feedback", JoinCapabilities = eJoinCapabilities.ToSIMPL,
@@ -107,6 +107,16 @@ namespace PepperDash.Essentials.Core.Bridges
                 JoinType = eJoinType.Analog
             });
 
+        [JoinName("RoomActionGo")] public JoinDataComplete RoomActionGo = new JoinDataComplete(
+            new JoinData { JoinNumber = 7, JoinSpan = 1 },
+            new JoinMetadata
+            {
+                Description = "Fire a room action immediately",
+                JoinCapabilities = eJoinCapabilities.FromSIMPL,
+                JoinType = eJoinType.Analog
+            }
+        );
+
         //Serial
 
         [JoinName("AddVisibilityMode")] public JoinDataComplete AddVisibilityMode = new JoinDataComplete(
@@ -137,7 +147,7 @@ namespace PepperDash.Essentials.Core.Bridges
             });
 
         [JoinName("DestName")] public JoinDataComplete DestName = new JoinDataComplete(
-            new JoinData { JoinNumber = 36, JoinSpan = 16 },
+            new JoinData { JoinNumber = 36, JoinSpan = 20 },
             new JoinMetadata
             {
                 Description = "Destination name text",
@@ -146,7 +156,7 @@ namespace PepperDash.Essentials.Core.Bridges
             });
 
         [JoinName("DestRouteName")] public JoinDataComplete DestRouteName = new JoinDataComplete(
-            new JoinData { JoinNumber = 52, JoinSpan = 16 },
+            new JoinData { JoinNumber = 56, JoinSpan = 20 },
             new JoinMetadata
             {
                 Description = "Destination route name text",
@@ -155,7 +165,7 @@ namespace PepperDash.Essentials.Core.Bridges
             });
 
         [JoinName("SourceDeviceKey")] public JoinDataComplete SourceDeviceKey = new JoinDataComplete(
-            new JoinData { JoinNumber = 68, JoinSpan = 32 },
+            new JoinData { JoinNumber = 76, JoinSpan = 32 },
             new JoinMetadata
             {
                 Description = "Source device key",
@@ -165,7 +175,7 @@ namespace PepperDash.Essentials.Core.Bridges
         );
 
         [JoinName("SourceVideoSyncKey")] public JoinDataComplete SourceVideoSyncKey = new JoinDataComplete(
-            new JoinData { JoinNumber = 100, JoinSpan = 32 },
+            new JoinData { JoinNumber = 108, JoinSpan = 32 },
             new JoinMetadata
             {
                 Description = "Source video sync key",

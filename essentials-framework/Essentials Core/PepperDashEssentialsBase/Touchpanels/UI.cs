@@ -92,6 +92,7 @@ namespace PepperDash_Essentials_Core.Touchpanels
         private void UpdateBridge()
         {
             //serial
+            uiTriList.BooleanInput[joinMap.TechPanel.JoinNumber].BoolValue = uiConfig.TechPanel ?? false;
             uiTriList.StringInput[joinMap.Name.JoinNumber].StringValue = uiConfig.Name;
             uiTriList.StringInput[joinMap.DefaultRoomKey.JoinNumber].StringValue = uiConfig.DefaultRoomKey;
             uiTriList.StringInput[joinMap.UserPassword.JoinNumber].StringValue = uiConfig.UserPassword;

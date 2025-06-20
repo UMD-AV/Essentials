@@ -106,8 +106,8 @@ namespace PepperDash.Essentials.Core.Config
     {
         [JsonProperty("key")] public string Key { get; set; }
 
+        [JsonProperty("streamUrl")] public string StreamUrl { get; set; }
         [JsonProperty("source")] public int? Source { get; set; }
-
         [JsonProperty("hide")] public bool? Hide { get; set; }
     }
 

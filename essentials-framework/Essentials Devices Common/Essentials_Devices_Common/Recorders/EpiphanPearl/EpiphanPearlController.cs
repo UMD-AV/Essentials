@@ -47,6 +47,17 @@ namespace PepperDash.Essentials.EpiphanPearl
         private string _hdmiOutputSource;
         public StringFeedback HdmiOutputFeedback;
 
+        private string _channel1layout;
+        public StringFeedback Channel1LayoutFeedback;
+        private string _channel2layout;
+        public StringFeedback Channel2LayoutFeedback;
+        private string _channel3layout;
+        public StringFeedback Channel3LayoutFeedback;
+
+        public StringFeedback Stream1UrlFeedback;
+        public StringFeedback Stream2UrlFeedback;
+        public StringFeedback Stream3UrlFeedback;
+
         private StringFeedback _runningEventStartFeedback;
 
         private List<Event> _scheduledEvents;
@@ -227,6 +238,12 @@ namespace PepperDash.Essentials.EpiphanPearl
             _Extend15EnabledFeedback = new BoolFeedback(() => _Extend15Enabled);
 
             HdmiOutputFeedback = new StringFeedback(() => _hdmiOutputSource);
+            Channel1LayoutFeedback = new StringFeedback(() => _channel1layout);
+            Channel2LayoutFeedback = new StringFeedback(() => _channel2layout);
+            Channel3LayoutFeedback = new StringFeedback(() => _channel3layout);
+            Stream1UrlFeedback = new StringFeedback(() => _devProperties.Stream1Url ?? "");
+            Stream2UrlFeedback = new StringFeedback(() => _devProperties.Stream2Url ?? "");
+            Stream3UrlFeedback = new StringFeedback(() => _devProperties.Stream3Url ?? "");
         }
 
         public override void LinkToApi(BasicTriList trilist, uint joinStart, string joinMapKey, EiscApiAdvanced bridge)
@@ -249,6 +266,9 @@ namespace PepperDash.Essentials.EpiphanPearl
             trilist.SetSigTrueAction(joinMap.Extend15.JoinNumber, () => ExtendRunningEvent(15));
 
             trilist.SetStringSigAction(joinMap.HdmiOutputSource.JoinNumber, SetHdmiOutputSource);
+            trilist.SetStringSigAction(joinMap.Channel1Layout.JoinNumber, (layout) => SetLayout(1, layout));
+            trilist.SetStringSigAction(joinMap.Channel2Layout.JoinNumber, (layout) => SetLayout(2, layout));
+            trilist.SetStringSigAction(joinMap.Channel3Layout.JoinNumber, (layout) => SetLayout(3, layout));
 
             CommunicationMonitor.IsOnlineFeedback.LinkInputSig(trilist.BooleanInput[joinMap.RecorderOnline.JoinNumber]);
 
@@ -256,7 +276,6 @@ namespace PepperDash.Essentials.EpiphanPearl
             _runningEventPausedFeedback.LinkInputSig(trilist.BooleanInput[joinMap.IsPaused.JoinNumber]);
             _Extend5EnabledFeedback.LinkInputSig(trilist.BooleanInput[joinMap.Extend5Enable.JoinNumber]);
             _Extend15EnabledFeedback.LinkInputSig(trilist.BooleanInput[joinMap.Extend15Enable.JoinNumber]);
-
 
             _runningEventNameFeedback.LinkInputSig(trilist.StringInput[joinMap.CurrentRecordingName.JoinNumber]);
             _runningEventStartFeedback.LinkInputSig(trilist.StringInput[joinMap.CurrentRecordingStartTime.JoinNumber]);
@@ -280,7 +299,13 @@ namespace PepperDash.Essentials.EpiphanPearl
             _nextEventIn5mFeedback.LinkInputSig(trilist.BooleanInput[joinMap.NextRecordingIn5m.JoinNumber]);
             _nextEventIn10mFeedback.LinkInputSig(trilist.BooleanInput[joinMap.NextRecordingIn10m.JoinNumber]);
 
-            HdmiOutputFeedback.LinkInputSig((trilist.StringInput[joinMap.HdmiOutputSource.JoinNumber]));
+            HdmiOutputFeedback.LinkInputSig(trilist.StringInput[joinMap.HdmiOutputSource.JoinNumber]);
+            Channel1LayoutFeedback.LinkInputSig(trilist.StringInput[joinMap.Channel1Layout.JoinNumber]);
+            Channel2LayoutFeedback.LinkInputSig(trilist.StringInput[joinMap.Channel2Layout.JoinNumber]);
+            Channel3LayoutFeedback.LinkInputSig(trilist.StringInput[joinMap.Channel3Layout.JoinNumber]);
+            Stream1UrlFeedback.LinkInputSig(trilist.StringInput[joinMap.Stream1Url.JoinNumber]);
+            Stream2UrlFeedback.LinkInputSig(trilist.StringInput[joinMap.Stream2Url.JoinNumber]);
+            Stream3UrlFeedback.LinkInputSig(trilist.StringInput[joinMap.Stream3Url.JoinNumber]);
 
             trilist.OnlineStatusChange += (device, args) =>
             {
@@ -524,6 +549,30 @@ namespace PepperDash.Essentials.EpiphanPearl
             GetHdmiOutputSetting();
         }
 
+        /// <summary>
+        /// Change the layout on a channel
+        /// </summary>
+        public void SetLayout(int channel, string layout)
+        {
+            string path = string.Format("/channels/{0}/layouts/active", channel);
+            LayoutRequest body = new LayoutRequest
+            {
+                id = layout
+            };
+
+            BaseResponse<string> response = _client.Put<LayoutRequest, BaseResponse<string>>(path, body);
+            if (response == null)
+            {
+                Debug.Console(0, this, "Unable to change channel layout");
+                return;
+            }
+
+            if (!response.Status.Equals("ok", StringComparison.InvariantCultureIgnoreCase))
+            {
+                Debug.ConsoleWithLog(0, this, "Error changing channel layout event: {0}", response.Message);
+            }
+        }
+
         private void GetScheduledEvents()
         {
             Debug.Console(1, this, "Getting Scheduled Events");
@@ -714,6 +763,12 @@ namespace PepperDash.Essentials.EpiphanPearl
             _nextEventIn5mFeedback.FireUpdate();
             _nextEventIn10mFeedback.FireUpdate();
             HdmiOutputFeedback.FireUpdate();
+            Channel1LayoutFeedback.FireUpdate();
+            Channel2LayoutFeedback.FireUpdate();
+            Channel3LayoutFeedback.FireUpdate();
+            Stream1UrlFeedback.FireUpdate();
+            Stream2UrlFeedback.FireUpdate();
+            Stream3UrlFeedback.FireUpdate();
 
             foreach (ScheduledRecording t in _scheduledRecordings)
             {

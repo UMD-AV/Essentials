@@ -389,6 +389,7 @@
         <Compile Include="Recorders\EpiphanPearl\JoinMaps\EpiphanPearlJoinMap.cs"/>
         <Compile Include="Recorders\EpiphanPearl\Models\EventExtraData.cs"/>
         <Compile Include="Recorders\EpiphanPearl\Models\ExtendEventRequest.cs"/>
+        <Compile Include="Recorders\EpiphanPearl\Models\LayoutRequest.cs"/>
         <Compile Include="Recorders\EpiphanPearl\Models\ScheduleResponse.cs"/>
         <Compile Include="Recorders\EpiphanPearl\Utilities\EpiphanCommunicationMonitor.cs"/>
         <Compile Include="Recorders\EpiphanPearl\Utilities\HttpHelper.cs"/>

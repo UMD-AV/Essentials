@@ -8,7 +8,7 @@ namespace PepperDash.Essentials.Core.Routing
     public static class RouterMain
     {
         public const ushort maxSources = 32;
-        public const ushort maxDests = 16;
+        public const ushort maxDests = 20;
         public const ushort numDisplays = 16;
 
         private static readonly Dictionary<string, Router> Routers = new Dictionary<string, Router>();

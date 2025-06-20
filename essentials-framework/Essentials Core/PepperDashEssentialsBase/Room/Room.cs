@@ -159,6 +159,10 @@ namespace PepperDash.Essentials.Core
                     {
                         roomTriList.StringInput[joinMap.CameraKey.JoinNumber + (uint)i].StringValue =
                             roomConfig.Cameras[i].Key;
+
+                        roomTriList.StringInput[joinMap.CameraStreamUrl.JoinNumber + (uint)i].StringValue =
+                            roomConfig.Cameras[i].StreamUrl ?? "";
+
                         int? camSource = roomConfig.Cameras[i].Source;
                         if (camSource != null)
                         {
@@ -178,7 +182,7 @@ namespace PepperDash.Essentials.Core
             //faders
             if (roomConfig.Faders != null)
             {
-                int faderCount = Math.Min(8, roomConfig.Faders.Count);
+                int faderCount = Math.Min(40, roomConfig.Faders.Count);
                 for (int i = 0; i < faderCount; i++)
                 {
                     if (roomConfig.Faders != null && roomConfig.Faders[i] != null)

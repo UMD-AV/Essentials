@@ -192,6 +192,7 @@ namespace PepperDash.Essentials.Core.Routing
             trilist.SetUShortSigAction(joinMap.OverflowMode.JoinNumber, SetOverflowMode);
             trilist.SetUShortSigAction(joinMap.OverridePreview.JoinNumber, OverridePreview);
             trilist.SetUShortSigAction(joinMap.RoomSelect.JoinNumber, RoomSelect);
+            trilist.SetUShortSigAction(joinMap.RoomActionGo.JoinNumber, FireAction);
 
             trilist.SetStringSigAction(joinMap.AddVisibilityMode.JoinNumber, AddVisibilityMode);
             trilist.SetStringSigAction(joinMap.RemoveVisibilityMode.JoinNumber, RemoveVisibilityMode);
@@ -283,6 +284,16 @@ namespace PepperDash.Essentials.Core.Routing
             {
                 ErrorLog.Error("Routing interface update exception: {0}", ex);
             }
+        }
+
+        public void FireAction(ushort i)
+        {
+            if (debugLevel > 0)
+            {
+                Debug.Console(0, "Routing interface {0} firing action {1}", Key, i);
+            }
+
+            _router.FireAction(i);
         }
 
         public void SelectSource(ushort i)
