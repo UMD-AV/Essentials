@@ -37,7 +37,7 @@ namespace PepperDash.Essentials.Core.Bridges
         );
 
         [JoinName("RoutingInput")] public JoinDataComplete RoutingInput = new JoinDataComplete(
-            new JoinData { JoinNumber = 11, JoinSpan = 20 },
+            new JoinData { JoinNumber = 11, JoinSpan = 24 },
             new JoinMetadata
             {
                 Description = "Routing destination select input and feedback",
@@ -47,7 +47,7 @@ namespace PepperDash.Essentials.Core.Bridges
         );
 
         [JoinName("DisplayInputFb")] public JoinDataComplete DisplayInputFb = new JoinDataComplete(
-            new JoinData { JoinNumber = 31, JoinSpan = 16 },
+            new JoinData { JoinNumber = 35, JoinSpan = 16 },
             new JoinMetadata
             {
                 Description = "Routing display select input feedback",
@@ -68,7 +68,7 @@ namespace PepperDash.Essentials.Core.Bridges
             });
 
         [JoinName("DestDevKey")] public JoinDataComplete DestDevKey = new JoinDataComplete(
-            new JoinData { JoinNumber = 33, JoinSpan = 20 },
+            new JoinData { JoinNumber = 33, JoinSpan = 24 },
             new JoinMetadata
             {
                 Description = "Device keys for the destinations",
@@ -77,7 +77,7 @@ namespace PepperDash.Essentials.Core.Bridges
             });
 
         [JoinName("CurrentSource")] public JoinDataComplete CurrentSource = new JoinDataComplete(
-            new JoinData { JoinNumber = 53, JoinSpan = 20 },
+            new JoinData { JoinNumber = 57, JoinSpan = 24 },
             new JoinMetadata
             {
                 Description = "Current source feedback in text",
@@ -86,7 +86,7 @@ namespace PepperDash.Essentials.Core.Bridges
             });
 
         [JoinName("CodecInputCmd")] public JoinDataComplete CodecInputCmd = new JoinDataComplete(
-            new JoinData { JoinNumber = 73, JoinSpan = 1 },
+            new JoinData { JoinNumber = 81, JoinSpan = 1 },
             new JoinMetadata
             {
                 Description = "Routing codec select input command",
@@ -96,7 +96,7 @@ namespace PepperDash.Essentials.Core.Bridges
         );
 
         [JoinName("DisplayInputCmd")] public JoinDataComplete DisplayInputCmd = new JoinDataComplete(
-            new JoinData { JoinNumber = 74, JoinSpan = 16 },
+            new JoinData { JoinNumber = 82, JoinSpan = 16 },
             new JoinMetadata
             {
                 Description = "Routing display select input command",

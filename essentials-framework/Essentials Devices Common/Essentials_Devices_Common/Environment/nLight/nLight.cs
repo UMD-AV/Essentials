@@ -17,15 +17,13 @@ namespace PepperDash.Essentials.Devices.Common.Environment.NLight
         public IBasicCommunication Communication { get; private set; }
         public StatusMonitorBase CommunicationMonitor { get; private set; }
         private readonly nLightQueue _cmdQueue;
-        private CMutex _CommandMutex;
-        private NLightPropertiesConfig _props;
+        private readonly CMutex _CommandMutex;
         private bool _readyForNextCommand;
 
         public NLight(string key, string name, IBasicCommunication comm, NLightPropertiesConfig props)
             : base(key, name)
         {
             Communication = comm;
-            _props = props;
             _cmdQueue = new nLightQueue();
             _CommandMutex = new CMutex();
             _readyForNextCommand = true;
@@ -170,7 +168,8 @@ namespace PepperDash.Essentials.Devices.Common.Environment.NLight
         /// <summary>
         /// Appends the delimiter and sends the string
         /// </summary>
-        /// <param name="s"></param>
+        /// <param name="subject"></param>
+        /// <param name="data"></param>
         public void SendData(byte subject, byte[] data)
         {
             int length = 5 + data.Length;
@@ -275,14 +274,14 @@ namespace PepperDash.Essentials.Devices.Common.Environment.NLight
 
     public class nLightQueue
     {
-        public List<byte[]> Q = new List<byte[]>();
+        public readonly List<byte[]> Q = new List<byte[]>();
 
         public ushort Count
         {
             get { return (ushort)Q.Count; }
         }
 
-        private CMutex mutex = new CMutex();
+        private readonly CMutex mutex = new CMutex();
 
         /// <summary>
         /// Creates a queue for processing nLight commands
@@ -327,13 +326,12 @@ namespace PepperDash.Essentials.Devices.Common.Environment.NLight
 
         public byte[] Dequeue()
         {
-            byte[] cmd;
             mutex.WaitForMutex();
             try
             {
                 if (Q.Count > 0)
                 {
-                    cmd = Q[0];
+                    byte[] cmd = Q[0];
                     Q.RemoveAt(0);
                     return cmd;
                 }
@@ -371,7 +369,7 @@ namespace PepperDash.Essentials.Devices.Common.Environment.NLight
             IBasicCommunication comm = CommFactory.CreateCommForDevice(dc);
 
             NLightPropertiesConfig props =
-                Newtonsoft.Json.JsonConvert.DeserializeObject<Environment.NLight.NLightPropertiesConfig>(
+                Newtonsoft.Json.JsonConvert.DeserializeObject<NLightPropertiesConfig>(
                     dc.Properties.ToString());
 
             return new NLight(dc.Key, dc.Name, comm, props);

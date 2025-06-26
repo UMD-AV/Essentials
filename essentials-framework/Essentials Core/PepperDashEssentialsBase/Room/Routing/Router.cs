@@ -12,7 +12,7 @@ namespace PepperDash.Essentials.Core.Routing
 {
     public class Router : IKeyName, IBridgeAdvanced
     {
-        public ushort debugLevel = 0;
+        public ushort debugLevel = 1;
         public bool fakeFeedback = false;
         public string Key { get; private set; }
         public string Name { get; private set; }
