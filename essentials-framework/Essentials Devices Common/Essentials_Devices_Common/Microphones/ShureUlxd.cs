@@ -116,7 +116,8 @@ namespace PepperDash.Essentials.Devices.Common.ShureUlxd
 
             _comms = comms;
 
-            commsGather = new CommunicationGather(_comms, CommsDelimiter);
+            commsGather = new CommunicationGather(_comms, CommsDelimiter)
+                { IncludeDelimiter = true };
             commsGather.LineReceived += Handle_LineReceived;
             _commsMonitor = new GenericCommunicationMonitor(this, _comms, 30000, 180000, 300000, Poll);
             _commsQueue = new GenericQueue(key + "-queue");
