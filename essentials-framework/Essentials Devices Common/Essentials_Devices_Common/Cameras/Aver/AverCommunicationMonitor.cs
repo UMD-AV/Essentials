@@ -29,7 +29,7 @@ namespace PepperDash.Essentials.AverCamera
             if (isOnline)
             {
                 Status = MonitorStatus.IsOk;
-                StopErrorTimers();
+                ResetErrorTimers();
                 return;
             }
 

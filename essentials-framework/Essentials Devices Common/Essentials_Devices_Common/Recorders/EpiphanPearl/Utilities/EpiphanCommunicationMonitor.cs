@@ -29,7 +29,7 @@ namespace PepperDash.Essentials.EpiphanPearl.Utilities
             if (isOnline)
             {
                 Status = MonitorStatus.IsOk;
-                StopErrorTimers();
+                ResetErrorTimers();
                 return;
             }
 

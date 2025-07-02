@@ -392,6 +392,7 @@ namespace PepperDash.Essentials.AverCamera
             _comms.Connect();
             _pollTimer = new CTimer(o => Poll(), null, 0, 30000);
             _monitor.Start();
+            OnlineFeedback.FireUpdate();
 
             return base.CustomActivate();
         }

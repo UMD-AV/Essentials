@@ -57,12 +57,12 @@ namespace PepperDash.Essentials.Core
 
         private string _Message;
 
-        public long WarningTime;
+        public readonly long WarningTime;
         public long ErrorTime;
         private CTimer WarningTimer;
         private CTimer ErrorTimer;
 
-        public StatusMonitorBase(IKeyed parent, long warningTime, long errorTime)
+        protected StatusMonitorBase(IKeyed parent, long warningTime, long errorTime)
         {
             Parent = parent;
             if (warningTime > errorTime)
@@ -70,7 +70,7 @@ namespace PepperDash.Essentials.Core
             if (warningTime < 5000 || errorTime < 5000)
                 throw new ArgumentException("time values cannot be less that 5000 ms");
 
-            IsOnlineFeedback = new BoolFeedback(() => { return IsOnline; });
+            IsOnlineFeedback = new BoolFeedback(() => IsOnline);
             Status = MonitorStatus.StatusUnknown;
             WarningTime = warningTime;
             ErrorTime = errorTime;
