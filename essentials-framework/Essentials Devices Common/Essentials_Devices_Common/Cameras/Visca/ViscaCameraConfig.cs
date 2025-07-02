@@ -8,9 +8,9 @@ namespace ViscaCameraPlugin
     {
         [JsonProperty("control")] public EssentialsControlPropertiesConfig Control { get; set; }
 
-        [JsonProperty("deviceId")] public long DeviceId { get; set; }
+        [JsonProperty("deviceId")] public long? DeviceId { get; set; }
 
-        [JsonProperty("enabled")] public bool Enabled { get; set; }
+        [JsonProperty("enabled")] public bool? Enabled { get; set; }
 
         [JsonProperty("address")] public uint Address { get; set; }
 

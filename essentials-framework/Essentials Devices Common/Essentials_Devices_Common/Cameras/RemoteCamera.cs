@@ -13,13 +13,13 @@ namespace RemoteCameraPlugin
 {
     public class RemoteCamera : EssentialsBridgeableDevice
     {
-        private ThreeSeriesTcpIpEthernetIntersystemCommunications CameraEisc;
+        private readonly ThreeSeriesTcpIpEthernetIntersystemCommunications CameraEisc;
         private BasicTriList InternalEisc;
-        private BoolFeedback CameraOnline;
+        private readonly BoolFeedback CameraOnline;
         private BoolFeedback InternalOnline;
-        private string localCameraKey;
+        private readonly string localCameraKey;
         private ViscaCameraDevice localCamera;
-        private ViscaCameraBridgeJoinMap remoteCameraJoinMap = new ViscaCameraBridgeJoinMap(1);
+        private readonly ViscaCameraBridgeJoinMap remoteCameraJoinMap = new ViscaCameraBridgeJoinMap(1);
 
         private uint internalJoinOffset;
         private uint endInternalJoin;
@@ -30,9 +30,9 @@ namespace RemoteCameraPlugin
             CameraEisc = new ThreeSeriesTcpIpEthernetIntersystemCommunications(props.Control.IpIdInt,
                 props.Control.TcpSshProperties.Address, Global.ControlSystem);
             CameraOnline = new BoolFeedback(() => GetOnlineState());
-            CameraEisc.SigChange += new SigEventHandler(CameraEisc_SigChange);
+            CameraEisc.SigChange += CameraEisc_SigChange;
             CameraEisc.OnlineStatusChange +=
-                new Crestron.SimplSharpPro.OnlineStatusChangeEventHandler(CameraEisc_OnlineStatusChange);
+                CameraEisc_OnlineStatusChange;
             localCameraKey = props.LocalCameraKey;
         }
 
@@ -43,11 +43,11 @@ namespace RemoteCameraPlugin
             endInternalJoin = joinStart + 49;
             InternalEisc = trilist;
             InternalOnline = new BoolFeedback(() => trilist.IsOnline);
-            trilist.SigChange += new SigEventHandler(InternalEisc_SigChange);
-            trilist.OnlineStatusChange += new OnlineStatusChangeEventHandler(InternalEisc_OnlineStatusChange);
+            trilist.SigChange += InternalEisc_SigChange;
+            trilist.OnlineStatusChange += InternalEisc_OnlineStatusChange;
 
             //Send this device name to SIMPL
-            InternalEisc.StringInput[joinMap.DeviceName.JoinNumber].StringValue = this.Name;
+            InternalEisc.StringInput[joinMap.DeviceName.JoinNumber].StringValue = Name;
             //Send device model to SIMPL
             InternalEisc.StringInput[joinMap.DeviceModel.JoinNumber].StringValue = "RemoteCamera";
 
@@ -99,30 +99,30 @@ namespace RemoteCameraPlugin
                         if (args.Sig.Number == remoteCameraJoinMap.PanLeft.JoinNumber)
                         {
                             localCamera.Move(args.Sig.BoolValue,
-                                ViscaCameraPlugin.ViscaCameraDevice.EDirection.PanLeft);
+                                EDirection.PanLeft);
                         }
                         else if (args.Sig.Number == remoteCameraJoinMap.PanRight.JoinNumber)
                         {
                             localCamera.Move(args.Sig.BoolValue,
-                                ViscaCameraPlugin.ViscaCameraDevice.EDirection.PanRight);
+                                EDirection.PanRight);
                         }
                         else if (args.Sig.Number == remoteCameraJoinMap.TiltUp.JoinNumber)
                         {
-                            localCamera.Move(args.Sig.BoolValue, ViscaCameraPlugin.ViscaCameraDevice.EDirection.TiltUp);
+                            localCamera.Move(args.Sig.BoolValue, EDirection.TiltUp);
                         }
                         else if (args.Sig.Number == remoteCameraJoinMap.TiltDown.JoinNumber)
                         {
                             localCamera.Move(args.Sig.BoolValue,
-                                ViscaCameraPlugin.ViscaCameraDevice.EDirection.TiltDown);
+                                EDirection.TiltDown);
                         }
                         else if (args.Sig.Number == remoteCameraJoinMap.ZoomIn.JoinNumber)
                         {
-                            localCamera.Move(args.Sig.BoolValue, ViscaCameraPlugin.ViscaCameraDevice.EDirection.ZoomIn);
+                            localCamera.Move(args.Sig.BoolValue, EDirection.ZoomIn);
                         }
                         else if (args.Sig.Number == remoteCameraJoinMap.ZoomOut.JoinNumber)
                         {
                             localCamera.Move(args.Sig.BoolValue,
-                                ViscaCameraPlugin.ViscaCameraDevice.EDirection.ZoomOut);
+                                EDirection.ZoomOut);
                         }
                         else if (args.Sig.Number == remoteCameraJoinMap.Home.JoinNumber)
                         {
@@ -458,7 +458,7 @@ namespace RemoteCameraPlugin
         {
             Debug.Console(1, "Factory Attempting to create new Remote Camera Device");
             RemoteCameraPropertiesConfig props =
-                Newtonsoft.Json.JsonConvert.DeserializeObject<RemoteCameraPropertiesConfig>(dc.Properties.ToString());
+                JsonConvert.DeserializeObject<RemoteCameraPropertiesConfig>(dc.Properties.ToString());
 
             return new RemoteCamera(dc.Key, dc.Name, props);
         }

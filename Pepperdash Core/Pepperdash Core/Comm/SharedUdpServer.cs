@@ -86,10 +86,10 @@ namespace PepperDash.Core
             : base(key)
         {
             StreamDebugging = new CommunicationStreamDebugging(key);
-            _address = address;
+            _address = address.ToLower();
             _port = port;
             Server = UdpManager.GetServerForPort(port, bufferSize);
-            Server.ServerDevices.Add(address, this);
+            Server.ServerDevices.Add(_address, this);
         }
 
 
@@ -262,16 +262,17 @@ namespace PepperDash.Core
         /// <param name="ethernetEventArgs"></param>
         private void CrestronEnvironment_EthernetEventHandler(EthernetEventArgs ethernetEventArgs)
         {
-            // Re-enable the server if the link comes back up and the status should be connected
-            if (ethernetEventArgs.EthernetEventType == eEthernetEventType.LinkUp)
+            switch (ethernetEventArgs.EthernetEventType)
             {
-                Server.HandleLinkUp();
-                Connect();
-            }
-            else if (ethernetEventArgs.EthernetEventType == eEthernetEventType.LinkDown)
-            {
-                Server.HandleLinkLoss();
-                isConnected = false;
+                // Re-enable the server if the link comes back up and the status should be connected
+                case eEthernetEventType.LinkUp:
+                    Server.HandleLinkUp();
+                    Connect();
+                    break;
+                case eEthernetEventType.LinkDown:
+                    Server.HandleLinkLoss();
+                    isConnected = false;
+                    break;
             }
         }
 
@@ -340,10 +341,21 @@ namespace PepperDash.Core
                     return;
                 byte[] bytes = server.IncomingDataBuffer.Take(numBytes).ToArray();
 
+
                 if (ServerDevices.ContainsKey(sourceIp))
                 {
+                    //check via ip address
                     SharedUdpServerDevice device = ServerDevices[sourceIp];
                     device.ReceiveData(bytes);
+                }
+                else
+                {
+                    //check via hostname
+                    IPHostEntry sourceDns = Dns.GetHostEntry(sourceIp);
+                    if (ServerDevices.Any(dev => dev.Key == sourceDns.HostName))
+                    {
+                        ServerDevices[sourceDns.HostName].ReceiveData(bytes);
+                    }
                 }
             }
             catch (Exception ex)

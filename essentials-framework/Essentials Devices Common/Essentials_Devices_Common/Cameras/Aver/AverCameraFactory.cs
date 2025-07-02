@@ -4,7 +4,7 @@ using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Config;
 using ViscaCameraPlugin;
 
-namespace AverCameraPlugin
+namespace PepperDash.Essentials.AverCamera
 {
     public class AverCameraFactory : EssentialsPluginDeviceFactory<AverCameraDevice>
     {
@@ -22,7 +22,7 @@ namespace AverCameraPlugin
             IBasicCommunication comms = CommFactory.CreateCommForDevice(dc);
             if (comms == null)
             {
-                Debug.Console(2, "[{0}] VISCA Camera: failed to create comms for {1}", dc.Key, dc.Name);
+                Debug.Console(2, "[{0}] Aver Camera: failed to create comms for {1}", dc.Key, dc.Name);
                 return null;
             }
 

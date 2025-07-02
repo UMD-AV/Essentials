@@ -9,6 +9,7 @@
         Com,
         IpId,
         IpidTcp,
+        IpidModern,
         IR,
         Ssh,
         Tcpip,

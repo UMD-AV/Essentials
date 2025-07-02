@@ -9,6 +9,42 @@ using PepperDash.Core;
 
 namespace ViscaCameraPlugin
 {
+    /// <summary>
+    /// For tracking feedback responses from camera
+    /// </summary>
+    public enum eViscaCameraCommand
+    {
+        PowerOnCmd,
+        PowerOffCmd,
+        AutoTrackOnCmd,
+        AutoTrackOffCmd,
+        AutoTrackOnPresetCmd,
+        AutoTrackOffPresetCmd,
+        PresetRecallCmd,
+        PowerInquiry,
+        AutoTrackInquiry,
+        FocusInquiry,
+        PresetInquiry,
+        PresetSave,
+        PtzCommand,
+        AutoFocusCommand,
+        NoFeedback
+    }
+
+    /// <summary>
+    /// Move PTZ direction enumeration
+    /// </summary>
+    public enum EDirection
+    {
+        Stop = 0,
+        PanLeft = 1,
+        PanRight = 2,
+        TiltUp = 3,
+        TiltDown = 4,
+        ZoomIn = 5,
+        ZoomOut = 6
+    }
+
     public class ViscaCameraDevice : EssentialsBridgeableDevice, ICommunicationMonitor
     {
         public StatusMonitorBase CommunicationMonitor { get; private set; }
@@ -279,41 +315,6 @@ namespace ViscaCameraPlugin
             }
         }
 
-        /// <summary>
-        /// For tracking feedback responses from camera
-        /// </summary>
-        public enum eViscaCameraCommand
-        {
-            PowerOnCmd,
-            PowerOffCmd,
-            AutoTrackOnCmd,
-            AutoTrackOffCmd,
-            AutoTrackOnPresetCmd,
-            AutoTrackOffPresetCmd,
-            PresetRecallCmd,
-            PowerInquiry,
-            AutoTrackInquiry,
-            FocusInquiry,
-            PresetInquiry,
-            PresetSave,
-            PtzCommand,
-            AutoFocusCommand,
-            NoFeedback
-        }
-
-        /// <summary>
-        /// Move PTZ direction enumeration
-        /// </summary>
-        public enum EDirection
-        {
-            Stop = 0,
-            PanLeft = 1,
-            PanRight = 2,
-            TiltUp = 3,
-            TiltDown = 4,
-            ZoomIn = 5,
-            ZoomOut = 6
-        }
 
         /// <summary>
         /// Online feedback
@@ -403,8 +404,8 @@ namespace ViscaCameraPlugin
             {
                 _autoTrackingOnBytes = new byte[] { _address, 0x01, 0x04, 0x7D, 0x02, 0x00, 0xFF };
                 _autoTrackingOffBytes = new byte[] { _address, 0x01, 0x04, 0x7D, 0x03, 0x00, 0xFF };
-                _autoTrackingOnFbBytes = new byte[] { 0x50, 0x02, 0xFF };
-                _autoTrackingOffFbBytes = new byte[] { 0x50, 0x03, 0xFF };
+                _autoTrackingOnFbBytes = new byte[] { 0x50, 0x01, 0xFF };
+                _autoTrackingOffFbBytes = new byte[] { 0x50, 0x02, 0xFF };
                 _autoTrackingInquiryBytes = new byte[] { _address, 0x09, 0x36, 0x69, 0x02, 0xFF };
             }
             else
