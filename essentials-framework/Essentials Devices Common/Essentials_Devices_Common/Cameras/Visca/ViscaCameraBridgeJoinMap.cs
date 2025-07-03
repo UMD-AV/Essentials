@@ -240,6 +240,33 @@ namespace ViscaCameraPlugin
                 JoinType = eJoinType.Digital
             });
 
+
+        [JoinName("TallyOn")] public JoinDataComplete TallyOn = new JoinDataComplete(
+            new JoinData()
+            {
+                JoinNumber = 46,
+                JoinSpan = 1
+            },
+            new JoinMetadata()
+            {
+                Description = "Tally On",
+                JoinCapabilities = eJoinCapabilities.ToFromSIMPL,
+                JoinType = eJoinType.Digital
+            });
+
+        [JoinName("TallyOff")] public JoinDataComplete TallyOff = new JoinDataComplete(
+            new JoinData()
+            {
+                JoinNumber = 47,
+                JoinSpan = 1
+            },
+            new JoinMetadata()
+            {
+                Description = "Tally Off",
+                JoinCapabilities = eJoinCapabilities.ToFromSIMPL,
+                JoinType = eJoinType.Digital
+            });
+
         [JoinName("PrivacyOn")] public JoinDataComplete PrivacyOn = new JoinDataComplete(
             new JoinData()
             {
@@ -300,7 +327,7 @@ namespace ViscaCameraPlugin
         [JoinName("PresetCount")] public JoinDataComplete PresetCount = new JoinDataComplete(
             new JoinData()
             {
-                JoinNumber = 11,
+                JoinNumber = 13,
                 JoinSpan = 1
             },
             new JoinMetadata()

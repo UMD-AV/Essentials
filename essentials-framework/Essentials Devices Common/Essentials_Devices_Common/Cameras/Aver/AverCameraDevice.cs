@@ -20,6 +20,7 @@ namespace PepperDash.Essentials.AverCamera
         private HttpClient client;
         private readonly AverCommunicationMonitor _monitor;
         private CTimer _pollTimer;
+        private uint _pollTracker;
         private readonly IBasicCommunication _comms;
         private readonly CrestronQueue<ViscaCameraCommand> _commandQueue;
         private readonly CMutex _commandMutex;
@@ -181,6 +182,27 @@ namespace PepperDash.Essentials.AverCamera
             }
         }
 
+        private bool _tallyOn;
+
+        /// <summary>
+        /// Tally on feedback
+        /// </summary>
+        public BoolFeedback TallyOnFeedback { get; private set; }
+
+        /// <summary>
+        /// Tally on property
+        /// </summary>
+        protected bool TallyOn
+        {
+            get { return _tallyOn; }
+            set
+            {
+                if (_tallyOn == value) return;
+                _tallyOn = value;
+                TallyOnFeedback.FireUpdate();
+            }
+        }
+
         /// <summary>
         /// Preset name feedbacks
         /// </summary>
@@ -332,6 +354,7 @@ namespace PepperDash.Essentials.AverCamera
             PresetNameFeedbacks = new Dictionary<uint, StringFeedback>();
             PresetActiveFeedbacks = new Dictionary<uint, BoolFeedback>();
             ActivePresetFeedback = new IntFeedback(() => (int)ActivePreset);
+            TallyOnFeedback = new BoolFeedback(() => TallyOn);
 
             if (_config.AutoTracking)
                 _autoTrackingCapable = true;
@@ -604,6 +627,12 @@ namespace PepperDash.Essentials.AverCamera
                 trilist.SetString(joinMap.DeviceName.JoinNumber, Name);
                 UpdateFeedbacks();
             };
+
+            //tally light on/off
+            TallyOnFeedback.LinkInputSig(trilist.BooleanInput[joinMap.TallyOn.JoinNumber]);
+            TallyOnFeedback.LinkComplementInputSig(trilist.BooleanInput[joinMap.TallyOff.JoinNumber]);
+            trilist.SetSigTrueAction(joinMap.TallyOn.JoinNumber, SetTallyRed);
+            trilist.SetSigTrueAction(joinMap.TallyOff.JoinNumber, SetTallyOff);
         }
 
         private void UpdateFeedbacks()
@@ -910,9 +939,9 @@ namespace PepperDash.Essentials.AverCamera
                 return;
             }
 
-            // Message: [0x90, 0x50, 0x02, 0xFF]
-            // 0x50 = Execution confirmation, 0x02 = Success, 0xFF = Terminator
-            if (message.Length > 2 && (message[message.Length - 2] >> 4) == 5 &&
+            // Message: [0x90, 0x51, 0xFF]
+            // 0x51 = Execution confirmation, 0xFF = Terminator
+            if (message.Length > 2 && message[message.Length - 2] == 0x51 &&
                 message[message.Length - 3] == _feedbackAddress)
             {
                 Debug.Console(1, this, "Received execution confirmation, last inquiry: {0}", _lastInquiry.ToString());
@@ -1017,6 +1046,24 @@ namespace PepperDash.Essentials.AverCamera
 
                         _lastInquiry = eViscaCameraCommand.NoFeedback;
                         readyForNextCommand();
+                        break;
+                    case eViscaCameraCommand.TallyInquiry:
+                        if (message[message.Length - 3] == 0x50)
+                        {
+                            switch (message[message.Length - 2])
+                            {
+                                case 0x02:
+                                    TallyOn = true;
+                                    break;
+                                case 0x03:
+                                    TallyOn = false;
+                                    break;
+                            }
+
+                            _lastInquiry = eViscaCameraCommand.NoFeedback;
+                            readyForNextCommand();
+                        }
+
                         break;
                     default:
                         ParseAdditionalFeedback(message);
@@ -1145,7 +1192,7 @@ namespace PepperDash.Essentials.AverCamera
         protected void InitializeCamera()
         {
             // send address set broadcast
-            byte[] cmd = new byte[] { 0x88, 0x30, 0x01, 0xFF };
+            byte[] cmd = { 0x88, 0x30, 0x01, 0xFF };
             QueueCommand(cmd);
 
             // send an 'IF clear' on connection
@@ -1166,6 +1213,21 @@ namespace PepperDash.Essentials.AverCamera
             try
             {
                 PollAutoTrack();
+                switch (_pollTracker)
+                {
+                    case 0:
+                        PollPower();
+                        break;
+                    case 1:
+                        PollFocus();
+                        break;
+                    case 2:
+                        PollTally();
+                        break;
+                }
+
+                _pollTracker++;
+                if (_pollTracker >= 3) _pollTracker = 0;
             }
             catch (Exception e)
             {
@@ -1175,7 +1237,7 @@ namespace PepperDash.Essentials.AverCamera
 
         private void PollPower()
         {
-            byte[] cmd = new byte[] { _address, 0x09, 0x04, 0x00, 0xFF };
+            byte[] cmd = { _address, 0x09, 0x04, 0x00, 0xFF };
             QueueCommand(eViscaCameraCommand.PowerInquiry, cmd);
         }
 
@@ -1186,8 +1248,14 @@ namespace PepperDash.Essentials.AverCamera
 
         private void PollFocus()
         {
-            byte[] cmd = new byte[] { _address, 0x09, 0x04, 0x38, 0xFF };
+            byte[] cmd = { _address, 0x09, 0x04, 0x38, 0xFF };
             QueueCommand(eViscaCameraCommand.FocusInquiry, cmd);
+        }
+
+        private void PollTally()
+        {
+            byte[] cmd = { _address, 0x09, 0x7E, 0x01, 0x0A, 0xFF };
+            QueueCommand(eViscaCameraCommand.TallyInquiry, cmd);
         }
 
         /// <summary>
@@ -1438,6 +1506,36 @@ namespace PepperDash.Essentials.AverCamera
         }
 
         /// <summary>
+        /// Set the tally light to red
+        /// </summary>
+        public void SetTallyRed()
+        {
+            byte[] cmd = { _address, 0x01, 0x04, 0x3F, 0x02, Convert.ToByte(96), 0xFF };
+            QueueCommand(eViscaCameraCommand.NoFeedback, cmd);
+            PollTally();
+        }
+
+        /// <summary>
+        /// Set the tally light to green
+        /// </summary>
+        public void SetTallyGreen()
+        {
+            byte[] cmd = { _address, 0x01, 0x04, 0x3F, 0x02, Convert.ToByte(98), 0xFF };
+            QueueCommand(eViscaCameraCommand.NoFeedback, cmd);
+            PollTally();
+        }
+
+        /// <summary>
+        /// Set the tally light to off
+        /// </summary>
+        public void SetTallyOff()
+        {
+            byte[] cmd = { _address, 0x01, 0x04, 0x3F, 0x02, Convert.ToByte(97), 0xFF };
+            QueueCommand(eViscaCameraCommand.NoFeedback, cmd);
+            PollTally();
+        }
+
+        /// <summary>
         /// Recall Preset by Number
         /// </summary>
         /// <param name="preset"></param>
@@ -1450,7 +1548,7 @@ namespace PepperDash.Essentials.AverCamera
                 return;
 
             _lastCalledPreset = preset;
-            byte[] cmd = new byte[] { _address, 0x01, 0x04, 0x3F, 0x02, Convert.ToByte(preset), 0xFF };
+            byte[] cmd = { _address, 0x01, 0x04, 0x3F, 0x02, Convert.ToByte(preset), 0xFF };
             QueueCommand(eViscaCameraCommand.PresetRecallCmd, cmd);
         }
 
@@ -1464,7 +1562,7 @@ namespace PepperDash.Essentials.AverCamera
                 return;
 
             _lastCalledPreset = preset;
-            byte[] cmd = new byte[] { _address, 0x01, 0x04, 0x3F, 0x01, Convert.ToByte(preset), 0xFF };
+            byte[] cmd = { _address, 0x01, 0x04, 0x3F, 0x01, Convert.ToByte(preset), 0xFF };
             QueueCommand(eViscaCameraCommand.PresetSave, cmd);
         }
 

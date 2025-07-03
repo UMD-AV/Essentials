@@ -25,6 +25,7 @@ namespace ViscaCameraPlugin
         AutoTrackInquiry,
         FocusInquiry,
         PresetInquiry,
+        TallyInquiry,
         PresetSave,
         PtzCommand,
         AutoFocusCommand,
