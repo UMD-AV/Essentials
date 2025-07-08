@@ -16,7 +16,7 @@ namespace PepperDash.Essentials.Devices.Displays
     /// 
     /// </summary>
     public class EpsonProjector : TwoWayDisplayBase, ICommunicationMonitor, IBridgeAdvanced, IBasicVolumeWithFeedback,
-        IHasLampHours, IHasErrorString
+        IHasLampHours, IHasErrorString, IDisposable
     {
         public IBasicCommunication Communication { get; private set; }
         public StatusMonitorBase CommunicationMonitor { get; private set; }
@@ -153,6 +153,7 @@ namespace PepperDash.Essentials.Devices.Displays
             _PortGather.LineReceived += DelimitedTextReceived;
             _password = config.Password ?? "";
 
+            CrestronEnvironment.ProgramStatusEventHandler += CrestronEnvironment_ProgramStatusEventHandler;
             GenericTcpIpClient tcpComm = comm as GenericTcpIpClient;
             _readyForCommands = false;
             if (tcpComm != null)
@@ -1694,6 +1695,25 @@ namespace PepperDash.Essentials.Devices.Displays
             {
                 _rampLock.Leave();
             }
+        }
+
+        private void CrestronEnvironment_ProgramStatusEventHandler(eProgramStatusEventType programEventType)
+        {
+            if (programEventType != eProgramStatusEventType.Stopping) return;
+            Dispose();
+        }
+
+        public void Dispose()
+        {
+            if (VolumeReleaseTimer != null)
+            {
+                VolumeReleaseTimer.Stop();
+                VolumeReleaseTimer.Dispose();
+            }
+
+            if (_CommandMutex != null) _CommandMutex.Dispose();
+            if (_PowerMutex != null) _PowerMutex.Dispose();
+            if (_rampLock != null) _rampLock.Dispose();
         }
     }
 

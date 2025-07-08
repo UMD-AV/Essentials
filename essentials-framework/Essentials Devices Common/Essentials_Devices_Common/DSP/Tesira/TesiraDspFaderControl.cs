@@ -304,7 +304,7 @@ namespace Tesira_DSP_EPI
 
                 VolumeLevel = UseAbsoluteValue
                     ? (ushort)localValue
-                    : (ushort)localValue.Scale(MinLevel, MaxLevel, 0, 65535, this);
+                    : (ushort)localValue.Scale(MinLevel, MaxLevel, ushort.MinValue, ushort.MaxValue, this);
 
                 SubscriptionTracker["level"].Subscribed = true;
             }
@@ -356,7 +356,7 @@ namespace Tesira_DSP_EPI
 
                         VolumeLevel = UseAbsoluteValue
                             ? (ushort)localValue
-                            : (ushort)localValue.Scale(MinLevel, MaxLevel, 0, 65535, this);
+                            : (ushort)localValue.Scale(MinLevel, MaxLevel, ushort.MinValue, ushort.MaxValue, this);
 
                         Debug.Console(1, this, "VolumeLevel is '{0}'", VolumeLevel);
 
@@ -395,7 +395,7 @@ namespace Tesira_DSP_EPI
         /// <summary>
         /// Set level to specified value
         /// </summary>
-        /// <param name="level">Level from 0-100, as a percentage of the total range</param>
+        /// <param name="level">Level as ushort</param>
         public void SetVolume(ushort level)
         {
             Debug.Console(1, this, "volume: {0}", level);
@@ -403,31 +403,13 @@ namespace Tesira_DSP_EPI
             if (level > _volumeLevel && AutomaticUnmuteOnVolumeUp)
                 if (_isMuted)
                     MuteOff();
-            switch (level)
-            {
-                case (ushort.MinValue):
-                {
-                    SendFullCommand("set", "level", string.Format("{0:0.000000}", MinLevel), 1);
-                    break;
-                }
 
-                case (ushort.MaxValue):
-                {
-                    SendFullCommand("set", "level", string.Format("{0:0.000000}", MaxLevel), 1);
-                    break;
-                }
-                default:
-                {
-                    double newLevel = Convert.ToDouble(level);
-
-                    double volumeLevel = UseAbsoluteValue ? level : newLevel.Scale(0, 65535, MinLevel, MaxLevel, this);
-
-                    SendFullCommand("set", "level", string.Format("{0:0.000000}", volumeLevel), 1);
-                    break;
-                }
-            }
+            double newLevel = Convert.ToDouble(level);
+            double volumeLevel = UseAbsoluteValue
+                ? level
+                : newLevel.Scale(ushort.MinValue, ushort.MaxValue, MinLevel, MaxLevel, this);
+            SendFullCommand("set", "level", string.Format("{0:0.000000}", volumeLevel), 1);
         }
-
 
         /// <summary>
         /// Polls all data for component

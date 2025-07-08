@@ -73,7 +73,7 @@ namespace PepperDash.Essentials.EpiphanPearl
         public EpiphanPearlController(DeviceConfig config) : base(config)
         {
             devConfig = config;
-
+            CrestronEnvironment.ProgramStatusEventHandler += CrestronEnvironment_ProgramStatusEventHandler;
             if (_devProperties.Secure)
             {
                 _client = new EpiphanPearlSecureClient(_devProperties.Host, _devProperties.Username,
@@ -785,10 +785,29 @@ namespace PepperDash.Essentials.EpiphanPearl
             ConfigWriter.UpdateDeviceConfig(config);
         }
 
+        private void CrestronEnvironment_ProgramStatusEventHandler(eProgramStatusEventType programEventType)
+        {
+            if (programEventType != eProgramStatusEventType.Stopping) return;
+            Dispose();
+        }
+
         public void Dispose()
         {
-            if (_pollTimer != null) _pollTimer.Dispose();
-            if (_statusTimer != null) _statusTimer.Dispose();
+            Debug.Console(0, "Disposing Epiphan Recorder");
+            if (_pollTimer != null)
+            {
+                _pollTimer.Stop();
+                _pollTimer.Dispose();
+            }
+
+            if (_statusTimer != null)
+            {
+                _statusTimer.Stop();
+                _statusTimer.Dispose();
+            }
+
+            if (_client != null) _client.Dispose();
+            Debug.Console(0, "Disposing Epiphan Recorder Complete");
         }
     }
 

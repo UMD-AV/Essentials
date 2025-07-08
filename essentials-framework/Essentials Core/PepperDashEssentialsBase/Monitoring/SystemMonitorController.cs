@@ -15,7 +15,7 @@ namespace PepperDash.Essentials.Core.Monitoring
     /// Wrapper for the static SystemMonitor class to extend functionality and provide external access
     /// to SystemMonitor via APIs
     /// </summary>
-    public class SystemMonitorController : EssentialsBridgeableDevice
+    public class SystemMonitorController : EssentialsBridgeableDevice, IDisposable
     {
         private const long UptimePollTime = 6000000;
         private CTimer _uptimePollTimer;
@@ -76,7 +76,7 @@ namespace PepperDash.Essentials.Core.Monitoring
             }
 
             CreateEthernetStatusFeedbacks();
-            UpdateEthernetStatusFeeedbacks();
+            UpdateEthernetStatusFeedbacks();
 
             pollCount = 0;
             _uptimePollTimer = new CTimer(PollUptime, null, 0, UptimePollTime);
@@ -91,9 +91,8 @@ namespace PepperDash.Essentials.Core.Monitoring
         {
             if (programEventType != eProgramStatusEventType.Stopping) return;
 
-            _uptimePollTimer.Stop();
-            _uptimePollTimer.Dispose();
-            _uptimePollTimer = null;
+
+            Dispose();
         }
 
         private void PollUptime(object obj)
@@ -108,7 +107,7 @@ namespace PepperDash.Essentials.Core.Monitoring
             LastStartFeedback.FireUpdate();
 
             pollCount++;
-            if (pollCount > 23)
+            if (pollCount > 23 && _uptimePollTimer != null)
             {
                 RefreshSystemMonitorData();
                 pollCount = 0;
@@ -182,21 +181,17 @@ namespace PepperDash.Essentials.Core.Monitoring
             }
         }
 
-        private void UpdateEthernetStatusFeeedbacks()
+        private void UpdateEthernetStatusFeedbacks()
         {
             foreach (KeyValuePair<short, EthernetStatusFeedbacks> iface in EthernetStatusFeedbackCollection)
             {
+                if (_uptimePollTimer == null) return;
                 iface.Value.CurrentIpAddressFeedback.FireUpdate();
                 iface.Value.CurrentSubnetMaskFeedback.FireUpdate();
                 iface.Value.CurrentDefaultGatewayFeedback.FireUpdate();
-                iface.Value.StaticIpAddressFeedback.FireUpdate();
-                iface.Value.StaticSubnetMaskFeedback.FireUpdate();
-                iface.Value.StaticDefaultGatewayFeedback.FireUpdate();
-                iface.Value.HostNameFeedback.FireUpdate();
                 iface.Value.DnsServerFeedback.FireUpdate();
                 iface.Value.DomainFeedback.FireUpdate();
                 iface.Value.DhcpStatusFeedback.FireUpdate();
-                iface.Value.MacAddressFeedback.FireUpdate();
             }
         }
 
@@ -221,7 +216,9 @@ namespace PepperDash.Essentials.Core.Monitoring
             ModelFeedback.FireUpdate();
             UptimeFeedback.FireUpdate();
             LastStartFeedback.FireUpdate();
-            UpdateEthernetStatusFeeedbacks();
+            if (_uptimePollTimer == null) return;
+            UpdateEthernetStatusFeedbacks();
+            if (_uptimePollTimer == null) return;
             foreach (KeyValuePair<uint, ProgramStatusFeedbacks> p in ProgramStatusFeedbackCollection)
             {
                 p.Value.ProgramCompileTimeFeedback.FireUpdate();
@@ -229,6 +226,7 @@ namespace PepperDash.Essentials.Core.Monitoring
                 p.Value.AggregatedProgramInfoFeedback.FireUpdate();
             }
 
+            if (_uptimePollTimer == null) return;
             UpdateRamUsage();
             OnSystemMonitorPropertiesChanged();
         }
@@ -238,7 +236,7 @@ namespace PepperDash.Essentials.Core.Monitoring
             EventHandler<EventArgs> handler = SystemMonitorPropertiesChanged;
             if (handler != null)
             {
-                handler(this, new EventArgs());
+                handler(this, EventArgs.Empty);
             }
         }
 
@@ -479,61 +477,50 @@ namespace PepperDash.Essentials.Core.Monitoring
                 Debug.Console(2, "Adapter Index: {1} MAC Address: {0}", CrestronEthernetHelper.GetEthernetParameter(
                     CrestronEthernetHelper.ETHERNET_PARAMETER_TO_GET.GET_MAC_ADDRESS, adapterIndex), adapterIndex);
                 HostNameFeedback =
-                    new StringFeedback(
-                        () =>
-                            CrestronEthernetHelper.GetEthernetParameter(
-                                CrestronEthernetHelper.ETHERNET_PARAMETER_TO_GET.GET_HOSTNAME, adapterIndex));
+                    new StringFeedback(() =>
+                        CrestronEthernetHelper.GetEthernetParameter(
+                            CrestronEthernetHelper.ETHERNET_PARAMETER_TO_GET.GET_HOSTNAME, adapterIndex));
 
                 CurrentIpAddressFeedback =
-                    new StringFeedback(
-                        () =>
-                            CrestronEthernetHelper.GetEthernetParameter(
-                                CrestronEthernetHelper.ETHERNET_PARAMETER_TO_GET.GET_CURRENT_IP_ADDRESS, adapterIndex));
-                CurrentDefaultGatewayFeedback =
-                    new StringFeedback(
-                        () =>
-                            CrestronEthernetHelper.GetEthernetParameter(
-                                CrestronEthernetHelper.ETHERNET_PARAMETER_TO_GET.GET_CURRENT_ROUTER, adapterIndex));
-                CurrentSubnetMaskFeedback =
-                    new StringFeedback(
-                        () =>
-                            CrestronEthernetHelper.GetEthernetParameter(
-                                CrestronEthernetHelper.ETHERNET_PARAMETER_TO_GET.GET_CURRENT_IP_MASK, adapterIndex));
-                StaticIpAddressFeedback =
-                    new StringFeedback(
-                        () =>
-                            CrestronEthernetHelper.GetEthernetParameter(
-                                CrestronEthernetHelper.ETHERNET_PARAMETER_TO_GET.GET_CURRENT_IP_ADDRESS, adapterIndex));
-                StaticDefaultGatewayFeedback =
-                    new StringFeedback(
-                        () =>
-                            CrestronEthernetHelper.GetEthernetParameter(
-                                CrestronEthernetHelper.ETHERNET_PARAMETER_TO_GET.GET_CURRENT_ROUTER, adapterIndex));
-                StaticSubnetMaskFeedback =
-                    new StringFeedback(
-                        () =>
-                            CrestronEthernetHelper.GetEthernetParameter(
-                                CrestronEthernetHelper.ETHERNET_PARAMETER_TO_GET.GET_CURRENT_IP_MASK, adapterIndex));
-                DomainFeedback =
-                    new StringFeedback(
-                        () =>
-                            CrestronEthernetHelper.GetEthernetParameter(
-                                CrestronEthernetHelper.ETHERNET_PARAMETER_TO_GET.GET_DOMAIN_NAME, adapterIndex));
-                DnsServerFeedback =
-                    new StringFeedback(
-                        () =>
-                            CrestronEthernetHelper.GetEthernetParameter(
-                                CrestronEthernetHelper.ETHERNET_PARAMETER_TO_GET.GET_DNS_SERVER, adapterIndex));
-                MacAddressFeedback =
-                    new StringFeedback(
-                        () =>
-                            CrestronEthernetHelper.GetEthernetParameter(
-                                CrestronEthernetHelper.ETHERNET_PARAMETER_TO_GET.GET_MAC_ADDRESS, adapterIndex));
-
-                DhcpStatusFeedback = new StringFeedback(
-                    () =>
+                    new StringFeedback(() =>
                         CrestronEthernetHelper.GetEthernetParameter(
-                            CrestronEthernetHelper.ETHERNET_PARAMETER_TO_GET.GET_CURRENT_DHCP_STATE, adapterIndex));
+                            CrestronEthernetHelper.ETHERNET_PARAMETER_TO_GET.GET_CURRENT_IP_ADDRESS, adapterIndex));
+                CurrentDefaultGatewayFeedback =
+                    new StringFeedback(() =>
+                        CrestronEthernetHelper.GetEthernetParameter(
+                            CrestronEthernetHelper.ETHERNET_PARAMETER_TO_GET.GET_CURRENT_ROUTER, adapterIndex));
+                CurrentSubnetMaskFeedback =
+                    new StringFeedback(() =>
+                        CrestronEthernetHelper.GetEthernetParameter(
+                            CrestronEthernetHelper.ETHERNET_PARAMETER_TO_GET.GET_CURRENT_IP_MASK, adapterIndex));
+                StaticIpAddressFeedback =
+                    new StringFeedback(() =>
+                        CrestronEthernetHelper.GetEthernetParameter(
+                            CrestronEthernetHelper.ETHERNET_PARAMETER_TO_GET.GET_CURRENT_IP_ADDRESS, adapterIndex));
+                StaticDefaultGatewayFeedback =
+                    new StringFeedback(() =>
+                        CrestronEthernetHelper.GetEthernetParameter(
+                            CrestronEthernetHelper.ETHERNET_PARAMETER_TO_GET.GET_CURRENT_ROUTER, adapterIndex));
+                StaticSubnetMaskFeedback =
+                    new StringFeedback(() =>
+                        CrestronEthernetHelper.GetEthernetParameter(
+                            CrestronEthernetHelper.ETHERNET_PARAMETER_TO_GET.GET_CURRENT_IP_MASK, adapterIndex));
+                DomainFeedback =
+                    new StringFeedback(() =>
+                        CrestronEthernetHelper.GetEthernetParameter(
+                            CrestronEthernetHelper.ETHERNET_PARAMETER_TO_GET.GET_DOMAIN_NAME, adapterIndex));
+                DnsServerFeedback =
+                    new StringFeedback(() =>
+                        CrestronEthernetHelper.GetEthernetParameter(
+                            CrestronEthernetHelper.ETHERNET_PARAMETER_TO_GET.GET_DNS_SERVER, adapterIndex));
+                MacAddressFeedback =
+                    new StringFeedback(() =>
+                        CrestronEthernetHelper.GetEthernetParameter(
+                            CrestronEthernetHelper.ETHERNET_PARAMETER_TO_GET.GET_MAC_ADDRESS, adapterIndex));
+
+                DhcpStatusFeedback = new StringFeedback(() =>
+                    CrestronEthernetHelper.GetEthernetParameter(
+                        CrestronEthernetHelper.ETHERNET_PARAMETER_TO_GET.GET_CURRENT_DHCP_STATE, adapterIndex));
             }
 
             public void UpdateEthernetStatus()
@@ -741,6 +728,16 @@ namespace PepperDash.Essentials.Core.Monitoring
                 }
 
                 return outputData;
+            }
+        }
+
+        public void Dispose()
+        {
+            if (_uptimePollTimer != null)
+            {
+                _uptimePollTimer.Stop();
+                _uptimePollTimer.Dispose();
+                _uptimePollTimer = null;
             }
         }
     }

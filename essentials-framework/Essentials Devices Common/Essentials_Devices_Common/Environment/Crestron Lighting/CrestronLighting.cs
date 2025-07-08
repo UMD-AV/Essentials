@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using Crestron.SimplSharp;
 using Crestron.SimplSharpPro;
 using Crestron.SimplSharpPro.DeviceSupport;
 using Crestron.SimplSharpPro.EthernetCommunication;
@@ -10,7 +12,7 @@ using Newtonsoft.Json;
 
 namespace PepperDash.Essentials.Devices.Common.Environment.CrestronLighting
 {
-    public class CrestronLighting : EssentialsBridgeableDevice
+    public class CrestronLighting : EssentialsBridgeableDevice, IDisposable
     {
         private ThreeSeriesTcpIpEthernetIntersystemCommunications LightingEisc;
         private BasicTriList InternalEisc;
@@ -29,9 +31,10 @@ namespace PepperDash.Essentials.Devices.Common.Environment.CrestronLighting
             LightingEisc = new ThreeSeriesTcpIpEthernetIntersystemCommunications(props.Control.IpIdInt,
                 props.Control.TcpSshProperties.Address, Global.ControlSystem);
             LightingOnline = new BoolFeedback(() => LightingEisc.IsOnline);
-            LightingEisc.SigChange += new SigEventHandler(LightingEisc_SigChange);
+            LightingEisc.SigChange += LightingEisc_SigChange;
             LightingEisc.OnlineStatusChange +=
-                new Crestron.SimplSharpPro.OnlineStatusChangeEventHandler(LightingEisc_OnlineStatusChange);
+                LightingEisc_OnlineStatusChange;
+            CrestronEnvironment.ProgramStatusEventHandler += CrestronEnvironment_ProgramStatusEventHandler;
         }
 
         public override void LinkToApi(BasicTriList trilist, uint joinStart, string joinMapKey, EiscApiAdvanced bridge)
@@ -43,8 +46,8 @@ namespace PepperDash.Essentials.Devices.Common.Environment.CrestronLighting
 
             InternalEisc = trilist;
             InternalOnline = new BoolFeedback(() => InternalEisc.IsOnline);
-            InternalEisc.SigChange += new SigEventHandler(InternalEisc_SigChange);
-            InternalEisc.OnlineStatusChange += new OnlineStatusChangeEventHandler(InternalEisc_OnlineStatusChange);
+            InternalEisc.SigChange += InternalEisc_SigChange;
+            InternalEisc.OnlineStatusChange += InternalEisc_OnlineStatusChange;
 
             //Send this device name to SIMPL
             InternalEisc.StringInput[joinMap.Name.JoinNumber].StringValue = this.Name;
@@ -230,6 +233,20 @@ namespace PepperDash.Essentials.Devices.Common.Environment.CrestronLighting
             {
                 ClearLightingOutputData();
             }
+        }
+
+        private void CrestronEnvironment_ProgramStatusEventHandler(eProgramStatusEventType programEventType)
+        {
+            if (programEventType != eProgramStatusEventType.Stopping) return;
+            Debug.Console(0, "Disposing Crestron Lighting");
+            Dispose();
+            Debug.Console(0, "Disposing Crestron Lighting Complete");
+        }
+
+        public void Dispose()
+        {
+            if (LightingEisc != null) LightingEisc.Dispose();
+            if (InternalEisc != null) InternalEisc.Dispose();
         }
     }
 

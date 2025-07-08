@@ -46,7 +46,7 @@ namespace ViscaCameraPlugin
         ZoomOut = 6
     }
 
-    public class ViscaCameraDevice : EssentialsBridgeableDevice, ICommunicationMonitor
+    public class ViscaCameraDevice : EssentialsBridgeableDevice, ICommunicationMonitor, IDisposable
     {
         public StatusMonitorBase CommunicationMonitor { get; private set; }
         private readonly IBasicCommunication _comms;
@@ -348,7 +348,7 @@ namespace ViscaCameraPlugin
             : base(key, name)
         {
             Debug.Console(0, this, "Constructing new VISCA Camera instance");
-
+            CrestronEnvironment.ProgramStatusEventHandler += CrestronEnvironment_ProgramStatusEventHandler;
             _config = config;
 
             OnlineFeedback = new BoolFeedback(() => _comms != null && _comms.IsConnected);
@@ -1441,6 +1441,25 @@ namespace ViscaCameraPlugin
             _lastCalledPreset = preset;
             byte[] cmd = new byte[] { _address, 0x01, 0x04, 0x3F, 0x01, Convert.ToByte(preset), 0xFF };
             QueueCommand(eViscaCameraCommand.PresetSave, cmd);
+        }
+
+        private void CrestronEnvironment_ProgramStatusEventHandler(eProgramStatusEventType programEventType)
+        {
+            if (programEventType != eProgramStatusEventType.Stopping) return;
+            Dispose();
+        }
+
+        public void Dispose()
+        {
+            if (_commandQueue != null) _commandQueue.Dispose();
+            if (_commandMutex != null) _commandMutex.Dispose();
+            if (_commandTimer != null)
+            {
+                _commandTimer.Stop();
+                _commandTimer.Dispose();
+            }
+
+            if (_feedbackMutex != null) _feedbackMutex.Dispose();
         }
     }
 }

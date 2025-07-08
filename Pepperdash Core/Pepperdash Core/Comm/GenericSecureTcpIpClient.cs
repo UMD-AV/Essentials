@@ -9,7 +9,7 @@ namespace PepperDash.Core
     /// <summary>
     /// A class to handle secure TCP/IP communications with a server
     /// </summary>
-    public class GenericSecureTcpIpClient : Device, ISocketStatusWithStreamDebugging, IAutoReconnect
+    public class GenericSecureTcpIpClient : Device, ISocketStatusWithStreamDebugging, IAutoReconnect, IDisposable
     {
         private const string SplusKey = "Uninitialized Secure Tcp _client";
 
@@ -419,9 +419,11 @@ namespace PepperDash.Core
             if (programEventType == eProgramStatusEventType.Stopping ||
                 programEventType == eProgramStatusEventType.Paused)
             {
-                Debug.Console(0, this, Debug.ErrorLogLevel.Notice, "Program stopping. Closing _client connection");
+                Debug.Console(0, this, "Program stopping. Closing connection {0}", Key);
                 ProgramIsStopping = true;
                 Disconnect();
+                Dispose();
+                Debug.Console(0, this, "Closing connection {0} complete", Key);
             }
         }
 
@@ -975,5 +977,17 @@ namespace PepperDash.Core
         }
 
         #endregion
+
+        public void Dispose()
+        {
+            if (_client != null) _client.Dispose();
+            if (RetryTimer != null) RetryTimer.Dispose();
+            if (HeartbeatSendTimer != null) HeartbeatSendTimer.Dispose();
+            if (HeartbeatAckTimer != null) HeartbeatAckTimer.Dispose();
+            if (ConnectFailTimer != null) ConnectFailTimer.Dispose();
+            if (WaitForSharedKey != null) WaitForSharedKey.Dispose();
+            if (DequeueLock != null) DequeueLock.Dispose();
+            if (MessageQueue != null) MessageQueue.Dispose();
+        }
     }
 }

@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using Crestron.SimplSharp;
 using Crestron.SimplSharpPro;
 using Crestron.SimplSharpPro.DeviceSupport;
 using Crestron.SimplSharpPro.EthernetCommunication;
@@ -11,7 +13,7 @@ using ViscaCameraPlugin;
 
 namespace RemoteCameraPlugin
 {
-    public class RemoteCamera : EssentialsBridgeableDevice
+    public class RemoteCamera : EssentialsBridgeableDevice, IDisposable
     {
         private readonly ThreeSeriesTcpIpEthernetIntersystemCommunications CameraEisc;
         private BasicTriList InternalEisc;
@@ -33,6 +35,7 @@ namespace RemoteCameraPlugin
             CameraEisc.SigChange += CameraEisc_SigChange;
             CameraEisc.OnlineStatusChange +=
                 CameraEisc_OnlineStatusChange;
+            CrestronEnvironment.ProgramStatusEventHandler += CrestronEnvironment_ProgramStatusEventHandler;
             localCameraKey = props.LocalCameraKey;
         }
 
@@ -351,11 +354,16 @@ namespace RemoteCameraPlugin
 
         private void PushCameraOutputData()
         {
-            for (uint x = 1; x <= 50; x++)
+            if (CameraEisc != null)
             {
-                CameraEisc.BooleanInput[x].BoolValue = InternalEisc.BooleanOutput[x + internalJoinOffset].BoolValue;
-                CameraEisc.UShortInput[x].UShortValue = InternalEisc.UShortOutput[x + internalJoinOffset].UShortValue;
-                CameraEisc.StringInput[x].StringValue = InternalEisc.StringOutput[x + internalJoinOffset].StringValue;
+                for (uint x = 1; x <= 50; x++)
+                {
+                    CameraEisc.BooleanInput[x].BoolValue = InternalEisc.BooleanOutput[x + internalJoinOffset].BoolValue;
+                    CameraEisc.UShortInput[x].UShortValue =
+                        InternalEisc.UShortOutput[x + internalJoinOffset].UShortValue;
+                    CameraEisc.StringInput[x].StringValue =
+                        InternalEisc.StringOutput[x + internalJoinOffset].StringValue;
+                }
             }
 
             localCamera.ActivePresetFeedback.FireUpdate();
@@ -379,25 +387,28 @@ namespace RemoteCameraPlugin
 
         private void PushInternalOutputData()
         {
-            for (uint x = 1; x <= 50; x++)
+            if (InternalEisc != null)
             {
-                InternalEisc.BooleanInput[x + internalJoinOffset].BoolValue =
-                    CameraEisc.BooleanOutput[x + 50].BoolValue;
-                InternalEisc.UShortInput[x + internalJoinOffset].UShortValue =
-                    CameraEisc.UShortOutput[x + 50].UShortValue;
-
-                //skip join 1 & 2 which is used for camera name and camera device to SIMPL
-                if (x != 1 && x != 2)
+                for (uint x = 1; x <= 50; x++)
                 {
-                    InternalEisc.StringInput[x + internalJoinOffset].StringValue =
-                        CameraEisc.StringOutput[x + 50].StringValue;
+                    InternalEisc.BooleanInput[x + internalJoinOffset].BoolValue =
+                        CameraEisc.BooleanOutput[x + 50].BoolValue;
+                    InternalEisc.UShortInput[x + internalJoinOffset].UShortValue =
+                        CameraEisc.UShortOutput[x + 50].UShortValue;
+
+                    //skip join 1 & 2 which is used for camera name and camera device to SIMPL
+                    if (x != 1 && x != 2)
+                    {
+                        InternalEisc.StringInput[x + internalJoinOffset].StringValue =
+                            CameraEisc.StringOutput[x + 50].StringValue;
+                    }
                 }
             }
         }
 
         private void ClearCameraOutputData()
         {
-            for (uint x = 0; x <= 100; x++)
+            for (uint x = 1; x <= 100; x++)
             {
                 CameraEisc.BooleanInput[x].BoolValue = false;
             }
@@ -437,6 +448,21 @@ namespace RemoteCameraPlugin
             {
                 ClearCameraOutputData();
             }
+        }
+
+        private void CrestronEnvironment_ProgramStatusEventHandler(eProgramStatusEventType programEventType)
+        {
+            if (programEventType != eProgramStatusEventType.Stopping) return;
+            Dispose();
+        }
+
+        public void Dispose()
+        {
+            Debug.Console(0, "Disposing Remote Camera");
+            if (CameraEisc != null) CameraEisc.Dispose();
+            if (InternalEisc != null) InternalEisc.Dispose();
+            if (localCamera != null) localCamera.Dispose();
+            Debug.Console(0, "Disposing Remote Camera Complete");
         }
     }
 

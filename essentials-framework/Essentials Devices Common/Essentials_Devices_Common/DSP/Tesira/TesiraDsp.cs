@@ -17,12 +17,12 @@ using IRoutingWithFeedback = Tesira_DSP_EPI.Interfaces.IRoutingWithFeedback;
 
 namespace Tesira_DSP_EPI
 {
-    public class TesiraDsp : EssentialsBridgeableDevice, IHasDspPresets, ICommunicationMonitor
+    public class TesiraDsp : EssentialsBridgeableDevice, IHasDspPresets, ICommunicationMonitor, IDisposable
     {
         /// <summary>
         /// Collection of all Device Feedbacks
         /// </summary>
-        public FeedbackCollection<Feedback> Feedbacks;
+        public readonly FeedbackCollection<Feedback> Feedbacks;
 
         /// <summary>
         /// Data Returning from Device
@@ -85,9 +85,9 @@ namespace Tesira_DSP_EPI
         private readonly bool _isSerialComm;
 
         public bool InitialStart = true;
-        public bool OkayToSend = false;
-        public bool ControlsAdded = false;
-        private bool SubscriptionFinished = false;
+        public bool OkayToSend;
+        public bool ControlsAdded;
+        private bool SubscriptionFinished;
 
         private TesiraDspDeviceInfo DevInfo { get; set; }
         private Dictionary<string, TesiraDspFaderControl> Faders { get; set; }
@@ -114,10 +114,10 @@ namespace Tesira_DSP_EPI
 
         public bool ShowHexResponse { get; set; }
 
-        public string ResubsriptionString { get; set; }
+        public string ResubscriptionString { get; set; }
 
         /// <summary>
-        /// Consturctor for base Tesira DSP Device
+        /// Constructor for base Tesira DSP Device
         /// </summary>
         /// <param name="key">Tesira DSP Device Key</param>
         /// <param name="name">Tesira DSP Device Friendly Name</param>
@@ -253,6 +253,7 @@ namespace Tesira_DSP_EPI
         {
             if (programEventType != eProgramStatusEventType.Stopping) return;
 
+            StopSubscriptionThread();
             if (_watchDogTimer != null)
             {
                 _watchDogTimer.Stop();
@@ -264,6 +265,10 @@ namespace Tesira_DSP_EPI
                 CommunicationMonitor.Stop();
                 Communication.Disconnect();
             }
+
+            Debug.Console(0, "Disposing Tesira DSP");
+            Dispose();
+            Debug.Console(0, "Disposing Tesira DSP Complete");
         }
 
         private void CreateDspObjects()
@@ -273,7 +278,7 @@ namespace Tesira_DSP_EPI
             TesiraDspPropertiesConfig props =
                 JsonConvert.DeserializeObject<TesiraDspPropertiesConfig>(_dc.Properties.ToString());
 
-            ResubsriptionString = !string.IsNullOrEmpty(props.ResubscribeString)
+            ResubscriptionString = !string.IsNullOrEmpty(props.ResubscribeString)
                 ? props.ResubscribeString
                 : "hullabaloo";
 
@@ -717,9 +722,9 @@ namespace Tesira_DSP_EPI
                     CrestronInvoke.BeginInvoke(o => StartSubsciptionThread());
                 }
 
-                else if (args.Text.Equals(ResubsriptionString, StringComparison.OrdinalIgnoreCase))
+                else if (args.Text.Equals(ResubscriptionString, StringComparison.OrdinalIgnoreCase))
                 {
-                    if (!string.IsNullOrEmpty(ResubsriptionString))
+                    if (!string.IsNullOrEmpty(ResubscriptionString))
                         CommandQueue.Clear();
                     Resubscribe();
                 }
@@ -782,6 +787,19 @@ namespace Tesira_DSP_EPI
 
                         WatchDogSniffer = false;
                         //CommandQueue.AdvanceQueue(args.Text);
+                    }
+
+                    else if (args.Text.Contains("INVALID_PARAMETER Value out of range"))
+                    {
+                        if (SubscriptionFinished)
+                        {
+                            Debug.ConsoleWithLog(0, this, "Error From DSP, resubscribing: '{0}'", args.Text);
+                            Resubscribe();
+                        }
+                        else
+                        {
+                            Debug.Console(1, this, Debug.ErrorLogLevel.Error, "Error From DSP: '{0}'", args.Text);
+                        }
                     }
 
                     else
@@ -1563,6 +1581,20 @@ namespace Tesira_DSP_EPI
                     feedback.FireUpdate();
                 }
             };
+        }
+
+        public void Dispose()
+        {
+            if (_watchDogTimer != null) _watchDogTimer.Dispose();
+            if (_queueCheckTimer != null) _queueCheckTimer.Dispose();
+            if (_unsubscribeTimer != null) _unsubscribeTimer.Dispose();
+            if (_subscribeTimer != null) _subscribeTimer.Dispose();
+            if (_expanderCheckTimer != null) _expanderCheckTimer.Dispose();
+            if (_pacer != null) _pacer.Dispose();
+            if (_paceTimer != null) _paceTimer.Dispose();
+            if (_getMaxTimer != null) _getMaxTimer.Dispose();
+            if (_getMinTimer != null) _getMinTimer.Dispose();
+            if (_componentSubscribeTimer != null) _componentSubscribeTimer.Dispose();
         }
     }
 }

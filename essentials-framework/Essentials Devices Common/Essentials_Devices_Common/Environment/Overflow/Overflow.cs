@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Crestron.SimplSharp;
 using Crestron.SimplSharpPro;
 using Crestron.SimplSharpPro.DeviceSupport;
 using Crestron.SimplSharpPro.EthernetCommunication;
@@ -11,7 +12,7 @@ using Newtonsoft.Json;
 
 namespace OverflowPlugin
 {
-    public class Overflow : EssentialsBridgeableDevice
+    public class Overflow : EssentialsBridgeableDevice, IDisposable
     {
         private readonly ThreeSeriesTcpIpEthernetIntersystemCommunications OverflowEisc;
         private BasicTriList InternalEisc;
@@ -34,6 +35,7 @@ namespace OverflowPlugin
             OverflowOnline = new BoolFeedback(() => OverflowEisc.IsOnline);
             OverflowEisc.SigChange += OverflowEisc_SigChange;
             OverflowEisc.OnlineStatusChange += OverflowEisc_OnlineStatusChange;
+            CrestronEnvironment.ProgramStatusEventHandler += CrestronEnvironment_ProgramStatusEventHandler;
             RemoteOverflowOn = new BoolFeedback(() =>
                 OverflowEisc.BooleanOutput[overflowJoinMap.OverflowOn.JoinNumber].BoolValue);
             RemoteOverflowOff = new BoolFeedback(() =>
@@ -221,6 +223,20 @@ namespace OverflowPlugin
             {
                 StreamUrls[i].FireUpdate();
             }
+        }
+
+        private void CrestronEnvironment_ProgramStatusEventHandler(eProgramStatusEventType programEventType)
+        {
+            if (programEventType != eProgramStatusEventType.Stopping) return;
+            Dispose();
+        }
+
+        public void Dispose()
+        {
+            Debug.Console(0, "Disposing Overflow EISC");
+            if (OverflowEisc != null) OverflowEisc.Dispose();
+            if (InternalEisc != null) InternalEisc.Dispose();
+            Debug.Console(0, "Disposing Overflow EISC complete");
         }
     }
 

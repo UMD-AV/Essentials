@@ -15,7 +15,7 @@ using Newtonsoft.Json.Linq;
 
 namespace PepperDash.Essentials.Devices.Common.Scheduling
 {
-    public class CollegeNet : EssentialsDevice, IBridgeAdvanced
+    public class CollegeNet : EssentialsDevice, IBridgeAdvanced, IDisposable
     {
         public event EventHandler MeetingsUpdated;
         public event EventHandler CurrentMeetingUpdated;
@@ -488,7 +488,9 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
         {
             if (programEventType != eProgramStatusEventType.Stopping) return;
 
-            secureClient.Dispose();
+            Debug.Console(0, this, "Program stopping. Closing connection {0}", Key);
+            Dispose();
+            Debug.Console(0, this, "Closing connection {0} complete", Key);
         }
 
         private void HttpsCallback(HttpsClientResponse response, HTTPS_CALLBACK_ERROR error, object requestName)
@@ -715,6 +717,15 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
 
             string result = Regex.Replace(name, pattern, "");
             return result.Trim();
+        }
+
+        public void Dispose()
+        {
+            if (secureClient != null) secureClient.Dispose();
+            if (updateCurrentMeeting != null) updateCurrentMeeting.Dispose();
+            if (scheduleUpdateTimer != null) scheduleUpdateTimer.Dispose();
+            if (scheduleTimeout != null) scheduleTimeout.Dispose();
+            if (meetingMutex != null) meetingMutex.Dispose();
         }
     }
 

@@ -326,6 +326,8 @@ namespace PepperDash.Essentials.Devices.Common.ShureMxwapxd2
                 // Tx info **feedback only**
                 for (ushort i = 0; i < 2; i++)
                 {
+                    Txs[i].TxEnabledFeedback
+                        .LinkInputSig(trilist.BooleanInput[joinMap.TxEnabled.JoinNumber + i]);
                     Txs[i].TxPresentFeedback
                         .LinkInputSig(trilist.BooleanInput[joinMap.TxDocked.JoinNumber + i]);
                     Txs[i].TxPresent5AMFeedback

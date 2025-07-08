@@ -11,7 +11,7 @@ namespace PepperDash.Core
     /// <summary>
     /// A class to handle basic TCP/IP communications with a server
     /// </summary>
-    public class GenericTcpIpClient : Device, ISocketStatusWithStreamDebugging, IAutoReconnect
+    public class GenericTcpIpClient : Device, ISocketStatusWithStreamDebugging, IAutoReconnect, IDisposable
     {
         private const string SplusKey = "Uninitialized TcpIpClient";
 
@@ -234,8 +234,10 @@ namespace PepperDash.Core
         {
             if (programEventType == eProgramStatusEventType.Stopping)
             {
-                Debug.Console(1, this, "Program stopping. Closing connection");
+                Debug.Console(0, this, "Program stopping. Closing connection {0}", Key);
                 Deactivate();
+                Dispose();
+                Debug.Console(0, this, "Closing connection {0} complete", Key);
             }
         }
 
@@ -252,6 +254,7 @@ namespace PepperDash.Core
             {
                 _client.SocketStatusChange -= this.Client_SocketStatusChange;
                 DisconnectClient();
+                _client.Dispose();
             }
 
             return true;
@@ -313,7 +316,7 @@ namespace PepperDash.Core
             try
             {
                 connectLock.Enter();
-                if (IsConnected || DisconnectCalledByUser == true)
+                if (IsConnected || DisconnectCalledByUser)
                 {
                     Debug.Console(1, this, "Reconnect no longer needed. Exiting Reconnect()");
                 }
@@ -372,7 +375,6 @@ namespace PepperDash.Core
             {
                 Debug.Console(0, this, "Server connection result: {0}", c.ClientStatus);
                 RetryTimer.Reset(AutoReconnectIntervalMs);
-                
             }
             else
             {
@@ -508,8 +510,15 @@ namespace PepperDash.Core
             }
 
             EventHandler<GenericSocketStatusChageEventArgs> handler = ConnectionChange;
-            if (handler != null)
+            if (handler != null && ConnectionChange != null)
                 ConnectionChange(this, new GenericSocketStatusChageEventArgs(this));
+        }
+
+        public void Dispose()
+        {
+            if (_client != null) _client.Dispose();
+            if (connectLock != null) connectLock.Dispose();
+            if (RetryTimer != null) RetryTimer.Dispose();
         }
     }
 

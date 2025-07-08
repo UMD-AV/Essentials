@@ -21,7 +21,8 @@ namespace PepperDash.Essentials.DM
     /// 
     /// </summary>
     [Description("Wrapper class for all DM-MD chassis variants from 8x8 to 32x32")]
-    public class DmChassisController : CrestronGenericBridgeableBaseDevice, IDmSwitch, IRoutingNumericWithFeedback
+    public class DmChassisController : CrestronGenericBridgeableBaseDevice, IDmSwitch, IRoutingNumericWithFeedback,
+        IDisposable
     {
         private const string NonePortKey = "inputCard0--None";
         public DMChassisPropertiesConfig PropertiesConfig { get; set; }
@@ -213,6 +214,7 @@ namespace PepperDash.Essentials.DM
             : base(key, name, chassis)
         {
             Chassis = chassis;
+            CrestronEnvironment.ProgramStatusEventHandler += CrestronEnvironment_ProgramStatusEventHandler;
             InputPorts = new RoutingPortCollection<RoutingInputPort>();
             OutputPorts = new RoutingPortCollection<RoutingOutputPort>();
             VolumeControls = new Dictionary<uint, DmCardAudioOutputController>();
@@ -1932,8 +1934,8 @@ namespace PepperDash.Essentials.DM
             if (txRoutingInputs == null) return;
 
             List<RoutingInputPort> inputPorts =
-                txRoutingInputs.InputPorts.Where(
-                    (p) => p.Port is EndpointHdmiInput || p.Port is EndpointDisplayPortInput).ToList();
+                txRoutingInputs.InputPorts
+                    .Where((p) => p.Port is EndpointHdmiInput || p.Port is EndpointDisplayPortInput).ToList();
 
             if (inputPorts.Count == 0)
             {
@@ -2220,6 +2222,17 @@ namespace PepperDash.Essentials.DM
                 trilist.SetUShortSigAction(join,
                     u => { port.HdcpReceiveCapability = (eHdcpCapabilityType)u; });
             }
+        }
+
+        private void CrestronEnvironment_ProgramStatusEventHandler(eProgramStatusEventType programEventType)
+        {
+            if (programEventType != eProgramStatusEventType.Stopping) return;
+            Dispose();
+        }
+
+        public void Dispose()
+        {
+            if (Chassis != null) Chassis.Dispose();
         }
     }
 

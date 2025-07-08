@@ -10,7 +10,7 @@ namespace PepperDash.Core
     /// <summary>
     /// 
     /// </summary>
-    public class GenericSshClient : Device, ISocketStatusWithStreamDebugging, IAutoReconnect
+    public class GenericSshClient : Device, ISocketStatusWithStreamDebugging, IAutoReconnect, IDisposable
     {
         private const string SPlusKey = "Uninitialized SshClient";
 
@@ -192,9 +192,11 @@ namespace PepperDash.Core
             {
                 if (Client != null)
                 {
-                    Debug.Console(1, this, "Program stopping. Closing connection");
+                    Debug.Console(0, this, "Program stopping. Closing connection {0}", Key);
                     AutoReconnect = false;
                     Disconnect();
+                    Dispose();
+                    Debug.Console(0, this, "Closing connection {0} complete", Key);
                 }
             }
         }
@@ -521,6 +523,14 @@ namespace PepperDash.Core
         }
 
         #endregion
+
+        public void Dispose()
+        {
+            if (Client != null) Client.Dispose();
+            if (TheStream != null) TheStream.Dispose();
+            if (ReconnectTimer != null) ReconnectTimer.Dispose();
+            if (connectLock != null) connectLock.Dispose();
+        }
     }
 
     //*****************************************************************************************************
