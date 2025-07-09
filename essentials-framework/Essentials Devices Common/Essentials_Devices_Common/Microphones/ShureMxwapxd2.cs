@@ -18,7 +18,7 @@ namespace PepperDash.Essentials.Devices.Common.ShureMxwapxd2
         private const string CommsDelimiter = ">";
         private readonly GenericQueue _commsQueue;
         public int Mxwapxd2Size { get; private set; }
-        public readonly ShureMxwapxd2Tx[] Txs;
+        public readonly ShureMxwTx[] Txs;
         private CTimer TxCheckTimer;
 
         private readonly Regex regexPattern = new Regex(
@@ -102,10 +102,10 @@ namespace PepperDash.Essentials.Devices.Common.ShureMxwapxd2
             TxCheckRan5AMFeedback = new BoolFeedback(() => TxCheckRan5AM);
 
             Mxwapxd2Size = 2;
-            Txs = new ShureMxwapxd2Tx[2];
-            for (ushort i = 0; i < 2; i++)
+            Txs = new ShureMxwTx[Mxwapxd2Size];
+            for (ushort i = 0; i < Mxwapxd2Size; i++)
             {
-                Txs[i] = new ShureMxwapxd2Tx();
+                Txs[i] = new ShureMxwTx();
                 Txs[i].TxEnabled = true;
             }
 
@@ -165,7 +165,7 @@ namespace PepperDash.Essentials.Devices.Common.ShureMxwapxd2
             if ((DateTime.Now > DateTime.Today.AddHours(5)) && isWeekday(DateTime.Today.DayOfWeek))
             {
                 int count = 0;
-                foreach (ShureMxwapxd2Tx b in Txs)
+                foreach (ShureMxwTx b in Txs)
                 {
                     b.TxPresent5AM = b.TxPresent;
                     if (b.TxPresent)
@@ -236,9 +236,52 @@ namespace PepperDash.Essentials.Devices.Common.ShureMxwapxd2
                 case "TX_STATUS":
                 {
                     int index = Convert.ToInt16(indexString) - 1;
-                    if (index < 2)
+                    if (index < Mxwapxd2Size)
                     {
                         Txs[index].TxStatus = state;
+                    }
+
+                    break;
+                }
+
+                // Battery percent charge
+                // TX: < GET x BATT_CHARGE >
+                // RX: < REP x BATT_CHARGE 027 >
+                case "BATT_CHARGE":
+                {
+                    int index = Convert.ToInt16(indexString) - 1;
+                    if (index < Mxwapxd2Size)
+                    {
+                        short stateInt = Convert.ToInt16(state);
+                        if (stateInt >= 0 && stateInt <= 100)
+                        {
+                            Txs[index].PercentCharge = stateInt;
+                        }
+                        else
+                        {
+                            Txs[index].PercentCharge = 0;
+                        }
+                    }
+
+                    break;
+                }
+                // Battery percent health
+                // TX: < GET x BATT_HEALTH >
+                // RX: < REP x BATT_CHARGE 099 >
+                case "BATT_HEALTH":
+                {
+                    int index = Convert.ToInt16(indexString) - 1;
+                    if (index < Mxwapxd2Size)
+                    {
+                        short stateInt = Convert.ToInt16(state);
+                        if (stateInt >= 0 && stateInt <= 100)
+                        {
+                            Txs[index].PercentHealth = stateInt;
+                        }
+                        else
+                        {
+                            Txs[index].PercentHealth = 0;
+                        }
                     }
 
                     break;
@@ -324,7 +367,7 @@ namespace PepperDash.Essentials.Devices.Common.ShureMxwapxd2
                 TxCheckRan5AMFeedback.LinkInputSig(trilist.BooleanInput[joinMap.Docked5AMCheckRan.JoinNumber]);
 
                 // Tx info **feedback only**
-                for (ushort i = 0; i < 2; i++)
+                for (ushort i = 0; i < Mxwapxd2Size; i++)
                 {
                     Txs[i].TxEnabledFeedback
                         .LinkInputSig(trilist.BooleanInput[joinMap.TxEnabled.JoinNumber + i]);
@@ -334,6 +377,10 @@ namespace PepperDash.Essentials.Devices.Common.ShureMxwapxd2
                         .LinkInputSig(trilist.BooleanInput[joinMap.TxDocked5AM.JoinNumber + i]);
                     Txs[i].TxStatusFeedback
                         .LinkInputSig(trilist.StringInput[joinMap.TxStatusText.JoinNumber + i]);
+                    Txs[i].PercentChargeFeedback
+                        .LinkInputSig(trilist.UShortInput[joinMap.PercentCharge.JoinNumber + i]);
+                    Txs[i].PercentHealthFeedback
+                        .LinkInputSig(trilist.UShortInput[joinMap.PercentHealth.JoinNumber + i]);
                 }
 
                 // device information feedback
@@ -361,12 +408,14 @@ namespace PepperDash.Essentials.Devices.Common.ShureMxwapxd2
             MonitorStatusFeedback.FireUpdate();
             DeviceFirmwareVersionFeedback.FireUpdate();
 
-            for (ushort i = 0; i < 2; i++)
+            for (ushort i = 0; i < Mxwapxd2Size; i++)
             {
                 Txs[i].TxEnabledFeedback.FireUpdate();
                 Txs[i].TxPresentFeedback.FireUpdate();
                 Txs[i].TxPresent5AMFeedback.FireUpdate();
                 Txs[i].TxStatusFeedback.FireUpdate();
+                Txs[i].PercentChargeFeedback.FireUpdate();
+                Txs[i].PercentHealthFeedback.FireUpdate();
             }
 
             TxCheckRan5AMFeedback.FireUpdate();
@@ -384,7 +433,7 @@ namespace PepperDash.Essentials.Devices.Common.ShureMxwapxd2
         }
     }
 
-    public class ShureMxwapxd2Tx
+    public class ShureMxwTx
     {
         #region Tx Enabled
 
@@ -471,12 +520,59 @@ namespace PepperDash.Essentials.Devices.Common.ShureMxwapxd2
 
         #endregion
 
-        public ShureMxwapxd2Tx()
+        #region Percent Charge (BATT_CHARGE)
+
+        private int _percentCharge;
+
+        public int PercentCharge
+        {
+            get { return _percentCharge; }
+            set
+            {
+                _percentCharge = value;
+                PercentChargeFeedback.FireUpdate();
+            }
+        }
+
+        /// <summary>
+        /// Battery percent charge feedback
+        /// </summary>
+        public IntFeedback PercentChargeFeedback { get; private set; }
+
+        #endregion
+
+        #region Percent Health (BATT_HEALTH)
+
+        private int _percentHealth;
+
+        public int PercentHealth
+        {
+            get { return _percentHealth; }
+            set
+            {
+                if (value > 0)
+                {
+                    _percentHealth = value;
+                    PercentHealthFeedback.FireUpdate();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Battery percent health feedback
+        /// </summary>
+        public IntFeedback PercentHealthFeedback { get; private set; }
+
+        #endregion
+
+        public ShureMxwTx()
         {
             TxEnabledFeedback = new BoolFeedback(() => TxEnabled);
             TxPresentFeedback = new BoolFeedback(() => TxPresent);
             TxPresent5AMFeedback = new BoolFeedback(() => TxPresent5AM);
             TxStatusFeedback = new StringFeedback(() => TxStatus);
+            PercentChargeFeedback = new IntFeedback(() => PercentCharge);
+            PercentHealthFeedback = new IntFeedback(() => PercentHealth);
         }
     }
 
@@ -614,6 +710,48 @@ namespace PepperDash.Essentials.Devices.Common.ShureMxwapxd2
             new JoinMetadata
             {
                 Description = "Monitor Status",
+                JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                JoinType = eJoinType.Analog
+            });
+
+        /// <summary>
+        /// Get percent charge for a battery
+        /// </summary>
+        /// <remarks>
+        /// 000-100 = percent charge,
+        /// 254 = error,
+        /// 255 = unknown
+        /// </remarks>
+        [JoinName("PercentCharge")] public readonly JoinDataComplete PercentCharge = new JoinDataComplete(
+            new JoinData
+            {
+                JoinNumber = 11,
+                JoinSpan = 8
+            },
+            new JoinMetadata
+            {
+                Description = "Percent charge for a battery",
+                JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                JoinType = eJoinType.Analog
+            });
+
+        /// <summary>
+        /// Get health for a battery
+        /// </summary>
+        /// <remarks>
+        /// 000-100 = percent health,
+        /// 254 = error,
+        /// 255 = unknown
+        /// </remarks>
+        [JoinName("PercentHealth")] public readonly JoinDataComplete PercentHealth = new JoinDataComplete(
+            new JoinData
+            {
+                JoinNumber = 21,
+                JoinSpan = 8
+            },
+            new JoinMetadata
+            {
+                Description = "Percent health for a battery",
                 JoinCapabilities = eJoinCapabilities.ToSIMPL,
                 JoinType = eJoinType.Analog
             });

@@ -199,6 +199,7 @@
         <Compile Include="DSP\Tesira\TesiraQueue.cs"/>
         <Compile Include="DynFusion\StaticAssets\MicStaticAsset.cs"/>
         <Compile Include="DynFusion\StaticAssets\MicBatteryStaticAsset.cs"/>
+        <Compile Include="DynFusion\StaticAssets\MxwTxStaticAsset.cs"/>
         <Compile Include="DynFusion\StaticAssets\StaticAsset.cs"/>
         <Compile Include="DynFusion\StaticAssets\DisplayStaticAsset.cs"/>
         <Compile Include="DynFusion\DynFusionHelpRequest.cs"/>
