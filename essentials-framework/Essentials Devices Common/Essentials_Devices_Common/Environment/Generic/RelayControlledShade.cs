@@ -17,7 +17,7 @@ namespace PepperDash.Essentials.Devices.Common.Environment
     /// </summary>
     public class RelayControlledShade : EssentialsBridgeableDevice, IShadesOpenCloseStop
     {
-        private RelayControlledShadeConfigProperties Config;
+        private readonly RelayControlledShadeConfigProperties Config;
 
         private List<GenericRelayDevice> OpenShadesRelays;
         private List<GenericRelayDevice> StopShadesRelays;
@@ -91,7 +91,7 @@ namespace PepperDash.Essentials.Devices.Common.Environment
 
         public void Open()
         {
-            Debug.Console(1, this, "Opening Shade: '{0}'", this.Name);
+            Debug.Console(1, this, "Opening Shade: '{0}'", Name);
             //Stop close
             foreach (GenericRelayDevice relay in CloseShadesRelays)
             {
@@ -115,7 +115,7 @@ namespace PepperDash.Essentials.Devices.Common.Environment
 
         public void Stop()
         {
-            Debug.Console(1, this, "Stopping Shade: '{0}'", this.Name);
+            Debug.Console(1, this, "Stopping Shade: '{0}'", Name);
             if (Config.UseOpenCloseForStop)
             {
                 foreach (GenericRelayDevice relay in OpenShadesRelays)
@@ -152,7 +152,7 @@ namespace PepperDash.Essentials.Devices.Common.Environment
 
         public void Close()
         {
-            Debug.Console(1, this, "Closing Shade: '{0}'", this.Name);
+            Debug.Console(1, this, "Closing Shade: '{0}'", Name);
             //Stop open
             foreach (GenericRelayDevice relay in OpenShadesRelays)
             {
@@ -234,16 +234,16 @@ namespace PepperDash.Essentials.Devices.Common.Environment
         {
             Debug.Console(1, "Factory Attempting to create new Generic Comm Device");
             RelayControlledShadeConfigProperties props =
-                Newtonsoft.Json.JsonConvert.DeserializeObject<Environment.RelayControlledShadeConfigProperties>(
+                JsonConvert.DeserializeObject<RelayControlledShadeConfigProperties>(
                     dc.Properties.ToString());
 
-            return new Environment.RelayControlledShade(dc.Key, dc.Name, props);
+            return new RelayControlledShade(dc.Key, dc.Name, props);
         }
     }
 
     public class GenericShadesJoinMap : JoinMapBaseAdvanced
     {
-        [JoinName("Shades Open")] public JoinDataComplete ShadesOpen = new JoinDataComplete(
+        [JoinName("Shades Open")] public readonly JoinDataComplete ShadesOpen = new JoinDataComplete(
             new JoinData { JoinNumber = 1, JoinSpan = 1 },
             new JoinMetadata
             {
@@ -251,7 +251,7 @@ namespace PepperDash.Essentials.Devices.Common.Environment
                 JoinType = eJoinType.Digital
             });
 
-        [JoinName("Shades Close")] public JoinDataComplete ShadesClose = new JoinDataComplete(
+        [JoinName("Shades Close")] public readonly JoinDataComplete ShadesClose = new JoinDataComplete(
             new JoinData { JoinNumber = 2, JoinSpan = 1 },
             new JoinMetadata
             {
@@ -259,7 +259,7 @@ namespace PepperDash.Essentials.Devices.Common.Environment
                 JoinType = eJoinType.Digital
             });
 
-        [JoinName("Shades Stop")] public JoinDataComplete ShadesStop = new JoinDataComplete(
+        [JoinName("Shades Stop")] public readonly JoinDataComplete ShadesStop = new JoinDataComplete(
             new JoinData { JoinNumber = 3, JoinSpan = 1 },
             new JoinMetadata
             {
@@ -267,7 +267,7 @@ namespace PepperDash.Essentials.Devices.Common.Environment
                 JoinType = eJoinType.Digital
             });
 
-        [JoinName("Shades Open Name")] public JoinDataComplete ShadesOpenName = new JoinDataComplete(
+        [JoinName("Shades Open Name")] public readonly JoinDataComplete ShadesOpenName = new JoinDataComplete(
             new JoinData { JoinNumber = 1, JoinSpan = 1 },
             new JoinMetadata
             {
@@ -275,7 +275,7 @@ namespace PepperDash.Essentials.Devices.Common.Environment
                 JoinType = eJoinType.Serial
             });
 
-        [JoinName("Shades Close Name")] public JoinDataComplete ShadesCloseName = new JoinDataComplete(
+        [JoinName("Shades Close Name")] public readonly JoinDataComplete ShadesCloseName = new JoinDataComplete(
             new JoinData { JoinNumber = 2, JoinSpan = 1 },
             new JoinMetadata
             {
@@ -283,7 +283,7 @@ namespace PepperDash.Essentials.Devices.Common.Environment
                 JoinType = eJoinType.Serial
             });
 
-        [JoinName("Shades Stop Name")] public JoinDataComplete ShadesStopName = new JoinDataComplete(
+        [JoinName("Shades Stop Name")] public readonly JoinDataComplete ShadesStopName = new JoinDataComplete(
             new JoinData { JoinNumber = 3, JoinSpan = 1 },
             new JoinMetadata
             {

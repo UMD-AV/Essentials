@@ -20,6 +20,7 @@ namespace VaddioCameraPlugin
         private bool _queueWaiting;
         private bool _commandReady = true;
         private uint _lastCalledPreset;
+        private readonly uint _homePreset;
         private EDirection _moveInProgress = EDirection.Stop;
         private eVaddioCameraCommand _lastInquiry = eVaddioCameraCommand.NoFeedback;
         private Dictionary<uint, uint> presetIds;
@@ -323,6 +324,8 @@ namespace VaddioCameraPlugin
 
             if (config1.PrivacyOffPreset != null && config1.PrivacyOffPreset <= PresetMax)
                 _privacyOffPreset = config.PrivacyOffPreset;
+
+            _homePreset = config.HomePreset ?? 1;
 
             _comms = comms;
             CommunicationGather commsGather = new CommunicationGather(_comms, "\r");
@@ -1019,7 +1022,7 @@ namespace VaddioCameraPlugin
         public void RecallHomePosition()
         {
             _lastCalledPreset = 0;
-            QueueCommand(eVaddioCameraCommand.PresetRecallCmd, "camera home");
+            RecallPresetByNumber(_homePreset);
         }
 
         private void PresetSavedFb()

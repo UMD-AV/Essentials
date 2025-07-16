@@ -26,6 +26,8 @@ namespace ViscaCameraPlugin
 
         [JsonProperty("privacyOffPreset")] public uint? PrivacyOffPreset { get; set; }
 
+        [JsonProperty("homePreset")] public uint? HomePreset { get; set; }
+
         [JsonProperty("pollTimeMs")] public long? PollTimeMs { get; set; }
 
         [JsonProperty("warningTimeoutMs")] public long? WarningTimeoutMs { get; set; }
@@ -33,6 +35,9 @@ namespace ViscaCameraPlugin
         [JsonProperty("errorTimeoutMs")] public long? ErrorTimeoutMs { get; set; }
 
         [JsonProperty("autoTracking")] public bool AutoTracking { get; set; }
+
+        [JsonProperty("autoTrackingEnabledDefault")]
+        public bool AutoTrackingEnabledDefault { get; set; }
 
         [JsonProperty("usePresetsForAutoTracking")]
         public bool UsePresetsForAutoTracking { get; set; }

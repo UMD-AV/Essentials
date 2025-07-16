@@ -33,6 +33,7 @@ namespace PepperDash.Essentials.AverCamera
         private uint _counter;
         protected readonly bool _autoTrackingCapable;
         protected uint _lastCalledPreset;
+        private readonly uint _homePreset;
         private EDirection _moveInProgress = EDirection.Stop;
         protected eViscaCameraCommand _lastInquiry = eViscaCameraCommand.NoFeedback;
 
@@ -358,6 +359,8 @@ namespace PepperDash.Essentials.AverCamera
 
             if (_config.AutoTracking)
                 _autoTrackingCapable = true;
+
+            _homePreset = _config.HomePreset ?? 1;
 
             if (_config.Address > 0 && _config.Address <= AddressMax && _config.Address != _address)
             {
@@ -1491,10 +1494,7 @@ namespace PepperDash.Essentials.AverCamera
         /// </summary>
         public void RecallHomePosition()
         {
-            if (!OverrideAutoTracking())
-                return;
-            _lastCalledPreset = 0;
-            QueueCommand(eViscaCameraCommand.PresetRecallCmd, new byte[] { _address, 0x01, 0x06, 0x04, 0xFF });
+            RecallPresetByNumber(_homePreset);
         }
 
         protected void PresetSavedFb()

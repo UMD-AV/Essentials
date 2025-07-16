@@ -97,9 +97,6 @@ namespace DynFusion
                 // Online Status 
                 FusionOnlineFeedback = new BoolFeedback(() => FusionSymbol.IsOnline);
                 FusionSymbol.OnlineStatusChange += FusionSymbol_OnlineStatusChange;
-
-                CrestronEnvironment.EthernetEventHandler +=
-                    CrestronEnvironment_EthernetEventHandler;
                 OnlineEventTimer = new CTimer(OnlineTimerExpired, Timeout.Infinite); //30 second timer
 
                 // Attribute State Changes 
@@ -700,23 +697,6 @@ namespace DynFusion
             if (StaticAssets.ContainsKey(args.UserConfigurableAssetDetailIndex))
             {
                 StaticAssets[args.UserConfigurableAssetDetailIndex].FusionAssetStateChange(args);
-            }
-        }
-
-        private void CrestronEnvironment_EthernetEventHandler(EthernetEventArgs args)
-        {
-            if (_isInitialized && args.EthernetAdapter == EthernetAdapterType.EthernetLANAdapter)
-            {
-                if (args.EthernetEventType == eEthernetEventType.LinkUp)
-                {
-                    Debug.Console(0, this, "Ethernet Link Up");
-                    FusionSymbol.Register();
-                }
-                else if (args.EthernetEventType == eEthernetEventType.LinkDown)
-                {
-                    Debug.Console(0, this, "Ethernet Link Down");
-                    FusionSymbol.UnRegister();
-                }
             }
         }
 

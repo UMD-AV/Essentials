@@ -22,6 +22,9 @@ namespace VaddioCameraPlugin
 
         [JsonProperty("privacyOffPreset")] public uint? PrivacyOffPreset { get; set; }
 
+
+        [JsonProperty("homePreset")] public uint? HomePreset { get; set; }
+
         [JsonProperty("presets")] public List<VaddioCameraPresetConfig> Presets { get; set; }
     }
 

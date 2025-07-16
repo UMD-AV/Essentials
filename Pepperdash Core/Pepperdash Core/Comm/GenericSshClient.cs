@@ -257,8 +257,7 @@ namespace PepperDash.Core
                         try
                         {
                             Client.Connect();
-                            TheStream = Client.CreateShellStream("PDTShell", 100, 80, 100, 200, 65534);
-                            TheStream.DataReceived += Stream_DataReceived;
+                            CreateStream();
                             Debug.Console(1, this, Debug.ErrorLogLevel.Notice, "Connected");
                             ClientStatus = SocketStatus.SOCKET_STATUS_CONNECTED;
                             DisconnectLogged = false;
@@ -328,7 +327,7 @@ namespace PepperDash.Core
             try
             {
                 connectLock.Enter();
-                // Stop trying reconnects, if we are
+                // Stop trying reconnects if we are
                 ReconnectTimer.Stop();
                 KillClient(SocketStatus.SOCKET_STATUS_BROKEN_LOCALLY);
             }
@@ -370,12 +369,34 @@ namespace PepperDash.Core
             if (TheStream != null)
             {
                 TheStream.DataReceived -= Stream_DataReceived;
+                TheStream.ErrorOccurred -= StreamErrorOccurredHandler;
                 TheStream.Close();
                 TheStream.Dispose();
                 TheStream = null;
                 Debug.Console(1, this, "Disconnected stream");
             }
         }
+
+        /// <summary>
+        /// Creates the stream
+        /// </summary>
+        private void CreateStream()
+        {
+            if (Client != null)
+            {
+                TheStream = Client.CreateShellStream("PDTShell", 100, 80, 100, 200, 65534);
+                TheStream.DataReceived += Stream_DataReceived;
+                TheStream.ErrorOccurred += StreamErrorOccurredHandler;
+            }
+        }
+
+        private void StreamErrorOccurredHandler(object sender, EventArgs e)
+        {
+            Debug.Console(0, this, "SSH Shellstream error: {0}", e);
+            Disconnect();
+            Connect();
+        }
+
 
         /// <summary>
         /// Handles the keyboard interactive authentication, should it be required.
@@ -471,14 +492,23 @@ namespace PepperDash.Core
         {
             try
             {
-                if (Client != null && TheStream != null && IsConnected)
+                if (Client != null && IsConnected)
                 {
                     if (StreamDebugging.TxStreamDebuggingIsEnabled)
                         Debug.Console(0, this, "Sending {0} characters of text: '{1}'", text.Length,
                             ComTextHelper.GetDebugText(text));
 
-                    TheStream.Write(text);
-                    TheStream.Flush();
+                    if (TheStream != null && TheStream.CanWrite)
+                    {
+                        TheStream.WriteLine(text);
+                        TheStream.Flush();
+                    }
+                    else
+                    {
+                        Debug.Console(0, this, "The ssh stream is null or not writable, recreating stream");
+                        KillStream();
+                        CreateStream();
+                    }
                 }
                 else
                 {
@@ -489,8 +519,8 @@ namespace PepperDash.Core
             {
                 Debug.Console(0, "Exception: {0}", ex.Message);
                 Debug.Console(0, "Stack Trace: {0}", ex.StackTrace);
-
-                Debug.Console(1, this, Debug.ErrorLogLevel.Error, "Stream write failed. Disconnected, closing");
+                Disconnect();
+                Connect();
             }
         }
 
@@ -502,23 +532,35 @@ namespace PepperDash.Core
         {
             try
             {
-                if (Client != null && TheStream != null && IsConnected)
+                if (Client != null && IsConnected)
                 {
                     if (StreamDebugging.TxStreamDebuggingIsEnabled)
                         Debug.Console(0, this, "Sending {0} bytes: '{1}'", bytes.Length,
                             ComTextHelper.GetEscapedText(bytes));
 
-                    TheStream.Write(bytes, 0, bytes.Length);
-                    TheStream.Flush();
+                    if (TheStream != null && TheStream.CanWrite)
+                    {
+                        TheStream.Write(bytes, 0, bytes.Length);
+                        TheStream.Flush();
+                    }
+                    else
+                    {
+                        Debug.Console(0, this, "The ssh stream is null or not writable, recreating stream");
+                        KillStream();
+                        CreateStream();
+                    }
                 }
                 else
                 {
                     Debug.Console(1, this, "Client is null or disconnected.  Cannot Send Bytes");
                 }
             }
-            catch
+            catch (Exception ex)
             {
-                Debug.Console(1, this, Debug.ErrorLogLevel.Error, "Stream write failed. Disconnected, closing");
+                Debug.Console(0, "Exception: {0}", ex.Message);
+                Debug.Console(0, "Stack Trace: {0}", ex.StackTrace);
+                Disconnect();
+                Connect();
             }
         }
 

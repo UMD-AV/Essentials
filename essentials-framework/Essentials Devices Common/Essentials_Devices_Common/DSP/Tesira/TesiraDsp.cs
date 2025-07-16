@@ -105,7 +105,7 @@ namespace Tesira_DSP_EPI
 
         private TesiraExpanderTracker ExpanderTracker { get; set; }
 
-        private bool _initalSubscription = true;
+        private bool _initialSubscription = true;
 
         private bool WatchDogSniffer { get; set; }
         public bool WatchdogSuspend { get; private set; }
@@ -190,7 +190,7 @@ namespace Tesira_DSP_EPI
             Feedbacks.Add(CommunicationMonitor.IsOnlineFeedback);
             Feedbacks.Add(CommandPassthruFeedback);
 
-            //Start CommnicationMonitor in PostActivation phase
+            //Start CommunicationMonitor in PostActivation phase
             AddPostActivationAction(() =>
             {
                 Communication.Connect();
@@ -212,14 +212,14 @@ namespace Tesira_DSP_EPI
                 InitialStart = false;
                 Debug.Console(2, this, "CheckSerialStatus Ready");
 
-                CrestronInvoke.BeginInvoke(o => StartSubsciptionThread());
+                CrestronInvoke.BeginInvoke(o => StartSubscriptionThread());
                 return;
             }
 
             if (_isSerialComm) Debug.Console(2, this, "CheckSerialSendStatus NOT READY");
         }
 
-        private void StartSubsciptionThread()
+        private void StartSubscriptionThread()
         {
             Debug.Console(1, this, "Start Subscription Thread");
             if (_subscribeThread != null)
@@ -554,7 +554,7 @@ namespace Tesira_DSP_EPI
             Debug.Console(2, this, "Communication monitor state: {0}", CommunicationMonitor.Status);
             if (e.Status == MonitorStatus.IsOk)
             {
-                //StartSubsciptionThread();
+                //StartSubscriptionThread();
             }
             else if (e.Status != MonitorStatus.IsOk)
             {
@@ -719,7 +719,7 @@ namespace Tesira_DSP_EPI
                         CommunicationMonitor.Start();
                     }
 
-                    CrestronInvoke.BeginInvoke(o => StartSubsciptionThread());
+                    CrestronInvoke.BeginInvoke(o => StartSubscriptionThread());
                 }
 
                 else if (args.Text.Equals(ResubscriptionString, StringComparison.OrdinalIgnoreCase))
@@ -930,7 +930,7 @@ namespace Tesira_DSP_EPI
 
             if (_unsubscribeTimer != null) _unsubscribeTimer.Dispose();
             if (_subscribeTimer != null) _subscribeTimer.Dispose();
-            _initalSubscription = false;
+            _initialSubscription = false;
             if (DevInfo != null)
             {
                 Debug.Console(2, this, "DevInfo Not Null");
@@ -1095,7 +1095,7 @@ namespace Tesira_DSP_EPI
         {
             Debug.ConsoleWithLog(0, this, "Issue Detected with device subscriptions - resubscribing to all controls");
             StopWatchDog();
-            StartSubsciptionThread();
+            StartSubscriptionThread();
         }
 
         private object HandleAttributeSubscriptions()
@@ -1107,9 +1107,9 @@ namespace Tesira_DSP_EPI
                 SendLine("SESSION set verbose false");
                 try
                 {
-                    if (_isSerialComm && _initalSubscription)
+                    if (_isSerialComm && _initialSubscription)
                     {
-                        _initalSubscription = false;
+                        _initialSubscription = false;
                         UnsubscribeFromComponents();
                     }
                     else
