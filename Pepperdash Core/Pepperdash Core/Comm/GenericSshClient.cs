@@ -12,8 +12,6 @@ namespace PepperDash.Core
     /// </summary>
     public class GenericSshClient : Device, ISocketStatusWithStreamDebugging, IAutoReconnect, IDisposable
     {
-        private const string SPlusKey = "Uninitialized SshClient";
-
         /// <summary>
         /// Enables debugging to console
         /// </summary>
@@ -108,15 +106,6 @@ namespace PepperDash.Core
         public bool ConnectEnabled { get; private set; }
 
         /// <summary>
-        /// S+ helper for AutoReconnect
-        /// </summary>
-        public ushort UAutoReconnect
-        {
-            get { return (ushort)(AutoReconnect ? 1 : 0); }
-            set { AutoReconnect = value == 1; }
-        }
-
-        /// <summary>
         /// Millisecond value, determines the timeout period in between reconnect attempts.
         /// Set to 5000 by default
         /// </summary>
@@ -146,41 +135,15 @@ namespace PepperDash.Core
             Port = port;
             Username = username;
             Password = password;
-            AutoReconnectIntervalMs = 5000;
-
-            ReconnectTimer = new CTimer(o =>
-            {
-                if (ConnectEnabled)
-                {
-                    Connect();
-                }
-            }, Timeout.Infinite);
+            ReconnectTimer = new CTimer(ReconnectCallback, null, Timeout.Infinite);
         }
 
-        /// <summary>
-        /// S+ Constructor - Must set all properties before calling Connect
-        /// </summary>
-        public GenericSshClient()
-            : base(SPlusKey)
+        private void ReconnectCallback(object o)
         {
-            CrestronEnvironment.ProgramStatusEventHandler += CrestronEnvironment_ProgramStatusEventHandler;
-            AutoReconnectIntervalMs = 5000;
-
-            ReconnectTimer = new CTimer(o =>
+            if (ConnectEnabled && !IsConnected)
             {
-                if (ConnectEnabled)
-                {
-                    Connect();
-                }
-            }, Timeout.Infinite);
-        }
-
-        /// <summary>
-        /// Just to help S+ set the key
-        /// </summary>
-        public void Initialize(string key)
-        {
-            Key = key;
+                Connect();
+            }
         }
 
         /// <summary>
@@ -206,6 +169,8 @@ namespace PepperDash.Core
         /// </summary>
         public void Connect()
         {
+            ConnectEnabled = true;
+            ReconnectTimer.Reset(AutoReconnectIntervalMs, AutoReconnectIntervalMs);
             CrestronInvoke.BeginInvoke((o) =>
             {
                 // Don't go unless everything is here
@@ -217,8 +182,6 @@ namespace PepperDash.Core
                     return;
                 }
 
-                ConnectEnabled = true;
-
                 try
                 {
                     connectLock.Enter();
@@ -229,9 +192,6 @@ namespace PepperDash.Core
                     else
                     {
                         Debug.Console(1, this, "Attempting connect");
-
-                        // Cancel reconnect if running.
-                        ReconnectTimer.Stop();
 
                         // Cleanup the old client if it already exists
                         if (Client != null)
@@ -288,12 +248,6 @@ namespace PepperDash.Core
 
                             DisconnectLogged = true;
                             KillClient(SocketStatus.SOCKET_STATUS_CONNECT_FAILED);
-                            if (AutoReconnect)
-                            {
-                                Debug.Console(1, this, "Checking autoreconnect: {0}, {1}ms", AutoReconnect,
-                                    AutoReconnectIntervalMs);
-                                ReconnectTimer.Reset(AutoReconnectIntervalMs);
-                            }
                         }
                         catch (Exception e)
                         {
@@ -303,12 +257,6 @@ namespace PepperDash.Core
                             Debug.Console(1, this, errorLogLevel, "Unhandled exception on connect:\r({0})", e.Message);
                             DisconnectLogged = true;
                             KillClient(SocketStatus.SOCKET_STATUS_CONNECT_FAILED);
-                            if (AutoReconnect)
-                            {
-                                Debug.Console(1, this, "Checking autoreconnect: {0}, {1}ms", AutoReconnect,
-                                    AutoReconnectIntervalMs);
-                                ReconnectTimer.Reset(AutoReconnectIntervalMs);
-                            }
                         }
                     }
                 }
@@ -324,11 +272,11 @@ namespace PepperDash.Core
         /// </summary>
         public void Disconnect()
         {
+            ConnectEnabled = false;
+            ReconnectTimer.Stop();
             try
             {
                 connectLock.Enter();
-                // Stop trying reconnects if we are
-                ReconnectTimer.Stop();
                 KillClient(SocketStatus.SOCKET_STATUS_BROKEN_LOCALLY);
             }
             finally
@@ -462,13 +410,6 @@ namespace PepperDash.Core
                 finally
                 {
                     connectLock.Leave();
-                }
-
-                if (AutoReconnect && ConnectEnabled)
-                {
-                    Debug.Console(1, this, "Checking autoreconnect: {0}, {1}ms", AutoReconnect,
-                        AutoReconnectIntervalMs);
-                    ReconnectTimer.Reset(AutoReconnectIntervalMs);
                 }
             });
         }

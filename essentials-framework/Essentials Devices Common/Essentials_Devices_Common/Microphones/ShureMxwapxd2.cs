@@ -327,6 +327,8 @@ namespace PepperDash.Essentials.Devices.Common.ShureMxwapxd2
         public void Poll()
         {
             SendText("GET 0 TX_STATUS");
+            SendText("GET 0 BATT_HEALTH");
+            SendText("GET 0 BATT_CHARGE");
         }
 
         #endregion Polls
@@ -429,7 +431,7 @@ namespace PepperDash.Essentials.Devices.Common.ShureMxwapxd2
         /// </summary>
         public void UpdateStatus()
         {
-            SendText("GET 0 ALL");
+            SendText("GET ALL");
         }
     }
 

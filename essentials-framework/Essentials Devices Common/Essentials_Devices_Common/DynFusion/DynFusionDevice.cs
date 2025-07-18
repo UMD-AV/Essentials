@@ -22,7 +22,7 @@ using PepperDash.Essentials.Devices.Common.ShureUlxd;
 
 namespace DynFusion
 {
-    public class DynFusionDevice : EssentialsBridgeableDevice, ILogStringsWithLevel, ILogStrings
+    public class DynFusionDevice : EssentialsBridgeableDevice, ILogStringsWithLevel, ILogStrings, IDisposable
     {
         public const ushort FusionJoinOffset = 49;
 
@@ -52,12 +52,12 @@ namespace DynFusion
         private CTimer EiscOfflineTimer;
         private CTimer OnlineEventTimer;
         private string ErrorLogLastMessageSent;
-        private bool _isInitialized;
 
         public DynFusionDevice(string key, string name, DynFusionConfigObjectTemplate config)
             : base(key, name)
         {
             Debug.Console(0, this, "Constructing new DynFusionDevice instance");
+            CrestronEnvironment.ProgramStatusEventHandler += CrestronEnvironment_ProgramStatusEventHandler;
             _Config = config;
             DigitalAttributesToFusion = new Dictionary<uint, DynFusionDigitalAttribute>();
             AnalogAttributesToFusion = new Dictionary<uint, DynFusionAnalogAttribute>();
@@ -333,8 +333,6 @@ namespace DynFusion
 
                 Debug.Console(0, this, "Generating Fuson RVI");
                 FusionRVI.GenerateFileForAllFusionDevices();
-
-                _isInitialized = true;
             }
             catch (Exception ex)
             {
@@ -713,6 +711,12 @@ namespace DynFusion
                 Debug.ConsoleWithLog(0, this, "DynFusion Symbol Offline");
                 OnlineEventTimer.Stop();
             }
+        }
+
+        private void CrestronEnvironment_ProgramStatusEventHandler(eProgramStatusEventType programEventType)
+        {
+            if (programEventType != eProgramStatusEventType.Stopping) return;
+            Dispose();
         }
 
         private void OnlineTimerExpired(object o)
@@ -1099,6 +1103,19 @@ namespace DynFusion
         {
             FusionSymbol.ErrorMessage.InputSig.StringValue = "2: Error! Slot 2 Offline";
             ErrorLog.Notice("Fusion Error Message: 2: Error! Slot 2 Offline");
+        }
+
+        public void Dispose()
+        {
+            if (FusionSymbol != null)
+            {
+                FusionSymbol.UnRegister();
+                FusionSymbol.Dispose();
+            }
+
+            if (ErrorLogTimer != null) ErrorLogTimer.Dispose();
+            if (EiscOfflineTimer != null) EiscOfflineTimer.Dispose();
+            if (OnlineEventTimer != null) OnlineEventTimer.Dispose();
         }
     }
 

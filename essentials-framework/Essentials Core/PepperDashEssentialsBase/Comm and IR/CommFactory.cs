@@ -62,10 +62,9 @@ namespace PepperDash.Essentials.Core
                         GenericSshClient ssh =
                             new GenericSshClient(deviceConfig.Key + "-ssh", c.Address, c.Port, c.Username, c.Password)
                             {
-                                AutoReconnect = c.AutoReconnect
+                                AutoReconnect = c.AutoReconnect,
+                                AutoReconnectIntervalMs = c.AutoReconnectIntervalMs
                             };
-                        if (ssh.AutoReconnect)
-                            ssh.AutoReconnectIntervalMs = c.AutoReconnectIntervalMs;
                         comm = ssh;
                         break;
                     }
