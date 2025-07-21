@@ -393,6 +393,7 @@
         <Compile Include="Recorders\EpiphanPearl\Models\ExtendEventRequest.cs"/>
         <Compile Include="Recorders\EpiphanPearl\Models\LayoutRequest.cs"/>
         <Compile Include="Recorders\EpiphanPearl\Models\ScheduleResponse.cs"/>
+        <Compile Include="Recorders\EpiphanPearl\Models\VUMeterResponse.cs"/>
         <Compile Include="Recorders\EpiphanPearl\Utilities\EpiphanCommunicationMonitor.cs"/>
         <Compile Include="Recorders\EpiphanPearl\Utilities\HttpHelper.cs"/>
         <Compile Include="Recorders\PanoptoCloud\PanoptoCloudController.cs"/>

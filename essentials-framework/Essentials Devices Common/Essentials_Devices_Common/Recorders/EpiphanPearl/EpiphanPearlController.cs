@@ -26,6 +26,7 @@ namespace PepperDash.Essentials.EpiphanPearl
 
         private readonly string panoptoKey;
         private CTimer _pollTimer;
+        private CTimer _vuMeterPollTimer;
         private Event _runningEvent;
         private readonly List<ScheduledRecording> _scheduledRecordings = new List<ScheduledRecording>();
 
@@ -61,6 +62,24 @@ namespace PepperDash.Essentials.EpiphanPearl
         private string _channel3layout;
         public StringFeedback Channel3LayoutFeedback;
 
+
+        private bool _enableVUMeterFeedback;
+
+        public bool EnableVUMeterFeedback
+        {
+            get { return _enableVUMeterFeedback; }
+            set
+            {
+                _enableVUMeterFeedback = value;
+                if (_enableVUMeterFeedback)
+                {
+                    StartVUMeterPoll();
+                }
+            }
+        }
+
+        private ushort _vuMeterLevel;
+        public IntFeedback VUMeterFeedback;
         public StringFeedback Stream1UrlFeedback;
         public StringFeedback Stream2UrlFeedback;
         public StringFeedback Stream3UrlFeedback;
@@ -174,6 +193,7 @@ namespace PepperDash.Essentials.EpiphanPearl
         public override void Initialize()
         {
             _pollTimer = new CTimer(o => Poll(), null, 0, 60000);
+            _vuMeterPollTimer = new CTimer(VUMeterPoll, Timeout.Infinite);
             _monitor.Start();
             GetLayouts();
         }
@@ -271,6 +291,7 @@ namespace PepperDash.Essentials.EpiphanPearl
             _Extend15EnabledFeedback = new BoolFeedback(() => _Extend15Enabled);
 
             HdmiOutputFeedback = new StringFeedback(() => _hdmiOutputSource);
+            VUMeterFeedback = new IntFeedback(() => _vuMeterLevel);
             Channel1LayoutFeedback = new StringFeedback(() => _channel1layout);
             Channel2LayoutFeedback = new StringFeedback(() => _channel2layout);
             Channel3LayoutFeedback = new StringFeedback(() => _channel3layout);
@@ -297,6 +318,7 @@ namespace PepperDash.Essentials.EpiphanPearl
             trilist.SetSigTrueAction(joinMap.Resume.JoinNumber, ResumeRunningEvent);
             trilist.SetSigTrueAction(joinMap.Extend5.JoinNumber, () => ExtendRunningEvent(5));
             trilist.SetSigTrueAction(joinMap.Extend15.JoinNumber, () => ExtendRunningEvent(15));
+            trilist.SetBoolSigAction(joinMap.VUMeterEnable.JoinNumber, a => EnableVUMeterFeedback = a);
 
             trilist.SetStringSigAction(joinMap.HdmiOutputSource.JoinNumber, SetHdmiOutputSource);
             trilist.SetStringSigAction(joinMap.Channel1Layout.JoinNumber, (layout) => SetLayout(1, layout));
@@ -340,6 +362,7 @@ namespace PepperDash.Essentials.EpiphanPearl
             Stream1UrlFeedback.LinkInputSig(trilist.StringInput[joinMap.Stream1Url.JoinNumber]);
             Stream2UrlFeedback.LinkInputSig(trilist.StringInput[joinMap.Stream2Url.JoinNumber]);
             Stream3UrlFeedback.LinkInputSig(trilist.StringInput[joinMap.Stream3Url.JoinNumber]);
+            VUMeterFeedback.LinkInputSig(trilist.UShortInput[joinMap.VUMeterFeedback.JoinNumber]);
 
             trilist.OnlineStatusChange += (device, args) =>
             {
@@ -797,6 +820,49 @@ namespace PepperDash.Essentials.EpiphanPearl
             }
         }
 
+        private void StartVUMeterPoll()
+        {
+            _vuMeterPollTimer.Reset(0);
+        }
+
+
+        public static ushort ScaleToUInt16(double value)
+        {
+            // Clamp input to -90 to 0 to avoid unexpected behavior
+            value = Math.Max(-90, Math.Min(0, value));
+
+            double scaled = (value + 90) * (65535.0 / 90.0);
+            return (ushort)Math.Round(scaled);
+        }
+
+        private void VUMeterPoll(object o)
+        {
+            try
+            {
+                BaseResponse<List<VUMeterResponse>> response =
+                    _client.Get<BaseResponse<List<VUMeterResponse>>>("/sources/status?ids=D2P0.analog-a");
+                if (response != null && response.Status.Equals("ok", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    if (response.Result != null && response.Result.Count > 0)
+                    {
+                        _vuMeterLevel = ScaleToUInt16(response.Result[0].Status.Audio.Levels.Rms[0]);
+                        VUMeterFeedback.FireUpdate();
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.Console(1, this, "Exception in vu meter poll: {0}", e.Message);
+            }
+            finally
+            {
+                if (_enableVUMeterFeedback)
+                {
+                    _vuMeterPollTimer.Reset(100);
+                }
+            }
+        }
+
         private void UpdateRunningEventFeedbacks()
         {
             _runningEventNameFeedback.FireUpdate();
@@ -866,6 +932,12 @@ namespace PepperDash.Essentials.EpiphanPearl
             {
                 _pollTimer.Stop();
                 _pollTimer.Dispose();
+            }
+
+            if (_vuMeterPollTimer != null)
+            {
+                _vuMeterPollTimer.Stop();
+                _vuMeterPollTimer.Dispose();
             }
 
             if (_statusTimer != null)

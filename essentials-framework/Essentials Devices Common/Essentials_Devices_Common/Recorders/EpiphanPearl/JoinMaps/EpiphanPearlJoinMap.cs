@@ -156,6 +156,19 @@ namespace PepperDash.Essentials.EpiphanPearl.JoinMaps
                 Description = "Resume Recording"
             });
 
+        [JoinName("VUMeterEnable")] public JoinDataComplete VUMeterEnable = new JoinDataComplete(
+            new JoinData
+            {
+                JoinNumber = 6,
+                JoinSpan = 1
+            },
+            new JoinMetadata
+            {
+                JoinCapabilities = eJoinCapabilities.FromSIMPL,
+                JoinType = eJoinType.Digital,
+                Description = "Enable polling VU Meter"
+            });
+
         [JoinName("Extend5")] public JoinDataComplete Extend5 = new JoinDataComplete(
             new JoinData
             {
@@ -180,6 +193,19 @@ namespace PepperDash.Essentials.EpiphanPearl.JoinMaps
                 JoinCapabilities = eJoinCapabilities.FromSIMPL,
                 JoinType = eJoinType.Digital,
                 Description = "Extend Recording 15 minutes"
+            });
+
+        [JoinName("VUMeterFeedback")] public JoinDataComplete VUMeterFeedback = new JoinDataComplete(
+            new JoinData
+            {
+                JoinNumber = 1,
+                JoinSpan = 1
+            },
+            new JoinMetadata
+            {
+                JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                JoinType = eJoinType.Analog,
+                Description = "VU Meter Feedback"
             });
 
         [JoinName("CurrentRecordingId")] public JoinDataComplete CurrentRecordingId = new JoinDataComplete(
