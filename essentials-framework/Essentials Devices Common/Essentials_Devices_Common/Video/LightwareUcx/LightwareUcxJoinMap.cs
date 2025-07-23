@@ -21,6 +21,14 @@ namespace PepperDash.Essentials.Devices.Common.LightwareUcx
                 JoinType = eJoinType.Digital
             });
 
+        [JoinName("Reboot")] public JoinDataComplete Reboot = new JoinDataComplete(
+            new JoinData { JoinNumber = 11, JoinSpan = 1 },
+            new JoinMetadata
+            {
+                Description = "Reboot Switcher", JoinCapabilities = eJoinCapabilities.FromSIMPL,
+                JoinType = eJoinType.Digital
+            });
+
         [JoinName("UsbAutoRouteToggle")] public JoinDataComplete UsbAutoRouteToggle = new JoinDataComplete(
             new JoinData { JoinNumber = 21, JoinSpan = 1 },
             new JoinMetadata

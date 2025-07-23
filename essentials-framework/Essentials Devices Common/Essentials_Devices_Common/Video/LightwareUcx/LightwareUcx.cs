@@ -34,6 +34,8 @@ namespace PepperDash.Essentials.Devices.Common.LightwareUcx
         private bool configSent;
         private bool _usbAutoRouteFb;
         private int _requestedUsbRoute = -1;
+        private CTimer _rebootTimer;
+        private bool _nightlyRebootEnabled;
 
         public Dictionary<uint, string> VideoInputNames { get; set; }
         public Dictionary<uint, string> VideoOutputNames { get; set; }
@@ -86,6 +88,7 @@ namespace PepperDash.Essentials.Devices.Common.LightwareUcx
             VideoOutputNames = props.VideoOutputNames ?? new Dictionary<uint, string>();
             AudioOutputNames = props.AudioOutputNames ?? new Dictionary<uint, string>();
             UsbInputNames = props.UsbInputNames ?? new Dictionary<uint, string>();
+            _nightlyRebootEnabled = props.NightlyRebootEnabled ?? false;
 
             configSettings = props.Config ?? new List<string>();
             _outputMonitoringEnabled = props.OutputMonitoringEnabled ?? new Dictionary<uint, bool>();
@@ -179,6 +182,11 @@ namespace PepperDash.Essentials.Devices.Common.LightwareUcx
             }
         }
 
+        public void RebootDevice()
+        {
+            QueueCommand("CALL /V1/SYS:restart()");
+        }
+
         private void UpdateAllNodes()
         {
             QueueCommand("GET /V1/MEDIA/VIDEO/XP");
@@ -191,6 +199,8 @@ namespace PepperDash.Essentials.Devices.Common.LightwareUcx
             Debug.Console(1, this, "Starting comms");
             Communication.Connect();
             CommunicationMonitor.Start();
+            _rebootTimer = new CTimer(rebootTimerCallback, Timeout.Infinite);
+            armRebootTimer();
             return base.CustomActivate();
         }
 
@@ -766,6 +776,7 @@ namespace PepperDash.Essentials.Devices.Common.LightwareUcx
             trilist.SetUShortSigAction(joinMap.OutputUsb.JoinNumber + 1,
                 a => ExecuteNumericSwitch(a, 1, eRoutingSignalType.UsbOutput));
 
+            trilist.SetSigTrueAction(joinMap.Reboot.JoinNumber, RebootDevice);
 
             UpdateAllFeedbacks();
         }
@@ -896,6 +907,32 @@ namespace PepperDash.Essentials.Devices.Common.LightwareUcx
             }
         }
 
+        private void armRebootTimer()
+        {
+            //Try to arm reboot for 3 AM
+            DateTime now = DateTime.Now;
+            DateTime threeAM = DateTime.Today.AddHours(3);
+
+            if (now >= threeAM)
+            {
+                threeAM = threeAM.AddHours(24);
+            }
+
+            int timeUntilThreeAM = (int)(threeAM - now).TotalMilliseconds + 10000;
+            _rebootTimer.Reset(timeUntilThreeAM);
+        }
+
+        private void rebootTimerCallback(object o)
+        {
+            armRebootTimer();
+
+            if (_nightlyRebootEnabled && DateTime.Now < DateTime.Today.AddHours(5))
+            {
+                Debug.ConsoleWithLog(0, "Running 3AM reboot of Lightware UCX");
+                RebootDevice();
+            }
+        }
+
         public event EventHandler<RoutingNumericEventArgs> NumericSwitchChange;
 
         public void Dispose()
@@ -903,6 +940,7 @@ namespace PepperDash.Essentials.Devices.Common.LightwareUcx
             if (_commandQueue != null) _commandQueue.Dispose();
             if (_commandMutex != null) _commandMutex.Dispose();
             if (_commandTimer != null) _commandTimer.Dispose();
+            if (_rebootTimer != null) _rebootTimer.Dispose();
             if (_feedbackMutex != null) _feedbackMutex.Dispose();
             if (_subscriptionTimer != null) _subscriptionTimer.Dispose();
         }

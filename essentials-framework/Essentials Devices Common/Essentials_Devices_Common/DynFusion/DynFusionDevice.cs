@@ -52,6 +52,7 @@ namespace DynFusion
         private CTimer EiscOfflineTimer;
         private CTimer OnlineEventTimer;
         private string ErrorLogLastMessageSent;
+        private bool _isInitialized;
 
         public DynFusionDevice(string key, string name, DynFusionConfigObjectTemplate config)
             : base(key, name)
@@ -111,6 +112,9 @@ namespace DynFusion
                         DynFusionConfigObjectTemplate customAttrConfig = JObject.Parse(customResourceConfig)
                             .ToObject<DynFusionConfigObjectTemplate>();
                         Debug.Console(0, "Fusion embdedded config read");
+
+                        CrestronEnvironment.EthernetEventHandler +=
+                            CrestronEnvironment_EthernetEventHandler;
 
                         // Create Custom Atributes 
                         if (customAttrConfig.CustomAttributes.DigitalAttributes != null)
@@ -333,6 +337,7 @@ namespace DynFusion
 
                 Debug.Console(0, this, "Generating Fuson RVI");
                 FusionRVI.GenerateFileForAllFusionDevices();
+                _isInitialized = true;
             }
             catch (Exception ex)
             {
@@ -695,6 +700,24 @@ namespace DynFusion
             if (StaticAssets.ContainsKey(args.UserConfigurableAssetDetailIndex))
             {
                 StaticAssets[args.UserConfigurableAssetDetailIndex].FusionAssetStateChange(args);
+            }
+        }
+
+        private void CrestronEnvironment_EthernetEventHandler(EthernetEventArgs args)
+        {
+            if (_isInitialized && args.EthernetAdapter == EthernetAdapterType.EthernetLANAdapter)
+            {
+                switch (args.EthernetEventType)
+                {
+                    case eEthernetEventType.LinkUp:
+                        Debug.Console(0, this, "Ethernet Link Up");
+                        FusionSymbol.Register();
+                        break;
+                    case eEthernetEventType.LinkDown:
+                        Debug.Console(0, this, "Ethernet Link Down");
+                        FusionSymbol.UnRegister();
+                        break;
+                }
             }
         }
 

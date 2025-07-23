@@ -1705,6 +1705,7 @@ namespace PepperDash.Essentials.Devices.Displays
 
         public void Dispose()
         {
+            _readyForCommands = false;
             if (VolumeReleaseTimer != null)
             {
                 VolumeReleaseTimer.Stop();
@@ -1719,7 +1720,7 @@ namespace PepperDash.Essentials.Devices.Displays
 
     public class EpsonProjectorJoinMap : DisplayControllerJoinMap
     {
-        [JoinName("Warming")] public JoinDataComplete Warming = new JoinDataComplete(
+        [JoinName("Warming")] public readonly JoinDataComplete Warming = new JoinDataComplete(
             new JoinData()
             {
                 JoinNumber = 53,
@@ -1732,7 +1733,7 @@ namespace PepperDash.Essentials.Devices.Displays
                 Description = "Warming"
             });
 
-        [JoinName("Cooling")] public JoinDataComplete Cooling = new JoinDataComplete(
+        [JoinName("Cooling")] public readonly JoinDataComplete Cooling = new JoinDataComplete(
             new JoinData()
             {
                 JoinNumber = 54,
@@ -1745,7 +1746,7 @@ namespace PepperDash.Essentials.Devices.Displays
                 Description = "Cooling"
             });
 
-        [JoinName("Video Mute On")] public JoinDataComplete VideoMuteOn = new JoinDataComplete(
+        [JoinName("Video Mute On")] public readonly JoinDataComplete VideoMuteOn = new JoinDataComplete(
             new JoinData()
             {
                 JoinNumber = 57,
@@ -1758,7 +1759,7 @@ namespace PepperDash.Essentials.Devices.Displays
                 Description = "Video Mute On"
             });
 
-        [JoinName("Video Mute Off")] public JoinDataComplete VideoMuteOff = new JoinDataComplete(
+        [JoinName("Video Mute Off")] public readonly JoinDataComplete VideoMuteOff = new JoinDataComplete(
             new JoinData()
             {
                 JoinNumber = 58,
@@ -1771,7 +1772,7 @@ namespace PepperDash.Essentials.Devices.Displays
                 Description = "Video Mute Off"
             });
 
-        [JoinName("Video Mute Supported")] public JoinDataComplete VideoMuteSupported = new JoinDataComplete(
+        [JoinName("Video Mute Supported")] public readonly JoinDataComplete VideoMuteSupported = new JoinDataComplete(
             new JoinData()
             {
                 JoinNumber = 55,
@@ -1784,7 +1785,7 @@ namespace PepperDash.Essentials.Devices.Displays
                 Description = "Video Mute Supported"
             });
 
-        [JoinName("Lamp Hours Supported")] public JoinDataComplete LampHoursSupported = new JoinDataComplete(
+        [JoinName("Lamp Hours Supported")] public readonly JoinDataComplete LampHoursSupported = new JoinDataComplete(
             new JoinData()
             {
                 JoinNumber = 56,
@@ -1797,7 +1798,7 @@ namespace PepperDash.Essentials.Devices.Displays
                 Description = "Lamp Hours Supported"
             });
 
-        [JoinName("Lamp Hours")] public JoinDataComplete LampHours = new JoinDataComplete(
+        [JoinName("Lamp Hours")] public readonly JoinDataComplete LampHours = new JoinDataComplete(
             new JoinData()
             {
                 JoinNumber = 53,
@@ -1810,7 +1811,7 @@ namespace PepperDash.Essentials.Devices.Displays
                 Description = "Lamp Hours"
             });
 
-        [JoinName("ErrorMessage")] public JoinDataComplete ErrorMessage = new JoinDataComplete(
+        [JoinName("ErrorMessage")] public readonly JoinDataComplete ErrorMessage = new JoinDataComplete(
             new JoinData { JoinNumber = 2, JoinSpan = 1 },
             new JoinMetadata
             {

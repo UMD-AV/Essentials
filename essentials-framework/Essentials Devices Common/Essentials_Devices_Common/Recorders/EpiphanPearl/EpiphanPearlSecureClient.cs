@@ -8,7 +8,7 @@ using PepperDash.Essentials.EpiphanPearl.Utilities;
 
 namespace PepperDash.Essentials.EpiphanPearl
 {
-    public class EpiphanPearlSecureClient : IEpiphanPearlClient, IDisposable
+    public class EpiphanPearlSecureClient : IEpiphanPearlClient
     {
         private readonly HttpsClient _client;
 

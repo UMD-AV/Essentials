@@ -15,6 +15,7 @@ namespace PepperDash.Essentials.Devices.Common.LightwareUcx
         [JsonProperty("outputMonitoringEnabled")]
         public Dictionary<uint, bool> OutputMonitoringEnabled { get; set; }
 
+        [JsonProperty("nightlyRebootEnabled")] public bool? NightlyRebootEnabled { get; set; }
         [JsonProperty("config")] public IList<string> Config { get; set; }
         [JsonProperty("control")] public ControlPropertiesConfig Control { get; set; }
     }
