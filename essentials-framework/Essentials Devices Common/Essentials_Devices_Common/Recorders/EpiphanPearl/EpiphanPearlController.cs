@@ -858,7 +858,14 @@ namespace PepperDash.Essentials.EpiphanPearl
             {
                 if (_enableVUMeterFeedback)
                 {
-                    _vuMeterPollTimer.Reset(100);
+                    if (_runningEventRunningFeedback.BoolValue)
+                    {
+                        _vuMeterPollTimer.Reset(5000);
+                    }
+                    else
+                    {
+                        _vuMeterPollTimer.Reset(200);
+                    }
                 }
             }
         }

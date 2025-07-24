@@ -140,6 +140,8 @@ namespace CrestronNaxAmp
             {
                 if (_amp.Zones[i] != null && _amp.Zones[i].StartupVolumeFeedback != null)
                 {
+                    Debug.ConsoleWithLog(1, this, "Setting Default Volume for Zone {0} to {1}", i,
+                        _amp.Zones[i].StartupVolumeFeedback.UShortValue);
                     _amp.Zones[i].Volume.UShortValue = _amp.Zones[i].StartupVolumeFeedback.UShortValue;
                     _amp.Zones[i].MuteOff();
                 }
