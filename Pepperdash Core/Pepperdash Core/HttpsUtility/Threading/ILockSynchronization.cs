@@ -28,9 +28,9 @@ namespace PepperDash.Core.HttpsUtility.Threading
     /// </summary>
     public interface ILockSynchronization
     {
-        bool TryAquireLock(out LockToken lockToken);
-        LockToken AquireLock();
-        LockToken AquireLock(int waitTime);
+        bool TryAcquireLock(out LockToken lockToken);
+        LockToken AcquireLock();
+        LockToken AcquireLock(int waitTime);
         void ReleaseLock();
     }
 }

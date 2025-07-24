@@ -19,7 +19,7 @@ namespace PepperDash.Essentials.EpiphanPearl.Utilities
                 string.Format("Basic {0}", GetCredentialsForHeader(username, password)));
         }
 
-        private static string GetCredentialsForHeader(string username, string password)
+        public static string GetCredentialsForHeader(string username, string password)
         {
             return Convert.ToBase64String(Encoding.ASCII.GetBytes(string.Format("{0}:{1}", username, password)));
         }

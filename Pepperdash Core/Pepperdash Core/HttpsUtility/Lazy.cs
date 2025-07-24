@@ -48,7 +48,7 @@ namespace PepperDash.Core.HttpsUtility
         {
             get
             {
-                using (_syncSection.AquireLock())
+                using (_syncSection.AcquireLock())
                 {
                     return _initialized;
                 }
@@ -64,7 +64,7 @@ namespace PepperDash.Core.HttpsUtility
             {
                 if (!_initialized)
                 {
-                    using (_syncSection.AquireLock())
+                    using (_syncSection.AcquireLock())
                     {
                         if (!_initialized)
                         {

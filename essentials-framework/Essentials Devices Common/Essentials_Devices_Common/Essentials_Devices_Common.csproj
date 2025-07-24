@@ -381,13 +381,11 @@
         <Compile Include="NVX\Services\Utilities\DeviceDebug.cs"/>
         <Compile Include="NVX\Services\Utilities\DeviceDefaults.cs"/>
         <Compile Include="NVX\Services\Utilities\EnumExtensions.cs"/>
-        <Compile Include="Recorders\EpiphanPearl\EpiphanPearlClient.cs"/>
         <Compile Include="Recorders\EpiphanPearl\EpiphanPearlController.cs"/>
         <Compile Include="Recorders\EpiphanPearl\EpiphanPearlControllerConfiguration.cs"/>
         <Compile Include="Recorders\EpiphanPearl\EpiphanPearlFactory.cs"/>
         <Compile Include="Recorders\EpiphanPearl\EpiphanPearlSecureClient.cs"/>
         <Compile Include="Recorders\EpiphanPearl\Event.cs"/>
-        <Compile Include="Recorders\EpiphanPearl\Interfaces\IEpiphanPearlClient.cs"/>
         <Compile Include="Recorders\EpiphanPearl\JoinMaps\EpiphanPearlJoinMap.cs"/>
         <Compile Include="Recorders\EpiphanPearl\Models\EventExtraData.cs"/>
         <Compile Include="Recorders\EpiphanPearl\Models\ExtendEventRequest.cs"/>

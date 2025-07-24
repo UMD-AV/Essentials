@@ -94,12 +94,6 @@
         <Compile Include="EventArgs.cs"/>
         <Compile Include="GenericRESTfulCommunications\Constants.cs"/>
         <Compile Include="GenericRESTfulCommunications\GenericRESTfulClient.cs"/>
-        <Compile Include="HttpsUtility\Diagnostics\AssertionException.cs"/>
-        <Compile Include="HttpsUtility\Diagnostics\Debug.cs"/>
-        <Compile Include="HttpsUtility\Diagnostics\DebugLevelFlags.cs"/>
-        <Compile Include="HttpsUtility\Diagnostics\ErrorLogMessageType.cs"/>
-        <Compile Include="HttpsUtility\Diagnostics\Formatters\AssemblyFormatter.cs"/>
-        <Compile Include="HttpsUtility\Diagnostics\Formatters\IDiagnosticsFormatter.cs"/>
         <Compile Include="HttpsUtility\Extensions.cs"/>
         <Compile Include="HttpsUtility\Https\HttpsClient.cs"/>
         <Compile Include="HttpsUtility\Https\HttpsResult.cs"/>

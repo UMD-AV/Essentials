@@ -42,7 +42,7 @@ namespace PepperDash.Core.HttpsUtility.Threading
         /// the lock was actually aquired.)
         /// </summary>
         /// <returns>LockToken object</returns>
-        public bool TryAquireLock(out LockToken lockToken)
+        public bool TryAcquireLock(out LockToken lockToken)
         {
             if (CMonitor.TryEnter(_monitorObject))
             {
@@ -58,7 +58,7 @@ namespace PepperDash.Core.HttpsUtility.Threading
         /// Aquire a lock and return the LockToken when the lock is aquired.
         /// </summary>
         /// <returns>LockToken object</returns>
-        public LockToken AquireLock()
+        public LockToken AcquireLock()
         {
             CMonitor.Enter(_monitorObject);
             return new LockToken(this);
@@ -69,7 +69,7 @@ namespace PepperDash.Core.HttpsUtility.Threading
         /// </summary>
         /// <param name="waitTime">Amount of time to wait to aquire the lock in milliseconds</param>
         /// <returns>LockToken object</returns>
-        public LockToken AquireLock(int waitTime)
+        public LockToken AcquireLock(int waitTime)
         {
             var sw = Stopwatch.StartNew();
             while (sw.ElapsedMilliseconds < waitTime)

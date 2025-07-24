@@ -26,7 +26,6 @@ using System.Collections.Generic;
 using System.Text;
 using Crestron.SimplSharp.Net.Http;
 using Crestron.SimplSharp.Net.Https;
-using PepperDash.Core.HttpsUtility.Diagnostics;
 using PepperDash.Core.HttpsUtility.Threading;
 using ContentSource = Crestron.SimplSharp.Net.Https.ContentSource;
 using RequestType = Crestron.SimplSharp.Net.Https.RequestType;
@@ -61,7 +60,7 @@ namespace PepperDash.Core.HttpsUtility.Https
 
         private static HttpsClientRequest CreateDefaultClientRequest(string url, RequestType requestType)
         {
-            var httpRequest = new HttpsClientRequest
+            HttpsClientRequest httpRequest = new HttpsClientRequest
             {
                 Encoding = Encoding.UTF8,
                 RequestType = requestType,
@@ -72,16 +71,16 @@ namespace PepperDash.Core.HttpsUtility.Https
         }
 
         private HttpsResult SendRequest(string url, RequestType requestType,
-            IEnumerable<KeyValuePair<string, string>> additionalHeaders, string content)
+            IEnumerable<HttpsHeader> additionalHeaders, string content)
         {
-            using (_requestLock.AquireLock())
+            using (_requestLock.AcquireLock())
             {
                 HttpsClientRequest httpRequest = CreateDefaultClientRequest(url, requestType);
 
                 if (additionalHeaders != null)
                 {
-                    foreach (var item in additionalHeaders)
-                        httpRequest.Header.AddHeader(new HttpsHeader(item.Key, item.Value));
+                    foreach (HttpsHeader item in additionalHeaders)
+                        httpRequest.Header.AddHeader(item);
                 }
 
                 if (requestType == RequestType.Post && !string.IsNullOrEmpty(content))
@@ -97,19 +96,14 @@ namespace PepperDash.Core.HttpsUtility.Https
                 }
                 catch (HttpsException ex)
                 {
-                    PepperDash.Core.HttpsUtility.Diagnostics.Debug.LogException(GetType(), ex);
+                    Debug.ConsoleWithLog(0, "HttpsClient", ex);
                 }
 
                 return null;
             }
         }
 
-        public HttpsResult Get(string url)
-        {
-            return Get(url, null);
-        }
-
-        public HttpsResult Get(string url, IEnumerable<KeyValuePair<string, string>> additionalHeaders)
+        public HttpsResult Get(string url, IEnumerable<HttpsHeader> additionalHeaders)
         {
             return SendRequest(url, RequestType.Get, additionalHeaders, null);
         }
@@ -119,7 +113,7 @@ namespace PepperDash.Core.HttpsUtility.Https
             return Post(url, null, value);
         }
 
-        public HttpsResult Post(string url, IEnumerable<KeyValuePair<string, string>> additionalHeaders, string value)
+        public HttpsResult Post(string url, IEnumerable<HttpsHeader> additionalHeaders, string value)
         {
             return SendRequest(url, RequestType.Post, additionalHeaders, value);
         }
@@ -129,14 +123,9 @@ namespace PepperDash.Core.HttpsUtility.Https
             return Put(url, null, value);
         }
 
-        public HttpsResult Put(string url, IEnumerable<KeyValuePair<string, string>> additionalHeaders, string value)
+        public HttpsResult Put(string url, IEnumerable<HttpsHeader> additionalHeaders, string value)
         {
             return SendRequest(url, RequestType.Put, additionalHeaders, value);
-        }
-
-        public HttpsResult Delete(string url)
-        {
-            return Delete(url, null);
         }
 
         public HttpsResult Delete(string url, string value)
@@ -144,7 +133,7 @@ namespace PepperDash.Core.HttpsUtility.Https
             return Delete(url, null, value);
         }
 
-        public HttpsResult Delete(string url, IEnumerable<KeyValuePair<string, string>> additionalHeaders, string value)
+        public HttpsResult Delete(string url, IEnumerable<HttpsHeader> additionalHeaders, string value)
         {
             return SendRequest(url, RequestType.Delete, additionalHeaders, value);
         }

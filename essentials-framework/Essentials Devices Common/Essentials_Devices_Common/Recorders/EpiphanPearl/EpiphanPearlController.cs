@@ -9,7 +9,6 @@ using PepperDash.Essentials.Core.Bridges;
 using PepperDash.Essentials.Core.Config;
 using PepperDash.Essentials.Core.Devices;
 using PepperDash.Essentials.Core.Recording;
-using PepperDash.Essentials.EpiphanPearl.Interfaces;
 using PepperDash.Essentials.EpiphanPearl.JoinMaps;
 using PepperDash.Essentials.EpiphanPearl.Models;
 using PepperDash.Essentials.EpiphanPearl.Utilities;
@@ -21,7 +20,7 @@ namespace PepperDash.Essentials.EpiphanPearl
         private const string RunningStatus = "running";
         private const string PausedStatus = "paused";
 
-        private readonly IEpiphanPearlClient _client;
+        private readonly EpiphanPearlSecureClient _client;
         private readonly EpiphanCommunicationMonitor _monitor;
 
         private readonly string panoptoKey;
@@ -99,15 +98,8 @@ namespace PepperDash.Essentials.EpiphanPearl
         {
             devConfig = config;
             CrestronEnvironment.ProgramStatusEventHandler += CrestronEnvironment_ProgramStatusEventHandler;
-            if (_devProperties.Secure)
-            {
-                _client = new EpiphanPearlSecureClient(_devProperties.Host, _devProperties.Username,
-                    _devProperties.Password);
-            }
-            else
-            {
-                _client = new EpiphanPearlClient(_devProperties.Host, _devProperties.Username, _devProperties.Password);
-            }
+            _client = new EpiphanPearlSecureClient(Key, _devProperties.Host, _devProperties.Username,
+                _devProperties.Password);
 
             panoptoKey = _devProperties.PanoptoKey ?? "";
             _monitor = new EpiphanCommunicationMonitor(this, 130000, 190000);
@@ -400,7 +392,6 @@ namespace PepperDash.Essentials.EpiphanPearl
             }
 
             string path = string.Format("/schedule/events/{0}/control/pause", _runningEvent.Id);
-
             BaseResponse<string> response = _client.Post<BaseResponse<string>>(path);
 
             if (response == null)
@@ -860,11 +851,11 @@ namespace PepperDash.Essentials.EpiphanPearl
                 {
                     if (_runningEventRunningFeedback.BoolValue)
                     {
-                        _vuMeterPollTimer.Reset(5000);
+                        _vuMeterPollTimer.Reset(1000);
                     }
                     else
                     {
-                        _vuMeterPollTimer.Reset(200);
+                        _vuMeterPollTimer.Reset(100);
                     }
                 }
             }
