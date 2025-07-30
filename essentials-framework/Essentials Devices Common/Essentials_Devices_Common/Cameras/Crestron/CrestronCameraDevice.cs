@@ -5,8 +5,9 @@ namespace CrestronCameraPlugin
 {
     public class CrestronCameraDevice : ViscaCameraDevice
     {
-        public CrestronCameraDevice(string key, string name, IBasicCommunication comms, ViscaCameraConfig config)
-            : base(key, name, comms, config)
+        public CrestronCameraDevice(string key, string name, IBasicCommunication comms, ViscaCameraConfig config,
+            string type)
+            : base(key, name, comms, config, type)
         {
         }
 

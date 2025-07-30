@@ -345,7 +345,8 @@ namespace ViscaCameraPlugin
         /// <param name="name">device name</param>
         /// <param name="config">device config</param>
         /// <param name="comms">IBasicCommunications</param>
-        public ViscaCameraDevice(string key, string name, IBasicCommunication comms, ViscaCameraConfig config)
+        public ViscaCameraDevice(string key, string name, IBasicCommunication comms, ViscaCameraConfig config,
+            string type)
             : base(key, name)
         {
             Debug.Console(0, this, "Constructing new VISCA Camera instance");
@@ -433,7 +434,13 @@ namespace ViscaCameraPlugin
             _feedbackMutex = new CMutex();
 
             ISocketStatus socket = _comms as ISocketStatus;
-            if (socket != null)
+            if (type == "crestroncamera")
+            {
+                _commsIsSerial = true;
+                socket.ConnectionChange += socket_ConnectionChange;
+                SocketStatusFeedback = new IntFeedback(() => (int)socket.ClientStatus);
+            }
+            else if (socket != null)
             {
                 // the device is configured for IP control
                 _commsIsSerial = false;

@@ -32,7 +32,7 @@ namespace ViscaCameraPlugin
                 return null;
             }
 
-            return new ViscaCameraDevice(dc.Key, dc.Name, comms, propertiesConfig);
+            return new ViscaCameraDevice(dc.Key, dc.Name, comms, propertiesConfig, dc.Type);
         }
     }
 }

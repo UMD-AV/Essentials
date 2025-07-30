@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using ExtronDmp;
 using PepperDash.Core;
 using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Config;
@@ -33,7 +34,7 @@ namespace CrestronCameraPlugin
                 return null;
             }
 
-            return new CrestronCameraDevice(dc.Key, dc.Name, comms, propertiesConfig);
+            return new CrestronCameraDevice(dc.Key, dc.Name, comms, propertiesConfig, dc.Type);
         }
     }
 }
