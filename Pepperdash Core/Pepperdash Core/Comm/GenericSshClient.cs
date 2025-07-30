@@ -191,7 +191,9 @@ namespace PepperDash.Core
 
                 try
                 {
+                    Debug.Console(1, this, "Waiting for mutex");
                     connectLock.WaitForMutex();
+                    Debug.Console(1, this, "Got mutex");
                     if (IsConnected)
                     {
                         Debug.Console(1, this, "Connection already connected.  Exiting Connect()");
@@ -347,7 +349,6 @@ namespace PepperDash.Core
         {
             Debug.Console(0, this, "SSH Shellstream error: {0}", e);
             DisconnectGo();
-            ConnectGo();
         }
 
 
@@ -458,7 +459,6 @@ namespace PepperDash.Core
                 Debug.Console(0, "Exception: {0}", ex.Message);
                 Debug.Console(0, "Stack Trace: {0}", ex.StackTrace);
                 DisconnectGo();
-                ConnectGo();
             }
         }
 
@@ -498,7 +498,6 @@ namespace PepperDash.Core
                 Debug.Console(0, "Exception: {0}", ex.Message);
                 Debug.Console(0, "Stack Trace: {0}", ex.StackTrace);
                 DisconnectGo();
-                ConnectGo();
             }
         }
 
