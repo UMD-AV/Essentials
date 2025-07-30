@@ -58,7 +58,7 @@ namespace PepperDash.Core
         public bool IsConnected
         {
             // returns false if no client or not connected
-            get { return Client != null && ClientStatus == SocketStatus.SOCKET_STATUS_CONNECTED; }
+            get { return Client != null && Client.IsConnected && ClientStatus == SocketStatus.SOCKET_STATUS_CONNECTED; }
         }
 
         /// <summary>
@@ -118,7 +118,7 @@ namespace PepperDash.Core
         private readonly CTimer ReconnectTimer;
 
         //Lock object to prevent simultaneous connect/disconnect operations
-        private readonly CCriticalSection connectLock = new CCriticalSection();
+        private readonly CMutex connectLock = new CMutex();
 
         private bool DisconnectLogged;
 
@@ -140,9 +140,11 @@ namespace PepperDash.Core
 
         private void ReconnectCallback(object o)
         {
+            Debug.Console(2, this, "Reconnect callback status: connect enabled: {0} isConnected: {1}", ConnectEnabled,
+                IsConnected);
             if (ConnectEnabled && !IsConnected)
             {
-                Connect();
+                ConnectGo();
             }
         }
 
@@ -171,6 +173,11 @@ namespace PepperDash.Core
         {
             ConnectEnabled = true;
             ReconnectTimer.Reset(AutoReconnectIntervalMs, AutoReconnectIntervalMs);
+            ConnectGo();
+        }
+
+        private void ConnectGo()
+        {
             CrestronInvoke.BeginInvoke((o) =>
             {
                 // Don't go unless everything is here
@@ -184,7 +191,7 @@ namespace PepperDash.Core
 
                 try
                 {
-                    connectLock.Enter();
+                    connectLock.WaitForMutex();
                     if (IsConnected)
                     {
                         Debug.Console(1, this, "Connection already connected.  Exiting Connect()");
@@ -262,7 +269,7 @@ namespace PepperDash.Core
                 }
                 finally
                 {
-                    connectLock.Leave();
+                    connectLock.ReleaseMutex();
                 }
             });
         }
@@ -274,15 +281,13 @@ namespace PepperDash.Core
         {
             ConnectEnabled = false;
             ReconnectTimer.Stop();
-            try
-            {
-                connectLock.Enter();
-                KillClient(SocketStatus.SOCKET_STATUS_BROKEN_LOCALLY);
-            }
-            finally
-            {
-                connectLock.Leave();
-            }
+            DisconnectGo();
+        }
+
+
+        private void DisconnectGo()
+        {
+            KillClient(SocketStatus.SOCKET_STATUS_BROKEN_LOCALLY);
         }
 
         /// <summary>
@@ -341,8 +346,8 @@ namespace PepperDash.Core
         private void StreamErrorOccurredHandler(object sender, EventArgs e)
         {
             Debug.Console(0, this, "SSH Shellstream error: {0}", e);
-            Disconnect();
-            Connect();
+            DisconnectGo();
+            ConnectGo();
         }
 
 
@@ -402,15 +407,7 @@ namespace PepperDash.Core
                 else
                     Debug.Console(1, this, Debug.ErrorLogLevel.Error, "Unhandled SSH client error: {0}", e.Exception);
 
-                try
-                {
-                    connectLock.Enter();
-                    KillClient(SocketStatus.SOCKET_STATUS_BROKEN_REMOTELY);
-                }
-                finally
-                {
-                    connectLock.Leave();
-                }
+                KillClient(SocketStatus.SOCKET_STATUS_BROKEN_REMOTELY);
             });
         }
 
@@ -460,8 +457,8 @@ namespace PepperDash.Core
             {
                 Debug.Console(0, "Exception: {0}", ex.Message);
                 Debug.Console(0, "Stack Trace: {0}", ex.StackTrace);
-                Disconnect();
-                Connect();
+                DisconnectGo();
+                ConnectGo();
             }
         }
 
@@ -500,8 +497,8 @@ namespace PepperDash.Core
             {
                 Debug.Console(0, "Exception: {0}", ex.Message);
                 Debug.Console(0, "Stack Trace: {0}", ex.StackTrace);
-                Disconnect();
-                Connect();
+                DisconnectGo();
+                ConnectGo();
             }
         }
 
