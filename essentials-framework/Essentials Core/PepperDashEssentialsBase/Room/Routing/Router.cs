@@ -84,7 +84,7 @@ namespace PepperDash.Essentials.Core.Routing
         {
             if (Sources != null && Sources.ContainsKey(index))
             {
-                return Sources[index].DeviceKey ?? "";
+                return Sources[index].DeviceKey != null ? Sources[index].DeviceKey.ToLower() : "";
             }
 
             return "";
@@ -425,55 +425,60 @@ namespace PepperDash.Essentials.Core.Routing
         public void FireAction(ushort actionIndex)
         {
             if (!allowRoutes) return;
+            Debug.Console(0, "Router {0} firing action {1}", Key, actionIndex);
             if (Actions != null)
             {
+                if (!Actions.ContainsKey(actionIndex))
+                    return;
                 RoutingAction action = Actions[actionIndex];
-                if (action != null && action.Routes != null)
+                if (action.Routes == null)
                 {
-                    foreach (Route route in action.Routes)
+                    return;
+                }
+
+                foreach (Route route in action.Routes)
+                {
+                    //Don't route if marked disabled in overflow and overflow is on
+                    if (route.DisableInOverflow == true && Overflow != 0)
+                        continue;
+
+                    //Don't route if marked enabled in overflow and overflow is off
+                    if (route.EnableInOverflow == true && Overflow == 0)
+                        continue;
+
+                    //Check that route has an input and an output
+                    if (route.Input != null && route.Output != null)
                     {
-                        //Don't route if marked disabled in overflow and overflow is on
-                        if (route.DisableInOverflow == true && Overflow != 0)
-                            continue;
-
-                        //Don't route if marked enabled in overflow and overflow is off
-                        if (route.EnableInOverflow == true && Overflow == 0)
-                            continue;
-
-                        //Check that route has an input and an output
-                        if (route.Input != null && route.Output != null)
+                        if (route.DelaySeconds != null && route.DelaySeconds > 0)
                         {
-                            if (route.DelaySeconds != null && route.DelaySeconds > 0)
+                            CrestronEnvironment.Sleep((int)route.DelaySeconds * 1000);
+                        }
+
+                        switch (route.RouteKey)
+                        {
+                            //Special case to make a source -> dest route
+                            case "route":
                             {
-                                CrestronEnvironment.Sleep((int)route.DelaySeconds * 1000);
+                                if (debugLevel > 0)
+                                {
+                                    Debug.Console(0, "Making route from source {0} to dest {1}", route.Input,
+                                        route.Output);
+                                }
+
+                                RouteByIndex((ushort)route.Input, (ushort)route.Output);
+                                break;
                             }
-
-                            switch (route.RouteKey)
+                            default:
                             {
-                                //Special case to make a source -> dest route
-                                case "route":
+                                if (debugLevel > 0)
                                 {
-                                    if (debugLevel > 0)
-                                    {
-                                        Debug.Console(0, "Making route from source {0} to dest {1}", route.Input,
-                                            route.Output);
-                                    }
-
-                                    RouteByIndex((ushort)route.Input, (ushort)route.Output);
-                                    break;
+                                    Debug.Console(0, "Making {0} from input {1} to output {2}", route.RouteKey,
+                                        route.Input,
+                                        route.Output);
                                 }
-                                default:
-                                {
-                                    if (debugLevel > 0)
-                                    {
-                                        Debug.Console(0, "Making {0} from input {1} to output {2}", route.RouteKey,
-                                            route.Input,
-                                            route.Output);
-                                    }
 
-                                    MakeDeviceRoute(route.RouteKey, (ushort)route.Output, (ushort)route.Input);
-                                    break;
-                                }
+                                MakeDeviceRoute(route.RouteKey, (ushort)route.Output, (ushort)route.Input);
+                                break;
                             }
                         }
                     }

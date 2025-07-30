@@ -288,12 +288,10 @@ namespace PepperDash.Essentials.Core.Routing
 
         public void FireAction(ushort i)
         {
-            if (debugLevel > 0)
+            if (_router != null)
             {
-                Debug.Console(0, "Routing interface {0} firing action {1}", Key, i);
+                _router.FireAction(i);
             }
-
-            _router.FireAction(i);
         }
 
         public void SelectSource(ushort i)
@@ -484,7 +482,9 @@ namespace PepperDash.Essentials.Core.Routing
         {
             if (_router != null && _router.Sources != null && _router.Sources.ContainsKey(sourceIndex))
             {
-                return _router.Sources[sourceIndex].DeviceKey ?? "";
+                return _router.Sources[sourceIndex].DeviceKey != null
+                    ? _router.Sources[sourceIndex].DeviceKey.ToLower()
+                    : "";
             }
 
             return "";
