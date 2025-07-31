@@ -192,7 +192,7 @@ namespace PepperDash.Core
                 try
                 {
                     Debug.Console(1, this, "Waiting for mutex");
-                    connectLock.WaitForMutex();
+                    connectLock.WaitForMutex(1000);
                     Debug.Console(1, this, "Got mutex");
                     if (IsConnected)
                     {
@@ -327,7 +327,6 @@ namespace PepperDash.Core
                 TheStream.ErrorOccurred -= StreamErrorOccurredHandler;
                 TheStream.Close();
                 TheStream.Dispose();
-                TheStream = null;
                 Debug.Console(1, this, "Disconnected stream");
             }
         }

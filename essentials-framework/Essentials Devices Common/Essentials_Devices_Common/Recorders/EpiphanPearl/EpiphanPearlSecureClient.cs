@@ -115,6 +115,7 @@ namespace PepperDash.Essentials.EpiphanPearl
                 if (result.Status != 200)
                 {
                     Debug.Console(0, this, "Failed to get response from server. Code: {0}", result.Status);
+                    Debug.Console(0, this, "Failed to get response from server. Content: {0}", result.Content);
                     return null;
                 }
 
@@ -138,7 +139,7 @@ namespace PepperDash.Essentials.EpiphanPearl
 
         public void SetHost(string host)
         {
-            _basePath = string.Format("https://{0}/api", host);
+            _basePath = string.Format("https://{0}", host);
         }
 
         public void Dispose()

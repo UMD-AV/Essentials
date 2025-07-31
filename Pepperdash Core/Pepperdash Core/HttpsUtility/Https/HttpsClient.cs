@@ -83,7 +83,7 @@ namespace PepperDash.Core.HttpsUtility.Https
                         httpRequest.Header.AddHeader(item);
                 }
 
-                if (requestType == RequestType.Post && !string.IsNullOrEmpty(content))
+                if (!string.IsNullOrEmpty(content))
                 {
                     httpRequest.ContentSource = ContentSource.ContentString;
                     httpRequest.ContentString = content;
