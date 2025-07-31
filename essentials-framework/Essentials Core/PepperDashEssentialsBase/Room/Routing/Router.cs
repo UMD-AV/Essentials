@@ -114,7 +114,7 @@ namespace PepperDash.Essentials.Core.Routing
         {
             if (Dests != null && Dests.ContainsKey(index))
             {
-                return Dests[index].DeviceKey ?? "";
+                return Dests[index].DeviceKey != null ? Dests[index].DeviceKey.ToLower() : "";
             }
 
             return "";
