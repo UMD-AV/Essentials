@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Crestron.SimplSharp;
 using Crestron.SimplSharpPro.DeviceSupport;
@@ -18,7 +19,7 @@ using PepperDash.Essentials.Core.Bridges;
 
 namespace NvxEpi.Application
 {
-    public class NvxApplication : EssentialsBridgeableDevice
+    public class NvxApplication : EssentialsBridgeableDevice, IRoutingNumericWithFeedback
     {
         private readonly CCriticalSection _lock = new CCriticalSection();
         private readonly Dictionary<int, NvxApplicationVideoTransmitter> _transmitters;
@@ -28,9 +29,12 @@ namespace NvxEpi.Application
 
         public NvxApplication(INvxApplicationBuilder applicationBuilder) : base(applicationBuilder.Key)
         {
+            InputPorts = new RoutingPortCollection<RoutingInputPort>();
+            OutputPorts = new RoutingPortCollection<RoutingOutputPort>();
+
             _transmitters =
-                applicationBuilder.Transmitters.Select(
-                        x => new NvxApplicationVideoTransmitter(x.Value.DeviceKey + "--VideoRoutingTx", x.Value, x.Key))
+                applicationBuilder.Transmitters.Select(x =>
+                        new NvxApplicationVideoTransmitter(x.Value.DeviceKey + "--VideoRoutingTx", x.Value, x.Key))
                     .ToDictionary(x => x.DeviceId);
 
             _transmitters
@@ -39,9 +43,9 @@ namespace NvxEpi.Application
                 .ForEach(DeviceManager.AddDevice);
 
             _receivers =
-                applicationBuilder.Receivers.Select(
-                        x => new NvxApplicationVideoReceiver(x.Value.DeviceKey + "--VideoRoutingRx", x.Value, x.Key,
-                            _transmitters.Values))
+                applicationBuilder.Receivers.Select(x => new NvxApplicationVideoReceiver(
+                        x.Value.DeviceKey + "--VideoRoutingRx", x.Value, x.Key,
+                        _transmitters.Values))
                     .ToDictionary(x => x.DeviceId);
 
             _receivers
@@ -50,8 +54,8 @@ namespace NvxEpi.Application
                 .ForEach(DeviceManager.AddDevice);
 
             _audioTransmitters =
-                applicationBuilder.AudioTransmitters.Select(
-                        x => new NvxApplicationAudioTransmitter(x.Value.DeviceKey + "--AudioRoutingTx", x.Value, x.Key))
+                applicationBuilder.AudioTransmitters.Select(x =>
+                        new NvxApplicationAudioTransmitter(x.Value.DeviceKey + "--AudioRoutingTx", x.Value, x.Key))
                     .ToDictionary(x => x.DeviceId);
 
             _audioTransmitters
@@ -60,9 +64,9 @@ namespace NvxEpi.Application
                 .ForEach(DeviceManager.AddDevice);
 
             _audioReceivers =
-                applicationBuilder.AudioReceivers.Select(
-                        x => new NvxApplicationAudioReceiver(x.Value.DeviceKey + "--AudioRoutingRx", x.Value, x.Key,
-                            _audioTransmitters.Values))
+                applicationBuilder.AudioReceivers.Select(x => new NvxApplicationAudioReceiver(
+                        x.Value.DeviceKey + "--AudioRoutingRx", x.Value, x.Key,
+                        _audioTransmitters.Values))
                     .ToDictionary(x => x.DeviceId);
 
             _audioReceivers
@@ -226,28 +230,9 @@ namespace NvxEpi.Application
                 item.DeviceActual.CurrentVideoRouteName.LinkInputSig(
                     trilist.StringInput[(uint)(joinMap.OutputCurrentVideoInputNames.JoinNumber + item.DeviceId - 1)]);
 
-                NvxApplicationVideoReceiver rx = item.DeviceActual;
-                IStreamWithHardware stream = rx.Device as IStreamWithHardware;
+                int output = item.DeviceId;
                 trilist.SetUShortSigAction((uint)(joinMap.OutputVideo.JoinNumber + item.DeviceId - 1),
-                    s =>
-                    {
-                        if (s == 0)
-                        {
-                            if (stream != null)
-                                stream.ClearStream();
-
-                            rx.Display.ReleaseRoute();
-                        }
-                        else
-                        {
-                            NvxApplicationVideoTransmitter device;
-                            if (!_transmitters.TryGetValue(s, out device))
-                                return;
-
-                            rx.Display.ReleaseAndMakeRoute(device.Source,
-                                _enableAudioBreakaway ? eRoutingSignalType.Video : eRoutingSignalType.AudioVideo);
-                        }
-                    });
+                    input => makeVideoRoute(input, output));
 
                 IVideowallMode hdmiOut = item.DeviceActual.Device as IVideowallMode;
                 if (hdmiOut != null)
@@ -255,6 +240,11 @@ namespace NvxEpi.Application
                     trilist.SetUShortSigAction((uint)(joinMap.OutputAspectRatioMode.JoinNumber + item.DeviceId - 1),
                         hdmiOut.SetVideoAspectRatioMode);
                 }
+
+                item.DeviceActual.CurrentVideoRouteId.OutputChange += (sender, e) =>
+                {
+                    OnSwitchChange(e.UShortValue, (ushort)output, eRoutingSignalType.Video);
+                };
             }
         }
 
@@ -288,30 +278,108 @@ namespace NvxEpi.Application
                 item.DeviceActual.CurrentAudioRouteName.LinkInputSig(
                     trilist.StringInput[(uint)(joinMap.OutputCurrentAudioInputNames.JoinNumber + item.DeviceId - 1)]);
 
-                NvxApplicationAudioReceiver rx = item.DeviceActual;
-                ISecondaryAudioStream audioStream = rx.Device as ISecondaryAudioStream;
-
+                int output = item.DeviceId;
                 trilist.SetUShortSigAction((uint)(joinMap.OutputAudio.JoinNumber + item.DeviceId - 1),
-                    s =>
-                    {
-                        if (s == 0)
-                        {
-                            rx.Device.Hardware.Control.AudioSource = DmNvxControl.eAudioSource.DmNaxAudio;
-                            if (audioStream != null)
-                                audioStream.ClearSecondaryStream();
+                    input => makeAudioRoute(input, output));
 
-                            rx.Amp.ReleaseRoute();
-                        }
-                        else
-                        {
-                            NvxApplicationAudioTransmitter device;
-                            if (!_audioTransmitters.TryGetValue(s, out device))
-                                return;
-
-                            rx.Amp.ReleaseAndMakeRoute(device.Source, eRoutingSignalType.Audio);
-                        }
-                    });
+                item.DeviceActual.CurrentAudioRouteId.OutputChange += (sender, e) =>
+                {
+                    OnSwitchChange(e.UShortValue, (ushort)output, eRoutingSignalType.Audio);
+                };
             }
         }
+
+        private void makeVideoRoute(int input, int output)
+        {
+            if (!_receivers.ContainsKey(output))
+            {
+                Debug.Console(0, this, "makeVideoRoute can't find video output: {0}", output);
+                return;
+            }
+
+            NvxApplicationVideoReceiver rx = _receivers[output];
+            IStreamWithHardware stream = rx.Device as IStreamWithHardware;
+
+            if (input == 0)
+            {
+                if (stream != null)
+                    stream.ClearStream();
+
+                rx.Display.ReleaseRoute();
+            }
+            else
+            {
+                NvxApplicationVideoTransmitter device;
+                if (!_transmitters.TryGetValue(input, out device))
+                    return;
+
+                rx.Display.ReleaseAndMakeRoute(device.Source,
+                    _enableAudioBreakaway ? eRoutingSignalType.Video : eRoutingSignalType.AudioVideo);
+            }
+        }
+
+        private void makeAudioRoute(int input, int output)
+        {
+            if (!_audioReceivers.ContainsKey(output))
+            {
+                Debug.Console(0, this, "makeAudioRoute can't find audio output: {0}", output);
+                return;
+            }
+
+            NvxApplicationAudioReceiver rx = _audioReceivers[output];
+            ISecondaryAudioStream audioStream = rx.Device as ISecondaryAudioStream;
+            if (input == 0)
+            {
+                rx.Device.Hardware.Control.AudioSource = DmNvxControl.eAudioSource.DmNaxAudio;
+                if (audioStream != null)
+                    audioStream.ClearSecondaryStream();
+
+                rx.Amp.ReleaseRoute();
+            }
+            else
+            {
+                NvxApplicationAudioTransmitter device;
+                if (!_audioTransmitters.TryGetValue(input, out device))
+                    return;
+
+                rx.Amp.ReleaseAndMakeRoute(device.Source, eRoutingSignalType.Audio);
+            }
+        }
+
+        public RoutingPortCollection<RoutingInputPort> InputPorts { get; private set; }
+
+        public RoutingPortCollection<RoutingOutputPort> OutputPorts { get; private set; }
+
+        public void ExecuteSwitch(object inputSelector, object outputSelector, eRoutingSignalType signalType)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void ExecuteNumericSwitch(ushort input, ushort output, eRoutingSignalType type)
+        {
+            switch (type)
+            {
+                case eRoutingSignalType.Video:
+                case eRoutingSignalType.AudioVideo:
+                    makeVideoRoute(input, output);
+                    break;
+                case eRoutingSignalType.Audio:
+                    makeAudioRoute(input, output);
+                    break;
+            }
+        }
+
+        private void OnSwitchChange(ushort input, ushort output, eRoutingSignalType signalType)
+        {
+            RoutingNumericEventArgs e = new RoutingNumericEventArgs(output, input,
+                null, null, signalType);
+
+            if (NumericSwitchChange != null)
+            {
+                NumericSwitchChange(this, e);
+            }
+        }
+
+        public event EventHandler<RoutingNumericEventArgs> NumericSwitchChange;
     }
 }
