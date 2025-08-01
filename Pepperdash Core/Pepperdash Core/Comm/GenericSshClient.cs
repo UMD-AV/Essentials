@@ -119,6 +119,7 @@ namespace PepperDash.Core
 
         //Lock object to prevent simultaneous connect/disconnect operations
         private readonly CMutex connectLock = new CMutex();
+        private bool connectRunning;
 
         private bool DisconnectLogged;
 
@@ -171,9 +172,12 @@ namespace PepperDash.Core
         /// </summary>
         public void Connect()
         {
-            ConnectEnabled = true;
-            ReconnectTimer.Reset(AutoReconnectIntervalMs, AutoReconnectIntervalMs);
-            ConnectGo();
+            if (!ConnectEnabled)
+            {
+                ConnectEnabled = true;
+                ReconnectTimer.Reset(AutoReconnectIntervalMs, AutoReconnectIntervalMs);
+                ConnectGo();
+            }
         }
 
         private void ConnectGo()
@@ -189,89 +193,106 @@ namespace PepperDash.Core
                     return;
                 }
 
+                bool gotMutex = false;
+                if (connectRunning)
+                {
+                    Debug.Console(1, this, "Connect already running");
+                    return;
+                }
+
                 try
                 {
                     Debug.Console(1, this, "Waiting for mutex");
-                    connectLock.WaitForMutex(1000);
-                    Debug.Console(1, this, "Got mutex");
-                    if (IsConnected)
+                    gotMutex = connectLock.WaitForMutex(1000);
+
+                    if (gotMutex)
                     {
-                        Debug.Console(1, this, "Connection already connected.  Exiting Connect()");
-                    }
-                    else
-                    {
-                        Debug.Console(1, this, "Attempting connect");
-
-                        // Cleanup the old client if it already exists
-                        if (Client != null)
+                        connectRunning = true;
+                        Debug.Console(1, this, "Got mutex");
+                        if (IsConnected)
                         {
-                            Debug.Console(1, this, "Cleaning up disconnected client");
-                            KillClient(SocketStatus.SOCKET_STATUS_BROKEN_LOCALLY);
+                            Debug.Console(1, this, "Connection already connected.  Exiting Connect()");
                         }
-
-                        // This handles both password and keyboard-interactive (like on OS-X, 'nixes)
-                        KeyboardInteractiveAuthenticationMethod kauth =
-                            new KeyboardInteractiveAuthenticationMethod(Username);
-                        kauth.AuthenticationPrompt += kauth_AuthenticationPrompt;
-                        PasswordAuthenticationMethod pauth = new PasswordAuthenticationMethod(Username, Password);
-
-                        Debug.Console(1, this, "Creating new SshClient");
-                        ConnectionInfo connectionInfo = new ConnectionInfo(Hostname, Port, Username, pauth, kauth);
-                        if (Client != null) Client.ErrorOccurred -= Client_ErrorOccurred;
-                        Client = new SshClient(connectionInfo);
-                        Client.ErrorOccurred += Client_ErrorOccurred;
-
-                        //Attempt to connect
-                        ClientStatus = SocketStatus.SOCKET_STATUS_WAITING;
-                        try
+                        else
                         {
-                            Client.Connect();
-                            CreateStream();
-                            Debug.Console(1, this, Debug.ErrorLogLevel.Notice, "Connected");
-                            ClientStatus = SocketStatus.SOCKET_STATUS_CONNECTED;
-                            DisconnectLogged = false;
-                        }
-                        catch (SshConnectionException e)
-                        {
-                            Exception ie = e.InnerException; // The details are inside!!
-                            Debug.ErrorLogLevel errorLogLevel = DisconnectLogged
-                                ? Debug.ErrorLogLevel.None
-                                : Debug.ErrorLogLevel.Error;
+                            Debug.Console(1, this, "Attempting connect");
 
-                            if (ie is SocketException)
-                                Debug.Console(1, this, errorLogLevel,
-                                    "'{0}' CONNECTION failure: Cannot reach host, ({1})",
-                                    Key, ie.Message);
-                            else if (ie is System.Net.Sockets.SocketException)
-                                Debug.Console(1, this, errorLogLevel,
-                                    "'{0}' Connection failure: Cannot reach host '{1}' on port {2}, ({3})",
-                                    Key, Hostname, Port, ie.GetType());
-                            else if (ie is SshAuthenticationException)
+                            // Cleanup the old client if it already exists
+                            if (Client != null)
                             {
-                                Debug.Console(1, this, errorLogLevel,
-                                    "Authentication failure for username '{0}', ({1})",
-                                    Username, ie.Message);
+                                Debug.Console(1, this, "Cleaning up disconnected client");
+                                KillClient(SocketStatus.SOCKET_STATUS_BROKEN_LOCALLY);
                             }
-                            else
-                                Debug.Console(1, this, errorLogLevel, "Error on connect:\r({0})", e.Message);
 
-                            DisconnectLogged = true;
-                            KillClient(SocketStatus.SOCKET_STATUS_CONNECT_FAILED);
-                        }
-                        catch (Exception e)
-                        {
-                            Debug.ErrorLogLevel errorLogLevel = DisconnectLogged
-                                ? Debug.ErrorLogLevel.None
-                                : Debug.ErrorLogLevel.Error;
-                            Debug.Console(1, this, errorLogLevel, "Unhandled exception on connect:\r({0})", e.Message);
-                            DisconnectLogged = true;
-                            KillClient(SocketStatus.SOCKET_STATUS_CONNECT_FAILED);
+                            // This handles both password and keyboard-interactive (like on OS-X, 'nixes)
+                            KeyboardInteractiveAuthenticationMethod kauth =
+                                new KeyboardInteractiveAuthenticationMethod(Username);
+                            kauth.AuthenticationPrompt += kauth_AuthenticationPrompt;
+                            PasswordAuthenticationMethod pauth = new PasswordAuthenticationMethod(Username, Password);
+
+                            Debug.Console(1, this, "Creating new SshClient");
+                            ConnectionInfo connectionInfo = new ConnectionInfo(Hostname, Port, Username, pauth, kauth);
+                            if (Client != null) Client.ErrorOccurred -= Client_ErrorOccurred;
+                            Client = new SshClient(connectionInfo);
+                            Client.ErrorOccurred += Client_ErrorOccurred;
+
+                            //Attempt to connect
+                            ClientStatus = SocketStatus.SOCKET_STATUS_WAITING;
+                            try
+                            {
+                                Client.Connect();
+                                CreateStream();
+                                Debug.Console(1, this, Debug.ErrorLogLevel.Notice, "Connected");
+                                ClientStatus = SocketStatus.SOCKET_STATUS_CONNECTED;
+                                DisconnectLogged = false;
+                            }
+                            catch (SshConnectionException e)
+                            {
+                                Exception ie = e.InnerException; // The details are inside!!
+                                Debug.ErrorLogLevel errorLogLevel = DisconnectLogged
+                                    ? Debug.ErrorLogLevel.None
+                                    : Debug.ErrorLogLevel.Error;
+
+                                if (ie is SocketException)
+                                    Debug.Console(1, this, errorLogLevel,
+                                        "'{0}' CONNECTION failure: Cannot reach host, ({1})",
+                                        Key, ie.Message);
+                                else if (ie is System.Net.Sockets.SocketException)
+                                    Debug.Console(1, this, errorLogLevel,
+                                        "'{0}' Connection failure: Cannot reach host '{1}' on port {2}, ({3})",
+                                        Key, Hostname, Port, ie.GetType());
+                                else if (ie is SshAuthenticationException)
+                                {
+                                    Debug.Console(1, this, errorLogLevel,
+                                        "Authentication failure for username '{0}', ({1})",
+                                        Username, ie.Message);
+                                }
+                                else
+                                    Debug.Console(1, this, errorLogLevel, "Error on connect:\r({0})", e.Message);
+
+                                DisconnectLogged = true;
+                                KillClient(SocketStatus.SOCKET_STATUS_CONNECT_FAILED);
+                            }
+                            catch (Exception e)
+                            {
+                                Debug.ErrorLogLevel errorLogLevel = DisconnectLogged
+                                    ? Debug.ErrorLogLevel.None
+                                    : Debug.ErrorLogLevel.Error;
+                                Debug.Console(1, this, errorLogLevel, "Unhandled exception on connect:\r({0})",
+                                    e.Message);
+                                DisconnectLogged = true;
+                                KillClient(SocketStatus.SOCKET_STATUS_CONNECT_FAILED);
+                            }
                         }
                     }
                 }
                 finally
                 {
-                    connectLock.ReleaseMutex();
+                    if (gotMutex)
+                    {
+                        connectLock.ReleaseMutex();
+                        connectRunning = false;
+                    }
                 }
             });
         }
