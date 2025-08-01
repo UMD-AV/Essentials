@@ -154,7 +154,7 @@ namespace PepperDash.Essentials.Devices.Displays
             AddRoutingInputPort(new RoutingInputPort("PC 1", eRoutingSignalType.Audio | eRoutingSignalType.Video,
                 eRoutingPortConnectionType.Vga, new Action(InputPc1), this), "PC1");
 
-            _supportsVideoMute = config.SupportsVideoMute;
+            _supportsVideoMute = true;
             if (config.VideoMuteKey != null)
             {
                 videoMuteKey = config.VideoMuteKey;
