@@ -263,7 +263,6 @@ namespace Tesira_DSP_EPI
             if (CommunicationMonitor != null)
             {
                 CommunicationMonitor.Stop();
-                Communication.Disconnect();
             }
 
             Debug.Console(0, "Disposing Tesira DSP");
