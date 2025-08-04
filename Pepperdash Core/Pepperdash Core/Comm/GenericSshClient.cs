@@ -296,7 +296,14 @@ namespace PepperDash.Core
             bool gotMutex = connectLock.WaitForMutex(10000);
             if (gotMutex)
             {
-                KillClient(SocketStatus.SOCKET_STATUS_BROKEN_LOCALLY);
+                try
+                {
+                    KillClient(SocketStatus.SOCKET_STATUS_BROKEN_LOCALLY);
+                }
+                finally
+                {
+                    connectLock.ReleaseMutex();
+                }
             }
         }
 
@@ -375,21 +382,20 @@ namespace PepperDash.Core
             {
                 Debug.ConsoleWithLog(0, this, "SSH Shellstream error: {0}", e);
 
-                try
+                bool gotMutex = connectLock.WaitForMutex(100);
+                if (gotMutex)
                 {
-                    bool gotMutex = connectLock.WaitForMutex(100);
-                    if (gotMutex)
+                    try
                     {
                         KillClient(SocketStatus.SOCKET_STATUS_BROKEN_REMOTELY);
                     }
-                }
-                finally
-                {
-                    connectLock.ReleaseMutex();
+                    finally
+                    {
+                        connectLock.ReleaseMutex();
+                    }
                 }
             });
         }
-
 
         /// <summary>
         /// Handles the keyboard interactive authentication, should it be required.
@@ -448,17 +454,18 @@ namespace PepperDash.Core
                     Debug.ConsoleWithLog(1, this, "Unhandled SSH client error: {0}",
                         e.Exception);
 
-                try
+
+                bool gotMutex = connectLock.WaitForMutex(100);
+                if (gotMutex)
                 {
-                    bool gotMutex = connectLock.WaitForMutex(100);
-                    if (gotMutex)
+                    try
                     {
                         KillClient(SocketStatus.SOCKET_STATUS_BROKEN_REMOTELY);
                     }
-                }
-                finally
-                {
-                    connectLock.ReleaseMutex();
+                    finally
+                    {
+                        connectLock.ReleaseMutex();
+                    }
                 }
             });
         }
@@ -506,7 +513,14 @@ namespace PepperDash.Core
                 bool gotMutex = connectLock.WaitForMutex(100);
                 if (gotMutex)
                 {
-                    KillClient(SocketStatus.SOCKET_STATUS_BROKEN_LOCALLY);
+                    try
+                    {
+                        KillClient(SocketStatus.SOCKET_STATUS_BROKEN_LOCALLY);
+                    }
+                    finally
+                    {
+                        connectLock.ReleaseMutex();
+                    }
                 }
             }
         }
@@ -543,7 +557,14 @@ namespace PepperDash.Core
                 bool gotMutex = connectLock.WaitForMutex(100);
                 if (gotMutex)
                 {
-                    KillClient(SocketStatus.SOCKET_STATUS_BROKEN_LOCALLY);
+                    try
+                    {
+                        KillClient(SocketStatus.SOCKET_STATUS_BROKEN_LOCALLY);
+                    }
+                    finally
+                    {
+                        connectLock.ReleaseMutex();
+                    }
                 }
             }
         }
