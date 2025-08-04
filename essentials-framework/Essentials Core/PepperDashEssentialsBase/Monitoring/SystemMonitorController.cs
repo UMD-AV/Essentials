@@ -599,10 +599,14 @@ namespace PepperDash.Essentials.Core.Monitoring
             /// </summary>
             public void GetProgramInfo()
             {
-                CrestronInvoke.BeginInvoke(GetProgramInfo);
+                CrestronInvoke.BeginInvoke(o =>
+                {
+                    CrestronEnvironment.Sleep(20000);
+                    GetProgramInfoNow();
+                });
             }
 
-            private void GetProgramInfo(object o)
+            private void GetProgramInfoNow()
             {
                 Debug.Console(2, "Attempting to get program info for slot: {0}", Program.Number);
 
@@ -652,7 +656,7 @@ namespace PepperDash.Essentials.Core.Monitoring
                 }
 
 
-                // Shared properteis
+                // Shared properties
                 ProgramInfo.ProgramFile = ParseConsoleData(response, "Program File", ": ", "\n");
                 ProgramInfo.CompilerRevision = ParseConsoleData(response, "Compiler Rev", ": ", "\n");
                 ProgramInfo.CompileTime = ParseConsoleData(response, "Compiled On", ": ", "\n");
@@ -664,10 +668,6 @@ namespace PepperDash.Essentials.Core.Monitoring
                     // SSP Program
                     ProgramInfo.FriendlyName = ParseConsoleData(response, "Friendly Name", ": ", "\n");
                     ProgramInfo.ApplicationName = ParseConsoleData(response, "Application Name", ": ", "\n");
-                    ProgramInfo.ProgramTool = ParseConsoleData(response, "Program Tool", ": ", "\n");
-                    ProgramInfo.MinFirmwareVersion = ParseConsoleData(response, "Min Firmware Version", ": ",
-                        "\n");
-                    ProgramInfo.PlugInVersion = ParseConsoleData(response, "PlugInVersion", ": ", "\n");
                 }
                 else if (ProgramInfo.ProgramFile.Contains(".smw"))
                 {
@@ -714,7 +714,7 @@ namespace PepperDash.Essentials.Core.Monitoring
 
                 try
                 {
-                    //Debug.Console(2, "ParseConsoleData Data: {0}, Line {1}, startStirng {2}, endString {3}", data, line, startString, endString);
+                    //Debug.Console(2, "ParseConsoleData Data: {0}, Line {1}, startString {2}, endString {3}", data, line, startString, endString);
                     int linePosition = data.IndexOf(line, StringComparison.Ordinal);
                     int startPosition = data.IndexOf(startString, linePosition, StringComparison.Ordinal) +
                                         startString.Length;
