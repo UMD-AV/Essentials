@@ -18,7 +18,7 @@ namespace PepperDash.Core
         public CommunicationStreamDebugging StreamDebugging { get; private set; }
 
         /// <summary>
-        /// Event that fires when data is received.  Delivers args with byte array
+        /// Event that fires when data is received.  Delivers args with a byte array
         /// </summary>
         public event EventHandler<GenericCommMethodReceiveBytesArgs> BytesReceived;
 
@@ -62,14 +62,6 @@ namespace PepperDash.Core
         }
 
         /// <summary>
-        /// S+ helper for IsConnected
-        /// </summary>
-        public ushort UIsConnected
-        {
-            get { return (ushort)(IsConnected ? 1 : 0); }
-        }
-
-        /// <summary>
         /// 
         /// </summary>
         public SocketStatus ClientStatus
@@ -86,22 +78,14 @@ namespace PepperDash.Core
 
         private SocketStatus _ClientStatus;
 
-        /// <summary>
-        /// Contains the familiar Simpl analog status values. This drives the ConnectionChange event
-        /// and IsConnected with be true when this == 2.
-        /// </summary>
-        public ushort UStatus
-        {
-            get { return (ushort)_ClientStatus; }
-        }
 
         /// <summary>
-        /// Determines whether client will attempt reconnection on failure. Default is true
+        /// Determines whether the client will attempt reconnection on failure. Default is true
         /// </summary>
         public bool AutoReconnect { get; set; }
 
         /// <summary>
-        /// Will be set and unset by connect and disconnect only
+        /// Will be set and unset by the connect and disconnect methods only
         /// </summary>
         public bool ConnectEnabled { get; private set; }
 
@@ -135,6 +119,7 @@ namespace PepperDash.Core
             Port = port;
             Username = username;
             Password = password;
+            AutoReconnectIntervalMs = 5000;
             ReconnectTimer = new CTimer(ReconnectCallback, null, Timeout.Infinite);
         }
 
@@ -181,27 +166,33 @@ namespace PepperDash.Core
 
         private void ConnectGo()
         {
-            CrestronInvoke.BeginInvoke((o) =>
+            if (IsConnected)
             {
-                // Don't go unless everything is here
-                if (string.IsNullOrEmpty(Hostname) || Port < 1 || Port > 65535
-                    || Username == null || Password == null)
-                {
-                    Debug.Console(0, this, Debug.ErrorLogLevel.Error,
-                        "Connect failed.  Check hostname, port, username and password are set or not null");
-                    return;
-                }
+                Debug.Console(1, this, "Connection already connected.  Exiting Connect()");
+            }
 
+            // Don't go unless everything is here
+            if (string.IsNullOrEmpty(Hostname) || Port < 1 || Port > 65535
+                || Username == null || Password == null)
+            {
+                Debug.Console(0, this, Debug.ErrorLogLevel.Error,
+                    "Connect failed.  Check hostname, port, username and password are set or not null");
+                return;
+            }
+
+            CrestronInvoke.BeginInvoke(o =>
+            {
                 bool gotMutex = false;
 
                 try
                 {
                     Debug.Console(1, this, "Waiting for mutex");
-                    gotMutex = connectLock.WaitForMutex(1000);
+                    gotMutex = connectLock.WaitForMutex();
 
                     if (gotMutex)
                     {
                         Debug.Console(1, this, "Got mutex");
+                        CrestronEnvironment.Sleep(5000);
                         if (IsConnected)
                         {
                             Debug.Console(1, this, "Connection already connected.  Exiting Connect()");
@@ -217,7 +208,7 @@ namespace PepperDash.Core
                                 KillClient(SocketStatus.SOCKET_STATUS_BROKEN_LOCALLY);
                             }
 
-                            // This handles both password and keyboard-interactive (like on OS-X, 'nixes)
+                            // This handles both password and keyboard-interactive
                             KeyboardInteractiveAuthenticationMethod kauth =
                                 new KeyboardInteractiveAuthenticationMethod(Username);
                             kauth.AuthenticationPrompt += kauth_AuthenticationPrompt;
@@ -225,7 +216,6 @@ namespace PepperDash.Core
 
                             Debug.Console(1, this, "Creating new SshClient");
                             ConnectionInfo connectionInfo = new ConnectionInfo(Hostname, Port, Username, pauth, kauth);
-                            if (Client != null) Client.ErrorOccurred -= Client_ErrorOccurred;
                             Client = new SshClient(connectionInfo);
                             Client.ErrorOccurred += Client_ErrorOccurred;
 
@@ -266,6 +256,13 @@ namespace PepperDash.Core
                                 DisconnectLogged = true;
                                 KillClient(SocketStatus.SOCKET_STATUS_CONNECT_FAILED);
                             }
+                            catch (SshOperationTimeoutException ex)
+                            {
+                                Debug.Console(1, this, "Connection attempt timed out: {message}", ex.Message);
+
+                                DisconnectLogged = true;
+                                KillClient(SocketStatus.SOCKET_STATUS_CONNECT_FAILED);
+                            }
                             catch (Exception e)
                             {
                                 Debug.ErrorLogLevel errorLogLevel = DisconnectLogged
@@ -296,13 +293,11 @@ namespace PepperDash.Core
         {
             ConnectEnabled = false;
             ReconnectTimer.Stop();
-            DisconnectGo();
-        }
-
-
-        private void DisconnectGo()
-        {
-            KillClient(SocketStatus.SOCKET_STATUS_BROKEN_LOCALLY);
+            bool gotMutex = connectLock.WaitForMutex(10000);
+            if (gotMutex)
+            {
+                KillClient(SocketStatus.SOCKET_STATUS_BROKEN_LOCALLY);
+            }
         }
 
         /// <summary>
@@ -310,12 +305,14 @@ namespace PepperDash.Core
         /// </summary>
         private void KillClient(SocketStatus status)
         {
+            Debug.Console(0, this, "Killing Client");
             KillStream();
 
             if (Client != null)
             {
                 try
                 {
+                    Client.ErrorOccurred -= Client_ErrorOccurred;
                     Client.Disconnect();
                     Client.Dispose();
                     Client = null;
@@ -324,7 +321,7 @@ namespace PepperDash.Core
                 }
                 catch (Exception ex)
                 {
-                    Debug.Console(1, this, "Exception killing client: {0}", ex.Message);
+                    Debug.ConsoleWithLog(0, this, "Exception killing client: {0}", ex.Message);
                 }
             }
         }
@@ -334,13 +331,22 @@ namespace PepperDash.Core
         /// </summary>
         private void KillStream()
         {
-            if (TheStream != null)
+            Debug.Console(0, this, "Killing stream");
+            try
             {
-                TheStream.DataReceived -= Stream_DataReceived;
-                TheStream.ErrorOccurred -= StreamErrorOccurredHandler;
-                TheStream.Close();
-                TheStream.Dispose();
-                Debug.Console(1, this, "Disconnected stream");
+                if (TheStream != null)
+                {
+                    TheStream.DataReceived -= Stream_DataReceived;
+                    TheStream.ErrorOccurred -= StreamErrorOccurredHandler;
+                    TheStream.Close();
+                    TheStream.Dispose();
+                    TheStream = null;
+                    Debug.Console(1, this, "Disconnected stream");
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.ConsoleWithLog(0, this, "Exception killing stream: {0}", ex.Message);
             }
         }
 
@@ -351,7 +357,13 @@ namespace PepperDash.Core
         {
             if (Client != null)
             {
-                TheStream = Client.CreateShellStream("PDTShell", 100, 80, 100, 200, 65534);
+                TheStream = Client.CreateShellStream("PDTShell", 0, 0, 0, 0, 65534);
+                if (TheStream.DataAvailable)
+                {
+                    // empty the buffer if there is data
+                    TheStream.Read();
+                }
+
                 TheStream.DataReceived += Stream_DataReceived;
                 TheStream.ErrorOccurred += StreamErrorOccurredHandler;
             }
@@ -359,8 +371,23 @@ namespace PepperDash.Core
 
         private void StreamErrorOccurredHandler(object sender, EventArgs e)
         {
-            Debug.Console(0, this, "SSH Shellstream error: {0}", e);
-            DisconnectGo();
+            CrestronInvoke.BeginInvoke(o =>
+            {
+                Debug.ConsoleWithLog(0, this, "SSH Shellstream error: {0}", e);
+
+                try
+                {
+                    bool gotMutex = connectLock.WaitForMutex(100);
+                    if (gotMutex)
+                    {
+                        KillClient(SocketStatus.SOCKET_STATUS_BROKEN_REMOTELY);
+                    }
+                }
+                finally
+                {
+                    connectLock.ReleaseMutex();
+                }
+            });
         }
 
 
@@ -416,11 +443,23 @@ namespace PepperDash.Core
             CrestronInvoke.BeginInvoke(o =>
             {
                 if (e.Exception is SshConnectionException || e.Exception is System.Net.Sockets.SocketException)
-                    Debug.Console(1, this, Debug.ErrorLogLevel.Error, "Disconnected by remote");
+                    Debug.ConsoleWithLog(1, this, "Disconnected by remote");
                 else
-                    Debug.Console(1, this, Debug.ErrorLogLevel.Error, "Unhandled SSH client error: {0}", e.Exception);
+                    Debug.ConsoleWithLog(1, this, "Unhandled SSH client error: {0}",
+                        e.Exception);
 
-                KillClient(SocketStatus.SOCKET_STATUS_BROKEN_REMOTELY);
+                try
+                {
+                    bool gotMutex = connectLock.WaitForMutex(100);
+                    if (gotMutex)
+                    {
+                        KillClient(SocketStatus.SOCKET_STATUS_BROKEN_REMOTELY);
+                    }
+                }
+                finally
+                {
+                    connectLock.ReleaseMutex();
+                }
             });
         }
 
@@ -454,12 +493,6 @@ namespace PepperDash.Core
                         TheStream.WriteLine(text);
                         TheStream.Flush();
                     }
-                    else
-                    {
-                        Debug.Console(0, this, "The ssh stream is null or not writable, recreating stream");
-                        KillStream();
-                        CreateStream();
-                    }
                 }
                 else
                 {
@@ -468,9 +501,13 @@ namespace PepperDash.Core
             }
             catch (Exception ex)
             {
-                Debug.Console(0, "Exception: {0}", ex.Message);
-                Debug.Console(0, "Stack Trace: {0}", ex.StackTrace);
-                DisconnectGo();
+                Debug.ConsoleWithLog(0, this, "Exception: {0}", ex.Message);
+                Debug.ConsoleWithLog(0, this, "Stack Trace: {0}", ex.StackTrace);
+                bool gotMutex = connectLock.WaitForMutex(100);
+                if (gotMutex)
+                {
+                    KillClient(SocketStatus.SOCKET_STATUS_BROKEN_LOCALLY);
+                }
             }
         }
 
@@ -493,12 +530,6 @@ namespace PepperDash.Core
                         TheStream.Write(bytes, 0, bytes.Length);
                         TheStream.Flush();
                     }
-                    else
-                    {
-                        Debug.Console(0, this, "The ssh stream is null or not writable, recreating stream");
-                        KillStream();
-                        CreateStream();
-                    }
                 }
                 else
                 {
@@ -507,9 +538,13 @@ namespace PepperDash.Core
             }
             catch (Exception ex)
             {
-                Debug.Console(0, "Exception: {0}", ex.Message);
-                Debug.Console(0, "Stack Trace: {0}", ex.StackTrace);
-                DisconnectGo();
+                Debug.ConsoleWithLog(0, this, "Exception: {0}", ex.Message);
+                Debug.ConsoleWithLog(0, this, "Stack Trace: {0}", ex.StackTrace);
+                bool gotMutex = connectLock.WaitForMutex(100);
+                if (gotMutex)
+                {
+                    KillClient(SocketStatus.SOCKET_STATUS_BROKEN_LOCALLY);
+                }
             }
         }
 
@@ -521,58 +556,6 @@ namespace PepperDash.Core
             if (TheStream != null) TheStream.Dispose();
             if (ReconnectTimer != null) ReconnectTimer.Dispose();
             if (connectLock != null) connectLock.Dispose();
-        }
-    }
-
-    //*****************************************************************************************************
-    //*****************************************************************************************************
-    /// <summary>
-    /// Fired when connection changes
-    /// </summary>
-    public class SshConnectionChangeEventArgs : EventArgs
-    {
-        /// <summary>
-        /// Connection State
-        /// </summary>
-        public bool IsConnected { get; private set; }
-
-        /// <summary>
-        /// Connection Status represented as a ushort
-        /// </summary>
-        public ushort UIsConnected
-        {
-            get { return (ushort)(Client.IsConnected ? 1 : 0); }
-        }
-
-        /// <summary>
-        /// The client
-        /// </summary>
-        public GenericSshClient Client { get; private set; }
-
-        /// <summary>
-        /// Socket Status as represented by
-        /// </summary>
-        public ushort Status
-        {
-            get { return Client.UStatus; }
-        }
-
-        /// <summary>
-        ///  S+ Constructor
-        /// </summary>
-        public SshConnectionChangeEventArgs()
-        {
-        }
-
-        /// <summary>
-        /// EventArgs class
-        /// </summary>
-        /// <param name="isConnected">Connection State</param>
-        /// <param name="client">The Client</param>
-        public SshConnectionChangeEventArgs(bool isConnected, GenericSshClient client)
-        {
-            IsConnected = isConnected;
-            Client = client;
         }
     }
 }
