@@ -119,7 +119,6 @@ namespace PepperDash.Core
 
         //Lock object to prevent simultaneous connect/disconnect operations
         private readonly CMutex connectLock = new CMutex();
-        private bool connectRunning;
 
         private bool DisconnectLogged;
 
@@ -194,11 +193,6 @@ namespace PepperDash.Core
                 }
 
                 bool gotMutex = false;
-                if (connectRunning)
-                {
-                    Debug.Console(1, this, "Connect already running");
-                    return;
-                }
 
                 try
                 {
@@ -207,7 +201,6 @@ namespace PepperDash.Core
 
                     if (gotMutex)
                     {
-                        connectRunning = true;
                         Debug.Console(1, this, "Got mutex");
                         if (IsConnected)
                         {
@@ -291,7 +284,6 @@ namespace PepperDash.Core
                     if (gotMutex)
                     {
                         connectLock.ReleaseMutex();
-                        connectRunning = false;
                     }
                 }
             });
