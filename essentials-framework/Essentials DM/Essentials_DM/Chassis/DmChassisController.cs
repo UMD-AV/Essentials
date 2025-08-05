@@ -60,7 +60,6 @@ namespace PepperDash.Essentials.DM
         // Need a couple Lists of generic Backplane ports
         public RoutingPortCollection<RoutingInputPort> InputPorts { get; private set; }
         public RoutingPortCollection<RoutingOutputPort> OutputPorts { get; private set; }
-
         public Dictionary<uint, string> TxDictionary { get; set; }
         public Dictionary<uint, string> RxDictionary { get; set; }
 

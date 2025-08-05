@@ -19,7 +19,7 @@ using Feedback = PepperDash.Essentials.Core.Feedback;
 namespace PepperDash.Essentials.DM
 {
     [Description("Wrapper class for all DM-RMC variants")]
-    public abstract class DmRmcControllerBase : CrestronGenericBridgeableBaseDevice, IDeviceInfoProvider
+    public abstract class DmRmcControllerBase : CrestronGenericBridgeableBaseDevice, IDeviceInfoProvider, IHdmiBlanking
     {
         private const int CtpPort = 41795;
 

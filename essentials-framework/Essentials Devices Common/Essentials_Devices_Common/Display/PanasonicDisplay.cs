@@ -8,6 +8,7 @@ using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Bridges;
 using PepperDash.Essentials.Core.Config;
 using Newtonsoft.Json;
+using PepperDash.Essentials.DM;
 
 namespace PepperDash.Essentials.Devices.Displays
 {
@@ -48,9 +49,7 @@ namespace PepperDash.Essentials.Devices.Displays
         public BoolFeedback Input1Feedback { get; private set; }
         public BoolFeedback Input2Feedback { get; private set; }
         public BoolFeedback Input3Feedback { get; private set; }
-
         public BoolFeedback VideoMuteIsOnFeedback { get; private set; }
-
 
         private readonly bool _supportsVideoMute;
         private bool _readyForCommands;
@@ -65,7 +64,7 @@ namespace PepperDash.Essentials.Devices.Displays
         private bool _VideoMuteIsOn;
 
         private readonly string videoMuteKey;
-        private DM.DmRmcControllerBase _scaler;
+        private IHdmiBlanking _hdmiBlanking;
         private readonly PanasonicQueue _cmdQueue;
         private readonly PanasonicQueue _priorityQueue;
         private readonly CommunicationGather _PortGather;
@@ -154,7 +153,7 @@ namespace PepperDash.Essentials.Devices.Displays
             AddRoutingInputPort(new RoutingInputPort("PC 1", eRoutingSignalType.Audio | eRoutingSignalType.Video,
                 eRoutingPortConnectionType.Vga, new Action(InputPc1), this), "PC1");
 
-            _supportsVideoMute = true;
+            _supportsVideoMute = config.SupportsVideoMute;
             if (config.VideoMuteKey != null)
             {
                 videoMuteKey = config.VideoMuteKey;
@@ -171,11 +170,43 @@ namespace PepperDash.Essentials.Devices.Displays
         {
             if (videoMuteKey != null)
             {
-                IKeyed dev = DeviceManager.GetDeviceForKey(videoMuteKey);
-                if (dev is DM.DmRmcControllerBase)
+                int firstDash = videoMuteKey.IndexOf('-');
+                if (firstDash > 0)
                 {
-                    Debug.Console(0, this, "Using scaler {0} for video mute", videoMuteKey);
-                    _scaler = dev as DM.DmRmcControllerBase;
+                    try
+                    {
+                        string devKey = videoMuteKey.Substring(0, firstDash);
+                        string devPort = videoMuteKey.Substring(firstDash + 1);
+
+                        Debug.Console(0, this, "Trying to use dmps output {0} for video mute", devPort);
+                        IKeyed dev = DeviceManager.GetDeviceForKey(devKey);
+
+                        DmpsRoutingController switcher = dev as DmpsRoutingController;
+                        if (switcher != null && switcher.OutputPorts.Exists(p => p.Key == devPort))
+                        {
+                            _hdmiBlanking = switcher.OutputPorts[devPort] as RoutingOutputPortWithBlanking;
+                            if (_hdmiBlanking != null)
+                            {
+                                Debug.Console(0, this, "Using dmps output {0} for video mute successful",
+                                    videoMuteKey);
+                            }
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.ConsoleWithLog(0, this, "Using dmps output {0} for video mute failed: {1}",
+                            videoMuteKey, e.Message);
+                    }
+                }
+
+                else
+                {
+                    IKeyed dev = DeviceManager.GetDeviceForKey(videoMuteKey);
+                    if (dev is DmRmcControllerBase)
+                    {
+                        Debug.Console(0, this, "Using scaler {0} for video mute", videoMuteKey);
+                        _hdmiBlanking = dev as DmRmcControllerBase;
+                    }
                 }
             }
 
@@ -199,23 +230,18 @@ namespace PepperDash.Essentials.Devices.Displays
             trilist.BooleanInput[joinMap.LampHoursSupported.JoinNumber].BoolValue = false;
 
             //Video Mute
-            if (_scaler != null)
+            trilist.SetSigTrueAction(joinMap.VideoMuteOn.JoinNumber, VideoMuteOn);
+            trilist.SetSigTrueAction(joinMap.VideoMuteOff.JoinNumber, VideoMuteOff);
+            if (_hdmiBlanking != null)
             {
                 trilist.BooleanInput[joinMap.VideoMuteSupported.JoinNumber].BoolValue = true;
-                _scaler.HdmiOutputBlankedFeedback.LinkInputSig(trilist.BooleanInput[joinMap.VideoMuteOn.JoinNumber]);
-                trilist.SetSigTrueAction(joinMap.VideoMuteOn.JoinNumber, _scaler.BlankOutput);
-                trilist.SetSigTrueAction(joinMap.VideoMuteOff.JoinNumber, _scaler.UnblankOutput);
+                _hdmiBlanking.HdmiOutputBlankedFeedback.LinkInputSig(
+                    trilist.BooleanInput[joinMap.VideoMuteOn.JoinNumber]);
             }
-            else if (!_supportsVideoMute)
-            {
-                trilist.BooleanInput[joinMap.VideoMuteSupported.JoinNumber].BoolValue = false;
-            }
-            else
+            else if (_supportsVideoMute)
             {
                 trilist.BooleanInput[joinMap.VideoMuteSupported.JoinNumber].BoolValue = true;
                 VideoMuteIsOnFeedback.LinkInputSig(trilist.BooleanInput[joinMap.VideoMuteOn.JoinNumber]);
-                trilist.SetSigTrueAction(joinMap.VideoMuteOn.JoinNumber, VideoMuteOn);
-                trilist.SetSigTrueAction(joinMap.VideoMuteOff.JoinNumber, VideoMuteOff);
             }
 
             IsWarmingUpFeedback.LinkInputSig(trilist.BooleanInput[joinMap.Warming.JoinNumber]);
@@ -469,7 +495,7 @@ namespace PepperDash.Essentials.Devices.Displays
                 PowerGet();
                 InputGet();
 
-                if (_scaler == null && _supportsVideoMute)
+                if (_hdmiBlanking == null && _supportsVideoMute)
                 {
                     VideoMuteGet();
                 }
@@ -500,7 +526,7 @@ namespace PepperDash.Essentials.Devices.Displays
                     SendCommand(eCommandType.PowerPoll, PowerGetCmd, true);
                     if (_RequestedVideoMuteState == 1)
                     {
-                        Debug.Console(0, "Sending video mute");
+                        Debug.Console(1, "Sending video mute");
                         SendCommand(eCommandType.VideoMute, VideoMuteOnCmd, true);
                     }
                     else
@@ -528,7 +554,7 @@ namespace PepperDash.Essentials.Devices.Displays
                 InputSelectGo(_RequestedInputState);
             }
 
-            if (_scaler == null)
+            if (_hdmiBlanking == null)
             {
                 VideoMuteGet();
             }
@@ -627,10 +653,10 @@ namespace PepperDash.Essentials.Devices.Displays
 
         private void PowerOffGo()
         {
-            if (_scaler != null)
+            if (_hdmiBlanking != null)
             {
                 _RequestedVideoMuteState = 0;
-                _scaler.UnblankOutput();
+                _hdmiBlanking.UnblankOutput();
             }
 
             SendCommand(eCommandType.Power, PowerOffCmd, true);
@@ -672,18 +698,14 @@ namespace PepperDash.Essentials.Devices.Displays
 
         public void VideoMuteOn()
         {
-            if (_scaler != null)
+            Debug.Console(1, "Video Mute On Requested");
+            if (_hdmiBlanking != null)
             {
                 _RequestedVideoMuteState = 0;
-                _scaler.BlankOutput();
+                _hdmiBlanking.BlankOutput();
             }
-            else if (!_supportsVideoMute)
+            else if (_supportsVideoMute && _RequestedPowerState == 1 || _PowerIsOn)
             {
-                PowerOff();
-            }
-            else if (_RequestedPowerState == 1 || _PowerIsOn)
-            {
-                Debug.Console(0, "Video Mute Requested");
                 _RequestedVideoMuteState = 1;
                 if (!_IsWarmingUp)
                 {
@@ -694,16 +716,12 @@ namespace PepperDash.Essentials.Devices.Displays
 
         private void VideoMuteOnGo()
         {
-            if (_scaler != null)
+            if (_hdmiBlanking != null)
             {
                 _RequestedVideoMuteState = 0;
-                _scaler.BlankOutput();
+                _hdmiBlanking.BlankOutput();
             }
-            else if (!_supportsVideoMute)
-            {
-                PowerOff();
-            }
-            else
+            else if (_supportsVideoMute)
             {
                 SendCommand(eCommandType.VideoMute, VideoMuteOnCmd, false);
                 VideoMuteGet();
@@ -717,15 +735,12 @@ namespace PepperDash.Essentials.Devices.Displays
 
         public void VideoMuteOff()
         {
-            if (_scaler != null)
+            Debug.Console(1, "Video Mute Off Requested");
+            if (_hdmiBlanking != null)
             {
-                _scaler.UnblankOutput();
+                _hdmiBlanking.UnblankOutput();
             }
-            else if (!_supportsVideoMute)
-            {
-                PowerOn();
-            }
-            else
+            else if (_supportsVideoMute)
             {
                 _RequestedVideoMuteState = 2;
                 if (_PowerIsOn && !_IsWarmingUp)
@@ -737,16 +752,12 @@ namespace PepperDash.Essentials.Devices.Displays
 
         private void VideoMuteOffGo()
         {
-            if (_scaler != null)
+            if (_hdmiBlanking != null)
             {
                 _RequestedVideoMuteState = 0;
-                _scaler.UnblankOutput();
+                _hdmiBlanking.UnblankOutput();
             }
-            else if (!_supportsVideoMute)
-            {
-                PowerOn();
-            }
-            else
+            else if (_supportsVideoMute)
             {
                 SendCommand(eCommandType.VideoMute, VideoMuteOffCmd, false);
                 VideoMuteGet();
@@ -760,7 +771,10 @@ namespace PepperDash.Essentials.Devices.Displays
 
         public void VideoMuteGet()
         {
-            SendCommand(eCommandType.VideoMutePoll, VideoMuteGetCmd, false);
+            if (_supportsVideoMute)
+            {
+                SendCommand(eCommandType.VideoMutePoll, VideoMuteGetCmd, false);
+            }
         }
 
         public void InputSelect(ushort input)

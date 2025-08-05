@@ -232,10 +232,7 @@ namespace PepperDash.Essentials.Core.Routing
 
         private void TrilistOnOnlineStatusChange(GenericBase currentDevice, OnlineOfflineEventArgs args)
         {
-            if (debugLevel > 0)
-            {
-                Debug.Console(0, "Routing interface {0} trilist online status: {1}", Key, args.DeviceOnLine);
-            }
+            Debug.Console(0, "Routing interface {0} trilist online status: {1}", Key, args.DeviceOnLine);
 
             if (!args.DeviceOnLine)
             {
@@ -244,7 +241,7 @@ namespace PepperDash.Essentials.Core.Routing
             }
             else
             {
-                allowRoutesTimer.Reset(5000);
+                allowRoutesTimer.Reset(20000);
             }
         }
 

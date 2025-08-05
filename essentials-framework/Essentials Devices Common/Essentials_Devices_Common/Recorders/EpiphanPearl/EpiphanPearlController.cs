@@ -55,11 +55,12 @@ namespace PepperDash.Essentials.EpiphanPearl
         private string _hdmiOutputSource;
         public StringFeedback HdmiOutputFeedback;
         private string _channel1layout;
+
         public StringFeedback Channel1LayoutFeedback;
-        private string _channel2layout;
-        public StringFeedback Channel2LayoutFeedback;
-        private string _channel3layout;
-        public StringFeedback Channel3LayoutFeedback;
+        //private string _channel2layout;
+        //public StringFeedback Channel2LayoutFeedback;
+        //private string _channel3layout;
+        //public StringFeedback Channel3LayoutFeedback;
 
 
         private bool _enableVUMeterFeedback;
@@ -285,8 +286,8 @@ namespace PepperDash.Essentials.EpiphanPearl
             HdmiOutputFeedback = new StringFeedback(() => _hdmiOutputSource);
             VUMeterFeedback = new IntFeedback(() => _vuMeterLevel);
             Channel1LayoutFeedback = new StringFeedback(() => _channel1layout);
-            Channel2LayoutFeedback = new StringFeedback(() => _channel2layout);
-            Channel3LayoutFeedback = new StringFeedback(() => _channel3layout);
+            //Channel2LayoutFeedback = new StringFeedback(() => _channel2layout);
+            //Channel3LayoutFeedback = new StringFeedback(() => _channel3layout);
             Stream1UrlFeedback = new StringFeedback(() => _devProperties.Stream1Url ?? "");
             Stream2UrlFeedback = new StringFeedback(() => _devProperties.Stream2Url ?? "");
             Stream3UrlFeedback = new StringFeedback(() => _devProperties.Stream3Url ?? "");
@@ -349,8 +350,8 @@ namespace PepperDash.Essentials.EpiphanPearl
 
             HdmiOutputFeedback.LinkInputSig(trilist.StringInput[joinMap.HdmiOutputSource.JoinNumber]);
             Channel1LayoutFeedback.LinkInputSig(trilist.StringInput[joinMap.Channel1Layout.JoinNumber]);
-            Channel2LayoutFeedback.LinkInputSig(trilist.StringInput[joinMap.Channel2Layout.JoinNumber]);
-            Channel3LayoutFeedback.LinkInputSig(trilist.StringInput[joinMap.Channel3Layout.JoinNumber]);
+            //Channel2LayoutFeedback.LinkInputSig(trilist.StringInput[joinMap.Channel2Layout.JoinNumber]);
+            //Channel3LayoutFeedback.LinkInputSig(trilist.StringInput[joinMap.Channel3Layout.JoinNumber]);
             Stream1UrlFeedback.LinkInputSig(trilist.StringInput[joinMap.Stream1Url.JoinNumber]);
             Stream2UrlFeedback.LinkInputSig(trilist.StringInput[joinMap.Stream2Url.JoinNumber]);
             Stream3UrlFeedback.LinkInputSig(trilist.StringInput[joinMap.Stream3Url.JoinNumber]);
@@ -590,6 +591,9 @@ namespace PepperDash.Essentials.EpiphanPearl
         /// </summary>
         public void SetLayout(int channel, string layout)
         {
+            if (layout.Length < 1 || channel < 1)
+                return;
+
             string path = string.Format("/channels/{0}/layouts/active", channel);
             LayoutRequest body = new LayoutRequest
             {
@@ -628,6 +632,7 @@ namespace PepperDash.Essentials.EpiphanPearl
                 Channel1LayoutFeedback.FireUpdate();
             }
 
+            /*
             BaseResponse<string> layout2 = _client.Get<BaseResponse<string>>("/channels/2/layouts/active");
             if (layout2 == null)
             {
@@ -652,7 +657,7 @@ namespace PepperDash.Essentials.EpiphanPearl
             {
                 _channel3layout = layout3.Result;
                 Channel3LayoutFeedback.FireUpdate();
-            }
+            }*/
         }
 
         private void GetEvents()
@@ -904,8 +909,8 @@ namespace PepperDash.Essentials.EpiphanPearl
             UpdateRunningEventFeedbacks();
             HdmiOutputFeedback.FireUpdate();
             Channel1LayoutFeedback.FireUpdate();
-            Channel2LayoutFeedback.FireUpdate();
-            Channel3LayoutFeedback.FireUpdate();
+            //Channel2LayoutFeedback.FireUpdate();
+            //Channel3LayoutFeedback.FireUpdate();
             Stream1UrlFeedback.FireUpdate();
             Stream2UrlFeedback.FireUpdate();
             Stream3UrlFeedback.FireUpdate();

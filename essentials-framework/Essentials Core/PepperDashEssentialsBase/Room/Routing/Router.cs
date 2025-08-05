@@ -55,6 +55,7 @@ namespace PepperDash.Essentials.Core.Routing
             FeedbackTimer = new CTimer(FeedbackTimerCallback, Timeout.Infinite);
             allowRoutesTimer = new CTimer(allowRoutesTimerCallback, Timeout.Infinite);
             RouterMain.AddRouter(Key, this);
+            allowRoutes = false;
 
             txs = new Dictionary<ushort, IRoutingNumericWithFeedback>();
 
@@ -386,10 +387,7 @@ namespace PepperDash.Essentials.Core.Routing
 
         private void TrilistOnOnlineStatusChange(GenericBase currentDevice, OnlineOfflineEventArgs args)
         {
-            if (debugLevel > 0)
-            {
-                Debug.Console(1, "Router {0} trilist online status: {1}", Key, args.DeviceOnLine);
-            }
+            Debug.Console(1, "Router {0} trilist online status: {1}", Key, args.DeviceOnLine);
 
             if (!args.DeviceOnLine)
             {
@@ -398,7 +396,7 @@ namespace PepperDash.Essentials.Core.Routing
             }
             else
             {
-                allowRoutesTimer.Reset(5000);
+                allowRoutesTimer.Reset(20000);
             }
         }
 

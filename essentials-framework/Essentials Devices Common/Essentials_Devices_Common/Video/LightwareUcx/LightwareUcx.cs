@@ -665,7 +665,7 @@ namespace PepperDash.Essentials.Devices.Common.LightwareUcx
                             {
                                 _requestedUsbRoute = -1;
                             }
-                            else
+                            else if (!_usbAutoRouteFb)
                             {
                                 ProcessUsbRoute();
                             }

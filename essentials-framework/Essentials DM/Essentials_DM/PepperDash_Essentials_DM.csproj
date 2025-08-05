@@ -81,6 +81,9 @@
             <SpecificVersion>False</SpecificVersion>
             <HintPath>..\..\..\..\..\..\..\..\..\ProgramData\Crestron\SDK\SimplSharpReflectionInterface.dll</HintPath>
         </Reference>
+        <Reference Include="System">
+            <HintPath>..\..\..\..\..\Program Files (x86)\Microsoft.NET\SDK\CompactFramework\v3.5\WindowsCE\System.dll</HintPath>
+        </Reference>
         <Reference Include="System.Core"/>
     </ItemGroup>
     <ItemGroup>
@@ -108,6 +111,8 @@
         <Compile Include="Endpoints\Transmitters\DmTx4kz100Controller.cs"/>
         <Compile Include="Endpoints\Transmitters\HDBaseTTxController.cs"/>
         <Compile Include="Endpoints\Transmitters\TxInterfaces.cs"/>
+        <Compile Include="Helpers\RoutingOutputPortWithBlanking.cs"/>
+        <Compile Include="Helpers\IHdmiBlanking.cs"/>
         <Compile Include="IDmSwitch.cs"/>
         <Compile Include="Config\DmpsRoutingConfig.cs"/>
         <Compile Include="Config\DmRmcConfig.cs"/>
