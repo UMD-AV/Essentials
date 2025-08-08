@@ -354,6 +354,8 @@ namespace PepperDash.Essentials.Core.Routing
 
             bridge.AddJoinMap(Key, joinMap);
 
+            trilist.SetBoolSigAction(joinMap.OverflowModeOn.JoinNumber,
+                a => { SetOverflow(a ? (ushort)1 : (ushort)0); });
             trilist.SetUShortSigAction(joinMap.RoomActionGo.JoinNumber, FireAction);
             trilist.SetUShortSigAction(joinMap.CodecInputFb.JoinNumber, UpdateCodec);
 
@@ -438,11 +440,15 @@ namespace PepperDash.Essentials.Core.Routing
                 {
                     //Don't route if marked disabled in overflow and overflow is on
                     if (route.DisableInOverflow == true && Overflow != 0)
+                    {
                         continue;
+                    }
 
                     //Don't route if marked enabled in overflow and overflow is off
                     if (route.EnableInOverflow == true && Overflow == 0)
+                    {
                         continue;
+                    }
 
                     //Check that route has an input and an output
                     if (route.Input != null && route.Output != null)
@@ -494,6 +500,7 @@ namespace PepperDash.Essentials.Core.Routing
             {
                 if (Overflow == 0 && dest.Overflow == true)
                 {
+                    Debug.Console(0, "Dest {0} disabled due to overflow off", destIndex);
                     //Dont route if overflow dest and not in overflow mode
                     return;
                 }
@@ -571,11 +578,17 @@ namespace PepperDash.Essentials.Core.Routing
             {
                 //Don't route if marked disabled in overflow and overflow is on
                 if (route.DisableInOverflow == true && Overflow != 0)
+                {
+                    Debug.Console(1, "Route {0} disabled due to overflow on", route.RouteKey);
                     continue;
+                }
 
                 //Don't route if marked enabled in overflow and overflow is off
                 if (route.EnableInOverflow == true && Overflow == 0)
+                {
+                    Debug.Console(1, "Route {0} disabled due to overflow off", route.RouteKey);
                     continue;
+                }
 
                 //Check that route has an input and an output
                 if (route.Input.HasValue && route.Output.HasValue)

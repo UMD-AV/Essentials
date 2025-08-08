@@ -125,14 +125,6 @@ namespace PepperDash.Essentials.DM
             if (rmc.EdidSerialNumberFeedback != null)
                 rmc.EdidSerialNumberFeedback.LinkInputSig(trilist.StringInput[joinMap.EdidSerialNumber.JoinNumber]);
 
-            //If the device is an DM-RMC-4K-Z-SCALER-C
-            IRmcRouting routing = rmc as IRmcRouting;
-
-            if (routing == null)
-            {
-                return;
-            }
-
             if (_rmc is DmRmcScalerC)
             {
                 trilist.BooleanOutput[joinMap.BlankOutput.JoinNumber]
@@ -142,6 +134,14 @@ namespace PepperDash.Essentials.DM
                 HdmiOutputBlankedFeedback.LinkInputSig(trilist.BooleanInput[joinMap.BlankOutput.JoinNumber]);
                 HdmiOutputBlankedFeedback.LinkComplementInputSig(
                     trilist.BooleanInput[joinMap.UnblankOutput.JoinNumber]);
+            }
+
+            //If the device is an DM-RMC-4K-Z-SCALER-C
+            IRmcRouting routing = rmc as IRmcRouting;
+
+            if (routing == null)
+            {
+                return;
             }
 
             if (routing.AudioVideoSourceNumericFeedback != null)

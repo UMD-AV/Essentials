@@ -35,7 +35,7 @@ namespace PepperDash.Essentials.Devices.Common.LightwareUcx
         private bool _usbAutoRouteFb;
         private int _requestedUsbRoute = -1;
         private CTimer _rebootTimer;
-        private bool _nightlyRebootEnabled;
+        private readonly bool _nightlyRebootEnabled;
 
         public Dictionary<uint, string> VideoInputNames { get; set; }
         public Dictionary<uint, string> VideoOutputNames { get; set; }
@@ -377,27 +377,32 @@ namespace PepperDash.Essentials.Devices.Common.LightwareUcx
         {
             if (output == 1)
             {
-                if (_requestedUsbRoute == -1)
-                {
-                    _requestedUsbRoute = input;
-                    ProcessUsbRoute();
-                }
-                else
-                {
-                    _requestedUsbRoute = input;
-                }
-
+                _requestedUsbRoute = input;
+                ProcessUsbRoute();
 
                 CrestronInvoke.BeginInvoke(o =>
                 {
                     ushort count = 0;
                     //blink feedback while changing for up to ten seconds
-                    while (_requestedUsbRoute == input && input > 0 && count < 5)
+                    ushort oldFeedback = _usbOutputRouteFb;
+                    while (_requestedUsbRoute == input && input > 0 && count < 10)
                     {
+                        if (count == 3 || count == 6)
+                        {
+                            ProcessUsbRoute();
+                        }
+
                         _usbOutputRouteFb = count % 2 == 0 ? input : (ushort)0;
                         UsbOutputRouteFeedback.FireUpdate();
                         CrestronEnvironment.Sleep(1000);
+
                         count++;
+                    }
+
+                    if (count == 10)
+                    {
+                        _usbOutputRouteFb = oldFeedback;
+                        UsbOutputRouteFeedback.FireUpdate();
                     }
                 });
             }
@@ -886,7 +891,6 @@ namespace PepperDash.Essentials.Devices.Common.LightwareUcx
 
         public void ExecuteSwitch(object inputSelector, object outputSelector, eRoutingSignalType signalType)
         {
-            throw new NotImplementedException();
         }
 
         public void ExecuteNumericSwitch(ushort input, ushort output, eRoutingSignalType type)
