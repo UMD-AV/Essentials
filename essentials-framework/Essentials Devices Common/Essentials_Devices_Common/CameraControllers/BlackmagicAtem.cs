@@ -8,7 +8,8 @@ using PepperDash.Essentials.Core.Bridges;
 
 namespace PepperDash.Essentials.Devices.Common.ImageProcessors
 {
-    public class BlackmagicAtem : EssentialsBridgeableDevice, IBridgeAdvanced, ICommunicationMonitor
+    public class BlackmagicAtem : EssentialsBridgeableDevice, IBridgeAdvanced, ICommunicationMonitor,
+        IRoutingNumericWithFeedback
     {
         private const int numberInputs = 32;
         private const int numberOutputs = 32;
@@ -19,29 +20,31 @@ namespace PepperDash.Essentials.Devices.Common.ImageProcessors
 
         public IBasicCommunication Communication { get; private set; }
         public StatusMonitorBase CommunicationMonitor { get; private set; }
-        private CommunicationGather CommGather;
+        private readonly CommunicationGather CommGather;
 
         public Dictionary<uint, IntFeedback> OutputFeedbacks { get; private set; }
         public Dictionary<uint, StringFeedback> InputNameFeedbacks { get; private set; }
         public Dictionary<uint, StringFeedback> OutputNameFeedbacks { get; private set; }
         public Dictionary<uint, StringFeedback> OutputRouteNameFeedbacks { get; private set; }
 
-        private Dictionary<uint, string> inputNames;
-        private Dictionary<uint, string> outputNames;
-        private Dictionary<uint, uint> routeFeedback;
+        private readonly Dictionary<uint, string> inputNames;
+        private readonly Dictionary<uint, string> outputNames;
+        private readonly Dictionary<uint, uint> routeFeedback;
 
         public BlackmagicAtem(string key, string name, IBasicCommunication comm) :
             base(key, name)
         {
             Communication = comm;
-            CommGather = new CommunicationGather(Communication, '\x0A');
-            CommGather.IncludeDelimiter = false;
-            CommGather.LineReceived += new EventHandler<GenericCommMethodReceiveTextArgs>(DelimitedTextReceived);
+            CommGather = new CommunicationGather(Communication, '\x0A')
+            {
+                IncludeDelimiter = false
+            };
+            CommGather.LineReceived += DelimitedTextReceived;
 
             CommunicationMonitor =
                 new GenericCommunicationMonitor(this, comm, _pollTimeMs, _warningTimeoutMs, _errorTimeoutMs, Poll);
             CommunicationMonitor.StatusChange +=
-                new EventHandler<MonitorStatusChangeEventArgs>(CommunicationMonitor_StatusChange);
+                CommunicationMonitor_StatusChange;
 
             inputNames = new Dictionary<uint, string>();
             outputNames = new Dictionary<uint, string>();
@@ -56,7 +59,7 @@ namespace PepperDash.Essentials.Devices.Common.ImageProcessors
             {
                 uint tempX = x;
                 inputNames[x] = "";
-                InputNameFeedbacks[tempX] = new StringFeedback(() => { return inputNames[tempX]; });
+                InputNameFeedbacks[tempX] = new StringFeedback(() => inputNames[tempX]);
             }
 
             for (uint x = 0; x <= numberOutputs; x++)
@@ -64,9 +67,9 @@ namespace PepperDash.Essentials.Devices.Common.ImageProcessors
                 uint tempX = x;
                 outputNames[x] = "";
                 routeFeedback[x] = 0;
-                OutputFeedbacks[tempX] = new IntFeedback(() => { return (int)routeFeedback[tempX]; });
+                OutputFeedbacks[tempX] = new IntFeedback(() => (int)routeFeedback[tempX]);
 
-                OutputNameFeedbacks[tempX] = new StringFeedback(() => { return outputNames[tempX]; });
+                OutputNameFeedbacks[tempX] = new StringFeedback(() => outputNames[tempX]);
 
                 OutputRouteNameFeedbacks[tempX] = new StringFeedback(() =>
                 {
@@ -102,10 +105,11 @@ namespace PepperDash.Essentials.Devices.Common.ImageProcessors
             }
 
             //Events from SIMPL
-            for (uint x = 0; x < numberOutputs; x++)
+            for (ushort x = 0; x < numberOutputs; x++)
             {
-                uint output = x + 1;
-                trilist.SetUShortSigAction(joinMap.OutputSource.JoinNumber + x, o => ExecuteNumericSwitch(o, output));
+                ushort output = (ushort)(x + 1);
+                trilist.SetUShortSigAction(joinMap.OutputSource.JoinNumber + x,
+                    o => ExecuteNumericSwitch(o, output, eRoutingSignalType.Video));
             }
 
             //Feedback to SIMPL
@@ -128,13 +132,13 @@ namespace PepperDash.Essentials.Devices.Common.ImageProcessors
             }
         }
 
-        public void ExecuteNumericSwitch(uint input, uint output)
+        public void ExecuteNumericSwitch(ushort input, ushort output, eRoutingSignalType type)
         {
             Debug.Console(1, this, "Executing switch input:{0} output:{1}", input, output);
-            if (input >= 0 && input <= numberInputs && output > 0 && output <= numberOutputs)
+            if (input <= numberInputs && output > 0 && output <= numberOutputs)
             {
                 //Shift output indexing from 1 to 0 for ATEM
-                Communication.SendText(string.Format("VIDEO OUTPUT ROUTING:\x0A{0} {1}\x0A\x0A", output - 1, input));
+                Communication.SendText(string.Format("VIDEO OUTPUT ROUTING:\n{0} {1}\n\n", output - 1, input));
             }
         }
 
@@ -164,7 +168,7 @@ namespace PepperDash.Essentials.Devices.Common.ImageProcessors
                 case "inputLabels":
                     try
                     {
-                        int splitIndex = e.Text.IndexOf(" ");
+                        int splitIndex = e.Text.IndexOf(" ", StringComparison.Ordinal);
                         string indexText = e.Text.Substring(0, splitIndex);
                         uint index = Convert.ToUInt16(indexText);
                         string label = e.Text.Substring(splitIndex + 1);
@@ -181,7 +185,7 @@ namespace PepperDash.Essentials.Devices.Common.ImageProcessors
                 case "outputLabels":
                     try
                     {
-                        int splitIndex = e.Text.IndexOf(" ");
+                        int splitIndex = e.Text.IndexOf(" ", StringComparison.Ordinal);
                         string indexText = e.Text.Substring(0, splitIndex);
                         uint index = (uint)(Convert.ToUInt16(indexText) + 1); //Shift output indexing from 0 to 1
                         string label = e.Text.Substring(splitIndex + 1);
@@ -234,6 +238,15 @@ namespace PepperDash.Essentials.Devices.Common.ImageProcessors
                 processMode = "";
             }
         }
+
+        public RoutingPortCollection<RoutingInputPort> InputPorts { get; private set; }
+        public RoutingPortCollection<RoutingOutputPort> OutputPorts { get; private set; }
+
+        public void ExecuteSwitch(object inputSelector, object outputSelector, eRoutingSignalType signalType)
+        {
+        }
+
+        public event EventHandler<RoutingNumericEventArgs> NumericSwitchChange;
     }
 
     public class BlackmagicAtemFactory : EssentialsDeviceFactory<BlackmagicAtem>

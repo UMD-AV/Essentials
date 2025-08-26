@@ -365,7 +365,7 @@ namespace PepperDash.Essentials.Devices.Common.LightwareUcx
 
         private void ProcessUsbRoute()
         {
-            if (_requestedUsbRoute != -1)
+            if (_requestedUsbRoute > 0)
             {
                 QueueCommand(string.Format("CALL /V1/MEDIA/USB/XP:switch({0}{1}:H1)",
                     _requestedUsbRoute != 0 ? "U" : "",
@@ -375,7 +375,7 @@ namespace PepperDash.Essentials.Devices.Common.LightwareUcx
 
         public void RouteUsbInput(ushort input, ushort output)
         {
-            if (output == 1)
+            if (output == 1 && input > 0)
             {
                 _requestedUsbRoute = input;
                 ProcessUsbRoute();

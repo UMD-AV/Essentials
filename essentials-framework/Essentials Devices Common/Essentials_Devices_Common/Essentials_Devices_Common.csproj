@@ -157,6 +157,8 @@
         <Compile Include="Display\LgDisplay\LgDisplayPropertiesConfig.cs"/>
         <Compile Include="Display\PanasonicDisplay.cs"/>
         <Compile Include="Display\PlanarRps.cs"/>
+        <Compile Include="Display\SharpDisplay\SharpCommunicationMonitor.cs"/>
+        <Compile Include="Display\SharpDisplay\SharpDisplay.cs"/>
         <Compile Include="DocumentCameras\Lumens.cs"/>
         <Compile Include="DSP\ExtronDmpDsp\ExtronDmp.cs"/>
         <Compile Include="DSP\ExtronDmpDsp\ExtronDmpConfig.cs"/>

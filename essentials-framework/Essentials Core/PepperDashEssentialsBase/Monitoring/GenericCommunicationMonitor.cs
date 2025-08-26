@@ -15,7 +15,7 @@ namespace PepperDash.Essentials.Core
         public IBasicCommunication Client { get; private set; }
 
         /// <summary>
-        /// Will monitor Client.BytesReceived if set to true.  Otherwise the default is to monitor Client.TextReceived
+        /// Will monitor Client.BytesReceived if set to true. Otherwise, the default is to monitor Client.TextReceived
         /// </summary>
         public bool MonitorBytesReceived { get; private set; }
 
@@ -27,10 +27,10 @@ namespace PepperDash.Essentials.Core
             get { return Client is ISocketStatus; }
         }
 
-        private long PollTime;
+        private readonly long PollTime;
         private CTimer PollTimer;
-        private string PollString;
-        private Action PollAction;
+        private readonly string PollString;
+        private readonly Action PollAction;
 
         /// <summary>
         /// 
@@ -82,8 +82,6 @@ namespace PepperDash.Essentials.Core
         {
             if (pollTime > warningTime || pollTime > errorTime)
                 throw new ArgumentException("pollTime must be less than warning or errorTime");
-            //if (pollTime < 5000)
-            //    throw new ArgumentException("pollTime cannot be less than 5000 ms");
 
             Client = client;
             PollTime = pollTime;

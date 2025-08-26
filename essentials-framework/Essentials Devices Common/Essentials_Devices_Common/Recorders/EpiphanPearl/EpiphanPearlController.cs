@@ -185,7 +185,7 @@ namespace PepperDash.Essentials.EpiphanPearl
 
         public override void Initialize()
         {
-            _pollTimer = new CTimer(o => Poll(), null, 0, 60000);
+            _pollTimer = new CTimer(o => Poll(), null, 10000, 60000);
             _vuMeterPollTimer = new CTimer(VUMeterPoll, Timeout.Infinite);
             _monitor.Start();
             GetLayouts();
