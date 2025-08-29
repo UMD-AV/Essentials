@@ -17,6 +17,11 @@ namespace CrestronNaxAmp
         private readonly DmNaxAmpX300Base _amp;
         private readonly List<NaxFader> _faders;
         private bool _ampFaultState;
+        private readonly bool[] _dcOffsetFault;
+        private readonly bool[] _overCurrentFault;
+        private readonly bool[] _overTemperatureFault;
+        private readonly bool[] _overOrUnderVoltageFault;
+
 
         /// <summary>
         /// Amp fault feedback
@@ -39,6 +44,11 @@ namespace CrestronNaxAmp
             //Link feedback
             _amp.OnlineStatusChange += IsOnlineFeedback_OutputChange;
             _amp.OnZoneChange += OnZoneChange;
+
+            _dcOffsetFault = new bool[_amp.Zones.Count];
+            _overCurrentFault = new bool[_amp.Zones.Count];
+            _overTemperatureFault = new bool[_amp.Zones.Count];
+            _overOrUnderVoltageFault = new bool[_amp.Zones.Count];
 
             AmpFaultFeedback = new BoolFeedback(() => _ampFaultState);
 
@@ -117,15 +127,12 @@ namespace CrestronNaxAmp
         private void UpdateAmpFaultStatus()
         {
             bool check = false;
-            foreach (DmNaxXZone zone in _amp.Zones)
+            for (uint i = 0; i < _amp.Zones.Count; i++)
             {
-                if ((zone.DcOffsetFaultFeedback != null && zone.DcOffsetFaultFeedback.BoolValue) ||
-                    (zone.OverCurrentFaultFeedback != null && zone.OverCurrentFaultFeedback.BoolValue) ||
-                    (zone.OverTemperatureFaultFeedback != null && zone.OverTemperatureFaultFeedback.BoolValue) ||
-                    (zone.OverOrUnderVoltageFaultFeedback != null && zone.OverOrUnderVoltageFaultFeedback.BoolValue))
+                if (_dcOffsetFault[i] || _overCurrentFault[i] || _overTemperatureFault[i] ||
+                    _overOrUnderVoltageFault[i])
                 {
                     check = true;
-                    Debug.ConsoleWithLog(0, this, "Amp Fault Detected");
                     break;
                 }
             }
@@ -187,9 +194,44 @@ namespace CrestronNaxAmp
 
                     break;
                 case ZoneEventIds.DcOffsetFaultEventId:
+                    _dcOffsetFault[args.Zone.Number - 1] =
+                        _amp.Zones[args.Zone.Number - 1].DcOffsetFaultFeedback.BoolValue;
+                    if (_dcOffsetFault[args.Zone.Number - 1])
+                    {
+                        Debug.ConsoleWithLog(0, this, "DC Offset Fault Detected in Zone {0}", args.Zone.Number);
+                    }
+
+                    UpdateAmpFaultStatus();
+                    break;
                 case ZoneEventIds.OverCurrentFaultEventId:
+                    _overCurrentFault[args.Zone.Number - 1] =
+                        _amp.Zones[args.Zone.Number - 1].OverCurrentFaultFeedback.BoolValue;
+                    if (_overCurrentFault[args.Zone.Number - 1])
+                    {
+                        Debug.ConsoleWithLog(0, this, "Over Current Fault Detected in Zone {0}", args.Zone.Number);
+                    }
+
+                    UpdateAmpFaultStatus();
+                    break;
                 case ZoneEventIds.OverTemperatureFaultEventId:
+                    _overTemperatureFault[args.Zone.Number - 1] =
+                        _amp.Zones[args.Zone.Number - 1].OverTemperatureFaultFeedback.BoolValue;
+                    if (_overTemperatureFault[args.Zone.Number - 1])
+                    {
+                        Debug.ConsoleWithLog(0, this, "Over Temperature Fault Detected in Zone {0}", args.Zone.Number);
+                    }
+
+                    UpdateAmpFaultStatus();
+                    break;
                 case ZoneEventIds.OverOrUnderVoltageFaultEventId:
+                    _overOrUnderVoltageFault[args.Zone.Number - 1] =
+                        _amp.Zones[args.Zone.Number - 1].OverCurrentFaultFeedback.BoolValue;
+                    if (_overOrUnderVoltageFault[args.Zone.Number - 1])
+                    {
+                        Debug.ConsoleWithLog(0, this, "Over or Under Voltage Fault Detected in Zone {0}",
+                            args.Zone.Number);
+                    }
+
                     UpdateAmpFaultStatus();
                     break;
             }
