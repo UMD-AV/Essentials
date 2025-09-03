@@ -24,8 +24,8 @@ namespace PepperDash.Essentials.EpiphanPearl
         private readonly EpiphanCommunicationMonitor _monitor;
 
         private readonly string panoptoKey;
-        private CTimer _pollTimer;
-        private CTimer _vuMeterPollTimer;
+        private readonly CTimer _pollTimer;
+        private readonly CTimer _vuMeterPollTimer;
         private Event _runningEvent;
         private readonly List<ScheduledRecording> _scheduledRecordings = new List<ScheduledRecording>();
 
@@ -104,6 +104,8 @@ namespace PepperDash.Essentials.EpiphanPearl
 
             panoptoKey = _devProperties.PanoptoKey ?? "";
             _monitor = new EpiphanCommunicationMonitor(this, 130000, 190000);
+            _pollTimer = new CTimer(Poll, Timeout.Infinite);
+            _vuMeterPollTimer = new CTimer(VUMeterPoll, Timeout.Infinite);
             _statusTimer = new CTimer(o => { GetRunningEventStatus(); }, null, Timeout.Infinite, 5000);
             _quickCheckTimer = new CTimer(o => { QuickCheckRunningEvent(); }, null, Timeout.Infinite, 5000);
             _monitor.StatusChange += (sender, args) =>
@@ -185,14 +187,14 @@ namespace PepperDash.Essentials.EpiphanPearl
 
         public override void Initialize()
         {
-            _pollTimer = new CTimer(o => Poll(), null, 10000, 60000);
-            _vuMeterPollTimer = new CTimer(VUMeterPoll, Timeout.Infinite);
+            _pollTimer.Reset(60000);
             _monitor.Start();
             GetLayouts();
         }
 
-        private void Poll()
+        private void Poll(object o)
         {
+            _pollTimer.Reset(60000);
             GetEvents();
         }
 
