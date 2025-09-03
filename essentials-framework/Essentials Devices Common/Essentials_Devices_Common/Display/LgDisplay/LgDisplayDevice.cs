@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
-using System.Text.RegularExpressions;
 using Crestron.SimplSharp;
 using Crestron.SimplSharpPro.DeviceSupport;
 using PepperDash.Core;
@@ -10,19 +8,20 @@ using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Bridges;
 using PepperDash.Essentials.Core.Routing;
 using PepperDash.Essentials.Core.Queues;
+using PepperDash.Essentials.DM;
 
 namespace Epi.Display.Lg
 {
     public class LgDisplayController : TwoWayDisplayBase, IBasicVolumeWithFeedback, ICommunicationMonitor,
         IBridgeAdvanced
     {
-        private GenericQueue ReceiveQueue;
+        private readonly GenericQueue ReceiveQueue;
 
         public const int InputPowerOn = 101;
         public const int InputPowerOff = 102;
         public static List<string> InputKeys = new List<string>();
         public List<BoolFeedback> InputFeedback;
-        public IntFeedback InputNumberFeedback;
+        public readonly IntFeedback InputNumberFeedback;
         private RoutingInputPort _currentInputPort;
         private List<bool> _inputFeedback;
         private int _inputNumber;
@@ -36,7 +35,9 @@ namespace Epi.Display.Lg
         private ActionIncrementer _volumeIncrementer;
         private bool _volumeIsRamping;
         private ushort _volumeLevelForSig;
-        private bool _smallDisplay;
+        private readonly bool _smallDisplay;
+        private readonly string videoMuteKey;
+        private IHdmiBlanking _hdmiBlanking;
 
         public LgDisplayController(string key, string name, LgDisplayPropertiesConfig config, IBasicCommunication comms)
             : base(key, name)
@@ -61,6 +62,11 @@ namespace Epi.Display.Lg
             _warmingTimeMs = props.warmingTimeMs > 0 ? props.warmingTimeMs : 8000;
 
             InputNumberFeedback = new IntFeedback(() => _inputNumber);
+
+            if (config.VideoMuteKey != null)
+            {
+                videoMuteKey = config.VideoMuteKey;
+            }
 
             Init();
         }
@@ -277,6 +283,15 @@ namespace Epi.Display.Lg
         public void LinkToApi(BasicTriList trilist, uint joinStart, string joinMapKey, EiscApiAdvanced bridge)
         {
             LinkDisplayToApi(this, trilist, joinStart, joinMapKey, bridge);
+
+            LgDisplayJoinMap joinMap = new LgDisplayJoinMap(joinStart);
+            if (_hdmiBlanking != null)
+            {
+                _hdmiBlanking.HdmiOutputBlankedFeedback.LinkInputSig(
+                    trilist.BooleanInput[joinMap.VideoMuteOn.JoinNumber]);
+                trilist.SetSigTrueAction(joinMap.VideoMuteOn.JoinNumber, _hdmiBlanking.BlankOutput);
+                trilist.SetSigTrueAction(joinMap.VideoMuteOff.JoinNumber, _hdmiBlanking.UnblankOutput);
+            }
         }
 
         #endregion
@@ -361,6 +376,21 @@ namespace Epi.Display.Lg
             if (_isSerialComm)
             {
                 CommunicationMonitor.Start();
+            }
+
+            if (videoMuteKey != null)
+            {
+                IKeyed dev = DeviceManager.GetDeviceForKey(videoMuteKey);
+                if (dev is DmRmcControllerBase)
+                {
+                    Debug.Console(0, this, "Using scaler {0} for video mute", videoMuteKey);
+                    _hdmiBlanking = dev as DmRmcControllerBase;
+                }
+                else if (dev is NvxEpi.Abstractions.HdmiOutput.IHdmiOutput)
+                {
+                    Debug.Console(0, this, "Using nvx {0} for video mute", videoMuteKey);
+                    _hdmiBlanking = dev as NvxEpi.Abstractions.HdmiOutput.IHdmiOutput;
+                }
             }
 
             return base.CustomActivate();
@@ -553,6 +583,11 @@ namespace Epi.Display.Lg
         public override void PowerOff()
         {
             SendData(string.Format("ka {0} {1}", Id, _smallDisplay ? "0" : "00"));
+
+            if (_hdmiBlanking != null)
+            {
+                _hdmiBlanking.UnblankOutput();
+            }
         }
 
         /// <summary>
@@ -725,43 +760,52 @@ namespace Epi.Display.Lg
                 MuteGet();
             });
         }
+    }
 
-
-        private void WolFunction(string macAddress)
-        {
-            if (Regex.IsMatch(macAddress, @"^([0-9A-Fa-f]{2}[\.:-]){5}([0-9A-Fa-f]{2})$") ||
-                Regex.IsMatch(macAddress, @"^([0-9A-Fa-f]{12})"))
+    public class LgDisplayJoinMap : DisplayControllerJoinMap
+    {
+        [JoinName("Video Mute On")] public readonly JoinDataComplete VideoMuteOn = new JoinDataComplete(
+            new JoinData()
             {
-                string address = (Regex.Replace(macAddress, @"(-|:|\.)", "")).ToLower();
+                JoinNumber = 57,
+                JoinSpan = 1
+            },
+            new JoinMetadata()
+            {
+                JoinCapabilities = eJoinCapabilities.ToFromSIMPL,
+                JoinType = eJoinType.Digital,
+                Description = "Video Mute On"
+            });
 
-                int counter = 0;
+        [JoinName("Video Mute Off")] public readonly JoinDataComplete VideoMuteOff = new JoinDataComplete(
+            new JoinData()
+            {
+                JoinNumber = 58,
+                JoinSpan = 1
+            },
+            new JoinMetadata()
+            {
+                JoinCapabilities = eJoinCapabilities.FromSIMPL,
+                JoinType = eJoinType.Digital,
+                Description = "Video Mute Off"
+            });
 
-                byte[] bytes = new byte[1024];
+        [JoinName("Video Mute Supported")] public readonly JoinDataComplete VideoMuteSupported = new JoinDataComplete(
+            new JoinData()
+            {
+                JoinNumber = 55,
+                JoinSpan = 1
+            },
+            new JoinMetadata()
+            {
+                JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                JoinType = eJoinType.Digital,
+                Description = "Video Mute Supported"
+            });
 
-                //Packet starts with 6 iterations of 0xFF
-                for (int i = 0; i < 6; i++)
-                {
-                    bytes[counter++] = 0xFF;
-                }
-
-                //Packet has 16 iterations of the mac address
-                for (int y = 0; y < 16; y++)
-                {
-                    int i = 0;
-                    for (int z = 0; z < 6; z++)
-                    {
-                        bytes[counter++] =
-                            byte.Parse(address.Substring(i, 2),
-                                NumberStyles.HexNumber);
-                        i += 2;
-                    }
-                }
-
-                return;
-            }
-
-            Debug.Console(2, this, "Invalid Mad Address sent to WolFunction - {0}", macAddress);
-            throw new ArgumentException("Invalid MAC Address");
+        public LgDisplayJoinMap(uint joinStart)
+            : base(joinStart, typeof(LgDisplayJoinMap))
+        {
         }
     }
 }

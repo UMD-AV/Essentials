@@ -46,16 +46,16 @@ namespace PepperDash.Essentials.Core
 
         public UsageTracking UsageTracker { get; set; }
 
-        public uint WarmupTime { get; set; }
-        public uint CooldownTime { get; set; }
+        protected uint WarmupTime { get; set; }
+        protected uint CooldownTime { get; set; }
 
         /// <summary>
         /// Bool Func that will provide a value for the PowerIsOn Output. Must be implemented
-        /// by concrete sub-classes
+        /// by concrete subclasses
         /// </summary>
-        abstract protected Func<bool> IsCoolingDownFeedbackFunc { get; }
+        protected abstract Func<bool> IsCoolingDownFeedbackFunc { get; }
 
-        abstract protected Func<bool> IsWarmingUpFeedbackFunc { get; }
+        protected abstract Func<bool> IsWarmingUpFeedbackFunc { get; }
 
 
         protected CTimer WarmupTimer;
@@ -200,9 +200,9 @@ namespace PepperDash.Essentials.Core
                     trilist.SetSigTrueAction((ushort)(joinMap.InputSelectOffset.JoinNumber + i),
                         () => displayDevice.ExecuteSwitch(displayDevice.InputPorts[tempKey].Selector));
                     Debug.Console(2, displayDevice, "Setting Input Select Action on Digital Join {0} to Input: {1}",
-                        joinMap.InputSelectOffset.JoinNumber + i, displayDevice.InputPorts[tempKey].Key.ToString());
+                        joinMap.InputSelectOffset.JoinNumber + i, displayDevice.InputPorts[tempKey].Key);
                     trilist.StringInput[(ushort)(joinMap.InputNamesOffset.JoinNumber + i)].StringValue =
-                        displayDevice.InputPorts[i].Key.ToString();
+                        displayDevice.InputPorts[i].Key;
                 }
                 else
                     Debug.Console(0, displayDevice, Debug.ErrorLogLevel.Warning,
@@ -219,7 +219,7 @@ namespace PepperDash.Essentials.Core
                     displayDevice.PowerOff();
                     inputNumber = 0;
                 }
-                else if (a > 0 && a < displayDevice.InputPorts.Count && a != inputNumber)
+                else if (a < displayDevice.InputPorts.Count && a != inputNumber)
                 {
                     displayDevice.ExecuteSwitch(displayDevice.InputPorts.ElementAt(a - 1).Selector);
                     inputNumber = a;
@@ -278,25 +278,20 @@ namespace PepperDash.Essentials.Core
     {
         public StringFeedback CurrentInputFeedback { get; private set; }
 
-        abstract protected Func<string> CurrentInputFeedbackFunc { get; }
+        protected abstract Func<string> CurrentInputFeedbackFunc { get; }
 
         public BoolFeedback PowerIsOnFeedback { get; protected set; }
 
-        abstract protected Func<bool> PowerIsOnFeedbackFunc { get; }
+        protected abstract Func<bool> PowerIsOnFeedbackFunc { get; }
 
         public static MockDisplay DefaultDisplay
         {
-            get
-            {
-                if (_DefaultDisplay == null)
-                    _DefaultDisplay = new MockDisplay("default", "Default Display");
-                return _DefaultDisplay;
-            }
+            get { return _DefaultDisplay ?? (_DefaultDisplay = new MockDisplay("default", "Default Display")); }
         }
 
         private static MockDisplay _DefaultDisplay;
 
-        public TwoWayDisplayBase(string key, string name)
+        protected TwoWayDisplayBase(string key, string name)
             : base(key, name)
         {
             CurrentInputFeedback = new StringFeedback(CurrentInputFeedbackFunc);
@@ -306,8 +301,11 @@ namespace PepperDash.Essentials.Core
 
             PowerIsOnFeedback = new BoolFeedback("PowerOnFeedback", PowerIsOnFeedbackFunc);
 
-            Feedbacks.Add(CurrentInputFeedback);
-            Feedbacks.Add(PowerIsOnFeedback);
+            if (Feedbacks != null)
+            {
+                Feedbacks.Add(CurrentInputFeedback);
+                Feedbacks.Add(PowerIsOnFeedback);
+            }
 
             PowerIsOnFeedback.OutputChange += PowerIsOnFeedback_OutputChange;
         }

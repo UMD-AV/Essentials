@@ -170,43 +170,16 @@ namespace PepperDash.Essentials.Devices.Displays
         {
             if (videoMuteKey != null)
             {
-                int firstDash = videoMuteKey.IndexOf('-');
-                if (firstDash > 0)
+                IKeyed dev = DeviceManager.GetDeviceForKey(videoMuteKey);
+                if (dev is DmRmcControllerBase)
                 {
-                    try
-                    {
-                        string devKey = videoMuteKey.Substring(0, firstDash);
-                        string devPort = videoMuteKey.Substring(firstDash + 1);
-
-                        Debug.Console(0, this, "Trying to use dmps output {0} for video mute", devPort);
-                        IKeyed dev = DeviceManager.GetDeviceForKey(devKey);
-
-                        DmpsRoutingController switcher = dev as DmpsRoutingController;
-                        if (switcher != null && switcher.OutputPorts.Exists(p => p.Key == devPort))
-                        {
-                            _hdmiBlanking = switcher.OutputPorts[devPort] as RoutingOutputPortWithBlanking;
-                            if (_hdmiBlanking != null)
-                            {
-                                Debug.Console(0, this, "Using dmps output {0} for video mute successful",
-                                    videoMuteKey);
-                            }
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        Debug.ConsoleWithLog(0, this, "Using dmps output {0} for video mute failed: {1}",
-                            videoMuteKey, e.Message);
-                    }
+                    Debug.Console(0, this, "Using scaler {0} for video mute", videoMuteKey);
+                    _hdmiBlanking = dev as DmRmcControllerBase;
                 }
-
-                else
+                else if (dev is NvxEpi.Abstractions.HdmiOutput.IHdmiOutput)
                 {
-                    IKeyed dev = DeviceManager.GetDeviceForKey(videoMuteKey);
-                    if (dev is DmRmcControllerBase)
-                    {
-                        Debug.Console(0, this, "Using scaler {0} for video mute", videoMuteKey);
-                        _hdmiBlanking = dev as DmRmcControllerBase;
-                    }
+                    Debug.Console(0, this, "Using nvx {0} for video mute", videoMuteKey);
+                    _hdmiBlanking = dev as NvxEpi.Abstractions.HdmiOutput.IHdmiOutput;
                 }
             }
 

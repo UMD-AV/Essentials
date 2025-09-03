@@ -10,6 +10,7 @@ using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Bridges;
 using PepperDash.Essentials.Core.DeviceInfo;
 using PepperDash.Essentials.Core.Routing;
+using PepperDash.Essentials.DM;
 using Feedback = PepperDash.Essentials.Core.Feedback;
 
 namespace PepperDash.Essentials.Devices.Displays
@@ -33,8 +34,7 @@ namespace PepperDash.Essentials.Devices.Displays
 
         private readonly string videoMuteKey;
         private readonly int videoMuteInput;
-        private DM.DmRmcControllerBase _scaler;
-        private NvxEpi.Abstractions.HdmiOutput.IHdmiOutput _nvx;
+        private IHdmiBlanking _hdmiBlanking;
         public List<BoolFeedback> InputFeedback;
         public IntFeedback InputNumberFeedback;
         private RoutingInputPort _currentInputPort;
@@ -80,9 +80,9 @@ namespace PepperDash.Essentials.Devices.Displays
 
             Id = _config.Id == null ? (byte)0x01 : Convert.ToByte(_config.Id, 16);
 
-            _defaultVolume = (ushort)(config.defaultVolume == null ? 20 : config.defaultVolume);
-            _upperLimit = (ushort)(config.volumeUpperLimit == null ? 100 : config.volumeUpperLimit);
-            _lowerLimit = (ushort)(config.volumeLowerLimit == null ? 0 : config.volumeLowerLimit);
+            _defaultVolume = (ushort)(config.defaultVolume ?? 20);
+            _upperLimit = (ushort)(config.volumeUpperLimit ?? 100);
+            _lowerLimit = (ushort)(config.volumeLowerLimit ?? 0);
             _pollIntervalMs = _config.pollIntervalMs;
             _coolingTimeMs = _config.coolingTimeMs;
             _warmingTimeMs = _config.warmingTimeMs;
@@ -184,7 +184,7 @@ namespace PepperDash.Essentials.Devices.Displays
         public const byte Header = 0xAA;
 
         /// <summary>
-        /// Status control (Cmd: 0x00) pdf page 26
+        /// Status control (Cmd: 0x00) PDF page 26
         /// Gets the current status, status includes: val1=Power, val2=Volume, val3=Mute, val4=Input, val5=Aspect, val6=N Time NF, val7=F Time NF
         /// </summary>
         public const byte StatusControlCmd = 0x00;
@@ -195,13 +195,13 @@ namespace PepperDash.Essentials.Devices.Displays
         public const byte StatusControlGet = 0x00;
 
         /// <summary>
-        /// Display status control (Cmd: 0x0D) pdf page 34
+        /// Display status control (Cmd: 0x0D) PDF page 34
         /// Gets the display status, status includes: val1=Lamp, val2=Temperature, val3=Bright_Sensor, val4=No_Sync, val5=Current_Temp, val6=Fan
         /// </summary>
         public const byte DisplayStatusControlCmd = 0x0D;
 
         /// <summary>
-        /// Power control (Cmd: 0x11) pdf page 42
+        /// Power control (Cmd: 0x11) PDF page 42
         /// Gets/sets the power state
         /// </summary>
         public const byte PowerControlCmd = 0x11;
@@ -217,14 +217,14 @@ namespace PepperDash.Essentials.Devices.Displays
         public const byte PowerControlOff = 0x00;
 
         /// <summary>
-        /// Volume level control (Cmd: 0x12) pdf page 44
+        /// Volume level control (Cmd: 0x12) PDF page 44
         /// Gets/sets the volume level
-        /// Level range 0d - 100d (0x00 - 0x64)
+        /// Level range 0d-100d (0x00 - 0x64)
         /// </summary>
         public const byte VolumeLevelControlCmd = 0x12;
 
         /// <summary>
-        /// Volume mute control (Cmd: 0x13) pdf page 45
+        /// Volume mute control (Cmd: 0x13) PDF page 45
         /// Gets/sets the volume mute state
         /// </summary>
         public const byte VolumeMuteControlCmd = 0x13;
@@ -240,7 +240,7 @@ namespace PepperDash.Essentials.Devices.Displays
         public const byte VolumeMuteControlOff = 0x00;
 
         /// <summary>
-        /// Input source control (Cmd: 0x14) pdf page 46
+        /// Input source control (Cmd: 0x14) PDF page 46
         /// Gets/sets the input state
         /// </summary>
         public const byte InputControlCmd = 0x14;
@@ -475,14 +475,14 @@ namespace PepperDash.Essentials.Devices.Displays
         public const byte VolumeAdjustDown = 0x01;
 
         /// <summary>
-        /// Temeprature Control (Cmd: 0x85) pdf page 142
+        /// Temperature Control (Cmd: 0x85) PDF page 142
         /// Gets/sets the max temp threshold
-        /// Temp Range 75C - 124C
+        /// Temp Range 75C-124C
         /// </summary>
-        public const byte TemerpatureMaxControlCmd = 0x85;
+        public const byte TemperatureMaxControlCmd = 0x85;
 
         /// <summary>
-        /// Virtual remote control (Cmd: 0xB0) pdf pg. 81
+        /// Virtual remote control (Cmd: 0xB0) PDF pg. 81
         /// Set only, emulates the IR remote
         /// </summary>
         public const byte VirtualRemoteCmd = 0xB0;
@@ -523,13 +523,13 @@ namespace PepperDash.Essentials.Devices.Displays
         public const byte VirtualRemoteExit = 0x2D;
 
         /// <summary>
-        /// Led Product Feature (Cmd: 0xD0) pdg page 221
+        /// Led Product Feature (Cmd: 0xD0) PDF page 221
         /// LED Product Features has a subset of commands available
         /// </summary>
         public const byte LedProductCmd = 0xD0;
 
         // <summary>
-        // Monitoring Temperature (Sub Cmd: 0x84) pdf page 228		
+        // Monitoring Temperature (Sub Cmd: 0x84) PDF page 228		
         // Gets LED Product status, status includes: val1=Power&IC, val2=HDBaseT_Status, val3=Temperature, val4=Illuminance, val5=Module1, val6=Module1_LED_Error_Data,.... valN=ModuleX, valN+1=ModuleX_LED_Error_Data\
         // Temperature range 0C-254C
         // Illuminance range 0d - 100d (0x00 - 0x64)
@@ -542,8 +542,8 @@ namespace PepperDash.Essentials.Devices.Displays
 
         /// <summary>
         /// Scales the level to the range of the display and sends the command
-        /// Volume level control (Cmd: 0x12) pdf page 44
-        /// Level range 0d - 100d (0x00 - 0x64)		
+        /// Volume level control (Cmd: 0x12) PDF page 44
+        /// Level range 0d-100d (0x00 - 0x64)		
         /// Set: [HEADER=0xAA][Cmd=0x12][ID][DATA_LEN=0x01][DATA-1=(Scaled)][CS=0x00]
         /// </summary>
         /// <param name="level"></param>
@@ -720,11 +720,12 @@ namespace PepperDash.Essentials.Devices.Displays
             PowerIsOnFeedback.LinkInputSig(trilist.BooleanInput[joinMap.PowerOn.JoinNumber]);
 
             //Video Mute
-            if (_scaler != null)
+            if (_hdmiBlanking != null)
             {
-                _scaler.HdmiOutputBlankedFeedback.LinkInputSig(trilist.BooleanInput[joinMap.VideoMuteOn.JoinNumber]);
-                trilist.SetSigTrueAction(joinMap.VideoMuteOn.JoinNumber, _scaler.BlankOutput);
-                trilist.SetSigTrueAction(joinMap.VideoMuteOff.JoinNumber, _scaler.UnblankOutput);
+                _hdmiBlanking.HdmiOutputBlankedFeedback.LinkInputSig(
+                    trilist.BooleanInput[joinMap.VideoMuteOn.JoinNumber]);
+                trilist.SetSigTrueAction(joinMap.VideoMuteOn.JoinNumber, _hdmiBlanking.BlankOutput);
+                trilist.SetSigTrueAction(joinMap.VideoMuteOff.JoinNumber, _hdmiBlanking.UnblankOutput);
 
                 //If config has video mute input defined, only support scaler video mute while on that display input
                 if (videoMuteInput > 0)
@@ -747,7 +748,7 @@ namespace PepperDash.Essentials.Devices.Displays
                 }
             }
 
-            // Input digitals
+            // Input digital
             int count = 0;
 
             if (_config.FriendlyNames == null)
@@ -1030,15 +1031,15 @@ namespace PepperDash.Essentials.Devices.Displays
             if (videoMuteKey != null)
             {
                 IKeyed dev = DeviceManager.GetDeviceForKey(videoMuteKey);
-                if (dev is DM.DmRmcControllerBase)
+                if (dev is DmRmcControllerBase)
                 {
                     Debug.Console(0, this, "Using scaler {0} for video mute", videoMuteKey);
-                    _scaler = dev as DM.DmRmcControllerBase;
+                    _hdmiBlanking = dev as DmRmcControllerBase;
                 }
                 else if (dev is NvxEpi.Abstractions.HdmiOutput.IHdmiOutput)
                 {
                     Debug.Console(0, this, "Using nvx {0} for video mute", videoMuteKey);
-                    _nvx = dev as NvxEpi.Abstractions.HdmiOutput.IHdmiOutput;
+                    _hdmiBlanking = dev as NvxEpi.Abstractions.HdmiOutput.IHdmiOutput;
                 }
             }
 
@@ -1235,7 +1236,6 @@ namespace PepperDash.Essentials.Devices.Displays
                             Array.Copy(message, 6, macInfo, 0, length - 1);
 
                             UpdateMacAddress(macInfo);
-                            break;
                         }
 
                         break;
@@ -1509,7 +1509,7 @@ namespace PepperDash.Essentials.Devices.Displays
                     _PowerMutex.ReleaseMutex();
                 }
 
-                if (_volumeWaitingToSend == true)
+                if (_volumeWaitingToSend)
                 {
                     SetVolumeRaw((ushort)_lastVolumeSent);
                     _volumeWaitingToSend = false;
@@ -1533,9 +1533,9 @@ namespace PepperDash.Essentials.Devices.Displays
             // If a display has unreliable-power off feedback, just override this and
             // remove this check.
 
-            if (_scaler != null)
+            if (_hdmiBlanking != null)
             {
-                _scaler.UnblankOutput();
+                _hdmiBlanking.UnblankOutput();
             }
 
             SendBytes(new byte[] { Header, PowerControlCmd, 0x00, 0x01, PowerControlOff, 0x00 });
@@ -1570,7 +1570,7 @@ namespace PepperDash.Essentials.Devices.Displays
                 {
                     PowerOnGo();
                 }
-                else if (_RequestedPowerState == 2 && (_powerIsOn == true || !CommunicationMonitor.IsOnline))
+                else if (_RequestedPowerState == 2 && (_powerIsOn || !CommunicationMonitor.IsOnline))
                 {
                     PowerOffGo();
                 }
@@ -1736,7 +1736,7 @@ namespace PepperDash.Essentials.Devices.Displays
         /// </summary>
         public void TemperatureMaxGet()
         {
-            SendBytes(new byte[] { Header, TemerpatureMaxControlCmd, 0x00, 0x00, 0x00 });
+            SendBytes(new byte[] { Header, TemperatureMaxControlCmd, 0x00, 0x00, 0x00 });
         }
 
         /// <summary>
@@ -1767,11 +1767,6 @@ namespace PepperDash.Essentials.Devices.Displays
         private double ConvertCelsiusToFahrenheit(double c)
         {
             return ((9.0 / 5.0) * c) + 32;
-        }
-
-        private double ConvertFahrenehitToCelsius(double f)
-        {
-            return (5.0 / 9.0) * (f - 32);
         }
 
         private void InputSwitchNumeric(ushort input)

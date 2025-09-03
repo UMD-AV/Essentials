@@ -21,5 +21,7 @@ namespace Epi.Display.Lg
         [JsonProperty("macAddress")] public string macAddress { get; set; }
 
         [JsonProperty("smallDisplay")] public bool SmallDisplay { get; set; }
+
+        [JsonProperty("videoMuteKey")] public string VideoMuteKey { get; set; }
     }
 }

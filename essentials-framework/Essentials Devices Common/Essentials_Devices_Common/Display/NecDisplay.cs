@@ -9,6 +9,7 @@ using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Bridges;
 using PepperDash.Essentials.Core.Config;
 using Newtonsoft.Json;
+using PepperDash.Essentials.DM;
 
 namespace PepperDash.Essentials.Devices.Displays
 {
@@ -58,7 +59,7 @@ namespace PepperDash.Essentials.Devices.Displays
 
         private readonly string videoMuteKey;
         private readonly int videoMuteInput;
-        private DM.DmRmcControllerBase _scaler;
+        private IHdmiBlanking _hdmiBlanking;
         private readonly NecQueue _cmdQueue;
         private readonly NecQueue _priorityQueue;
         private readonly CommunicationGather _PortGather;
@@ -167,10 +168,15 @@ namespace PepperDash.Essentials.Devices.Displays
             if (videoMuteKey != null)
             {
                 IKeyed dev = DeviceManager.GetDeviceForKey(videoMuteKey);
-                if (dev is DM.DmRmcControllerBase)
+                if (dev is DmRmcControllerBase)
                 {
                     Debug.Console(0, this, "Using scaler {0} for video mute", videoMuteKey);
-                    _scaler = dev as DM.DmRmcControllerBase;
+                    _hdmiBlanking = dev as DmRmcControllerBase;
+                }
+                else if (dev is NvxEpi.Abstractions.HdmiOutput.IHdmiOutput)
+                {
+                    Debug.Console(0, this, "Using nvx {0} for video mute", videoMuteKey);
+                    _hdmiBlanking = dev as NvxEpi.Abstractions.HdmiOutput.IHdmiOutput;
                 }
             }
 
@@ -194,11 +200,12 @@ namespace PepperDash.Essentials.Devices.Displays
             trilist.BooleanInput[joinMap.LampHoursSupported.JoinNumber].BoolValue = false;
 
             //Video Mute
-            if (_scaler != null)
+            if (_hdmiBlanking != null)
             {
-                _scaler.HdmiOutputBlankedFeedback.LinkInputSig(trilist.BooleanInput[joinMap.VideoMuteOn.JoinNumber]);
-                trilist.SetSigTrueAction(joinMap.VideoMuteOn.JoinNumber, _scaler.BlankOutput);
-                trilist.SetSigTrueAction(joinMap.VideoMuteOff.JoinNumber, _scaler.UnblankOutput);
+                _hdmiBlanking.HdmiOutputBlankedFeedback.LinkInputSig(
+                    trilist.BooleanInput[joinMap.VideoMuteOn.JoinNumber]);
+                trilist.SetSigTrueAction(joinMap.VideoMuteOn.JoinNumber, _hdmiBlanking.BlankOutput);
+                trilist.SetSigTrueAction(joinMap.VideoMuteOff.JoinNumber, _hdmiBlanking.UnblankOutput);
 
                 //If config has video mute input defined, only support scaler video mute while on that display input
                 if (videoMuteInput > 0)
@@ -683,9 +690,9 @@ namespace PepperDash.Essentials.Devices.Displays
 
         private void PowerOffGo()
         {
-            if (_scaler != null)
+            if (_hdmiBlanking != null)
             {
-                _scaler.UnblankOutput();
+                _hdmiBlanking.UnblankOutput();
             }
 
             SendCommand(eCommandType.Power, PowerOffCmd, true);

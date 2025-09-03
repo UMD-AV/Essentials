@@ -87,7 +87,7 @@ namespace PepperDash.Essentials.Core
 
         public override string ToString()
         {
-            return (InTestMode ? "TEST -- " : "") + IntValue.ToString();
+            return (InTestMode ? "TEST -- " : "") + IntValue;
         }
 
         /// <summary>

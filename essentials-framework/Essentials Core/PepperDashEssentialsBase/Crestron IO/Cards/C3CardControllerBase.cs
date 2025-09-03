@@ -15,7 +15,7 @@ namespace PepperDash.Essentials.Core.CrestronIO.Cards
 
         public override string ToString()
         {
-            return string.Format("{0} {1}", Key, _card.ToString());
+            return string.Format("{0} {1}", Key, _card);
         }
 
         #endregion

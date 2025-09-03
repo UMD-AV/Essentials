@@ -140,7 +140,7 @@ namespace PepperDash.Essentials.Core
 
         public override string ToString()
         {
-            return (InTestMode ? "TEST -- " : "") + BoolValue.ToString();
+            return (InTestMode ? "TEST -- " : "") + BoolValue;
         }
 
         /// <summary>
