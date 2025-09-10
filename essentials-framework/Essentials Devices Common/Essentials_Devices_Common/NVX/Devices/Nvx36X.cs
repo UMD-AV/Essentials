@@ -15,6 +15,7 @@ using NvxEpi.Features.Hdmi.Output;
 using NvxEpi.Features.Streams.Usb;
 using NvxEpi.Features.InputSwitching;
 using NvxEpi.Services.Bridge;
+using NvxEpi.Services.Feedback;
 using NvxEpi.Services.InputPorts;
 using NvxEpi.Services.InputSwitching;
 using PepperDash.Core;
@@ -62,6 +63,7 @@ namespace NvxEpi.Devices
                 _hdmiInputs = new HdmiInput(this);
                 _hdmiOutput = new VideowallModeOutput(this);
                 _danteSwitcher = new DanteInputSwitcher(this);
+                HdmiOutputBlankedFeedback = HdmiOutputBlankEnabledFeedback.GetFeedback(Hardware);
 
                 Feedbacks.AddRange(new[] { (Feedback)_audio.MuteFeedback, _audio.VolumeLevelFeedback });
 
@@ -195,6 +197,18 @@ namespace NvxEpi.Devices
         public IntFeedback VideowallMode
         {
             get { return _hdmiOutput.VideowallMode; }
+        }
+
+        public BoolFeedback HdmiOutputBlankedFeedback { get; private set; }
+
+        public void BlankOutput()
+        {
+            Hardware.HdmiOut.BlankEnabled();
+        }
+
+        public void UnblankOutput()
+        {
+            Hardware.HdmiOut.BlankDisabled();
         }
 
         public void ExecuteSwitch(object inputSelector, object outputSelector, eRoutingSignalType signalType)

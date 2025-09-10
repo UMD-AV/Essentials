@@ -18,11 +18,13 @@ namespace NvxEpi.Features.Hdmi.Output
             HorizontalResolution = HorizontalResolutionFeedback.GetFeedback(device.Hardware);
             EdidManufacturer = HdmiOutputEdidFeedback.GetFeedback(device.Hardware);
             OutputResolution = HdmiOutputResolutionFeedback.GetFeedback(device.Hardware);
+            HdmiOutputBlankedFeedback = HdmiOutputBlankEnabledFeedback.GetFeedback(device.Hardware);
 
             device.Feedbacks.Add(DisabledByHdcp);
             device.Feedbacks.Add(HorizontalResolution);
             device.Feedbacks.Add(OutputResolution);
             device.Feedbacks.Add(EdidManufacturer);
+            device.Feedbacks.Add(HdmiOutputBlankedFeedback);
         }
 
         public BoolFeedback DisabledByHdcp { get; private set; }
@@ -37,6 +39,8 @@ namespace NvxEpi.Features.Hdmi.Output
         public StringFeedback EdidManufacturer { get; private set; }
 
         public StringFeedback OutputResolution { get; private set; }
+
+        public BoolFeedback HdmiOutputBlankedFeedback { get; private set; }
 
         public string Key
         {
@@ -81,6 +85,23 @@ namespace NvxEpi.Features.Hdmi.Output
         public int DeviceId
         {
             get { return _device.DeviceId; }
+        }
+
+
+        public void BlankOutput()
+        {
+            if (_device.Hardware.HdmiOut != null)
+            {
+                _device.Hardware.HdmiOut.BlankEnabled();
+            }
+        }
+
+        public void UnblankOutput()
+        {
+            if (_device.Hardware.HdmiOut != null)
+            {
+                _device.Hardware.HdmiOut.BlankDisabled();
+            }
         }
     }
 }

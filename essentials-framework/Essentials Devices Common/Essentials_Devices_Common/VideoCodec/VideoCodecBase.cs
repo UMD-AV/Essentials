@@ -1983,7 +1983,7 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec
             get { return _InitialSyncComplete; }
             private set
             {
-                if (value == true)
+                if (value)
                 {
                     EventHandler<EventArgs> handler = InitialSyncCompleted;
                     if (handler != null)

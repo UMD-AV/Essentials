@@ -6,6 +6,7 @@ using NvxEpi.Abstractions;
 using NvxEpi.Abstractions.HdmiOutput;
 using NvxEpi.Features.Hdmi.Output;
 using NvxEpi.Services.Bridge;
+using NvxEpi.Services.Feedback;
 using NvxEpi.Services.InputPorts;
 using NvxEpi.Services.InputSwitching;
 using PepperDash.Core;
@@ -39,6 +40,8 @@ namespace NvxEpi.Devices
 
             Hardware = hardware;
             _hdmiOutput = new HdmiOutput(this);
+
+            HdmiOutputBlankedFeedback = HdmiOutputBlankEnabledFeedback.GetFeedback(Hardware);
 
             return base.CustomActivate();
         }
@@ -88,6 +91,18 @@ namespace NvxEpi.Devices
         public int NumberOfIROutputPorts
         {
             get { return Hardware.NumberOfIROutputPorts; }
+        }
+
+        public BoolFeedback HdmiOutputBlankedFeedback { get; private set; }
+
+        public void BlankOutput()
+        {
+            Hardware.HdmiOut.BlankEnabled();
+        }
+
+        public void UnblankOutput()
+        {
+            Hardware.HdmiOut.BlankDisabled();
         }
 
         public void ExecuteSwitch(object inputSelector, object outputSelector, eRoutingSignalType signalType)

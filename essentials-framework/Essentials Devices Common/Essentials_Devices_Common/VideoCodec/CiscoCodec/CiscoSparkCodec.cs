@@ -1342,7 +1342,7 @@ ConnectorID: {2}"
         {
             GetZoomContact();
             int count = 0;
-            while (_getZoomContact == true && count < 20)
+            while (_getZoomContact && count < 20)
             {
                 CrestronEnvironment.Sleep(100);
                 count++;
@@ -2593,7 +2593,7 @@ ConnectorID: {2}"
             get { return _InitialSyncComplete; }
             private set
             {
-                if (value == true)
+                if (value)
                 {
                     EventHandler<EventArgs> handler = InitialSyncCompleted;
                     if (handler != null)

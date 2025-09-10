@@ -91,7 +91,7 @@ namespace DynFusion
         public void StartStopDevice(ushort device, bool action)
         {
             string key = string.Format("DEV:{0}", device);
-            if (action == true)
+            if (action)
             {
                 StartDevice(key);
             }

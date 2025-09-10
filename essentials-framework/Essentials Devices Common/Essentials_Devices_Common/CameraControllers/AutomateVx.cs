@@ -312,7 +312,7 @@ namespace PepperDash.Essentials.Devices.Common.ImageProcessors
 
         private void pollCallback(object o)
         {
-            if (onlineStatus == true)
+            if (onlineStatus)
             {
                 GetAutoSwitchStatus();
             }

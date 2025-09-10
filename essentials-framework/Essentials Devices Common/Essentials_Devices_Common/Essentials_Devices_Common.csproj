@@ -341,6 +341,7 @@
         <Compile Include="NVX\Services\Feedback\Hdmi2HdcpCapabilityValueFeedback.cs"/>
         <Compile Include="NVX\Services\Feedback\Hdmi2SyncDetectedFeedback.cs"/>
         <Compile Include="NVX\Services\Feedback\HdmiInputFeedbacks.cs"/>
+        <Compile Include="NVX\Services\Feedback\HdmiOutputBlankedFeedback.cs"/>
         <Compile Include="NVX\Services\Feedback\HdmiOutputDisabledFeedback.cs"/>
         <Compile Include="NVX\Services\Feedback\HdmiOutputResolutionFeedback.cs"/>
         <Compile Include="NVX\Services\Feedback\HorizontalResolutionFeedback.cs"/>

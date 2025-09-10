@@ -1212,7 +1212,7 @@ namespace Tesira_DSP_EPI
 
                 trilist.SetUShortSigAction(faderJoinMap.Volume.JoinNumber + x, u =>
                 {
-                    if (trilist.BooleanOutput[faderJoinMap.EnableLevelSend.JoinNumber + x].BoolValue == true)
+                    if (trilist.BooleanOutput[faderJoinMap.EnableLevelSend.JoinNumber + x].BoolValue)
                     {
                         genericChannel.SetVolume(u);
                     }

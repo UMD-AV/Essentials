@@ -398,7 +398,7 @@ namespace ExtronDmp
 
                 trilist.SetUShortSigAction(joinMap.ChannelVolume.JoinNumber + channelIndex, u =>
                 {
-                    if (trilist.BooleanOutput[joinMap.EnableLevelSend.JoinNumber + channelIndex].BoolValue == true)
+                    if (trilist.BooleanOutput[joinMap.EnableLevelSend.JoinNumber + channelIndex].BoolValue)
                     {
                         genericChannel.SetVolume(u);
                     }
