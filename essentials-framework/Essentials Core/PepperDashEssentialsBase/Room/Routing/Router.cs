@@ -231,8 +231,9 @@ namespace PepperDash.Essentials.Core.Routing
                                     {
                                         //Only enable audio routing visibility if audioRoute exists and hasn't been used yet
                                         PreviouslyUsedAudioIndexes.Add(route.Input.Value);
-                                        source.HasAudio = true;
                                     }
+
+                                    source.HasAudio = true;
                                 }
 
                                 source.ContentVisible = (route.RouteKey == "contentRoute" && route.Input != null);
@@ -338,11 +339,14 @@ namespace PepperDash.Essentials.Core.Routing
 
         private void TxOnNumericSwitchChange(object sender, RoutingNumericEventArgs e)
         {
-            IKeyed ikeySender = sender as IKeyed;
-            if (ikeySender != null)
+            string key = ((Device)sender).Key;
+            ushort output = ushort.Parse(key.Substring(2));
+            if (debugLevel > 0)
             {
-                FeedbackFromSimpl(ikeySender.Key, e.Output, e.Input);
+                Debug.Console(0, "txRoute feedback: output {0} input {1}", output, e.Input);
             }
+
+            FeedbackFromSimpl("txRoute", output, e.Input);
         }
 
         public void LinkToApi(BasicTriList trilist, uint joinStart, string joinMapKey, EiscApiAdvanced bridge)
@@ -628,6 +632,13 @@ namespace PepperDash.Essentials.Core.Routing
             //Check each feedback in the source list for matching key and index
             foreach (KeyValuePair<ushort, SourceFeedback> feedback in SourceFeedbacks)
             {
+                if (debugLevel > 0)
+                {
+                    Debug.Console(0, "Checking source feedback: {0} {1} {2}", feedback.Value.RouteKey,
+                        feedback.Value.Output,
+                        feedback.Value.Input);
+                }
+
                 //If key and index match, update the stored feedback value
                 if (feedback.Value.RouteKey == key && feedback.Value.Output == output)
                 {
@@ -718,6 +729,12 @@ namespace PepperDash.Essentials.Core.Routing
             bool newFeedbackState = true;
             foreach (KeyValuePair<ushort, SourceFeedback> feedback in SourceFeedbacks)
             {
+                if (debugLevel > 0)
+                {
+                    Debug.Console(0, "Recalculating source feedback for key {0}: sourceIndex: {1}",
+                        feedback.Key, sourceIndex);
+                }
+
                 if (feedback.Key == sourceIndex)
                 {
                     if (feedback.Value.FeedbackState == false)
@@ -860,8 +877,7 @@ namespace PepperDash.Essentials.Core.Routing
 
                         if (debugLevel > 0)
                         {
-                            CrestronConsole.PrintLine(
-                                "Router found matching feedback but source feedback wasn't valid {0}: {1}",
+                            Debug.Console(0, "Router found matching feedback but source feedback wasn't valid {0}: {1}",
                                 Dests[destIndex].Name,
                                 sourceMatch.Name);
                         }
@@ -1017,6 +1033,11 @@ namespace PepperDash.Essentials.Core.Routing
                     case "txRoute":
                         if (txs.ContainsKey(output) && txs[output] != null)
                         {
+                            if (debugLevel > 0)
+                            {
+                                Debug.Console(0, "Router making txRoute for tx {0} to input {1}", output, input);
+                            }
+
                             txs[output].ExecuteNumericSwitch(input, 1, eRoutingSignalType.AudioVideo);
                         }
 

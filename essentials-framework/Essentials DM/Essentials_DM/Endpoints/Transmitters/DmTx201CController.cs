@@ -341,9 +341,9 @@ namespace PepperDash.Essentials.DM
 
         public void ExecuteSwitch(object inputSelector, object outputSelector, eRoutingSignalType signalType)
         {
-            if ((signalType | eRoutingSignalType.Video) == eRoutingSignalType.Video)
+            if ((signalType & eRoutingSignalType.Video) == eRoutingSignalType.Video)
                 Tx.VideoSource = (DmTx200Base.eSourceSelection)inputSelector;
-            if ((signalType | eRoutingSignalType.Audio) == eRoutingSignalType.Audio)
+            if ((signalType & eRoutingSignalType.Audio) == eRoutingSignalType.Audio)
                 Tx.AudioSource = (DmTx200Base.eSourceSelection)inputSelector;
         }
 

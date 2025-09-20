@@ -133,11 +133,10 @@ namespace PepperDash.Essentials.DM
                 () => (int)tx.HdmiInputs[2].HdcpCapabilityFeedback);
 
             HdcpStateFeedback =
-                new IntFeedback(
-                    () =>
-                        tx.HdmiInputs[1].HdcpCapabilityFeedback > tx.HdmiInputs[2].HdcpCapabilityFeedback
-                            ? (int)tx.HdmiInputs[1].HdcpCapabilityFeedback
-                            : (int)tx.HdmiInputs[2].HdcpCapabilityFeedback);
+                new IntFeedback(() =>
+                    tx.HdmiInputs[1].HdcpCapabilityFeedback > tx.HdmiInputs[2].HdcpCapabilityFeedback
+                        ? (int)tx.HdmiInputs[1].HdcpCapabilityFeedback
+                        : (int)tx.HdmiInputs[2].HdcpCapabilityFeedback);
 
             HdcpSupportCapability = eHdcpCapabilityType.Hdcp2_2Support;
 
@@ -310,15 +309,11 @@ namespace PepperDash.Essentials.DM
             try
             {
                 Debug.Console(2, this, "Attempting to switch InputSelector {0}", ((eVst)inputSelector).ToString());
-                if ((signalType | eRoutingSignalType.Video) == eRoutingSignalType.Video)
+                if ((signalType & eRoutingSignalType.Video) == eRoutingSignalType.Video)
                     Tx.VideoSource = (eVst)inputSelector;
 
-                // NOTE:  It's possible that this particular TX model may not like the AudioSource property being set.  
-                // The SIMPL definition only shows a single analog for AudioVideo Source
-                if ((signalType | eRoutingSignalType.Audio) == eRoutingSignalType.Audio)
-                    //it doesn't
+                if ((signalType & eRoutingSignalType.Audio) == eRoutingSignalType.Audio)
                     Debug.Console(2, this, "Unable to execute audio-only switch for tx {0}", Key);
-                //Tx.AudioSource = (eAst)inputSelector;
             }
             catch (Exception e)
             {

@@ -142,11 +142,10 @@ namespace PepperDash.Essentials.DM
                 () => (int)tx.HdmiInputs[2].HdcpCapabilityFeedback);
 
             HdcpStateFeedback =
-                new IntFeedback(
-                    () =>
-                        tx.HdmiInputs[1].HdcpCapabilityFeedback > tx.HdmiInputs[2].HdcpCapabilityFeedback
-                            ? (int)tx.HdmiInputs[1].HdcpCapabilityFeedback
-                            : (int)tx.HdmiInputs[2].HdcpCapabilityFeedback);
+                new IntFeedback(() =>
+                    tx.HdmiInputs[1].HdcpCapabilityFeedback > tx.HdmiInputs[2].HdcpCapabilityFeedback
+                        ? (int)tx.HdmiInputs[1].HdcpCapabilityFeedback
+                        : (int)tx.HdmiInputs[2].HdcpCapabilityFeedback);
 
             HdcpSupportCapability = eHdcpCapabilityType.Hdcp2_2Support;
 
@@ -398,9 +397,9 @@ namespace PepperDash.Essentials.DM
 
         public void ExecuteSwitch(object inputSelector, object outputSelector, eRoutingSignalType signalType)
         {
-            if ((signalType | eRoutingSignalType.Video) == eRoutingSignalType.Video)
+            if ((signalType & eRoutingSignalType.Video) == eRoutingSignalType.Video)
                 Tx.VideoSource = (eVst)inputSelector;
-            if ((signalType | eRoutingSignalType.Audio) == eRoutingSignalType.Audio)
+            if ((signalType & eRoutingSignalType.Audio) == eRoutingSignalType.Audio)
                 Tx.AudioSource = (eAst)inputSelector;
         }
 
