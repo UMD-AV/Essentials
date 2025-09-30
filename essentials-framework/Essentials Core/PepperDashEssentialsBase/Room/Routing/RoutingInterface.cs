@@ -68,6 +68,7 @@ namespace PepperDash.Essentials.Core.Routing
         public Dictionary<uint, BoolFeedback> SourceAudioVisibleFeedbacks { get; private set; }
         public Dictionary<uint, BoolFeedback> SourceContentVisibleFeedbacks { get; private set; }
         public Dictionary<uint, StringFeedback> SourceNameFeedbacks { get; private set; }
+        public Dictionary<uint, StringFeedback> SourceIconFeedbacks { get; private set; }
         public Dictionary<uint, StringFeedback> DestNameFeedbacks { get; private set; }
         public Dictionary<uint, StringFeedback> DestRouteNameFeedbacks { get; private set; }
         public Dictionary<uint, StringFeedback> SourceDeviceKeyFeedbacks { get; private set; }
@@ -90,6 +91,7 @@ namespace PepperDash.Essentials.Core.Routing
             SourceAudioVisibleFeedbacks = new Dictionary<uint, BoolFeedback>();
             SourceContentVisibleFeedbacks = new Dictionary<uint, BoolFeedback>();
             SourceNameFeedbacks = new Dictionary<uint, StringFeedback>();
+            SourceIconFeedbacks = new Dictionary<uint, StringFeedback>();
             DestNameFeedbacks = new Dictionary<uint, StringFeedback>();
             DestRouteNameFeedbacks = new Dictionary<uint, StringFeedback>();
             SourceDeviceKeyFeedbacks = new Dictionary<uint, StringFeedback>();
@@ -102,6 +104,7 @@ namespace PepperDash.Essentials.Core.Routing
                 SourceAudioVisibleFeedbacks[i] = new BoolFeedback(() => GetSourceAudioVisibility(sourceIndex));
                 SourceContentVisibleFeedbacks[i] = new BoolFeedback(() => GetSourceContentVisibility(sourceIndex));
                 SourceNameFeedbacks[i] = new StringFeedback(() => GetSourceName(sourceIndex));
+                SourceIconFeedbacks[i] = new StringFeedback(() => GetSourceIcon(sourceIndex));
                 SourceDeviceKeyFeedbacks[i] = new StringFeedback(() => GetSourceDeviceKey(sourceIndex));
                 SourceVideoSyncFeedbacks[i] = new StringFeedback(() => GetSourceVideoSyncKey(sourceIndex));
             }
@@ -211,14 +214,21 @@ namespace PepperDash.Essentials.Core.Routing
                     .LinkInputSig(trilist.BooleanInput[joinMap.SourceContentVisible.JoinNumber + i - 1]);
                 SourceNameFeedbacks[i]
                     .LinkInputSig(trilist.StringInput[joinMap.SourceName.JoinNumber + i - 1]);
+                SourceIconFeedbacks[i]
+                    .LinkInputSig(trilist.StringInput[joinMap.SourceIcon.JoinNumber + i - 1]);
                 SourceDeviceKeyFeedbacks[i]
                     .LinkInputSig(trilist.StringInput[joinMap.SourceDeviceKey.JoinNumber + i - 1]);
                 SourceVideoSyncFeedbacks[i]
                     .LinkInputSig(trilist.StringInput[joinMap.SourceVideoSyncKey.JoinNumber + i - 1]);
             }
 
+            trilist.SetUShortSigAction(joinMap.DestRouteCmd.JoinNumber, s => MakeRoute(s, 0));
+
             for (ushort i = 1; i <= RouterMain.maxDests; i++)
             {
+                ushort d = i;
+                trilist.SetUShortSigAction(joinMap.DestRouteCmd.JoinNumber + i, s => MakeRoute(s, d));
+
                 DestVisibleFeedbacks[i]
                     .LinkInputSig(trilist.BooleanInput[joinMap.DestVisible.JoinNumber + i - 1]);
                 DestEnableFeedbacks[i]
@@ -363,6 +373,19 @@ namespace PepperDash.Essentials.Core.Routing
             }
         }
 
+        private void MakeRoute(ushort source, ushort dest)
+        {
+            if (debugLevel > 0)
+            {
+                Debug.Console(0, "Routing interface {0} making route from source: {1} to dest: {2}", Key, source, dest);
+            }
+
+            if (allowRoutes && _router != null)
+            {
+                _router.RouteByIndex(source, dest);
+            }
+        }
+
         public void OverridePreview(ushort i)
         {
             if (!allowRoutes) return;
@@ -390,6 +413,7 @@ namespace PepperDash.Essentials.Core.Routing
             SourceAudioVisibleFeedbacks[sourceIndex].FireUpdate();
             SourceContentVisibleFeedbacks[sourceIndex].FireUpdate();
             SourceNameFeedbacks[sourceIndex].FireUpdate();
+            SourceIconFeedbacks[sourceIndex].FireUpdate();
             SourceDeviceKeyFeedbacks[sourceIndex].FireUpdate();
             SourceVideoSyncFeedbacks[sourceIndex].FireUpdate();
         }
@@ -470,6 +494,16 @@ namespace PepperDash.Essentials.Core.Routing
             if (_router != null && _router.Sources != null && _router.Sources.ContainsKey(sourceIndex))
             {
                 return _router.Sources[sourceIndex].Name ?? "";
+            }
+
+            return "";
+        }
+
+        private string GetSourceIcon(ushort sourceIndex)
+        {
+            if (_router != null && _router.Sources != null && _router.Sources.ContainsKey(sourceIndex))
+            {
+                return _router.Sources[sourceIndex].Icon ?? "";
             }
 
             return "";

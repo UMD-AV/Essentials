@@ -114,6 +114,8 @@ namespace PepperDash.Essentials.Core.Config
     public class Source
     {
         [JsonProperty("name")] public string Name { get; set; }
+
+        [JsonProperty("icon")] public string Icon { get; set; }
         [JsonProperty("index")] public ushort Index { get; set; }
         [JsonProperty("easyModeVisible")] public bool? EasyModeVisible { get; set; }
         [JsonProperty("advancedModeVisible")] public bool? AdvancedModeVisible { get; set; }

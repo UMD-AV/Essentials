@@ -14,7 +14,6 @@ using PepperDash.Essentials.DM;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Text;
-using DynFusion;
 using PepperDash_Essentials_Core.Touchpanels;
 using PepperDash.Essentials.Core.Routing;
 using PepperDash.Essentials.Core.Touchpanels;
@@ -442,7 +441,7 @@ namespace PepperDash.Essentials
                 if (devConf.Type.ToLower() == "fusion")
                 {
                     Debug.Console(0, "Found fusion device, trying to get embedded resource file");
-                    DynFusionDevice fusionDev = newDev as DynFusionDevice;
+                    DynFusion.DynFusionDevice fusionDev = newDev as DynFusion.DynFusionDevice;
                     if (fusionDev != null)
                     {
                         fusionDev.customResourceConfig = Encoding.GetEncoding(28591)

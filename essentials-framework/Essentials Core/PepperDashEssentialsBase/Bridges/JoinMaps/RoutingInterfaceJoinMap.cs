@@ -117,6 +117,16 @@ namespace PepperDash.Essentials.Core.Bridges
             }
         );
 
+        [JoinName("DestRouteCmd")] public JoinDataComplete DestRouteCmd = new JoinDataComplete(
+            new JoinData { JoinNumber = 10, JoinSpan = 25 },
+            new JoinMetadata
+            {
+                Description = "Destination route go",
+                JoinCapabilities = eJoinCapabilities.FromSIMPL,
+                JoinType = eJoinType.Analog
+            }
+        );
+
         //Serial
 
         [JoinName("AddVisibilityMode")] public JoinDataComplete AddVisibilityMode = new JoinDataComplete(
@@ -183,6 +193,15 @@ namespace PepperDash.Essentials.Core.Bridges
                 JoinType = eJoinType.Serial
             }
         );
+
+        [JoinName("SourceIcon")] public JoinDataComplete SourceIcon = new JoinDataComplete(
+            new JoinData { JoinNumber = 148, JoinSpan = 32 },
+            new JoinMetadata
+            {
+                Description = "Source icon text",
+                JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                JoinType = eJoinType.Serial
+            });
 
         /// <summary>
         /// Constructor to use when instantiating this Join Map without inheriting from it
