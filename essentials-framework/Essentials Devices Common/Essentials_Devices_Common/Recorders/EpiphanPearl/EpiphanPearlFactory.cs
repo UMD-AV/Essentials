@@ -10,7 +10,7 @@ namespace PepperDash.Essentials.EpiphanPearl
             TypeNames = new List<string> { "epiphan" };
         }
 
-        public override EssentialsDevice BuildDevice(PepperDash.Essentials.Core.Config.DeviceConfig dc)
+        public override EssentialsDevice BuildDevice(Core.Config.DeviceConfig dc)
         {
             return new EpiphanPearlController(dc);
         }

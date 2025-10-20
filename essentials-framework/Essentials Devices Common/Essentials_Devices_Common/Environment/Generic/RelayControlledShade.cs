@@ -98,7 +98,7 @@ namespace PepperDash.Essentials.Devices.Common.Environment
                 relay.StopPulse();
             }
 
-            //Stop stop
+            //Stop
             if (StopShadesRelays.Count > 0)
             {
                 foreach (GenericRelayDevice relay in StopShadesRelays)
@@ -159,7 +159,7 @@ namespace PepperDash.Essentials.Devices.Common.Environment
                 relay.StopPulse();
             }
 
-            //Stop stop
+            //Stop
             if (StopShadesRelays.Count > 0)
             {
                 foreach (GenericRelayDevice relay in StopShadesRelays)

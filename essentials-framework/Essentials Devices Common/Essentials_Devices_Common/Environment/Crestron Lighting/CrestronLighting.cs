@@ -50,7 +50,7 @@ namespace PepperDash.Essentials.Devices.Common.Environment.CrestronLighting
             InternalEisc.OnlineStatusChange += InternalEisc_OnlineStatusChange;
 
             //Send this device name to SIMPL
-            InternalEisc.StringInput[joinMap.Name.JoinNumber].StringValue = this.Name;
+            InternalEisc.StringInput[joinMap.Name.JoinNumber].StringValue = Name;
 
             //Send lighting EISC online status to SIMPL on join 1
             LightingOnline.LinkInputSig(InternalEisc.BooleanInput[joinMap.IsOnline.JoinNumber]);
@@ -266,7 +266,7 @@ namespace PepperDash.Essentials.Devices.Common.Environment.CrestronLighting
         {
             Debug.Console(1, "Factory Attempting to create new Crestron Lighting Device");
             CrestronLightingPropertiesConfig props =
-                Newtonsoft.Json.JsonConvert.DeserializeObject<CrestronLightingPropertiesConfig>(
+                JsonConvert.DeserializeObject<CrestronLightingPropertiesConfig>(
                     dc.Properties.ToString());
 
             return new CrestronLighting(dc.Key, dc.Name, props);

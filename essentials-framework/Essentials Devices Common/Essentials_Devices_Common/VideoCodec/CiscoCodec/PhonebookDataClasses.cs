@@ -295,11 +295,11 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec
         /// <returns></returns>
         public static CodecDirectory ConvertCiscoPhonebookToGeneric(PhonebookSearchResult result)
         {
-            CodecDirectory directory = new Codec.CodecDirectory();
+            CodecDirectory directory = new CodecDirectory();
 
-            List<DirectoryItem> folders = new List<Codec.DirectoryItem>();
+            List<DirectoryItem> folders = new List<DirectoryItem>();
 
-            List<DirectoryItem> contacts = new List<Codec.DirectoryItem>();
+            List<DirectoryItem> contacts = new List<DirectoryItem>();
 
             try
             {

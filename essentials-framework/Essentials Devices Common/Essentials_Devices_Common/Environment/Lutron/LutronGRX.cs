@@ -45,7 +45,7 @@ namespace PepperDash.Essentials.Devices.Common.Environment.Lutron
             }
 
             PortGather = new CommunicationGather(Communication, "\x0D\x0A");
-            PortGather.LineReceived += new EventHandler<GenericCommMethodReceiveTextArgs>(PortGather_LineReceived);
+            PortGather.LineReceived += PortGather_LineReceived;
 
             CommunicationMonitor =
                 new GenericCommunicationMonitor(this, Communication, 60000, 120000, 300000, ":G\x0D\x0A");
@@ -174,7 +174,7 @@ namespace PepperDash.Essentials.Devices.Common.Environment.Lutron
             IBasicCommunication comm = CommFactory.CreateCommForDevice(dc);
 
             LutronGrafikEyePropertiesConfig props = Newtonsoft.Json.JsonConvert
-                .DeserializeObject<Environment.Lutron.LutronGrafikEyePropertiesConfig>(dc.Properties.ToString());
+                .DeserializeObject<LutronGrafikEyePropertiesConfig>(dc.Properties.ToString());
 
             return new LutronGRX(dc.Key, dc.Name, comm, props);
         }

@@ -85,10 +85,10 @@ namespace QscQsysDspPlugin
         [JsonProperty("label")]
         public string Label
         {
-            get { return this._label; }
+            get { return _label; }
             set
             {
-                this._label = value;
+                _label = value;
                 LabelFeedback.FireUpdate();
             }
         }

@@ -67,7 +67,7 @@ namespace PepperDash.Essentials.Devices.Common.Environment.Lighting
         {
             SwitchedOutput = switchedOutput;
 
-            OutputIsOnFeedback = new BoolFeedback(new Func<bool>(() => SwitchedOutput.IsOn));
+            OutputIsOnFeedback = new BoolFeedback(() => SwitchedOutput.IsOn);
         }
 
         public void On()

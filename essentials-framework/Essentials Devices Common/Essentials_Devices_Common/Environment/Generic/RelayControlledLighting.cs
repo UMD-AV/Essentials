@@ -58,7 +58,7 @@ namespace PepperDash.Essentials.Devices.Common.Environment
 
                 relayDevice = Global.ControlSystem;
                 relayDevice.RelayPorts[portNumber].StateChange +=
-                    new RelayEventHandler(RelayControlledLighting_StateChange);
+                    RelayControlledLighting_StateChange;
                 return relayDevice.RelayPorts[portNumber];
             }
 
@@ -83,7 +83,7 @@ namespace PepperDash.Essentials.Devices.Common.Environment
             {
                 Debug.Console(1, "Adding relay {0} on device {1}", portNumber, portDeviceKey);
                 relayDevice.RelayPorts[portNumber].StateChange +=
-                    new RelayEventHandler(RelayControlledLighting_StateChange);
+                    RelayControlledLighting_StateChange;
                 return relayDevice.RelayPorts[portNumber];
             }
 

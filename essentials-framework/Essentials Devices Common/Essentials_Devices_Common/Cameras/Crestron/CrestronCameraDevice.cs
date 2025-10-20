@@ -21,7 +21,7 @@ namespace CrestronCameraPlugin
         /// </summary>
         public override void SetAutoTrackingOn()
         {
-            if (this._autoTrackingCapable)
+            if (_autoTrackingCapable)
             {
                 byte[] cmd = new byte[] { _address, 0x01, 0x04, 0x3F, 0x02, 0x50, 0xFF };
                 QueueCommand(eViscaCameraCommand.AutoTrackOnPresetCmd, cmd);
@@ -33,7 +33,7 @@ namespace CrestronCameraPlugin
         /// </summary>
         public override void SetAutoTrackingOff()
         {
-            if (this._autoTrackingCapable)
+            if (_autoTrackingCapable)
             {
                 byte[] cmd = new byte[] { _address, 0x01, 0x04, 0x3F, 0x02, 0x51, 0xFF };
                 QueueCommand(eViscaCameraCommand.AutoTrackOffPresetCmd, cmd);
@@ -58,7 +58,7 @@ namespace CrestronCameraPlugin
 
         protected override void ParseAdditionalFeedback(byte[] message)
         {
-            if (this._autoTrackingCapable & message.Length >= 8)
+            if (_autoTrackingCapable & message.Length >= 8)
             {
                 if (message[0] == 0x30 && message[1] == 0x30 && message[2] == 0x30 && message[3] == 0x30 &&
                     message[4] == 0x01 && message[6] == 0x00)

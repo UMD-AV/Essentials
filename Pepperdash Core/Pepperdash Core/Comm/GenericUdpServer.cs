@@ -55,7 +55,7 @@ namespace PepperDash.Core
         public string Hostname { get; set; }
 
         /// <summary>
-        /// IP Address of the sender of the last recieved message 
+        /// IP Address of the sender of the last received message 
         /// </summary>
         /// <summary>
         /// Port on server

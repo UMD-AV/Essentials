@@ -25,7 +25,7 @@ namespace DynFusion.Assets
 
             _asset.ParamMake.Value = "Shure";
 
-            _mic.ModelFeedback.OutputChange += new EventHandler<FeedbackEventArgs>(ModelFeedback_OutputChange);
+            _mic.ModelFeedback.OutputChange += ModelFeedback_OutputChange;
 
             //Microphone Present
             _asset.AddSig(eSigType.Bool, 1, "Microphone - Present", eSigIoMask.InputSigOnly);
@@ -60,7 +60,7 @@ namespace DynFusion.Assets
                 return;
             }
 
-            Debug.Console(1, this, "Microphone static asset state change {0} recieved EventID {1} Index {2}", Name,
+            Debug.Console(1, this, "Microphone static asset state change {0} received EventID {1} Index {2}", Name,
                 args.EventId, args.UserConfigurableAssetDetailIndex);
             switch (args.EventId)
             {

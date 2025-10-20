@@ -116,7 +116,7 @@ namespace PepperDash.Essentials.Devices.Common.Environment.Lutron
             IBasicCommunication comm = CommFactory.CreateCommForDevice(dc);
 
             LutronGrafikEyePropertiesConfig props = Newtonsoft.Json.JsonConvert
-                .DeserializeObject<Environment.Lutron.LutronGrafikEyePropertiesConfig>(dc.Properties.ToString());
+                .DeserializeObject<LutronGrafikEyePropertiesConfig>(dc.Properties.ToString());
 
             return new LutronTMH(dc.Key, dc.Name, comm, props);
         }

@@ -68,10 +68,10 @@ namespace ExtronDmp
 
             PortGather = new CommunicationGather(_comm, "\x0a");
             PortGather.IncludeDelimiter = false;
-            PortGather.LineReceived += this.ResponseReceived;
+            PortGather.LineReceived += ResponseReceived;
 
             _commMonitor = new GenericCommunicationMonitor(this, _comm, 30000, 121000, 301000, CheckComms);
-            _commMonitor.StatusChange += new EventHandler<MonitorStatusChangeEventArgs>(ConnectionChange);
+            _commMonitor.StatusChange += ConnectionChange;
 
             LevelControlPoints = new Dictionary<int, ExtronDmpLevelControl>();
             Dialers = new Dictionary<ushort, ExtronDmpDialer>();
@@ -110,17 +110,17 @@ namespace ExtronDmp
                         ExtronDmpLevelControl control = new ExtronDmpLevelControl(block.Key, block.Value, this);
                         if (block.Value.ControlId != null)
                         {
-                            this.LevelControlPoints.Add(block.Value.ControlId.Value, control);
+                            LevelControlPoints.Add(block.Value.ControlId.Value, control);
                             Debug.Console(2, this, "Added ControlId for key {0}", block.Key);
                         }
                         else if (block.Value.LevelGroup != null)
                         {
-                            this.LevelControlPoints.Add(block.Value.LevelGroup.Value, control);
+                            LevelControlPoints.Add(block.Value.LevelGroup.Value, control);
                             Debug.Console(2, this, "Added LevelGroup for key {0}", block.Key);
                         }
                         else if (block.Value.MuteGroup != null)
                         {
-                            this.LevelControlPoints.Add(block.Value.MuteGroup.Value, control);
+                            LevelControlPoints.Add(block.Value.MuteGroup.Value, control);
                             Debug.Console(2, this, "Added MuteGroup for key {0}", block.Key);
                         }
                     }
@@ -131,7 +131,7 @@ namespace ExtronDmp
             {
                 foreach (KeyValuePair<string, ExtronDmpPreset> preset in _config.Presets)
                 {
-                    this.addPreset(preset.Value);
+                    addPreset(preset.Value);
                     Debug.Console(2, this, "Added Preset {0} {1}", preset.Value.Label, preset.Value.id);
                 }
             }

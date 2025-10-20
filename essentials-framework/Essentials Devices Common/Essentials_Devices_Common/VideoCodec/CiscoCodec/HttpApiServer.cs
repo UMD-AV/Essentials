@@ -12,7 +12,7 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.Cisco
         public static Dictionary<string, string> ExtensionContentTypes;
 
         public event EventHandler<OnHttpRequestArgs> ApiRequest;
-        public Crestron.SimplSharp.Net.Http.HttpServer HttpServer { get; private set; }
+        public HttpServer HttpServer { get; private set; }
 
         public string HtmlRoot { get; set; }
 
@@ -46,7 +46,7 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.Cisco
         {
             // TEMP - this should be inserted by configuring class
 
-            HttpServer = new Crestron.SimplSharp.Net.Http.HttpServer();
+            HttpServer = new HttpServer();
             HttpServer.ServerName = "Cisco API Server";
             HttpServer.KeepAlive = true;
             HttpServer.Port = port;

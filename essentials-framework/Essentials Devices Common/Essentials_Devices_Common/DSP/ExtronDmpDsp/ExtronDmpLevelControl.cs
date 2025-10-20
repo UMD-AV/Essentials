@@ -160,7 +160,7 @@ namespace ExtronDmp
                     MuteFeedback.FireUpdate();
                     return;
                 }
-                else if (this.HasLevel)
+                else if (HasLevel)
                 {
                     float vol = value / 10;
                     if (vol >= maxLevel)
@@ -175,7 +175,7 @@ namespace ExtronDmp
                     return;
                 }
             }
-            else if (command == "L" && this.HasLevel) // Soft Limit response
+            else if (command == "L" && HasLevel) // Soft Limit response
             {
                 string[] responseArray = response.Substring(5).Split('*');
                 maxLevel = int.Parse(responseArray[1]) / 10;
@@ -323,7 +323,7 @@ namespace ExtronDmp
         /// <param name="callbackObject"></param>
         public void VolumeUpRepeat(object callbackObject)
         {
-            this.VolumeUp(_volumeUpCount > 0);
+            VolumeUp(_volumeUpCount > 0);
         }
 
         /// <summary>
@@ -332,7 +332,7 @@ namespace ExtronDmp
         /// <param name="callbackObject"></param>
         public void VolumeDownRepeat(object callbackObject)
         {
-            this.VolumeDown(_volumeDownCount > 0);
+            VolumeDown(_volumeDownCount > 0);
         }
 
         /// <summary>

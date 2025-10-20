@@ -124,7 +124,7 @@ namespace Tesira_DSP_EPI
         public double MaxLevel { get; private set; }
 
         /// <summary>
-        /// Checks if a valid subscription string has been recieved for all subscriptions
+        /// Checks if a valid subscription string has been received for all subscriptions
         /// </summary>
         public override bool IsSubscribed
         {

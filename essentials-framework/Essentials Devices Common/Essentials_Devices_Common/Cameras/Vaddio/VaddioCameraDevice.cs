@@ -716,7 +716,7 @@ namespace VaddioCameraPlugin
 
             if (string.IsNullOrEmpty(response)) return;
 
-            Debug.Console(1, this, "ProcessLineRecieved: '{0}', last inquiry: {1}", response, _lastInquiry.ToString());
+            Debug.Console(1, this, "ProcessLinereceived: '{0}', last inquiry: {1}", response, _lastInquiry.ToString());
 
             if (response.StartsWith(">"))
             {

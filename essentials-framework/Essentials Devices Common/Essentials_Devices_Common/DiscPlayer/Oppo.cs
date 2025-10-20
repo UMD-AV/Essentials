@@ -72,7 +72,7 @@ namespace PepperDash.Essentials.Devices.Common.Oppo
             if (socket != null)
             {
                 // This instance uses IP control
-                socket.ConnectionChange += new EventHandler<GenericSocketStatusChageEventArgs>(socket_ConnectionChange);
+                socket.ConnectionChange += socket_ConnectionChange;
             }
             else
             {
@@ -80,7 +80,7 @@ namespace PepperDash.Essentials.Devices.Common.Oppo
             }
 
             PortGather = new CommunicationGather(Communication, "\x0D");
-            PortGather.LineReceived += this.Port_LineReceived;
+            PortGather.LineReceived += Port_LineReceived;
 
             // Custom monitoring, will check the heartbeat tracker count every 20s and reset. Heartbeat sbould be coming in every 20s if subscriptions are valid
             CommunicationMonitor = new GenericCommunicationMonitor(this, Communication, 20000, 120000, 300000, Poll);

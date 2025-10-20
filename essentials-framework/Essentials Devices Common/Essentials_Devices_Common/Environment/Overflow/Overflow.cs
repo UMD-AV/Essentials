@@ -265,7 +265,7 @@ namespace OverflowPlugin
         {
             Debug.Console(1, "Factory Attempting to create new Overflow Device");
             OverflowPropertiesConfig props =
-                Newtonsoft.Json.JsonConvert.DeserializeObject<OverflowPropertiesConfig>(dc.Properties.ToString());
+                JsonConvert.DeserializeObject<OverflowPropertiesConfig>(dc.Properties.ToString());
 
             return new Overflow(dc.Key, dc.Name, props);
         }

@@ -13,7 +13,7 @@ namespace DynFusion
             : base(name, eSigType.Bool, joinNumber)
         {
             BoolValueFeedback = new BoolFeedback(() => { return BoolValue; });
-            Debug.Console(2, "Creating DigitalAttribute {0} {1} {2}", this.JoinNumber, this.Name, this.RwType);
+            Debug.Console(2, "Creating DigitalAttribute {0} {1} {2}", JoinNumber, Name, RwType);
         }
 
         public DynFusionDigitalAttribute(string name, uint joinNumber, string deviceKey, string boolAction,
@@ -21,7 +21,7 @@ namespace DynFusion
             : base(name, eSigType.Bool, joinNumber)
         {
             BoolValueFeedback = new BoolFeedback(() => { return BoolValue; });
-            Debug.Console(2, "Creating DigitalAttribute {0} {1} {2}", this.JoinNumber, this.Name, this.RwType);
+            Debug.Console(2, "Creating DigitalAttribute {0} {1} {2}", JoinNumber, Name, RwType);
 
             if (deviceKey != null)
             {
@@ -30,7 +30,7 @@ namespace DynFusion
                     try
                     {
                         BoolFeedback fb = DeviceJsonApi.GetPropertyByName(deviceKey, boolFeedback) as BoolFeedback;
-                        fb.OutputChange += ((sender, args) => { this.BoolValue = args.BoolValue; });
+                        fb.OutputChange += ((sender, args) => { BoolValue = args.BoolValue; });
                     }
                     catch (Exception ex)
                     {
@@ -52,7 +52,7 @@ namespace DynFusion
             {
                 _BoolValue = value;
                 BoolValueFeedback.FireUpdate();
-                Debug.Console(2, "Changed Value of DigitalAttribute {0} {1} {2}", this.JoinNumber, this.Name, value);
+                Debug.Console(2, "Changed Value of DigitalAttribute {0} {1} {2}", JoinNumber, Name, value);
             }
         }
     }
@@ -64,7 +64,7 @@ namespace DynFusion
         {
             UShortValueFeedback = new IntFeedback(() => { return (int)UShortValue; });
 
-            Debug.Console(2, "Creating AnalogAttribute {0} {1} {2}", this.JoinNumber, this.Name, this.RwType);
+            Debug.Console(2, "Creating AnalogAttribute {0} {1} {2}", JoinNumber, Name, RwType);
         }
 
         public IntFeedback UShortValueFeedback { get; set; }
@@ -88,7 +88,7 @@ namespace DynFusion
         {
             StringValueFeedback = new StringFeedback(() => { return StringValue; });
 
-            Debug.Console(2, "Creating StringAttribute {0} {1} {2}", this.JoinNumber, this.Name, this.RwType);
+            Debug.Console(2, "Creating StringAttribute {0} {1} {2}", JoinNumber, Name, RwType);
         }
 
         public StringFeedback StringValueFeedback { get; set; }

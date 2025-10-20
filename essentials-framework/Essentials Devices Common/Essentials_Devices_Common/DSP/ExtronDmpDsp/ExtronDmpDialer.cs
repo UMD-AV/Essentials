@@ -385,7 +385,7 @@ namespace ExtronDmp
         /// <param name="button">Button pressed</param>
         public void SendKeypad(EKeypadKeys button)
         {
-            if (this.OffHook)
+            if (OffHook)
             {
                 string tempDigit = "";
                 switch (button)
@@ -493,22 +493,22 @@ namespace ExtronDmp
             switch (status)
             {
                 case ELineStatus.Active:
-                    this.OffHook = true;
+                    OffHook = true;
                     break;
                 case ELineStatus.Inactive:
-                    this.OffHook = false;
+                    OffHook = false;
                     break;
                 case ELineStatus.Incoming:
-                    this.OffHook = true;
+                    OffHook = true;
                     break;
                 case ELineStatus.None:
-                    this.OffHook = false;
+                    OffHook = false;
                     break;
                 case ELineStatus.OnHold:
-                    this.OffHook = true;
+                    OffHook = true;
                     break;
                 case ELineStatus.Outgoing:
-                    this.OffHook = true;
+                    OffHook = true;
                     break;
             }
         }
@@ -518,7 +518,7 @@ namespace ExtronDmp
         /// </summary>
         public void Dial()
         {
-            if (!this.OffHook)
+            if (!OffHook)
             {
                 SendDialerCommand("DIAL", DialString);
             }

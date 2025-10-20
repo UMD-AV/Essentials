@@ -1198,7 +1198,7 @@ namespace ViscaCameraPlugin
         /// </summary>
         public virtual void SetAutoTrackingOn()
         {
-            if (this._autoTrackingCapable)
+            if (_autoTrackingCapable)
             {
                 QueueCommand(eViscaCameraCommand.AutoTrackOnCmd, _autoTrackingOnBytes);
             }
@@ -1209,7 +1209,7 @@ namespace ViscaCameraPlugin
         /// </summary>
         public virtual void SetAutoTrackingOff()
         {
-            if (this._autoTrackingCapable)
+            if (_autoTrackingCapable)
             {
                 QueueCommand(eViscaCameraCommand.AutoTrackOffCmd, _autoTrackingOffBytes);
             }

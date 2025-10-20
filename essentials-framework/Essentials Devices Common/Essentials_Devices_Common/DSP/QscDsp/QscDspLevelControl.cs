@@ -115,15 +115,15 @@ namespace QscQsysDspPlugin
         public void Subscribe()
         {
             // Subscribe to mute
-            if (this.HasMute)
+            if (HasMute)
             {
-                SendSubscriptionCommand(this.MuteInstanceTag);
+                SendSubscriptionCommand(MuteInstanceTag);
             }
 
             // Subscribe to level
-            if (this.HasLevel)
+            if (HasLevel)
             {
-                SendSubscriptionCommand(this.LevelInstanceTag);
+                SendSubscriptionCommand(LevelInstanceTag);
             }
         }
 
@@ -189,7 +189,7 @@ namespace QscQsysDspPlugin
         /// </summary>
         public void MuteOff()
         {
-            SendFullCommand("csv", this.MuteInstanceTag, "0");
+            SendFullCommand("csv", MuteInstanceTag, "0");
         }
 
         /// <summary>
@@ -197,7 +197,7 @@ namespace QscQsysDspPlugin
         /// </summary>
         public void MuteOn()
         {
-            SendFullCommand("csv", this.MuteInstanceTag, "1");
+            SendFullCommand("csv", MuteInstanceTag, "1");
         }
 
         /// <summary>
@@ -217,11 +217,11 @@ namespace QscQsysDspPlugin
             {
                 double newLevel = Scale(level);
                 Debug.Console(1, this, "newVolume: {0}", newLevel);
-                SendFullCommand("csp", this.LevelInstanceTag, string.Format("{0}", newLevel));
+                SendFullCommand("csp", LevelInstanceTag, string.Format("{0}", newLevel));
             }
             else
             {
-                SendFullCommand("csv", this.LevelInstanceTag, string.Format("{0}", level));
+                SendFullCommand("csv", LevelInstanceTag, string.Format("{0}", level));
             }
         }
 
@@ -230,7 +230,7 @@ namespace QscQsysDspPlugin
         /// </summary>
         public void MuteToggle()
         {
-            SendFullCommand("csv", this.MuteInstanceTag, _isMuted ? "0" : "1");
+            SendFullCommand("csv", MuteInstanceTag, _isMuted ? "0" : "1");
         }
 
         /// <summary>
@@ -239,7 +239,7 @@ namespace QscQsysDspPlugin
         /// <param name="callbackObject"></param>
         public void VolumeUpRepeat(object callbackObject)
         {
-            this.VolumeUp(_volumeUpCount > 0);
+            VolumeUp(_volumeUpCount > 0);
         }
 
         /// <summary>
@@ -248,7 +248,7 @@ namespace QscQsysDspPlugin
         /// <param name="callbackObject"></param>
         public void VolumeDownRepeat(object callbackObject)
         {
-            this.VolumeDown(_volumeDownCount > 0);
+            VolumeDown(_volumeDownCount > 0);
         }
 
         /// <summary>
@@ -273,7 +273,7 @@ namespace QscQsysDspPlugin
                     }
 
                     _volumeDownCount++;
-                    SendFullCommand("css ", this.LevelInstanceTag, "--");
+                    SendFullCommand("css ", LevelInstanceTag, "--");
                     _volumeDownRepeatTimer.Reset(80);
                 }
                 else
@@ -314,7 +314,7 @@ namespace QscQsysDspPlugin
                     }
 
                     _volumeUpCount++;
-                    SendFullCommand("css ", this.LevelInstanceTag, "++");
+                    SendFullCommand("css ", LevelInstanceTag, "++");
                     _volumeUpRepeatTimer.Reset(80);
                 }
                 else

@@ -22,10 +22,10 @@ namespace QscQsysDspPlugin
         {
             set
             {
-                this._Online = value;
+                _Online = value;
                 IsOnline.FireUpdate();
             }
-            get { return this._Online; }
+            get { return _Online; }
         }
 
         /// <summary>
@@ -191,31 +191,31 @@ namespace QscQsysDspPlugin
             Debug.Console(1, this, "Linking to Trilist '{0}'", trilist.ID.ToString("X"));
 
             // from Plugin > to SiMPL
-            this.IsOnline.LinkInputSig(trilist.BooleanInput[joinMap.Online.JoinNumber]);
+            IsOnline.LinkInputSig(trilist.BooleanInput[joinMap.Online.JoinNumber]);
 
             // from SiMPL > to Plugin
             // ternary: camera.MoveCamera(bool ? [bool == true, method to execute] : [bool == false, method to execute])
             trilist.SetBoolSigAction(joinMap.Up.JoinNumber,
-                (b) => this.MoveCamera(b ? eCameraPtzControls.TiltUp : eCameraPtzControls.Stop));
+                (b) => MoveCamera(b ? eCameraPtzControls.TiltUp : eCameraPtzControls.Stop));
             trilist.SetBoolSigAction(joinMap.Down.JoinNumber,
-                (b) => this.MoveCamera(b ? eCameraPtzControls.TiltDown : eCameraPtzControls.Stop));
+                (b) => MoveCamera(b ? eCameraPtzControls.TiltDown : eCameraPtzControls.Stop));
             trilist.SetBoolSigAction(joinMap.Left.JoinNumber,
-                (b) => this.MoveCamera(b ? eCameraPtzControls.PanLeft : eCameraPtzControls.Stop));
+                (b) => MoveCamera(b ? eCameraPtzControls.PanLeft : eCameraPtzControls.Stop));
             trilist.SetBoolSigAction(joinMap.Right.JoinNumber,
-                (b) => this.MoveCamera(b ? eCameraPtzControls.PanRight : eCameraPtzControls.Stop));
+                (b) => MoveCamera(b ? eCameraPtzControls.PanRight : eCameraPtzControls.Stop));
             trilist.SetBoolSigAction(joinMap.ZoomIn.JoinNumber,
-                (b) => this.MoveCamera(b ? eCameraPtzControls.ZoomIn : eCameraPtzControls.Stop));
+                (b) => MoveCamera(b ? eCameraPtzControls.ZoomIn : eCameraPtzControls.Stop));
             trilist.SetBoolSigAction(joinMap.ZoomOut.JoinNumber,
-                (b) => this.MoveCamera(b ? eCameraPtzControls.ZoomOut : eCameraPtzControls.Stop));
+                (b) => MoveCamera(b ? eCameraPtzControls.ZoomOut : eCameraPtzControls.Stop));
 
             ushort x = 0;
-            foreach (KeyValuePair<string, QscDspPresets> preset in this.Config.Presets)
+            foreach (KeyValuePair<string, QscDspPresets> preset in Config.Presets)
             {
                 ushort temp = x;
                 // from SiMPL > to Plugin
                 trilist.SetSigTrueAction(joinMap.PresetRecallStart.JoinNumber + temp + 1,
-                    () => this.RecallPreset(temp));
-                trilist.SetSigTrueAction(joinMap.PresetStoreStart.JoinNumber + temp + 1, () => this.SavePreset(temp));
+                    () => RecallPreset(temp));
+                trilist.SetSigTrueAction(joinMap.PresetStoreStart.JoinNumber + temp + 1, () => SavePreset(temp));
 
                 // from Plugin > to SiMPL
                 preset.Value.LabelFeedback.LinkInputSig(
@@ -225,8 +225,8 @@ namespace QscQsysDspPlugin
             }
 
             // from SiMPL > to Plugin
-            trilist.SetSigTrueAction(joinMap.PrivacyOn.JoinNumber, () => this.PrivacyOn());
-            trilist.SetSigTrueAction(joinMap.PrivacyOff.JoinNumber, () => this.PrivacyOff());
+            trilist.SetSigTrueAction(joinMap.PrivacyOn.JoinNumber, () => PrivacyOn());
+            trilist.SetSigTrueAction(joinMap.PrivacyOff.JoinNumber, () => PrivacyOff());
         }
 
         #endregion

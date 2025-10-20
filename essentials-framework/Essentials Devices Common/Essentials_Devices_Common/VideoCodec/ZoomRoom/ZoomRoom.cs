@@ -2606,7 +2606,7 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.ZoomRoom
             trilist.SetSigTrueAction(joinMap.ClearPasswordPrompt.JoinNumber, () => ClearPasswordPrompt());
 
             // Subscribe to call status to clear ShowPasswordPrompt when in meeting
-            this.CallStatusChange += (o, a) =>
+            CallStatusChange += (o, a) =>
             {
                 if (a.CallItem.Status == eCodecCallStatus.Connected ||
                     a.CallItem.Status == eCodecCallStatus.Disconnected)

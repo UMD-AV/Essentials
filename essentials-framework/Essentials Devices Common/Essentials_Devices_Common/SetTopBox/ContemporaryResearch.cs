@@ -92,7 +92,7 @@ namespace PepperDash.Essentials.Devices.Common.ContemporaryResearch
             if (socket != null)
             {
                 // This instance uses IP control
-                socket.ConnectionChange += new EventHandler<GenericSocketStatusChageEventArgs>(socket_ConnectionChange);
+                socket.ConnectionChange += socket_ConnectionChange;
             }
             else
             {
@@ -100,7 +100,7 @@ namespace PepperDash.Essentials.Devices.Common.ContemporaryResearch
             }
 
             PortGather = new CommunicationGather(Communication, "\x0A");
-            PortGather.LineReceived += this.Port_LineReceived;
+            PortGather.LineReceived += Port_LineReceived;
 
             // Custom monitoring, will check the heartbeat tracker count every 20s and reset. Heartbeat sbould be coming in every 20s if subscriptions are valid
             CommunicationMonitor = new GenericCommunicationMonitor(this, Communication, 20000, 120000, 300000, Poll);
@@ -256,7 +256,7 @@ namespace PepperDash.Essentials.Devices.Common.ContemporaryResearch
             throw new NotImplementedException();
         }
 
-        public PepperDash.Essentials.Core.Presets.DevicePresetsModel PresetsModel
+        public Core.Presets.DevicePresetsModel PresetsModel
         {
             get { throw new NotImplementedException(); }
         }
@@ -596,7 +596,7 @@ namespace PepperDash.Essentials.Devices.Common.ContemporaryResearch
 
         #region ISetTopBoxControls Members
 
-        public PepperDash.Essentials.Core.Presets.DevicePresetsModel TvPresets
+        public Core.Presets.DevicePresetsModel TvPresets
         {
             get { throw new NotImplementedException(); }
         }

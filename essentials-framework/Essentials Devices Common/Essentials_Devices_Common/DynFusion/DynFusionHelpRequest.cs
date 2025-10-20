@@ -222,9 +222,9 @@ namespace DynFusion
 
         public MessageEventArgs(string id, string stringVal, ushort active)
         {
-            this.StringVal = stringVal;
-            this.Id = id;
-            this.Active = active;
+            StringVal = stringVal;
+            Id = id;
+            Active = active;
         }
     }
 }

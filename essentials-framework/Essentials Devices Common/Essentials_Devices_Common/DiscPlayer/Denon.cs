@@ -80,7 +80,7 @@ namespace PepperDash.Essentials.Devices.Common.Denon
             if (socket != null)
             {
                 // This instance uses IP control
-                socket.ConnectionChange += new EventHandler<GenericSocketStatusChageEventArgs>(socket_ConnectionChange);
+                socket.ConnectionChange += socket_ConnectionChange;
             }
             else
             {
@@ -175,7 +175,7 @@ namespace PepperDash.Essentials.Devices.Common.Denon
         }
 
         /// <summary>
-        /// Communication bytes recieved
+        /// Communication bytes received
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e">Event args</param>

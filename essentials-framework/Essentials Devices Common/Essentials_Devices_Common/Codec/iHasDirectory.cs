@@ -170,7 +170,7 @@ namespace PepperDash.Essentials.Devices.Common.Codec
     {
         public object Clone()
         {
-            return this.MemberwiseClone();
+            return MemberwiseClone();
         }
 
         [JsonProperty("folderId")] public string FolderId { get; set; }

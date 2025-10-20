@@ -42,7 +42,7 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec
             MuteFeedback = new BoolFeedback(MuteFeedbackFunc);
             SharingSourceFeedback = new StringFeedback(SharingSourceFeedbackFunc);
             SharingContentIsOnFeedback = new BoolFeedback(SharingContentIsOnFeedbackFunc);
-            
+
             MeetingsToDisplayFeedback = new IntFeedback(() => MeetingsToDisplay);
 
             InputPorts = new RoutingPortCollection<RoutingInputPort>();
@@ -476,26 +476,26 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec
 
         private void LinkVideoCodecInfoToApi(BasicTriList trilist, VideoCodecControllerJoinMap joinMap)
         {
-            trilist.SetBool(joinMap.MultiSiteOptionIsEnabled.JoinNumber, this.CodecInfo.MultiSiteOptionIsEnabled);
-            trilist.SetBool(joinMap.AutoAnswerEnabled.JoinNumber, this.CodecInfo.AutoAnswerEnabled);
-            trilist.SetString(joinMap.DeviceIpAddresss.JoinNumber, this.CodecInfo.IpAddress);
-            trilist.SetString(joinMap.SipPhoneNumber.JoinNumber, this.CodecInfo.SipPhoneNumber);
-            trilist.SetString(joinMap.E164Alias.JoinNumber, this.CodecInfo.E164Alias);
-            trilist.SetString(joinMap.H323Id.JoinNumber, this.CodecInfo.H323Id);
-            trilist.SetString(joinMap.SipUri.JoinNumber, this.CodecInfo.SipUri);
+            trilist.SetBool(joinMap.MultiSiteOptionIsEnabled.JoinNumber, CodecInfo.MultiSiteOptionIsEnabled);
+            trilist.SetBool(joinMap.AutoAnswerEnabled.JoinNumber, CodecInfo.AutoAnswerEnabled);
+            trilist.SetString(joinMap.DeviceIpAddresss.JoinNumber, CodecInfo.IpAddress);
+            trilist.SetString(joinMap.SipPhoneNumber.JoinNumber, CodecInfo.SipPhoneNumber);
+            trilist.SetString(joinMap.E164Alias.JoinNumber, CodecInfo.E164Alias);
+            trilist.SetString(joinMap.H323Id.JoinNumber, CodecInfo.H323Id);
+            trilist.SetString(joinMap.SipUri.JoinNumber, CodecInfo.SipUri);
 
             trilist.OnlineStatusChange += (o, a) =>
             {
                 if (a.DeviceOnLine)
                 {
                     trilist.SetBool(joinMap.MultiSiteOptionIsEnabled.JoinNumber,
-                        this.CodecInfo.MultiSiteOptionIsEnabled);
-                    trilist.SetBool(joinMap.AutoAnswerEnabled.JoinNumber, this.CodecInfo.AutoAnswerEnabled);
-                    trilist.SetString(joinMap.DeviceIpAddresss.JoinNumber, this.CodecInfo.IpAddress);
-                    trilist.SetString(joinMap.SipPhoneNumber.JoinNumber, this.CodecInfo.SipPhoneNumber);
-                    trilist.SetString(joinMap.E164Alias.JoinNumber, this.CodecInfo.E164Alias);
-                    trilist.SetString(joinMap.H323Id.JoinNumber, this.CodecInfo.H323Id);
-                    trilist.SetString(joinMap.SipUri.JoinNumber, this.CodecInfo.SipUri);
+                        CodecInfo.MultiSiteOptionIsEnabled);
+                    trilist.SetBool(joinMap.AutoAnswerEnabled.JoinNumber, CodecInfo.AutoAnswerEnabled);
+                    trilist.SetString(joinMap.DeviceIpAddresss.JoinNumber, CodecInfo.IpAddress);
+                    trilist.SetString(joinMap.SipPhoneNumber.JoinNumber, CodecInfo.SipPhoneNumber);
+                    trilist.SetString(joinMap.E164Alias.JoinNumber, CodecInfo.E164Alias);
+                    trilist.SetString(joinMap.H323Id.JoinNumber, CodecInfo.H323Id);
+                    trilist.SetString(joinMap.SipUri.JoinNumber, CodecInfo.SipUri);
                 }
             };
         }
@@ -1046,7 +1046,7 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec
                 (i) => SelectDirectoryEntry(codec, i, trilist, joinMap));
 
             //Special Change for protected directory clear
-            
+
             // Report feedback for number of contact methods for selected contact
 
             trilist.SetSigFalseAction(joinMap.DirectoryRoot.JoinNumber, codec.SetCurrentDirectoryToRoot);
@@ -1857,7 +1857,7 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec
                     trilist.SetSigFalseAction(joinMap.RemoveSelectedRecentCallItem.JoinNumber,
                         () => codec.RemoveCallHistoryEntry(_selectedRecentCallItem));
                     trilist.SetSigFalseAction(joinMap.DialSelectedRecentCallItem.JoinNumber,
-                        () => this.Dial(_selectedRecentCallItem.Number));
+                        () => Dial(_selectedRecentCallItem.Number));
                 }
                 else
                 {
@@ -2000,7 +2000,7 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec
 
         public bool NumberOfContactsWasReceived { get; private set; }
 
-        public bool PhonebookRootEntriesWasRecieved { get; private set; }
+        public bool PhonebookRootEntriesWasreceived { get; private set; }
 
         public bool PhonebookHasFolders { get; private set; }
 
@@ -2023,7 +2023,7 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec
 
         public void PhonebookRootEntriesReceived()
         {
-            PhonebookRootEntriesWasRecieved = true;
+            PhonebookRootEntriesWasreceived = true;
 
             CheckSyncStatus();
         }
@@ -2055,7 +2055,7 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec
 
         private void CheckSyncStatus()
         {
-            if (InitialPhonebookFoldersWasReceived && NumberOfContactsWasReceived && PhonebookRootEntriesWasRecieved)
+            if (InitialPhonebookFoldersWasReceived && NumberOfContactsWasReceived && PhonebookRootEntriesWasreceived)
             {
                 InitialSyncComplete = true;
                 Debug.Console(1, this, "Initial Phonebook Sync Complete!");

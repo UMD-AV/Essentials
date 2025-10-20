@@ -660,10 +660,10 @@ namespace PepperDash.Essentials.Devices.Common.ShureMxa
                     DeviceManager.GetDeviceForKey(_config.DspObjectKey) as IBasicVolumeWithFeedback;
                 if (dspObject != null)
                 {
-                    Debug.Console(1, this, "Linking {0} to dsp object", this.Name, _config.DspObjectKey);
+                    Debug.Console(1, this, "Linking {0} to dsp object", Name, _config.DspObjectKey);
                     DspObject = dspObject;
                     dspObject.MuteFeedback.OutputChange += DspMuteFeedbackChange;
-                    this.DeviceAudioMuteStateFeedback.OutputChange += DeviceMuteStateChange;
+                    DeviceAudioMuteStateFeedback.OutputChange += DeviceMuteStateChange;
                 }
             }
 
@@ -695,11 +695,11 @@ namespace PepperDash.Essentials.Devices.Common.ShureMxa
                                     DspObject.MuteFeedback.BoolValue);
                                 if (DspObject.MuteFeedback.BoolValue)
                                 {
-                                    this.SetDeviceAudioMuteOn();
+                                    SetDeviceAudioMuteOn();
                                 }
                                 else
                                 {
-                                    this.SetDeviceAudioMuteOff();
+                                    SetDeviceAudioMuteOff();
                                 }
                             }
                         }
@@ -785,7 +785,7 @@ namespace PepperDash.Essentials.Devices.Common.ShureMxa
         {
             if (string.IsNullOrEmpty(lineReceived)) return;
 
-            Debug.Console(2, this, "ProcessLineRecieved: lineReceived = {0}", lineReceived);
+            Debug.Console(2, this, "ProcessLinereceived: lineReceived = {0}", lineReceived);
 
             // Shure MXA910 command strings
             // https://pubs.shure.com/command-strings/MXA910			
@@ -810,7 +810,7 @@ namespace PepperDash.Essentials.Devices.Common.ShureMxa
 
             if (string.IsNullOrEmpty(command)) return;
 
-            Debug.Console(2, this, "ProcessLineRecieved: index-'{0}' | command-'{1} | state-'{2}'", index, command,
+            Debug.Console(2, this, "ProcessLinereceived: index-'{0}' | command-'{1} | state-'{2}'", index, command,
                 state);
 
             switch (command)

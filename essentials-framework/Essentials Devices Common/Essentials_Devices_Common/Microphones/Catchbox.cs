@@ -133,7 +133,7 @@ namespace PepperDash.Essentials.Devices.Common.Catchbox
 
         private void Handle_TextReceived(object sender, GenericCommMethodReceiveTextArgs args)
         {
-            Debug.Console(0, this, "TextRecieved: {0}", args.Text);
+            Debug.Console(0, this, "Textreceived: {0}", args.Text);
         }
 
         /// <summary>

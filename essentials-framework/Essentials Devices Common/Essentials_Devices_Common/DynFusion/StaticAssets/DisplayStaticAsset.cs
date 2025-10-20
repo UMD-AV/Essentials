@@ -19,7 +19,7 @@ namespace DynFusion.Assets
             _asset.PowerOn.AddSigToRVIFile = true;
             _asset.PowerOff.AddSigToRVIFile = true;
 
-            EpsonProjector epson = _device as PepperDash.Essentials.Devices.Displays.EpsonProjector;
+            EpsonProjector epson = _device as EpsonProjector;
             if (epson != null)
             {
                 _asset.ParamMake.Value = "Epson";
@@ -62,7 +62,7 @@ namespace DynFusion.Assets
                 return;
             }
 
-            Debug.Console(1, this, "Display static asset state change {0} recieved EventID {1} Index {2}", Name,
+            Debug.Console(1, this, "Display static asset state change {0} received EventID {1} Index {2}", Name,
                 args.EventId, args.UserConfigurableAssetDetailIndex);
             switch (args.EventId)
             {

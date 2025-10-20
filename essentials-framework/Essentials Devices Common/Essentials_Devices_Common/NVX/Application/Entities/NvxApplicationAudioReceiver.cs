@@ -101,7 +101,7 @@ namespace NvxEpi.Application.Entities
                     if (AudioInputExtensions.AudioInputIsLocal(_device))
                     {
                         NvxApplicationAudioTransmitter self =
-                            _transmitters.FirstOrDefault(t => t.Name.Equals(this.Name));
+                            _transmitters.FirstOrDefault(t => t.Name.Equals(Name));
                         return self == null ? 0 : self.DeviceId;
                     }
 
@@ -129,7 +129,7 @@ namespace NvxEpi.Application.Entities
                     if (AudioInputExtensions.AudioInputIsLocal(_device))
                     {
                         NvxApplicationAudioTransmitter self = _transmitters.FirstOrDefault(t =>
-                            t.DeviceId.Equals(this._currentAudioRouteId.IntValue));
+                            t.DeviceId.Equals(_currentAudioRouteId.IntValue));
                         return self == null ? NvxGlobalRouter.NoSourceText : self.AudioName.StringValue;
                     }
 

@@ -132,18 +132,18 @@ namespace QscQsysDspPlugin
             if (customName == Tags.DialStringTag)
             {
                 Debug.Console(2, "QscDialerTag DialStringChanged ", value);
-                this.DialString = value;
-                this.DialStringFeedback.FireUpdate();
+                DialString = value;
+                DialStringFeedback.FireUpdate();
             }
             else if (customName == Tags.DoNotDisturbTag)
             {
                 if (value == "on")
                 {
-                    this.DoNotDisturbState = true;
+                    DoNotDisturbState = true;
                 }
                 else if (value == "off")
                 {
-                    this.DoNotDisturbState = false;
+                    DoNotDisturbState = false;
                 }
 
                 DoNotDisturbFeedback.FireUpdate();
@@ -153,12 +153,12 @@ namespace QscQsysDspPlugin
                 // TODO [ ] Add incoming call/ringing to parse subscription message
                 if (value == "Incoming")
                 {
-                    this.IncomingCall = true;
+                    IncomingCall = true;
                 }
                 else if (value.Contains("Ringing"))
                 {
-                    this.IncomingCall = false;
-                    this.OffHook = true;
+                    IncomingCall = false;
+                    OffHook = true;
                     string[] splitString = value.Split(' ');
                     if (splitString.Count() >= 2)
                     {
@@ -167,7 +167,7 @@ namespace QscQsysDspPlugin
                 }
                 else if (value.Contains("Dialing") || value.Contains("Connected"))
                 {
-                    this.OffHook = true;
+                    OffHook = true;
                     string[] splitString = value.Split(' ');
 
                     if (splitString.Count() >= 2)
@@ -177,36 +177,36 @@ namespace QscQsysDspPlugin
                 }
                 else if (value == "Disconnected")
                 {
-                    this.IncomingCall = false;
-                    this.OffHook = false;
+                    IncomingCall = false;
+                    OffHook = false;
                     CallerIdNumber = "";
                     if (Tags.ClearOnHangup)
                     {
-                        this.SendKeypad(EKeypadKeys.Clear);
+                        SendKeypad(EKeypadKeys.Clear);
                     }
                 }
                 else if (value == "Idle")
                 {
-                    this.IncomingCall = false;
-                    this.OffHook = false;
+                    IncomingCall = false;
+                    OffHook = false;
                     CallerIdNumber = "";
                     if (Tags.ClearOnHangup)
                     {
-                        this.SendKeypad(EKeypadKeys.Clear);
+                        SendKeypad(EKeypadKeys.Clear);
                     }
                 }
 
-                this.OffHookFeedback.FireUpdate();
+                OffHookFeedback.FireUpdate();
             }
             else if (customName == Tags.AutoAnswerTag)
             {
                 if (value == "on")
                 {
-                    this.AutoAnswerState = true;
+                    AutoAnswerState = true;
                 }
                 else if (value == "off")
                 {
-                    this.AutoAnswerState = false;
+                    AutoAnswerState = false;
                 }
 
                 AutoAnswerFeedback.FireUpdate();
@@ -215,14 +215,14 @@ namespace QscQsysDspPlugin
             {
                 if (value == "true")
                 {
-                    this.OffHook = true;
+                    OffHook = true;
                 }
                 else if (value == "false")
                 {
-                    this.OffHook = false;
+                    OffHook = false;
                 }
 
-                this.OffHookFeedback.FireUpdate();
+                OffHookFeedback.FireUpdate();
             }
         }
 
@@ -363,7 +363,7 @@ namespace QscQsysDspPlugin
         /// </summary>
         public void Dial()
         {
-            Parent.SendLine(!this.OffHook
+            Parent.SendLine(!OffHook
                 ? string.Format("ct \"{0}\"", Tags.ConnectTag) // !this.OffHook
                 : string.Format("ct \"{0}\"", Tags.DisconnectTag)); // this.OffHook
             Thread.Sleep(50);
@@ -402,7 +402,7 @@ namespace QscQsysDspPlugin
         /// </summary>
         public void AcceptCall()
         {
-            this.IncomingCall = false;
+            IncomingCall = false;
             Parent.SendLine(string.Format("ct \"{0}\"", Tags.ConnectTag));
             Thread.Sleep(50);
             Parent.SendLine(string.Format("cg \"{0}\"", Tags.HookStatusTag));
@@ -414,7 +414,7 @@ namespace QscQsysDspPlugin
         /// <param name="item">Use "", use of CodecActiveCallItem is not implemented</param>
         public void AcceptCall(CodecActiveCallItem item)
         {
-            this.IncomingCall = false;
+            IncomingCall = false;
             Parent.SendLine(string.Format("ct \"{0}\"", Tags.ConnectTag));
             Thread.Sleep(50);
             Parent.SendLine(string.Format("cg \"{0}\"", Tags.HookStatusTag));
@@ -425,7 +425,7 @@ namespace QscQsysDspPlugin
         /// </summary>
         public void RejectCall()
         {
-            this.IncomingCall = false;
+            IncomingCall = false;
             Parent.SendLine(string.Format("ct \"{0}\"", Tags.DisconnectTag));
             Thread.Sleep(50);
             Parent.SendLine(string.Format("cg \"{0}\"", Tags.HookStatusTag));
@@ -437,7 +437,7 @@ namespace QscQsysDspPlugin
         /// <param name="item"></param>
         public void RejectCall(CodecActiveCallItem item)
         {
-            this.IncomingCall = false;
+            IncomingCall = false;
             Parent.SendLine(string.Format("ct \"{0}\"", Tags.DisconnectTag));
             Thread.Sleep(50);
             Parent.SendLine(string.Format("cg \"{0}\"", Tags.HookStatusTag));

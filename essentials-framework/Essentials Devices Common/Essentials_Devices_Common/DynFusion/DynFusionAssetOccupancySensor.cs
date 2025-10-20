@@ -23,7 +23,7 @@ namespace DynFusion.Assets
 
         public void sendChange(string message)
         {
-            Debug.Console(2, this, "OccupancySensor {0} recieved Message {1}", _assetNumber, message);
+            Debug.Console(2, this, "OccupancySensor {0} received Message {1}", _assetNumber, message);
 
             if (message.StartsWith("<")) //For XML string from Fusion SSI module
                 ((FusionOccupancySensor)_fusionSymbol.UserConfigurableAssetDetails[_assetNumber].Asset)
@@ -65,8 +65,8 @@ namespace DynFusion.Assets
 
             _fusionSymbol.FusionAssetStateChange += (s, a) =>
             {
-                Debug.Console(2, this, "OccupancySensor State Change {0} recieved EventID {1}", s, a.EventId);
-                // Debug.Console(2, this, "OccupancySensor State Change {0} recieved EventID {1}", device, args.EventId);
+                Debug.Console(2, this, "OccupancySensor State Change {0} received EventID {1}", s, a.EventId);
+                // Debug.Console(2, this, "OccupancySensor State Change {0} received EventID {1}", device, args.EventId);
                 switch (a.EventId)
                 {
                     case FusionAssetEventId.DisableOccupancySensorReceivedEventId:

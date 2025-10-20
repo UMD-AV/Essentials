@@ -103,7 +103,7 @@ namespace ExtronMlsDsp
 
             //From Plugin to Simpl
             OnlineFeedback.LinkInputSig(trilist.BooleanInput[joinMap.IsOnline.JoinNumber]);
-            trilist.StringInput[joinMap.Name.JoinNumber].StringValue = this.Name;
+            trilist.StringInput[joinMap.Name.JoinNumber].StringValue = Name;
             trilist.StringInput[joinMap.Presets.JoinNumber + 1].StringValue = "Default Volume";
 
             //From Simpl to Plugin
@@ -244,7 +244,7 @@ namespace ExtronMlsDsp
         /// <param name="callbackObject"></param>
         public void VolumeUpRepeat(object callbackObject)
         {
-            this.VolumeUp(_volumeUpCount > 0);
+            VolumeUp(_volumeUpCount > 0);
         }
 
         /// <summary>
@@ -253,7 +253,7 @@ namespace ExtronMlsDsp
         /// <param name="callbackObject"></param>
         public void VolumeDownRepeat(object callbackObject)
         {
-            this.VolumeDown(_volumeDownCount > 0);
+            VolumeDown(_volumeDownCount > 0);
         }
 
         /// <summary>

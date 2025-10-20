@@ -301,7 +301,7 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.Cisco
             : base(config)
         {
             CiscoSparkCodecPropertiesConfig props =
-                JsonConvert.DeserializeObject<Codec.CiscoSparkCodecPropertiesConfig>(config.Properties.ToString());
+                JsonConvert.DeserializeObject<CiscoSparkCodecPropertiesConfig>(config.Properties.ToString());
 
             _config = props;
 
@@ -312,7 +312,7 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.Cisco
             }
 
             // The queue that will collect the repsonses in the order they are received
-            _receiveQueue = new GenericQueue(this.Key + "-rxQueue", 25);
+            _receiveQueue = new GenericQueue(Key + "-rxQueue", 25);
 
             RoomIsOccupiedFeedback = new BoolFeedback(RoomIsOccupiedFeedbackFunc);
             PeopleCountFeedback = new IntFeedback(PeopleCountFeedbackFunc);
@@ -370,11 +370,11 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.Cisco
 
             PhonebookSyncState = new CodecPhonebookSyncState(Key + "--PhonebookSync");
 
-            _syncState.InitialSyncCompleted += new EventHandler<EventArgs>(SyncState_InitialSyncCompleted);
+            _syncState.InitialSyncCompleted += SyncState_InitialSyncCompleted;
 
             PortGather = new CommunicationGather(Communication, Delimiter);
             PortGather.IncludeDelimiter = true;
-            PortGather.LineReceived += this.Port_LineReceived;
+            PortGather.LineReceived += Port_LineReceived;
 
             CodecInfo = new CiscoCodecInfo(CodecStatus, CodecConfiguration);
 
@@ -442,12 +442,12 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.Cisco
             CodecStatus.Status.Audio.Volume.ValueChangedAction = VolumeLevelFeedback.FireUpdate;
             CodecStatus.Status.Audio.VolumeMute.ValueChangedAction = MuteFeedback.FireUpdate;
             CodecStatus.Status.Audio.Microphones.Mute.ValueChangedAction = PrivacyModeIsOnFeedback.FireUpdate;
-            CodecStatus.Status.Standby.State.ValueChangedAction = new Action(() =>
+            CodecStatus.Status.Standby.State.ValueChangedAction = () =>
             {
                 StandbyIsOnFeedback.FireUpdate();
                 HalfWakeModeIsOnFeedback.FireUpdate();
                 EnteringStandbyModeFeedback.FireUpdate();
-            });
+            };
             CodecStatus.Status.RoomAnalytics.PeoplePresence.ValueChangedAction = RoomIsOccupiedFeedback.FireUpdate;
             CodecStatus.Status.RoomAnalytics.PeopleCount.Current.ValueChangedAction = PeopleCountFeedback.FireUpdate;
             CodecStatus.Status.Cameras.SpeakerTrack.Status.ValueChangedAction = CameraAutoModeIsOnFeedback.FireUpdate;
@@ -530,7 +530,7 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.Cisco
                 "Triggers a refresh of the booking data for today", ConsoleAccessLevelEnum.AccessOperator);
 
             PhonebookSyncState.InitialSyncCompleted +=
-                new EventHandler<EventArgs>(PhonebookSyncState_InitialSyncCompleted);
+                PhonebookSyncState_InitialSyncCompleted;
 
             return base.CustomActivate();
         }
@@ -547,7 +547,7 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.Cisco
             ISocketStatus socket = Communication as ISocketStatus;
             if (socket != null)
             {
-                socket.ConnectionChange += new EventHandler<GenericSocketStatusChageEventArgs>(socket_ConnectionChange);
+                socket.ConnectionChange += socket_ConnectionChange;
             }
 
             Communication.Connect();
@@ -1237,7 +1237,7 @@ ConnectorID: {2}"
             {
                 Debug.Console(1, this, "Error Deserializing feedback from codec: {0}", ex);
 
-                if (ex is Newtonsoft.Json.JsonReaderException)
+                if (ex is JsonReaderException)
                 {
                     Debug.Console(1, this, "Received malformed response from codec.");
 
@@ -1825,7 +1825,7 @@ ConnectorID: {2}"
         public void LinkCiscoCodecToApi(BasicTriList trilist, CiscoCodecJoinMap joinMap)
         {
             // Custom commands to codec
-            trilist.SetStringSigAction(joinMap.CommandToDevice.JoinNumber, (s) => this.EnqueueCommand(s));
+            trilist.SetStringSigAction(joinMap.CommandToDevice.JoinNumber, (s) => EnqueueCommand(s));
             trilist.SetStringSigAction(joinMap.ZoomMeetingId.JoinNumber, (s) => { _zoomMeeting = s; });
             trilist.SetStringSigAction(joinMap.ZoomMeetingPassword.JoinNumber, (s) => { _zoomPassword = s; });
             trilist.SetSigTrueAction(joinMap.CallZoomMeeting.JoinNumber, CallZoomMeeting);
@@ -2716,7 +2716,7 @@ ConnectorID: {2}"
             Debug.Console(1, "Factory Attempting to create new Cisco Codec Device");
 
             IBasicCommunication comm = CommFactory.CreateCommForDevice(dc);
-            return new VideoCodec.Cisco.CiscoSparkCodec(dc, comm);
+            return new CiscoSparkCodec(dc, comm);
         }
     }
 }

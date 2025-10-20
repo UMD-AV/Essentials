@@ -211,6 +211,7 @@
         <Compile Include="Environment\Generic\SerialControlledRelay.cs"/>
         <Compile Include="Environment\Generic\SerialControlledLighting.cs"/>
         <Compile Include="Environment\Generic\RelayControlledLighting.cs"/>
+        <Compile Include="Environment\Generic\SerialControlledShade.cs"/>
         <Compile Include="Environment\Lutron\LutronQSGrafikEye.cs"/>
         <Compile Include="Environment\Lutron\LutronGRX.cs"/>
         <Compile Include="Environment\Lutron\LutronQSKeypad.cs"/>

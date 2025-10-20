@@ -77,7 +77,7 @@ namespace NvxEpi.Features.Streams.Video
                 }
                 else
                 {
-                    Debug.Console(2, this, "Tx {0} updating rxs with empty stream feedbacks", this.Key);
+                    Debug.Console(2, this, "Tx {0} updating rxs with empty stream feedbacks", Key);
                     foreach (NvxBaseDevice rx in DeviceManager
                                  .AllDevices
                                  .OfType<NvxBaseDevice>()
@@ -110,8 +110,8 @@ namespace NvxEpi.Features.Streams.Video
 
             IStream result = _transmitters
                 .Where(x => !string.IsNullOrEmpty(x.StreamUrl.StringValue))
-                .FirstOrDefault(
-                    x => x.StreamUrl.StringValue.Equals(StreamUrl.StringValue, StringComparison.OrdinalIgnoreCase));
+                .FirstOrDefault(x =>
+                    x.StreamUrl.StringValue.Equals(StreamUrl.StringValue, StringComparison.OrdinalIgnoreCase));
 
             if (result != null)
             {
@@ -123,8 +123,8 @@ namespace NvxEpi.Features.Streams.Video
                 .OfType<IStream>()
                 .Where(t => t.IsTransmitter)
                 .Where(x => !string.IsNullOrEmpty(x.StreamUrl.StringValue))
-                .FirstOrDefault(
-                    tx => tx.StreamUrl.StringValue.Equals(StreamUrl.StringValue, StringComparison.OrdinalIgnoreCase));
+                .FirstOrDefault(tx =>
+                    tx.StreamUrl.StringValue.Equals(StreamUrl.StringValue, StringComparison.OrdinalIgnoreCase));
 
             if (result != null)
             {

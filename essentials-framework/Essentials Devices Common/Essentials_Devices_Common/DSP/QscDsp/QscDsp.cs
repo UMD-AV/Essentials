@@ -79,7 +79,7 @@ namespace QscQsysDspPlugin
             }
 
             PortGather = new CommunicationGather(Communication, "\x0a");
-            PortGather.LineReceived += this.Port_LineReceived;
+            PortGather.LineReceived += Port_LineReceived;
 
             // Custom monitoring, will check the heartbeat tracker count every 20s and reset. Heartbeat sbould be coming in every 20s if subscriptions are valid
             CommunicationMonitor =
@@ -155,7 +155,7 @@ namespace QscQsysDspPlugin
                     value.LevelInstanceTag = FormatTag(prefix, value.LevelInstanceTag);
                     value.MuteInstanceTag = FormatTag(prefix, value.MuteInstanceTag);
 
-                    this.LevelControlPoints.Add(key, new QscDspLevelControl(key, value, this));
+                    LevelControlPoints.Add(key, new QscDspLevelControl(key, value, this));
                     Debug.Console(2, this, "Added LevelControlPoint {0} LevelTag: {1} MuteTag: {2}", key,
                         value.LevelInstanceTag, value.MuteInstanceTag);
                 }
@@ -167,7 +167,7 @@ namespace QscQsysDspPlugin
                 {
                     QscDspPresets value = preset.Value;
                     value.Preset = string.Format("{0}{1}", prefix, value.Preset);
-                    this.addPreset(value);
+                    addPreset(value);
                     Debug.Console(2, this, "Added Preset {0} {1}", value.Label, value.Preset);
                 }
             }
@@ -227,7 +227,7 @@ namespace QscQsysDspPlugin
                     value.KeypadClearTag = FormatTag(prefix, value.KeypadClearTag);
                     value.KeypadPoundTag = FormatTag(prefix, value.KeypadPoundTag);
                     value.KeypadStarTag = FormatTag(prefix, value.KeypadStarTag);
-                    this.Dialers.Add(key, new QscDspDialer(value, this));
+                    Dialers.Add(key, new QscDspDialer(value, this));
                     Debug.Console(2, this, "Added Dialer {0}\n {1}", key, value);
                 }
             }

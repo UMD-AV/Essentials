@@ -117,14 +117,14 @@ namespace NvxEpi.Services.Utilities
                     device.DmNaxRouting.DmNaxReceive.DmNaxStreamChange += (sender, args) =>
                         Debug.Console(2,
                             keyed,
-                            "Recieved NAX Routing Receive Change:{0}",
+                            "received NAX Routing Receive Change:{0}",
                             args.EventId);
                 }
 
                 if (device.DmNaxRouting.DmNaxTransmit != null)
                 {
                     device.DmNaxRouting.DmNaxTransmit.DmNaxStreamChange += (sender, args) =>
-                        Debug.Console(2, keyed, "Recieved NAX Routing Transmit Change:{0}", args.EventId);
+                        Debug.Console(2, keyed, "received NAX Routing Transmit Change:{0}", args.EventId);
                 }
             }
             catch (MissingMethodException ex)

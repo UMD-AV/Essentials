@@ -61,7 +61,7 @@ namespace DynFusion.Assets
                 return;
             }
 
-            Debug.Console(1, this, "Mic battery static asset state change {0} recieved EventID {1} Index {2}", Name,
+            Debug.Console(1, this, "Mic battery static asset state change {0} received EventID {1} Index {2}", Name,
                 args.EventId, args.UserConfigurableAssetDetailIndex);
             switch (args.EventId)
             {

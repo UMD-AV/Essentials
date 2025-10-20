@@ -64,14 +64,14 @@ namespace PepperDash.Essentials.Devices.Common.Environment.Lutron
             if (socket != null)
             {
                 // IP Control
-                socket.ConnectionChange += new EventHandler<GenericSocketStatusChageEventArgs>(socket_ConnectionChange);
+                socket.ConnectionChange += socket_ConnectionChange;
             }
 
             Communication.TextReceived +=
-                new EventHandler<GenericCommMethodReceiveTextArgs>(Communication_TextReceived);
+                Communication_TextReceived;
 
             PortGather = new CommunicationGather(Communication, Delimiter);
-            PortGather.LineReceived += new EventHandler<GenericCommMethodReceiveTextArgs>(PortGather_LineReceived);
+            PortGather.LineReceived += PortGather_LineReceived;
 
             if (props.CommunicationMonitorProperties != null)
             {
@@ -350,7 +350,7 @@ namespace PepperDash.Essentials.Devices.Common.Environment.Lutron
             IBasicCommunication comm = CommFactory.CreateCommForDevice(dc);
 
             LutronQuantumPropertiesConfig props =
-                Newtonsoft.Json.JsonConvert.DeserializeObject<Environment.Lutron.LutronQuantumPropertiesConfig>(
+                Newtonsoft.Json.JsonConvert.DeserializeObject<LutronQuantumPropertiesConfig>(
                     dc.Properties.ToString());
 
             return new LutronQSArea(dc.Key, dc.Name, comm, props);

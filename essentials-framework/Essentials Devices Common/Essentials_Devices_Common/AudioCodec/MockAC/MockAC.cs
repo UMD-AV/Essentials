@@ -116,9 +116,9 @@ namespace PepperDash.Essentials.Devices.Common.AudioCodec
         {
             Debug.Console(1, "Factory Attempting to create new MockAc Device");
             MockAcPropertiesConfig props =
-                Newtonsoft.Json.JsonConvert.DeserializeObject<AudioCodec.MockAcPropertiesConfig>(
+                Newtonsoft.Json.JsonConvert.DeserializeObject<MockAcPropertiesConfig>(
                     dc.Properties.ToString());
-            return new AudioCodec.MockAC(dc.Key, dc.Name, props);
+            return new MockAC(dc.Key, dc.Name, props);
         }
     }
 }

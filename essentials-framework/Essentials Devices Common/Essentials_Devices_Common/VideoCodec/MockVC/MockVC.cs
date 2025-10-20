@@ -34,7 +34,7 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec
             : base(config)
         {
             PropertiesConfig =
-                JsonConvert.DeserializeObject<VideoCodec.MockVcPropertiesConfig>(config.Properties.ToString());
+                JsonConvert.DeserializeObject<MockVcPropertiesConfig>(config.Properties.ToString());
 
             CodecInfo = new MockCodecInfo();
 
@@ -513,8 +513,8 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec
             searchResults.ResultsFolderId = "searchResult";
 
             // Search mock directory for contacts that contain the search string, ignoring case
-            List<DirectoryItem> matches = MockVideoCodecDirectory.CompleteDirectory.CurrentDirectoryResults.FindAll(
-                s => s is DirectoryContact && s.Name.ToLower().Contains(searchString.ToLower()));
+            List<DirectoryItem> matches = MockVideoCodecDirectory.CompleteDirectory.CurrentDirectoryResults.FindAll(s =>
+                s is DirectoryContact && s.Name.ToLower().Contains(searchString.ToLower()));
 
             if (matches != null)
             {
@@ -857,7 +857,7 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec
         public override EssentialsDevice BuildDevice(DeviceConfig dc)
         {
             Debug.Console(1, "Factory Attempting to create new MockVC Device");
-            return new VideoCodec.MockVC(dc);
+            return new MockVC(dc);
         }
     }
 }

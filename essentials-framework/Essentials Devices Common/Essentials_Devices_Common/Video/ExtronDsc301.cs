@@ -304,7 +304,7 @@ namespace PepperDash.Essentials.Devices.Common.ExtronDsc301
         }
 
         /// <summary>
-        /// Communication bytes recieved
+        /// Communication bytes received
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e">Event args</param>
@@ -502,7 +502,7 @@ namespace PepperDash.Essentials.Devices.Common.ExtronDsc301
             CommunicationMonitor.IsOnlineFeedback.LinkInputSig(trilist.BooleanInput[joinMap.IsOnline.JoinNumber]);
 
             //Names
-            trilist.StringInput[joinMap.Name.JoinNumber].StringValue = this.Name;
+            trilist.StringInput[joinMap.Name.JoinNumber].StringValue = Name;
             Input0NameFb.LinkInputSig(trilist.StringInput[joinMap.Input0Name.JoinNumber]);
             Input1NameFb.LinkInputSig(trilist.StringInput[joinMap.Input1Name.JoinNumber]);
             Input2NameFb.LinkInputSig(trilist.StringInput[joinMap.Input2Name.JoinNumber]);

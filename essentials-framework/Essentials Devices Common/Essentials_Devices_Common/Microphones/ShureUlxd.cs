@@ -164,7 +164,7 @@ namespace PepperDash.Essentials.Devices.Common.ShureUlxd
         private void ProcessLineReceived(string lineReceived)
         {
             if (string.IsNullOrEmpty(lineReceived)) return;
-            Debug.Console(2, this, "ProcessLineRecieved: lineReceived = {0}", lineReceived);
+            Debug.Console(2, this, "ProcessLinereceived: lineReceived = {0}", lineReceived);
 
             Match responses = regexPattern.Match(lineReceived);
             char[] trimPattern = { '{', '}', ' ' };
@@ -175,7 +175,7 @@ namespace PepperDash.Essentials.Devices.Common.ShureUlxd
 
             if (string.IsNullOrEmpty(command)) return;
 
-            Debug.Console(2, this, "ProcessLineRecieved: index-'{0}' | command-'{1} | state-'{2}'", indexString,
+            Debug.Console(2, this, "ProcessLinereceived: index-'{0}' | command-'{1} | state-'{2}'", indexString,
                 command, state);
 
             switch (command)
@@ -493,10 +493,10 @@ namespace PepperDash.Essentials.Devices.Common.ShureUlxd
             _commsQueue.Dispose();
 
             // Clear feedbacks
-            this.SocketStatusFeedback = null;
-            this.MonitorStatusFeedback = null;
-            this.DeviceModelFeedback = null;
-            this.DeviceFirmwareVersionFeedback = null;
+            SocketStatusFeedback = null;
+            MonitorStatusFeedback = null;
+            DeviceModelFeedback = null;
+            DeviceFirmwareVersionFeedback = null;
 
             foreach (var mic in Microphones)
             {

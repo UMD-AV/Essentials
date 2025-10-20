@@ -413,7 +413,7 @@ namespace VaddioBridgePlugin
         /// <param name="text"></param>
         public void SendText(string text)
         {
-            if (text == null || !this._loggedIn) return;
+            if (text == null || !_loggedIn) return;
 
             text += "\r";
             Debug.Console(1, this, "Sending text: {0}", text);
@@ -438,7 +438,7 @@ namespace VaddioBridgePlugin
                     {
                         if (args == null || args.Bytes == null)
                         {
-                            Debug.Console(1, this, "Handle_BytesRecieved args is null or args.Bytes is null");
+                            Debug.Console(1, this, "Handle_Bytesreceived args is null or args.Bytes is null");
                             return;
                         }
 
@@ -446,7 +446,7 @@ namespace VaddioBridgePlugin
                         _commsByteBuffer.CopyTo(byteBuffer, 0);
                         args.Bytes.CopyTo(byteBuffer, _commsByteBuffer.Length);
 
-                        Debug.Console(2, this, "Handle_BytesRecieved byteBuffer: {0}",
+                        Debug.Console(2, this, "Handle_Bytesreceived byteBuffer: {0}",
                             ComTextHelper.GetDebugText(Encoding.UTF8.GetString(byteBuffer, 0, byteBuffer.Length)));
 
                         int position = 0;
@@ -480,7 +480,7 @@ namespace VaddioBridgePlugin
                     }
                     catch (Exception ex)
                     {
-                        Debug.Console(0, this, "Handle_BytesRecieved exception: {0}", ex);
+                        Debug.Console(0, this, "Handle_Bytesreceived exception: {0}", ex);
                     }
                     finally
                     {

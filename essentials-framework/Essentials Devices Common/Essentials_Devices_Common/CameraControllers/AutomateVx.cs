@@ -43,10 +43,10 @@ namespace PepperDash.Essentials.Devices.Common.ImageProcessors
         public AutomateVx(string key, string name, AutomateVxPropertiesConfig props) :
             base(key, name)
         {
-            this.hostname = props.hostname;
-            this.port = props.port;
-            this.username = props.username;
-            this.password = props.password;
+            hostname = props.hostname;
+            port = props.port;
+            username = props.username;
+            password = props.password;
             onlineStatus = false;
             CrestronEnvironment.ProgramStatusEventHandler += CrestronEnvironmentOnProgramStatusEventHandler;
         }
@@ -582,7 +582,7 @@ namespace PepperDash.Essentials.Devices.Common.ImageProcessors
         {
             Debug.Console(1, "Factory attempting to create new AutomateVx Device");
             AutomateVxPropertiesConfig props =
-                Newtonsoft.Json.JsonConvert.DeserializeObject<AutomateVxPropertiesConfig>(
+                JsonConvert.DeserializeObject<AutomateVxPropertiesConfig>(
                     dc.Properties.ToString());
             return new AutomateVx(dc.Key, dc.Name, props);
         }

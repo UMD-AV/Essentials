@@ -104,17 +104,17 @@ namespace DynFusion
             }
 
             _DynFusion.FusionSymbol.ExtenderRoomViewSchedulingDataReservedSigs.Use();
-            _DynFusion.FusionSymbol.OnlineStatusChange += new OnlineStatusChangeEventHandler(FusionSymbolStatusChange);
+            _DynFusion.FusionSymbol.OnlineStatusChange += FusionSymbolStatusChange;
             _DynFusion.FusionSymbol.ExtenderRoomViewSchedulingDataReservedSigs.DeviceExtenderSigChange +=
-                new DeviceExtenderJoinChangeEventHandler(FusionScheduleExtenderSigChange);
+                FusionScheduleExtenderSigChange;
             _DynFusion.FusionSymbol.ExtenderFusionRoomDataReservedSigs.DeviceExtenderSigChange +=
-                new DeviceExtenderJoinChangeEventHandler(FusionRoomDataExtenderSigChange);
-            _DynFusion.RoomInformationUpdated += new EventHandler<EventArgs>(_DynFusion_RoomInformationUpdated);
+                FusionRoomDataExtenderSigChange;
+            _DynFusion.RoomInformationUpdated += _DynFusion_RoomInformationUpdated;
 
             ScheduleOnline.value = false;
-            getScheduleTimeOut = new CTimer(getScheduleTimeOutCallback, Crestron.SimplSharp.Timeout.Infinite);
-            getScheduleTimer = new CTimer(GetRoomSchedule, Crestron.SimplSharp.Timeout.Infinite);
-            updateCurrentMeeting = new CTimer(UpdateCurrentMeetingCallback, Crestron.SimplSharp.Timeout.Infinite);
+            getScheduleTimeOut = new CTimer(getScheduleTimeOutCallback, Timeout.Infinite);
+            getScheduleTimer = new CTimer(GetRoomSchedule, Timeout.Infinite);
+            updateCurrentMeeting = new CTimer(UpdateCurrentMeetingCallback, Timeout.Infinite);
             return true;
         }
 
@@ -386,7 +386,7 @@ namespace DynFusion
                         {
                             if (actionResponse["ActionID"].InnerText == "MeetingChange")
                             {
-                                this.GetRoomSchedule(null);
+                                GetRoomSchedule(null);
                                 XmlElement parameters = actionResponse["Parameters"];
 
                                 foreach (XmlElement parameter in parameters)
@@ -539,7 +539,7 @@ namespace DynFusion
 
                             else if (response["RequestID"].InnerText == "PushNotification")
                             {
-                                this.GetRoomSchedule(null);
+                                GetRoomSchedule(null);
                                 Debug.Console(1, this, string.Format("Got a Push Notification!"));
                             }
 
@@ -1057,12 +1057,12 @@ namespace DynFusion
 
             if (now >= dtStart && now <= dtEnd)
             {
-                Debug.Console(0, "Meeting in progress {0}", this.Subject);
+                Debug.Console(0, "Meeting in progress {0}", Subject);
                 return true;
             }
             else
             {
-                Debug.Console(0, "Meeting not in progress {0}", this.Subject);
+                Debug.Console(0, "Meeting not in progress {0}", Subject);
                 return false;
             }
         }

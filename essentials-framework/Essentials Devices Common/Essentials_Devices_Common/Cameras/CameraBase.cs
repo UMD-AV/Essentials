@@ -201,10 +201,10 @@ namespace PepperDash.Essentials.Devices.Common.Cameras
             {
                 // Set the preset lables when they change
                 IHasCameraPresets presetsCamera = cameraDevice as IHasCameraPresets;
-                presetsCamera.PresetsListHasChanged += new EventHandler<EventArgs>((o, a) =>
+                presetsCamera.PresetsListHasChanged += (o, a) =>
                 {
                     SendCameraPresetNamesToApi(presetsCamera, joinMap, trilist);
-                });
+                };
 
                 SendCameraPresetNamesToApi(presetsCamera, joinMap, trilist);
 

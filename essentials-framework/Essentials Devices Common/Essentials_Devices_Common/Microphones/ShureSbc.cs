@@ -262,7 +262,7 @@ namespace PepperDash.Essentials.Devices.Common.ShureSbc
         private void ProcessLineReceived(string lineReceived)
         {
             if (string.IsNullOrEmpty(lineReceived)) return;
-            Debug.Console(2, this, "ProcessLineRecieved: lineReceived = {0}", lineReceived);
+            Debug.Console(2, this, "ProcessLinereceived: lineReceived = {0}", lineReceived);
 
             Match responses = regexPattern.Match(lineReceived);
             char[] trimPattern = { '{', '}', ' ' };
@@ -273,7 +273,7 @@ namespace PepperDash.Essentials.Devices.Common.ShureSbc
 
             if (string.IsNullOrEmpty(command)) return;
 
-            Debug.Console(2, this, "ProcessLineRecieved: index-'{0}' | command-'{1} | state-'{2}'", indexString,
+            Debug.Console(2, this, "ProcessLinereceived: index-'{0}' | command-'{1} | state-'{2}'", indexString,
                 command, state);
 
             switch (command)

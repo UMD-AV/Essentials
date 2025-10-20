@@ -55,25 +55,23 @@ namespace NvxEpi.Devices
 
             IsStreamingVideo = new BoolFeedback(() => !string.IsNullOrEmpty(props.StreamUrl));
 
-            VideoStreamStatus = new StringFeedback(
-                () => !string.IsNullOrEmpty(props.StreamUrl) ? "Streaming" : string.Empty);
+            VideoStreamStatus =
+                new StringFeedback(() => !string.IsNullOrEmpty(props.StreamUrl) ? "Streaming" : string.Empty);
 
-            CurrentVideoStream = new StringFeedback(
-                () => _currentVideoStream.CurrentStreamName.StringValue);
+            CurrentVideoStream = new StringFeedback(() => _currentVideoStream.CurrentStreamName.StringValue);
 
-            SecondaryAudioAddress = new StringFeedback(
-                () => !string.IsNullOrEmpty(props.MulticastAudioAddress) ? props.MulticastAudioAddress : string.Empty);
+            SecondaryAudioAddress = new StringFeedback(() =>
+                !string.IsNullOrEmpty(props.MulticastAudioAddress) ? props.MulticastAudioAddress : string.Empty);
 
             TxAudioAddress = new StringFeedback("MulticastAudio",
                 () => !string.IsNullOrEmpty(props.MulticastAudioAddress) ? props.MulticastAudioAddress : string.Empty);
 
             RxAudioAddress = new StringFeedback(() => string.Empty);
 
-            IsStreamingSecondaryAudio = new BoolFeedback(
-                () => !string.IsNullOrEmpty(props.MulticastAudioAddress));
+            IsStreamingSecondaryAudio = new BoolFeedback(() => !string.IsNullOrEmpty(props.MulticastAudioAddress));
 
-            SecondaryAudioStreamStatus = new StringFeedback(
-                () => !string.IsNullOrEmpty(props.MulticastAudioAddress) ? "Streaming" : string.Empty);
+            SecondaryAudioStreamStatus = new StringFeedback(() =>
+                !string.IsNullOrEmpty(props.MulticastAudioAddress) ? "Streaming" : string.Empty);
 
             Feedbacks.AddRange(new Feedback[]
             {
@@ -228,7 +226,7 @@ namespace NvxEpi.Devices
         {
             if (url == "")
             {
-                url = this.Key;
+                url = Key;
             }
 
             if (url.Equals(_streamUrl))

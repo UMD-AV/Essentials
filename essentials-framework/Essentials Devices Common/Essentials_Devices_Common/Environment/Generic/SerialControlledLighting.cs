@@ -17,12 +17,12 @@ namespace PepperDash.Essentials.Devices.Common.Environment.Generic
     {
         public IBasicCommunication Communication { get; private set; }
         public StatusMonitorBase CommunicationMonitor { get; private set; }
-        private CrestronQueue<string> _commandQueue;
-        private CMutex _commandMutex;
-        private CTimer _commandTimer;
-        private bool _queueWaiting = false;
+        private readonly CrestronQueue<string> _commandQueue;
+        private readonly CMutex _commandMutex;
+        private readonly CTimer _commandTimer;
+        private bool _queueWaiting;
         private bool _commandReady = true;
-        private string pollString;
+        private readonly string pollString;
 
         public SerialControlledLighting(string key, string name, IBasicCommunication comm,
             SerialControlledLightingPropertiesConfig props)
@@ -40,8 +40,7 @@ namespace PepperDash.Essentials.Devices.Common.Environment.Generic
                 pollString = props.PollString;
                 CommunicationMonitor =
                     new GenericCommunicationMonitor(this, Communication, 60000, 120000, 300000, Poll);
-                CommunicationMonitor.StatusChange +=
-                    new EventHandler<MonitorStatusChangeEventArgs>(CommunicationMonitor_StatusChange);
+                CommunicationMonitor.StatusChange += CommunicationMonitor_StatusChange;
             }
 
             _commandQueue = new CrestronQueue<string>(20);
@@ -166,7 +165,7 @@ namespace PepperDash.Essentials.Devices.Common.Environment.Generic
         }
 
         /// <summary>
-        /// Communication bytes recieved
+        /// Communication bytes received
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e">Event args</param>
@@ -188,7 +187,7 @@ namespace PepperDash.Essentials.Devices.Common.Environment.Generic
         {
             if (LightingScenes != null && LightingScenes[scene] != null && LightingScenes[scene].ID != null)
             {
-                if (scene >= 0 && scene <= 10)
+                if (scene <= 10)
                 {
                     Debug.Console(1, this, "Selecting Scene: '{0}'", LightingScenes[scene].ID);
                     if (LightingScenes[scene].Command != null)
@@ -233,8 +232,8 @@ namespace PepperDash.Essentials.Devices.Common.Environment.Generic
             Debug.Console(1, "Factory Attempting to create new Serial Controlled Lighting Device");
             IBasicCommunication comm = CommFactory.CreateCommForDevice(dc);
 
-            SerialControlledLightingPropertiesConfig props = Newtonsoft.Json.JsonConvert
-                .DeserializeObject<Environment.Generic.SerialControlledLightingPropertiesConfig>(
+            SerialControlledLightingPropertiesConfig props =
+                JsonConvert.DeserializeObject<SerialControlledLightingPropertiesConfig>(
                     dc.Properties.ToString());
 
             return new SerialControlledLighting(dc.Key, dc.Name, comm, props);

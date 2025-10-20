@@ -1292,11 +1292,11 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.ZoomRoom
             public string deviceSystem { get; set; }
 
             // This doesn't belong here, but there's a bug in the object structure of Zoom Room 5.6.3 that puts it here
-            public zConfiguration.Call Call { get; set; }
+            public Call Call { get; set; }
 
             public Client()
             {
-                Call = new zConfiguration.Call();
+                Call = new Call();
             }
         }
     }
