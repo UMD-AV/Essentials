@@ -18,7 +18,7 @@ namespace PepperDash_Essentials_DM.Chassis
     [Description("Wrapper class for all HdPsXxx switchers")]
     public class HdPsXxxController : CrestronGenericBridgeableBaseDevice, IRoutingNumericWithFeedback
     {
-        public readonly HdPsXxx Chassis;
+        public readonly HdPsXxxDmEssentials Chassis;
 
         public RoutingPortCollection<RoutingInputPort> InputPorts { get; private set; }
         public RoutingPortCollection<RoutingOutputPort> OutputPorts { get; private set; }
@@ -40,7 +40,7 @@ namespace PepperDash_Essentials_DM.Chassis
         /// <param name="name"></param>
         /// <param name="chassis">HdPs401 device instance</param>
         /// <param name="props"></param>
-        public HdPsXxxController(string key, string name, HdPsXxx chassis, HdPsXxxPropertiesConfig props)
+        public HdPsXxxController(string key, string name, HdPsXxxDmEssentials chassis, HdPsXxxPropertiesConfig props)
             : base(key, name, chassis)
         {
             Chassis = chassis;
@@ -142,9 +142,9 @@ namespace PepperDash_Essentials_DM.Chassis
             }
 
             // iterate through DM Lite inputs
-            foreach (HdPsXxxDmLiteInput item in Chassis.DmLiteInputs)
+            foreach (HdPsXxxDmEssentialsInput item in Chassis.DmEssentialsInputs)
             {
-                HdPsXxxDmLiteInput input = item;
+                HdPsXxxDmEssentialsInput input = item;
                 uint index = item.Number;
                 string key = string.Format("dmLiteIn{0}", index);
 
@@ -176,9 +176,9 @@ namespace PepperDash_Essentials_DM.Chassis
                 return;
             }
 
-            foreach (HdPsXxxOutput item in Chassis.HdmiDmLiteOutputs)
+            foreach (HdPsXxxOutputDmEssentials item in Chassis.HdmiDmEssentialsOutputs)
             {
-                HdPsXxxOutput output = item;
+                HdPsXxxOutputDmEssentials output = item;
                 uint index = item.Number;
 
                 SetOutputName(index);
@@ -199,7 +199,7 @@ namespace PepperDash_Essentials_DM.Chassis
                     eRoutingPortConnectionType.DmCat, output, this)
                 {
                     FeedbackMatchObject = output,
-                    Port = output.DmLiteOutput.DmLiteOutputPort
+                    Port = output.DmEssentialsOutput.DmEssentialsOutputPort
                 };
                 Debug.Console(1, this, "Adding Output port: {0} - {1}", dmLitePort.Key, OutputNames[index]);
                 OutputPorts.Add(dmLitePort);
@@ -216,8 +216,8 @@ namespace PepperDash_Essentials_DM.Chassis
 
                 OutputEndpointOnlineFeedbacks.Add(index,
                     new BoolFeedback(() =>
-                        output.DmLiteOutput != null &&
-                        output.DmLiteOutput.DmLiteOutputPort.RemoteReceiverDetectedFeedback.BoolValue));
+                        output.DmEssentialsOutput != null &&
+                        output.DmEssentialsOutput.DmEssentialsOutputPort.RemoteReceiverDetectedFeedback.BoolValue));
             }
         }
 
@@ -329,7 +329,7 @@ namespace PepperDash_Essentials_DM.Chassis
         // links outputs to API
         private void LinkChassisOutputsToApi(BasicTriList trilist, HdPsXxxControllerJoinMap joinMap)
         {
-            for (uint i = 1; i <= Chassis.HdmiDmLiteOutputs.Count; i++)
+            for (uint i = 1; i <= Chassis.HdmiDmEssentialsOutputs.Count; i++)
             {
                 uint output = i;
 
@@ -361,7 +361,7 @@ namespace PepperDash_Essentials_DM.Chassis
         public void ExecuteSwitch(object inputSelector, object outputSelector, eRoutingSignalType signalType)
         {
             HdPsXxxInput input = inputSelector as HdPsXxxInput;
-            HdPsXxxOutput output = outputSelector as HdPsXxxOutput;
+            HdPsXxxOutputDmEssentials output = outputSelector as HdPsXxxOutputDmEssentials;
 
             Debug.Console(2, this, "ExecuteSwitch: input={0}, output={1}", input, output);
 
@@ -426,25 +426,25 @@ namespace PepperDash_Essentials_DM.Chassis
 
                     uint output = args.Index;
 
-                    uint input = Chassis.HdmiDmLiteOutputs[output].VideoOutFeedback == null
+                    uint input = Chassis.HdmiDmEssentialsOutputs[output].VideoOutFeedback == null
                         ? 0
-                        : Chassis.HdmiDmLiteOutputs[output].VideoOutFeedback.Number;
+                        : Chassis.HdmiDmEssentialsOutputs[output].VideoOutFeedback.Number;
 
                     VideoOutputRouteFeedbacks[output].FireUpdate();
                     OutputRouteNameFeedback[output].FireUpdate();
 
-                    RoutingInputPort inputPort = InputPorts.FirstOrDefault(
-                        p => p.FeedbackMatchObject == Chassis.HdmiDmLiteOutputs[output].VideoOutFeedback);
+                    RoutingInputPort inputPort = InputPorts.FirstOrDefault(p =>
+                        p.FeedbackMatchObject == Chassis.HdmiDmEssentialsOutputs[output].VideoOutFeedback);
 
-                    RoutingOutputPort outputPort = OutputPorts.FirstOrDefault(
-                        p => p.FeedbackMatchObject == Chassis.HdmiDmLiteOutputs[output]);
+                    RoutingOutputPort outputPort = OutputPorts.FirstOrDefault(p =>
+                        p.FeedbackMatchObject == Chassis.HdmiDmEssentialsOutputs[output]);
 
                     OnSwitchChange(new RoutingNumericEventArgs(
                         output, input, outputPort, inputPort, eRoutingSignalType.Video));
                     break;
                 }
                 case DMSystemEventIds.HdmiInNameFeedbackEventId:
-                case DMSystemEventIds.DmLiteInNameFeedbackEventId:
+                case DMSystemEventIds.DmEssentialsInNameFeedbackEventId:
                 {
                     Debug.Console(1, this, "Event ID {0}: Updating name feedbacks", args.EventId);
 
@@ -551,19 +551,23 @@ namespace PepperDash_Essentials_DM.Chassis
                 {
                     case ("hdps401"):
                     {
-                        return new HdPsXxxController(key, name, new HdPs401(ipid, Global.ControlSystem), props);
+                        return new HdPsXxxController(key, name, new HdPs401DmEssentials(ipid, Global.ControlSystem),
+                            props);
                     }
                     case ("hdps402"):
                     {
-                        return new HdPsXxxController(key, name, new HdPs402(ipid, Global.ControlSystem), props);
+                        return new HdPsXxxController(key, name, new HdPs402DmEssentials(ipid, Global.ControlSystem),
+                            props);
                     }
                     case ("hdps621"):
                     {
-                        return new HdPsXxxController(key, name, new HdPs621(ipid, Global.ControlSystem), props);
+                        return new HdPsXxxController(key, name, new HdPs621DmEssentials(ipid, Global.ControlSystem),
+                            props);
                     }
                     case ("hdps622"):
                     {
-                        return new HdPsXxxController(key, name, new HdPs622(ipid, Global.ControlSystem), props);
+                        return new HdPsXxxController(key, name, new HdPs622DmEssentials(ipid, Global.ControlSystem),
+                            props);
                     }
                     default:
                     {

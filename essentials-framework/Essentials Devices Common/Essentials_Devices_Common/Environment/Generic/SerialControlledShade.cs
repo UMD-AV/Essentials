@@ -36,9 +36,9 @@ namespace PepperDash.Essentials.Devices.Common.Environment.Generic
         {
             GenericShadesJoinMap joinMap = new GenericShadesJoinMap(joinStart);
 
-            trilist.StringInput[joinMap.ShadesOpenName.JoinNumber].StringValue = "Shade Open";
-            trilist.StringInput[joinMap.ShadesCloseName.JoinNumber].StringValue = "Shades Close";
-            trilist.StringInput[joinMap.ShadesStopName.JoinNumber].StringValue = "Shades Stop";
+            trilist.StringInput[joinMap.ShadesOpenName.JoinNumber].StringValue = Name + " Open";
+            trilist.StringInput[joinMap.ShadesCloseName.JoinNumber].StringValue = Name + " Close";
+            trilist.StringInput[joinMap.ShadesStopName.JoinNumber].StringValue = Name + " Stop";
 
             trilist.SetSigTrueAction(joinMap.ShadesOpen.JoinNumber, Open);
             trilist.SetSigTrueAction(joinMap.ShadesClose.JoinNumber, Close);

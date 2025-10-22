@@ -196,7 +196,7 @@ namespace PepperDash.Essentials.DM.AirMedia
         }
 
 
-        private void AirMedia_AirMediaChange(object sender, Crestron.SimplSharpPro.DeviceSupport.GenericEventArgs args)
+        private void AirMedia_AirMediaChange(object sender, GenericEventArgs args)
         {
             if (args.EventId == AirMediaInputSlot.AirMediaStatusFeedbackEventId)
                 IsInSessionFeedback.FireUpdate();

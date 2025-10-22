@@ -269,7 +269,7 @@ namespace PepperDash.Essentials.DM
         /// <summary>
         ///  Make a Crestron RMC and put it in here
         /// </summary>
-        protected DmHdBaseTControllerBase(string key, string name, HDBaseTReceiverDmLite rmc)
+        protected DmHdBaseTControllerBase(string key, string name, HDBaseTReceiverDmEssentials rmc)
             : base(key, name, rmc)
         {
             Rmc = rmc;
@@ -287,7 +287,8 @@ namespace PepperDash.Essentials.DM
         private static readonly Dictionary<string, Func<string, string, uint, DMOutput, CrestronGenericBaseDevice>>
             ChassisDict;
 
-        private static readonly Dictionary<string, Func<string, string, HdPsXxx, DMOutput, CrestronGenericBaseDevice>>
+        private static readonly Dictionary<string,
+                Func<string, string, HdPsXxxDmEssentials, DMOutput, CrestronGenericBaseDevice>>
             HdpsDict;
 
         static DmRmcHelper()
@@ -397,10 +398,14 @@ namespace PepperDash.Essentials.DM
                 { "dmrmc4k100c1g", (k, n, i, d) => new DmRmc4k100C1GController(k, n, new DmRmc4K100C1G(i, d)) }
             };
 
-            HdpsDict = new Dictionary<string, Func<string, string, HdPsXxx, DMOutput, CrestronGenericBaseDevice>>
-            {
-                { "hdbasetrx", (k, n, s, d) => new HDBaseTRxController(k, n, new HDBaseTReceiverDmLite(d, s)) },
-            };
+            HdpsDict =
+                new Dictionary<string, Func<string, string, HdPsXxxDmEssentials, DMOutput, CrestronGenericBaseDevice>>
+                {
+                    {
+                        "hdbasetrx",
+                        (k, n, s, d) => new HDBaseTRxController(k, n, new HDBaseTReceiverDmEssentials(d, s))
+                    },
+                };
         }
 
         /// <summary>
@@ -679,10 +684,10 @@ namespace PepperDash.Essentials.DM
         private static CrestronGenericBaseDevice GetDmRmcControllerForHdps(string key, string name, string typeName,
             HdPsXxxController controller, uint num)
         {
-            Func<string, string, HdPsXxx, DMOutput, CrestronGenericBaseDevice> hdpsHandler;
+            Func<string, string, HdPsXxxDmEssentials, DMOutput, CrestronGenericBaseDevice> hdpsHandler;
             if (HdpsDict.TryGetValue(typeName.ToLower(), out hdpsHandler))
             {
-                HdPsXxxDmLiteOutput output = controller.Chassis.HdmiDmLiteOutputs[num].DmLiteOutput;
+                HdPsXxxDmEssentialsOutput output = controller.Chassis.HdmiDmEssentialsOutputs[num].DmEssentialsOutput;
 
                 if (output != null)
                 {

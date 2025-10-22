@@ -33,7 +33,7 @@ namespace PepperDash.Essentials.DM
             rmc.Register();
         }
 
-        public HDBaseTRxController(string key, string name, HDBaseTReceiverDmLite rmc)
+        public HDBaseTRxController(string key, string name, HDBaseTReceiverDmEssentials rmc)
             : base(key, name, rmc)
         {
             DmIn = new RoutingInputPort(DmPortName.DmIn, eRoutingSignalType.AudioVideo,
