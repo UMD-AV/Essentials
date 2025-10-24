@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text;
 using System.Text.RegularExpressions;
 using Crestron.SimplSharp.CrestronXml;
 using Crestron.SimplSharp.CrestronXml.Serialization;
@@ -12,7 +13,7 @@ namespace DynFusion
 {
     public class DynFusionSchedule : EssentialsBridgeableDevice
     {
-        public bool fusionOnline = false;
+        public bool fusionOnline;
         public event EventHandler<EventArgs> ScheduleChanged;
         public event EventHandler<EventArgs> CurrentMeetingChanged;
         public event EventHandler<EventArgs> NextMeetingChanged;
@@ -22,7 +23,7 @@ namespace DynFusion
         private CTimer getScheduleTimeOut;
         private CTimer getScheduleTimer;
         private CTimer updateCurrentMeeting;
-        private SchedulingConfig _Config;
+        private readonly SchedulingConfig _Config;
         private ScheduleResponse _scheduleResponse;
         private ushort nextMeetingIndex;
 
@@ -30,9 +31,9 @@ namespace DynFusion
 
         private List<ScheduleResponse> RoomAvailabilityScheduleResponse = new List<ScheduleResponse>();
 
-        private BoolWithFeedback RegisteredForPush = new BoolWithFeedback();
-        private BoolWithFeedback ScheduleBusy = new BoolWithFeedback();
-        private BoolWithFeedback ScheduleOnline = new BoolWithFeedback();
+        private readonly BoolWithFeedback RegisteredForPush = new BoolWithFeedback();
+        private readonly BoolWithFeedback ScheduleBusy = new BoolWithFeedback();
+        private readonly BoolWithFeedback ScheduleOnline = new BoolWithFeedback();
 
         private Event _currentMeeting;
 
@@ -44,13 +45,13 @@ namespace DynFusion
                 _currentMeeting = value;
                 if (CurrentMeetingChanged != null)
                 {
-                    CurrentMeetingChanged(this, new EventArgs());
+                    CurrentMeetingChanged(this, EventArgs.Empty);
                 }
 
                 if (MeetingInProgressChanged != null)
                 {
-                    Debug.Console(1, this, string.Format("Meeting In Progress Firing Event!"));
-                    MeetingInProgressChanged(this, new EventArgs());
+                    Debug.Console(1, this, "Meeting In Progress Firing Event!");
+                    MeetingInProgressChanged(this, EventArgs.Empty);
                 }
             }
         }
@@ -65,7 +66,7 @@ namespace DynFusion
                 _nextMeeting = value;
                 if (NextMeetingChanged != null)
                 {
-                    NextMeetingChanged(this, new EventArgs());
+                    NextMeetingChanged(this, EventArgs.Empty);
                 }
             }
         }
@@ -139,33 +140,32 @@ namespace DynFusion
             {
                 if (fusionOnline)
                 {
-                    string requestID = "InitialPushRequest";
-                    string fusionActionRequest = "";
+                    const string requestID = "InitialPushRequest";
                     Debug.Console(1, this, "Sending Push Schedule Reqeust");
 
-                    fusionActionRequest = string.Format("<RequestAction>\n<RequestID>{0}</RequestID>\n" +
-                                                        "<ActionID>RegisterPushModel</ActionID>\n" +
-                                                        "<Parameters>\n" +
-                                                        "<Parameter ID=\"Enabled\" Value=\"1\" />\n" +
-                                                        "<Parameter ID=\"RequestID\" Value=\"PushNotification\" />\n" +
-                                                        "<Parameter ID=\"Start\" Value=\"00:00:00\" />\n" +
-                                                        "<Parameter ID=\"HourSpan\" Value=\"24\" />\n" +
-                                                        "<Parameter ID=\"Field\" Value=\"MeetingID\" />\n" +
-                                                        "<Parameter ID=\"Field\" Value=\"RVMeetingID\" />\n" +
-                                                        "<Parameter ID=\"Field\" Value=\"InstanceID\" />\n" +
-                                                        "<Parameter ID=\"Field\" Value=\"dtStart\" />\n" +
-                                                        "<Parameter ID=\"Field\" Value=\"dtEnd\" />\n" +
-                                                        "<Parameter ID=\"Field\" Value=\"Subject\" />\n" +
-                                                        "<Parameter ID=\"Field\" Value=\"Organizer\" />\n" +
-                                                        "<Parameter ID=\"Field\" Value=\"IsEvent\" />\n" +
-                                                        "<Parameter ID=\"Field\" Value=\"IsPrivate\" />\n" +
-                                                        "<Parameter ID=\"Field\" Value=\"IsExchangePrivate\" />\n" +
-                                                        "<Parameter ID=\"Field\" Value=\"LiveMeeting\" />\n" +
-                                                        "<Parameter ID=\"Field\" Value=\"ShareDocPath\" />\n" +
-                                                        "<Parameter ID=\"Field\" Value=\"PhoneNo\" />\n" +
-                                                        "<Parameter ID=\"Field\" Value=\"ParticipantCode\" />\n" +
-                                                        "</Parameters>\n" +
-                                                        "</RequestAction>\n", requestID);
+                    string fusionActionRequest = string.Format("<RequestAction>\n<RequestID>{0}</RequestID>\n" +
+                                                               "<ActionID>RegisterPushModel</ActionID>\n" +
+                                                               "<Parameters>\n" +
+                                                               "<Parameter ID=\"Enabled\" Value=\"1\" />\n" +
+                                                               "<Parameter ID=\"RequestID\" Value=\"PushNotification\" />\n" +
+                                                               "<Parameter ID=\"Start\" Value=\"00:00:00\" />\n" +
+                                                               "<Parameter ID=\"HourSpan\" Value=\"24\" />\n" +
+                                                               "<Parameter ID=\"Field\" Value=\"MeetingID\" />\n" +
+                                                               "<Parameter ID=\"Field\" Value=\"RVMeetingID\" />\n" +
+                                                               "<Parameter ID=\"Field\" Value=\"InstanceID\" />\n" +
+                                                               "<Parameter ID=\"Field\" Value=\"dtStart\" />\n" +
+                                                               "<Parameter ID=\"Field\" Value=\"dtEnd\" />\n" +
+                                                               "<Parameter ID=\"Field\" Value=\"Subject\" />\n" +
+                                                               "<Parameter ID=\"Field\" Value=\"Organizer\" />\n" +
+                                                               "<Parameter ID=\"Field\" Value=\"IsEvent\" />\n" +
+                                                               "<Parameter ID=\"Field\" Value=\"IsPrivate\" />\n" +
+                                                               "<Parameter ID=\"Field\" Value=\"IsExchangePrivate\" />\n" +
+                                                               "<Parameter ID=\"Field\" Value=\"LiveMeeting\" />\n" +
+                                                               "<Parameter ID=\"Field\" Value=\"ShareDocPath\" />\n" +
+                                                               "<Parameter ID=\"Field\" Value=\"PhoneNo\" />\n" +
+                                                               "<Parameter ID=\"Field\" Value=\"ParticipantCode\" />\n" +
+                                                               "</Parameters>\n" +
+                                                               "</RequestAction>\n", requestID);
 
                     _DynFusion.FusionSymbol.ExtenderFusionRoomDataReservedSigs.ActionQuery.StringValue =
                         fusionActionRequest;
@@ -191,14 +191,14 @@ namespace DynFusion
 
             if (_scheduleResponse.Events != null && _scheduleResponse.Events.Count > 0)
             {
-                //Recheck every minute for current meeting
+                //Recheck every minute for the current meeting
                 updateCurrentMeeting.Reset(60000);
 
                 ushort meetingIndex = 0;
                 foreach (Event e in _scheduleResponse.Events)
                 {
-                    //Check for current meeting
-                    //Current meeting is valid if meeting starts in 20 minutes or is currently active
+                    //Check for the current meeting
+                    //Valid if the meeting starts in 20 minutes or is currently active
                     if (DateTime.Now >= (e.dtStart - TimeSpan.FromMinutes(20)) && DateTime.Now <= e.dtEnd &&
                         (_currentMeetingTemp == null || _currentMeetingTemp.dtStart > e.dtStart))
                     {
@@ -244,7 +244,7 @@ namespace DynFusion
 
         private void GetRoomSchedule(object unused)
         {
-            //If using push model, only update once a day
+            //If using the push model, only update once a day
             if (RegisteredForPush.value)
             {
                 DateTime now = DateTime.Now;
@@ -274,21 +274,34 @@ namespace DynFusion
             if (ScheduleBusy.value == false && fusionOnline)
             {
                 ScheduleBusy.value = true;
-                Debug.Console(2, this, string.Format("Get RoomSchedule"));
+                Debug.Console(2, this, "Get RoomSchedule");
 
                 try
                 {
                     if (_DynFusion.RoomInformation != null)
                     {
                         string roomID = _DynFusion.RoomInformation.ID;
-                        string requestType = "ScheduleRequest";
-                        string fusionScheduleRequest = "";
-                        string RFCTime = string.Format("{0:s}", DateTime.Today);
+                        string RFCTime = string.Format("{0:s}", DateTime.Now);
 
-                        fusionScheduleRequest =
-                            string.Format(
-                                "<RequestSchedule><RequestID>{0}</RequestID><RoomID>{1}</RoomID><Start>{2}</Start><HourSpan>24</HourSpan></RequestSchedule>",
-                                requestType, roomID, RFCTime.ToString());
+
+                        StringBuilder sTemp = new StringBuilder();
+
+                        sTemp.AppendLine("<RequestSchedule>");
+                        sTemp.AppendLine("<RequestID>ScheduleRequest</RequestID>");
+                        sTemp.AppendLine(string.Format("<Start>{0}</Start>", RFCTime));
+                        sTemp.AppendLine("<HourSpan>24</HourSpan>");
+                        sTemp.AppendLine("<FieldList>");
+                        sTemp.AppendLine("<Field>Recurring</Field>");
+                        sTemp.AppendLine("<Field>InstanceID</Field>");
+                        sTemp.AppendLine("<Field>dtStart</Field>");
+                        sTemp.AppendLine("<Field>dtEnd</Field>");
+                        sTemp.AppendLine("<Field>Subject</Field>");
+                        sTemp.AppendLine("<Field>Organizer</Field>");
+                        sTemp.AppendLine("</FieldList>");
+                        sTemp.AppendLine("</RequestSchedule>");
+
+                        string fusionScheduleRequest = sTemp.ToString();
+
                         Debug.Console(1, this,
                             string.Format("Get full room schedule request: {0}", fusionScheduleRequest));
                         _DynFusion.FusionSymbol.ExtenderRoomViewSchedulingDataReservedSigs.ScheduleQuery.StringValue =
@@ -323,11 +336,6 @@ namespace DynFusion
             }
         }
 
-        private void FusionRoomAttributeExtenderSigChange(DeviceExtender currentDeviceExtender, SigEventArgs args)
-        {
-            Debug.Console(1, this, string.Format("RoomAttributeQuery Response: {0}", args.Sig.StringValue));
-        }
-
         private void FusionRoomDataExtenderSigChange(DeviceExtender currentDeviceExtender, SigEventArgs args)
         {
             try
@@ -347,87 +355,79 @@ namespace DynFusion
                     {
                         XmlElement requestID = actionResponse["RequestID"];
 
-                        if (requestID.InnerText == "InitialPushRequest")
+                        switch (requestID.InnerText)
                         {
-                            if (actionResponse["ActionID"].InnerText == "RegisterPushModel")
+                            case "InitialPushRequest":
                             {
-                                XmlElement parameters = actionResponse["Parameters"];
-
-                                foreach (XmlElement parameter in parameters)
+                                if (actionResponse["ActionID"].InnerText == "RegisterPushModel")
                                 {
-                                    if (parameter.HasAttributes)
+                                    XmlElement parameters = actionResponse["Parameters"];
+
+                                    foreach (XmlElement parameter in parameters)
                                     {
-                                        XmlAttributeCollection attributes = parameter.Attributes;
-
-                                        if (attributes["ID"].Value == "Registered")
+                                        if (parameter.HasAttributes)
                                         {
-                                            int isRegistered = int.Parse(attributes["Value"].Value.ToString());
+                                            XmlAttributeCollection attributes = parameter.Attributes;
 
-                                            if (isRegistered == 1)
+                                            if (attributes["ID"].Value == "Registered")
                                             {
-                                                RegisteredForPush.value = true;
-                                                Debug.ConsoleWithLog(0, this,
-                                                    string.Format("SchedulePush: {0}", RegisteredForPush.value), 1);
-                                            }
+                                                int isRegistered = int.Parse(attributes["Value"].Value);
 
-                                            else if (isRegistered == 0)
-                                            {
-                                                RegisteredForPush.value = false;
-                                                Debug.ConsoleWithLog(0, this,
-                                                    string.Format("SchedulePush: {0}", RegisteredForPush.value), 1);
+                                                switch (isRegistered)
+                                                {
+                                                    case 1:
+                                                        RegisteredForPush.value = true;
+                                                        Debug.ConsoleWithLog(0, this,
+                                                            string.Format("SchedulePush: {0}", RegisteredForPush.value),
+                                                            1);
+                                                        break;
+                                                    case 0:
+                                                        RegisteredForPush.value = false;
+                                                        Debug.ConsoleWithLog(0, this,
+                                                            string.Format("SchedulePush: {0}", RegisteredForPush.value),
+                                                            1);
+                                                        break;
+                                                }
                                             }
                                         }
                                     }
                                 }
+
+                                break;
                             }
-                        }
-
-                        if (requestID.InnerText == "ExtendMeetingRequest")
-                        {
-                            if (actionResponse["ActionID"].InnerText == "MeetingChange")
+                            case "ExtendMeetingRequest":
                             {
-                                GetRoomSchedule(null);
-                                XmlElement parameters = actionResponse["Parameters"];
-
-                                foreach (XmlElement parameter in parameters)
+                                if (actionResponse["ActionID"].InnerText == "MeetingChange")
                                 {
-                                    if (parameter.HasAttributes)
-                                    {
-                                        XmlAttributeCollection attributes = parameter.Attributes;
+                                    GetRoomSchedule(null);
+                                    XmlElement parameters = actionResponse["Parameters"];
 
-                                        if (attributes["ID"].Value == "MeetingID")
+                                    foreach (XmlElement parameter in parameters)
+                                    {
+                                        if (parameter.HasAttributes)
                                         {
-                                            if (attributes["Value"].Value != null)
+                                            XmlAttributeCollection attributes = parameter.Attributes;
+
+                                            if (attributes["ID"].Value == "MeetingID" ||
+                                                attributes["ID"].Value == "InstanceID" ||
+                                                attributes["ID"].Value == "Status")
                                             {
-                                                string value = attributes["Value"].Value;
-                                            }
-                                        }
-                                        else if (attributes["ID"].Value == "InstanceID")
-                                        {
-                                            if (attributes["Value"].Value != null)
-                                            {
-                                                string value = attributes["Value"].Value;
-                                            }
-                                        }
-                                        else if (attributes["ID"].Value == "Status")
-                                        {
-                                            if (attributes["Value"].Value != null)
-                                            {
-                                                string value = attributes["Value"].Value;
+                                                if (attributes["Value"].Value != null)
+                                                {
+                                                }
                                             }
                                         }
                                     }
                                 }
+
+                                break;
                             }
                         }
                     }
                 }
 
-                if (args.Sig == _DynFusion.FusionSymbol.ExtenderRoomViewSchedulingDataReservedSigs.CreateResponse)
-                {
-                    GetRoomSchedule();
-                }
-                else if (args.Sig == _DynFusion.FusionSymbol.ExtenderRoomViewSchedulingDataReservedSigs.RemoveMeeting)
+                if (args.Sig == _DynFusion.FusionSymbol.ExtenderRoomViewSchedulingDataReservedSigs.CreateResponse ||
+                    args.Sig == _DynFusion.FusionSymbol.ExtenderRoomViewSchedulingDataReservedSigs.RemoveMeeting)
                 {
                     GetRoomSchedule();
                 }
@@ -449,47 +449,47 @@ namespace DynFusion
 
                     scheduleXML.LoadXml(args.Sig.StringValue);
 
-                    if (scheduleXML != null)
+
+                    Debug.Console(1, this, string.Format("Escaped XML {0}", scheduleXML));
+
+                    XmlElement response = scheduleXML["ScheduleResponse"];
+                    if (response != null)
                     {
-                        Debug.Console(1, this, string.Format("Escaped XML {0}", scheduleXML.ToString()));
-
-                        XmlElement response = scheduleXML["ScheduleResponse"];
-                        if (response != null)
+                        XmlElement errors = response["Errors"];
+                        if (errors != null)
                         {
-                            XmlElement errors = response["Errors"];
-                            if (errors != null)
+                            XmlElement error = errors["Error"];
+                            if (error != null)
                             {
-                                XmlElement error = errors["Error"];
-                                if (error != null)
-                                {
-                                    Debug.Console(0, this, "Schedule request error: {0}", error.InnerText);
-                                    return;
-                                }
+                                Debug.Console(0, this, "Schedule request error: {0}", error.InnerText);
+                                return;
                             }
+                        }
 
-                            if (response["RequestID"].InnerText == "RVRequest")
+                        switch (response["RequestID"].InnerText)
+                        {
+                            case "RVRequest":
                             {
                                 XmlElement action = response["Action"];
 
-                                if (action.OuterXml.IndexOf("RequestSchedule") > -1)
+                                if (action.OuterXml.IndexOf("RequestSchedule", StringComparison.Ordinal) > -1)
                                 {
                                     GetRoomSchedule();
                                 }
+
+                                break;
                             }
-
-                            #region ScheduleRequest
-
-                            else if (response["RequestID"].InnerText == "ScheduleRequest")
+                            case "ScheduleRequest":
                             {
-                                Debug.Console(1, this, string.Format("ScheduleResponse start"));
+                                Debug.Console(1, this, "ScheduleResponse start");
 
-                                _scheduleResponse = new ScheduleResponse();
-                                _scheduleResponse.RoomName =
-                                    scheduleXML.FirstChild.SelectSingleNode("RoomName").InnerText;
-                                _scheduleResponse.RequestID =
-                                    scheduleXML.FirstChild.SelectSingleNode("RequestID").InnerText;
-                                _scheduleResponse.RoomID = scheduleXML.FirstChild.SelectSingleNode("RoomID").InnerText;
-                                Debug.Console(1, this, string.Format("EventStack Count start"));
+                                _scheduleResponse = new ScheduleResponse
+                                {
+                                    RoomName = scheduleXML.FirstChild.SelectSingleNode("RoomName").InnerText,
+                                    RequestID = scheduleXML.FirstChild.SelectSingleNode("RequestID").InnerText,
+                                    RoomID = scheduleXML.FirstChild.SelectSingleNode("RoomID").InnerText
+                                };
+                                Debug.Console(1, this, "EventStack Count start");
                                 XmlNodeList eventStack = scheduleXML.FirstChild.SelectNodes("Event");
                                 Debug.Console(1, this, string.Format("EventStack Count: {0}", eventStack.Count));
                                 if (eventStack.Count > 0)
@@ -530,22 +530,17 @@ namespace DynFusion
 
                                 if (ScheduleChanged != null)
                                 {
-                                    Debug.Console(0, this, string.Format("Schedule Changed Firing Event!"));
-                                    ScheduleChanged(this, new EventArgs());
+                                    Debug.Console(0, this, "Schedule Changed Firing Event!");
+                                    ScheduleChanged(this, EventArgs.Empty);
                                 }
+
+                                break;
                             }
-
-                            #endregion
-
-                            else if (response["RequestID"].InnerText == "PushNotification")
-                            {
+                            case "PushNotification":
                                 GetRoomSchedule(null);
-                                Debug.Console(1, this, string.Format("Got a Push Notification!"));
-                            }
-
-                            #region RoomListScheduleRequest
-
-                            else if (response["RequestID"].InnerText == "AvailableRoomSchedule")
+                                Debug.Console(1, this, "Got a Push Notification!");
+                                break;
+                            case "AvailableRoomSchedule":
                             {
                                 XmlNode responseEvent = response.SelectSingleNode("Event");
                                 if (responseEvent != null)
@@ -554,47 +549,44 @@ namespace DynFusion
 
                                     foreach (XmlElement element in scheduleXML.FirstChild.ChildNodes)
                                     {
-                                        ScheduleResponse AvailibleSchedule = new ScheduleResponse();
+                                        ScheduleResponse AvailableSchedule = new ScheduleResponse();
 
-                                        if (element.Name == "RequestID")
+                                        switch (element.Name)
                                         {
-                                            AvailibleSchedule.RequestID = element.InnerText;
-                                        }
-                                        else if (element.Name == "RoomID")
-                                        {
-                                            AvailibleSchedule.RoomID = element.InnerText;
-                                        }
-                                        else if (element.Name == "RoomName")
-                                        {
-                                            AvailibleSchedule.RoomName = element.InnerText;
-                                        }
-                                        else if (element.Name == "Event")
-                                        {
-                                            XmlReader readerXML = new XmlReader(element.OuterXml);
+                                            case "RequestID":
+                                                AvailableSchedule.RequestID = element.InnerText;
+                                                break;
+                                            case "RoomID":
+                                                AvailableSchedule.RoomID = element.InnerText;
+                                                break;
+                                            case "RoomName":
+                                                AvailableSchedule.RoomName = element.InnerText;
+                                                break;
+                                            case "Event":
+                                            {
+                                                XmlReader readerXML = new XmlReader(element.OuterXml);
 
-                                            Event RoomAvailabilityScheduleEvent = new Event();
+                                                Event RoomAvailabilityScheduleEvent =
+                                                    CrestronXMLSerialization.DeSerializeObject<Event>(readerXML);
 
-                                            RoomAvailabilityScheduleEvent =
-                                                CrestronXMLSerialization.DeSerializeObject<Event>(readerXML);
-
-                                            AvailibleSchedule.Events.Add(RoomAvailabilityScheduleEvent);
+                                                AvailableSchedule.Events.Add(RoomAvailabilityScheduleEvent);
+                                                break;
+                                            }
                                         }
 
-                                        RoomAvailabilityScheduleResponse.Add(AvailibleSchedule);
+                                        if (RoomAvailabilityScheduleResponse != null)
+                                            RoomAvailabilityScheduleResponse.Add(AvailableSchedule);
                                     }
                                 }
-                            }
 
-                            #endregion
+                                break;
+                            }
                         }
                     }
                 }
 
-                if (args.Sig == _DynFusion.FusionSymbol.ExtenderRoomViewSchedulingDataReservedSigs.CreateResponse)
-                {
-                    GetRoomSchedule();
-                }
-                else if (args.Sig == _DynFusion.FusionSymbol.ExtenderRoomViewSchedulingDataReservedSigs.RemoveMeeting)
+                if (args.Sig == _DynFusion.FusionSymbol.ExtenderRoomViewSchedulingDataReservedSigs.CreateResponse ||
+                    args.Sig == _DynFusion.FusionSymbol.ExtenderRoomViewSchedulingDataReservedSigs.RemoveMeeting)
                 {
                     GetRoomSchedule();
                 }
@@ -846,13 +838,6 @@ namespace DynFusion
         }
     }
 
-    public class ActionResponse
-    {
-        public string RequsetID { get; set; }
-        public string ActionID { get; set; }
-        public List<Parameter> Parameters { get; set; }
-    }
-
     public class Parameter
     {
         public string ID { get; set; }
@@ -897,17 +882,11 @@ namespace DynFusion
         public string PhoneNo { get; set; }
         public string InstanceID { get; set; }
 
-        public Event()
-        {
-        }
-
         public string StartTime
         {
             get
             {
-                string startTimeShort;
-
-                startTimeShort = dtStart.ToShortTimeString();
+                string startTimeShort = dtStart.ToShortTimeString();
 
                 return startTimeShort;
             }
@@ -917,9 +896,7 @@ namespace DynFusion
         {
             get
             {
-                string startDateShort;
-
-                startDateShort = dtStart.ToShortDateString();
+                string startDateShort = dtStart.ToShortDateString();
 
                 return startDateShort;
             }
@@ -929,9 +906,7 @@ namespace DynFusion
         {
             get
             {
-                string endTimeShort;
-
-                endTimeShort = dtEnd.ToShortTimeString();
+                string endTimeShort = dtEnd.ToShortTimeString();
 
                 return endTimeShort;
             }
@@ -941,9 +916,7 @@ namespace DynFusion
         {
             get
             {
-                string endDateShort;
-
-                endDateShort = dtEnd.ToShortDateString();
+                string endDateShort = dtEnd.ToShortDateString();
 
                 return endDateShort;
             }
@@ -976,7 +949,7 @@ namespace DynFusion
         {
             get
             {
-                DateTime timeMarker = new DateTime();
+                DateTime timeMarker;
                 if (dtStart <= DateTime.Now)
                 {
                     timeMarker = dtEnd;
@@ -998,10 +971,9 @@ namespace DynFusion
         {
             get
             {
-                DateTime now = DateTime.Now;
                 string remainingTimeString;
 
-                DateTime timeMarker = new DateTime();
+                DateTime timeMarker;
                 if (GetInProgress())
                 {
                     timeMarker = dtEnd;
@@ -1012,7 +984,7 @@ namespace DynFusion
                 }
 
                 string hourTag = "";
-                string minTag = "";
+                string minTag;
                 int hours = timeMarker.Subtract(DateTime.Now).Hours;
                 int minutes = timeMarker.Subtract(DateTime.Now).Minutes;
                 if (hours > 1)
