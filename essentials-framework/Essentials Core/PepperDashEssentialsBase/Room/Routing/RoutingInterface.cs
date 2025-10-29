@@ -63,6 +63,7 @@ namespace PepperDash.Essentials.Core.Routing
         public IntFeedback AdvancedModeFeedback { get; private set; }
         public IntFeedback OverflowModeFeedback { get; private set; }
         public Dictionary<uint, BoolFeedback> SourceVisibleFeedbacks { get; private set; }
+        public Dictionary<uint, IntFeedback> SourceVisibleModeFeedbacks { get; private set; }
         public Dictionary<uint, BoolFeedback> DestVisibleFeedbacks { get; private set; }
         public Dictionary<uint, BoolFeedback> DestEnableFeedbacks { get; private set; }
         public Dictionary<uint, BoolFeedback> SourceAudioVisibleFeedbacks { get; private set; }
@@ -86,6 +87,7 @@ namespace PepperDash.Essentials.Core.Routing
             OverflowModeFeedback = new IntFeedback(() => _overflowMode);
 
             SourceVisibleFeedbacks = new Dictionary<uint, BoolFeedback>();
+            SourceVisibleModeFeedbacks = new Dictionary<uint, IntFeedback>();
             DestVisibleFeedbacks = new Dictionary<uint, BoolFeedback>();
             DestEnableFeedbacks = new Dictionary<uint, BoolFeedback>();
             SourceAudioVisibleFeedbacks = new Dictionary<uint, BoolFeedback>();
@@ -101,6 +103,7 @@ namespace PepperDash.Essentials.Core.Routing
             {
                 ushort sourceIndex = i;
                 SourceVisibleFeedbacks[i] = new BoolFeedback(() => GetSourceVisibility(sourceIndex));
+                SourceVisibleModeFeedbacks[i] = new IntFeedback(() => GetSourceVisibilityMode(sourceIndex));
                 SourceAudioVisibleFeedbacks[i] = new BoolFeedback(() => GetSourceAudioVisibility(sourceIndex));
                 SourceContentVisibleFeedbacks[i] = new BoolFeedback(() => GetSourceContentVisibility(sourceIndex));
                 SourceNameFeedbacks[i] = new StringFeedback(() => GetSourceName(sourceIndex));
@@ -208,6 +211,8 @@ namespace PepperDash.Essentials.Core.Routing
             {
                 SourceVisibleFeedbacks[i]
                     .LinkInputSig(trilist.BooleanInput[joinMap.SourceVisible.JoinNumber + i - 1]);
+                SourceVisibleModeFeedbacks[i]
+                    .LinkInputSig(trilist.UShortInput[joinMap.SourceVisibleMode.JoinNumber + i - 1]);
                 SourceAudioVisibleFeedbacks[i]
                     .LinkInputSig(trilist.BooleanInput[joinMap.SourceAudioVisible.JoinNumber + i - 1]);
                 SourceContentVisibleFeedbacks[i]
@@ -410,6 +415,7 @@ namespace PepperDash.Essentials.Core.Routing
         public void UpdateSourceFeedback(ushort sourceIndex)
         {
             SourceVisibleFeedbacks[sourceIndex].FireUpdate();
+            SourceVisibleModeFeedbacks[sourceIndex].FireUpdate();
             SourceAudioVisibleFeedbacks[sourceIndex].FireUpdate();
             SourceContentVisibleFeedbacks[sourceIndex].FireUpdate();
             SourceNameFeedbacks[sourceIndex].FireUpdate();
@@ -487,6 +493,60 @@ namespace PepperDash.Essentials.Core.Routing
             }
 
             return false;
+        }
+
+        // 0)not visible, 1)easy mode only, 2)advanced mode only, 3)easy and advanced mode
+        private ushort GetSourceVisibilityMode(ushort sourceIndex)
+        {
+            if (_router != null && _router.Sources != null && _router.Sources.ContainsKey(sourceIndex))
+            {
+                Source source = _router.Sources[sourceIndex];
+
+                bool visible;
+
+                //Check for tech panel mode
+                if (_techPanel)
+                {
+                    visible = source.techVisible ?? false;
+                }
+
+                //Check for visible mode defined but not enabled
+                else if (!string.IsNullOrEmpty(source.visibleMode) &&
+                         !_visibleModes.Contains(source.visibleMode.ToLower()))
+                {
+                    visible = false;
+                }
+
+                //Check for an overflow source with overflow disabled
+                else if (_overflowMode == 0 && source.Overflow == true)
+                {
+                    visible = false;
+                }
+                else
+                {
+                    visible = true;
+                }
+
+                if (visible)
+                {
+                    if (source.EasyModeVisible == true && source.AdvancedModeVisible == true)
+                    {
+                        return 3;
+                    }
+
+                    if (source.AdvancedModeVisible == true)
+                    {
+                        return 2;
+                    }
+
+                    if (source.EasyModeVisible == true)
+                    {
+                        return 1;
+                    }
+                }
+            }
+
+            return 0;
         }
 
         private string GetSourceName(ushort sourceIndex)
@@ -632,6 +692,11 @@ namespace PepperDash.Essentials.Core.Routing
             foreach (BoolFeedback boolFeedback in SourceVisibleFeedbacks.Values)
             {
                 boolFeedback.FireUpdate();
+            }
+
+            foreach (IntFeedback intFeedback in SourceVisibleModeFeedbacks.Values)
+            {
+                intFeedback.FireUpdate();
             }
         }
 

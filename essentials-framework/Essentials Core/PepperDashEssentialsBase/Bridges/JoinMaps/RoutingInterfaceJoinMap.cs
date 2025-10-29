@@ -127,6 +127,14 @@ namespace PepperDash.Essentials.Core.Bridges
             }
         );
 
+        [JoinName("SourceVisibleMode")] public JoinDataComplete SourceVisibleMode = new JoinDataComplete(
+            new JoinData { JoinNumber = 11, JoinSpan = 32 },
+            new JoinMetadata
+            {
+                Description = "Source visible mode feedback", JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                JoinType = eJoinType.Analog
+            });
+
         //Serial
 
         [JoinName("AddVisibilityMode")] public JoinDataComplete AddVisibilityMode = new JoinDataComplete(
