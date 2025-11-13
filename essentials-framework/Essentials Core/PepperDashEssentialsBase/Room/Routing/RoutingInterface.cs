@@ -58,10 +58,12 @@ namespace PepperDash.Essentials.Core.Routing
         private List<Route> PreviewRoutes;
         private bool allowRoutes;
         private readonly CTimer allowRoutesTimer;
+        private ushort _easyModeSourceFb;
 
         public IntFeedback SourceSelectFeedback { get; private set; }
         public IntFeedback AdvancedModeFeedback { get; private set; }
         public IntFeedback OverflowModeFeedback { get; private set; }
+        public IntFeedback EasyModeSourceFb { get; private set; }
         public Dictionary<uint, BoolFeedback> SourceVisibleFeedbacks { get; private set; }
         public Dictionary<uint, IntFeedback> SourceVisibleModeFeedbacks { get; private set; }
         public Dictionary<uint, BoolFeedback> DestVisibleFeedbacks { get; private set; }
@@ -85,6 +87,7 @@ namespace PepperDash.Essentials.Core.Routing
             SourceSelectFeedback = new IntFeedback(() => _selectedSource);
             AdvancedModeFeedback = new IntFeedback(() => _advancedMode);
             OverflowModeFeedback = new IntFeedback(() => _overflowMode);
+            EasyModeSourceFb = new IntFeedback(() => _easyModeSourceFb);
 
             SourceVisibleFeedbacks = new Dictionary<uint, BoolFeedback>();
             SourceVisibleModeFeedbacks = new Dictionary<uint, IntFeedback>();
@@ -206,6 +209,7 @@ namespace PepperDash.Essentials.Core.Routing
             SourceSelectFeedback.LinkInputSig(trilist.UShortInput[joinMap.SourceSelect.JoinNumber]);
             AdvancedModeFeedback.LinkInputSig(trilist.UShortInput[joinMap.AdvancedMode.JoinNumber]);
             OverflowModeFeedback.LinkInputSig(trilist.UShortInput[joinMap.OverflowMode.JoinNumber]);
+            EasyModeSourceFb.LinkInputSig(trilist.UShortInput[joinMap.EasyModeSourceFb.JoinNumber]);
 
             for (ushort i = 1; i <= RouterMain.maxSources; i++)
             {
@@ -277,6 +281,7 @@ namespace PepperDash.Essentials.Core.Routing
                 SourceSelectFeedback.FireUpdate();
                 AdvancedModeFeedback.FireUpdate();
                 OverflowModeFeedback.FireUpdate();
+                EasyModeSourceFb.FireUpdate();
 
                 //Update all source feedback
                 for (ushort i = 0;
@@ -442,6 +447,9 @@ namespace PepperDash.Essentials.Core.Routing
                             _selectedSource = dest.FeedbackIndex ?? 0;
                             SourceSelectFeedback.FireUpdate();
                         }
+
+                        _easyModeSourceFb = dest.FeedbackIndex ?? 0;
+                        EasyModeSourceFb.FireUpdate();
                     }
                 }
 

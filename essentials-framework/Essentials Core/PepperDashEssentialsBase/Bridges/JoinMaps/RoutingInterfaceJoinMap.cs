@@ -68,6 +68,16 @@ namespace PepperDash.Essentials.Core.Bridges
             }
         );
 
+        [JoinName("EasyModeSourceFb")] public JoinDataComplete EasyModeSourceFb = new JoinDataComplete(
+            new JoinData { JoinNumber = 2, JoinSpan = 1 },
+            new JoinMetadata
+            {
+                Description = "Source select set and feedback",
+                JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                JoinType = eJoinType.Analog
+            }
+        );
+
         [JoinName("AdvancedMode")] public JoinDataComplete AdvancedMode = new JoinDataComplete(
             new JoinData { JoinNumber = 3, JoinSpan = 1 },
             new JoinMetadata
