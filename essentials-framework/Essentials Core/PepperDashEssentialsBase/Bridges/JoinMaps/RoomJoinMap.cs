@@ -300,15 +300,6 @@ namespace PepperDash.Essentials.Core.Bridges
                 JoinType = eJoinType.Serial
             });
 
-        [JoinName("CameraStreamUrl")] public JoinDataComplete CameraStreamUrl = new JoinDataComplete(
-            new JoinData { JoinNumber = 35, JoinSpan = 8 },
-            new JoinMetadata
-            {
-                Description = "Camera url for video stream",
-                JoinCapabilities = eJoinCapabilities.ToSIMPL,
-                JoinType = eJoinType.Serial
-            });
-
         [JoinName("MicDockKey")] public JoinDataComplete MicDockKey = new JoinDataComplete(
             new JoinData { JoinNumber = 28, JoinSpan = 2 },
             new JoinMetadata

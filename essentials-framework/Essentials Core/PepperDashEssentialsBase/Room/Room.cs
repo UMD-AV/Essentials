@@ -159,10 +159,7 @@ namespace PepperDash.Essentials.Core
                     {
                         roomTriList.StringInput[joinMap.CameraKey.JoinNumber + (uint)i].StringValue =
                             roomConfig.Cameras[i].Key;
-
-                        roomTriList.StringInput[joinMap.CameraStreamUrl.JoinNumber + (uint)i].StringValue =
-                            roomConfig.Cameras[i].StreamUrl ?? "";
-
+                        
                         int? camSource = roomConfig.Cameras[i].Source;
                         if (camSource != null)
                         {

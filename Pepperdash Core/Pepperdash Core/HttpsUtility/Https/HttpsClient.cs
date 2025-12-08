@@ -96,7 +96,7 @@ namespace PepperDash.Core.HttpsUtility.Https
                 }
                 catch (HttpsException ex)
                 {
-                    Debug.ConsoleWithLog(0, "HttpsClient", ex);
+                    Debug.ConsoleWithLog(0, "HttpsClient exception: {0}", ex);
                 }
 
                 return null;

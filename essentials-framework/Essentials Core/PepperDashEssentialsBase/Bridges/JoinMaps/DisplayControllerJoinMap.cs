@@ -111,7 +111,7 @@ namespace PepperDash.Essentials.Core.Bridges
             });
 
         [JoinName("InputSelect")] public JoinDataComplete InputSelect = new JoinDataComplete(
-            new JoinData { JoinNumber = 11, JoinSpan = 1 },
+            new JoinData { JoinNumber = 11, JoinSpan = 10 },
             new JoinMetadata
             {
                 Description = "Input Select", JoinCapabilities = eJoinCapabilities.ToFromSIMPL,

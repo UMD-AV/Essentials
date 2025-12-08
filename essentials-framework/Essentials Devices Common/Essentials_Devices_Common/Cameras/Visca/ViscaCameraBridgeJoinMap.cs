@@ -381,6 +381,19 @@ namespace ViscaCameraPlugin
                 JoinType = eJoinType.Serial
             });
 
+        [JoinName("StreamUrl")] public JoinDataComplete StreamUrl = new JoinDataComplete(
+            new JoinData()
+            {
+                JoinNumber = 3,
+                JoinSpan = 1
+            },
+            new JoinMetadata()
+            {
+                Description = "URL for camera stream",
+                JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                JoinType = eJoinType.Serial
+            });
+
         [JoinName("PresetName")] public JoinDataComplete PresetNames = new JoinDataComplete(
             new JoinData()
             {

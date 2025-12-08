@@ -25,16 +25,13 @@ namespace PepperDash.Essentials.DM
         public RoutingInputPortWithVideoStatuses HdmiInput { get; private set; }
         public RoutingInputPortWithVideoStatuses VgaInput { get; private set; }
         public RoutingOutputPort DmOutput { get; private set; }
-
-        public override StringFeedback ActiveVideoInputFeedback { get; protected set; }
+        public sealed override StringFeedback ActiveVideoInputFeedback { get; protected set; }
         public IntFeedback VideoSourceNumericFeedback { get; protected set; }
         public IntFeedback AudioSourceNumericFeedback { get; protected set; }
         public IntFeedback HdmiInHdcpCapabilityFeedback { get; protected set; } //actually state
         public BoolFeedback HdmiVideoSyncFeedback { get; protected set; }
         public BoolFeedback VgaVideoSyncFeedback { get; protected set; }
-
         public BoolFeedback FreeRunEnabledFeedback { get; protected set; }
-
         public IntFeedback VgaBrightnessFeedback { get; protected set; }
         public IntFeedback VgaContrastFeedback { get; protected set; }
 
@@ -96,6 +93,7 @@ namespace PepperDash.Essentials.DM
         /// <param name="key"></param>
         /// <param name="name"></param>
         /// <param name="tx"></param>
+        /// <param name="preventRegistration"></param>
         public DmTx200Controller(string key, string name, DmTx200C2G tx, bool preventRegistration)
             : base(key, name, tx)
         {
@@ -243,10 +241,10 @@ namespace PepperDash.Essentials.DM
 
         public override bool CustomActivate()
         {
-            Tx.HdmiInput.InputStreamChange += (o, a) => FowardInputStreamChange(HdmiInput, a.EventId);
+            Tx.HdmiInput.InputStreamChange += (o, a) => ForwardInputStreamChange(HdmiInput, a.EventId);
             Tx.HdmiInput.VideoAttributes.AttributeChange += (o, a) => FireVideoAttributeChange(HdmiInput, a.EventId);
 
-            Tx.VgaInput.InputStreamChange += (o, a) => FowardInputStreamChange(VgaInput, a.EventId);
+            Tx.VgaInput.InputStreamChange += (o, a) => ForwardInputStreamChange(VgaInput, a.EventId);
             Tx.VgaInput.VideoAttributes.AttributeChange += (o, a) => FireVideoAttributeChange(VgaInput, a.EventId);
 
             // Base does register and sets up comm monitoring.
@@ -369,8 +367,6 @@ namespace PepperDash.Essentials.DM
             switch (args.EventId)
             {
                 case EndpointInputStreamEventIds.HdcpSupportOffFeedbackEventId:
-                    HdmiInHdcpCapabilityFeedback.FireUpdate();
-                    break;
                 case EndpointInputStreamEventIds.HdcpSupportOnFeedbackEventId:
                     HdmiInHdcpCapabilityFeedback.FireUpdate();
                     break;
@@ -383,7 +379,7 @@ namespace PepperDash.Essentials.DM
         /// <summary>
         /// Relays the input stream change to the appropriate RoutingInputPort.
         /// </summary>
-        private void FowardInputStreamChange(RoutingInputPortWithVideoStatuses inputPort, int eventId)
+        private void ForwardInputStreamChange(RoutingInputPortWithVideoStatuses inputPort, int eventId)
         {
             if (eventId != EndpointInputStreamEventIds.SyncDetectedFeedbackEventId)
             {
@@ -399,9 +395,6 @@ namespace PepperDash.Essentials.DM
         /// </summary>
         private void FireVideoAttributeChange(RoutingInputPortWithVideoStatuses inputPort, int eventId)
         {
-            //// LOCATION: Crestron.SimplSharpPro.DM.VideoAttributeEventIds
-            //Debug.Console(2, this, "VideoAttributes_AttributeChange event id={0} from {1}",
-            //    args.EventId, (sender as VideoAttributesEnhanced).Owner.GetType());
             switch (eventId)
             {
                 case VideoAttributeEventIds.HdcpActiveFeedbackEventId:
@@ -414,9 +407,6 @@ namespace PepperDash.Essentials.DM
                     break;
                 case VideoAttributeEventIds.HorizontalResolutionFeedbackEventId:
                 case VideoAttributeEventIds.VerticalResolutionFeedbackEventId:
-                    inputPort.VideoStatus.VideoResolutionFeedback.FireUpdate();
-                    AnyVideoInput.VideoStatus.VideoResolutionFeedback.FireUpdate();
-                    break;
                 case VideoAttributeEventIds.FramesPerSecondFeedbackEventId:
                     inputPort.VideoStatus.VideoResolutionFeedback.FireUpdate();
                     AnyVideoInput.VideoStatus.VideoResolutionFeedback.FireUpdate();

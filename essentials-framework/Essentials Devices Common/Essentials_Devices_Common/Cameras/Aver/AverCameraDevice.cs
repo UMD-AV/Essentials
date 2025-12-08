@@ -17,6 +17,7 @@ namespace PepperDash.Essentials.AverCamera
         private readonly string hostname;
         private readonly string username;
         private readonly string password;
+        private string streamUrl;
         private HttpClient client;
         private readonly AverCommunicationMonitor _monitor;
         private CTimer _pollTimer;
@@ -342,6 +343,7 @@ namespace PepperDash.Essentials.AverCamera
             hostname = commConfig.TcpSshProperties.Address;
             username = commConfig.TcpSshProperties.Username;
             password = commConfig.TcpSshProperties.Password;
+            streamUrl = config.StreamUrl;
 
             BuildClient();
             _monitor = new AverCommunicationMonitor(this, 60000, 120000);
@@ -622,6 +624,9 @@ namespace PepperDash.Essentials.AverCamera
             {
                 item.Value.LinkInputSig(trilist.BooleanInput[item.Key + joinMap.PresetRecall.JoinNumber - 1]);
             }
+
+            //stream url
+            trilist.StringInput[joinMap.StreamUrl.JoinNumber].StringValue = streamUrl;
 
             // online status 
             trilist.OnlineStatusChange += (o, a) =>

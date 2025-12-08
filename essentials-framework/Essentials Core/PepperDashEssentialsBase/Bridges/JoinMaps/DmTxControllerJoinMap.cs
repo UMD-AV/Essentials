@@ -11,19 +11,19 @@ namespace PepperDash.Essentials.Core.Bridges
                 Description = "DM TX Online", JoinCapabilities = eJoinCapabilities.ToSIMPL, JoinType = eJoinType.Digital
             });
 
-        [JoinName("VideoSyncStatus")] public JoinDataComplete VideoSyncStatus = new JoinDataComplete(
+        [JoinName("AutoModeOn")] public JoinDataComplete AutoModeOn = new JoinDataComplete(
             new JoinData { JoinNumber = 2, JoinSpan = 1 },
             new JoinMetadata
             {
-                Description = "DM TX Video Sync", JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                Description = "Auto Mode On Set / Get", JoinCapabilities = eJoinCapabilities.ToFromSIMPL,
                 JoinType = eJoinType.Digital
             });
 
-        [JoinName("FreeRunEnabled")] public JoinDataComplete FreeRunEnabled = new JoinDataComplete(
+        [JoinName("AutoModeOff")] public JoinDataComplete AutoModeOff = new JoinDataComplete(
             new JoinData { JoinNumber = 3, JoinSpan = 1 },
             new JoinMetadata
             {
-                Description = "DM TX Enable Free Run Set / Get", JoinCapabilities = eJoinCapabilities.ToFromSIMPL,
+                Description = "Auto Mode Off Set / Get", JoinCapabilities = eJoinCapabilities.ToFromSIMPL,
                 JoinType = eJoinType.Digital
             });
 
@@ -66,14 +66,6 @@ namespace PepperDash.Essentials.Core.Bridges
                 Description = "DM TX Name", JoinCapabilities = eJoinCapabilities.ToSIMPL, JoinType = eJoinType.Serial
             });
 
-        [JoinName("Input0Name")] public JoinDataComplete Input0Name = new JoinDataComplete(
-            new JoinData { JoinNumber = 3, JoinSpan = 1 },
-            new JoinMetadata
-            {
-                Description = "DM TX Input 0 (Auto Switch) Name", JoinCapabilities = eJoinCapabilities.ToSIMPL,
-                JoinType = eJoinType.Serial
-            });
-
         [JoinName("Input1Name")] public JoinDataComplete Input1Name = new JoinDataComplete(
             new JoinData { JoinNumber = 4, JoinSpan = 1 },
             new JoinMetadata
@@ -114,14 +106,6 @@ namespace PepperDash.Essentials.Core.Bridges
                 JoinType = eJoinType.Analog
             });
 
-        [JoinName("AutoModeInput")] public JoinDataComplete AutoModeInput = new JoinDataComplete(
-            new JoinData { JoinNumber = 3, JoinSpan = 1 },
-            new JoinMetadata
-            {
-                Description = "DM TX Auto Mode Input Get", JoinCapabilities = eJoinCapabilities.ToSIMPL,
-                JoinType = eJoinType.Analog
-            });
-
         [JoinName("HdcpSupportCapability")] public JoinDataComplete HdcpSupportCapability = new JoinDataComplete(
             new JoinData { JoinNumber = 3, JoinSpan = 1 },
             new JoinMetadata
@@ -143,22 +127,6 @@ namespace PepperDash.Essentials.Core.Bridges
             new JoinMetadata
             {
                 Description = "DM TX Port 2 HDCP State Set / Get", JoinCapabilities = eJoinCapabilities.ToFromSIMPL,
-                JoinType = eJoinType.Analog
-            });
-
-        [JoinName("VgaBrightness")] public JoinDataComplete VgaBrightness = new JoinDataComplete(
-            new JoinData { JoinNumber = 6, JoinSpan = 1 },
-            new JoinMetadata
-            {
-                Description = "DM TX VGA Brightness", JoinCapabilities = eJoinCapabilities.ToFromSIMPL,
-                JoinType = eJoinType.Analog
-            });
-
-        [JoinName("VgaContrast")] public JoinDataComplete VgaContrast = new JoinDataComplete(
-            new JoinData { JoinNumber = 7, JoinSpan = 1 },
-            new JoinMetadata
-            {
-                Description = "DM TX Online", JoinCapabilities = eJoinCapabilities.ToFromSIMPL,
                 JoinType = eJoinType.Analog
             });
 

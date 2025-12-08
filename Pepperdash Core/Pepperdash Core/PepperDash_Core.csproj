@@ -95,6 +95,7 @@
         <Compile Include="GenericRESTfulCommunications\Constants.cs"/>
         <Compile Include="GenericRESTfulCommunications\GenericRESTfulClient.cs"/>
         <Compile Include="HttpsUtility\Extensions.cs"/>
+        <Compile Include="HttpsUtility\HttpHelper.cs"/>
         <Compile Include="HttpsUtility\Https\HttpsClient.cs"/>
         <Compile Include="HttpsUtility\Https\HttpsResult.cs"/>
         <Compile Include="HttpsUtility\Lazy.cs"/>

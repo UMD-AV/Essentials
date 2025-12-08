@@ -30,6 +30,8 @@ namespace PepperDash.Essentials.Devices.Displays
         public BoolFeedback Input4Feedback { get; private set; }
         public StringFeedback ErrorFeedback { get; private set; }
 
+        private CTimer aspectTimer;
+
         private readonly string videoMuteKey;
         private IHdmiBlanking _hdmiBlanking;
 
@@ -174,6 +176,7 @@ namespace PepperDash.Essentials.Devices.Displays
                 videoMuteKey = config.VideoMuteKey;
             }
 
+            aspectTimer = new CTimer(aspectTimerElapsed, Timeout.Infinite);
             _cmdQueue = new EpsonQueue();
             _priorityQueue = new EpsonQueue();
             _volumeQueue = new EpsonQueue();
@@ -283,6 +286,8 @@ namespace PepperDash.Essentials.Devices.Displays
                 VideoMuteIsOnFeedback.LinkInputSig(trilist.BooleanInput[joinMap.VideoMuteOn.JoinNumber]);
             }
 
+            trilist.BooleanInput[joinMap.AspectRatio.JoinNumber].BoolValue = true;
+            trilist.SetSigTrueAction(joinMap.AspectRatio.JoinNumber, ToggleAspectRatio);
             trilist.BooleanInput[joinMap.LampHoursSupported.JoinNumber].BoolValue = true;
             trilist.BooleanInput[joinMap.VideoMuteSupported.JoinNumber].BoolValue = true;
             IsWarmingUpFeedback.LinkInputSig(trilist.BooleanInput[joinMap.Warming.JoinNumber]);
@@ -1112,6 +1117,36 @@ namespace PepperDash.Essentials.Devices.Displays
             SendCommand(eCommandType.PowerPoll, "PWR?", false);
         }
 
+        private ushort _aspectMode;
+
+        private void aspectTimerElapsed(object o)
+        {
+            _aspectMode = 0;
+        }
+
+        public void ToggleAspectRatio()
+        {
+            switch (_aspectMode)
+            {
+                case 0:
+                    SendCommand(eCommandType.Aspect, "ASPECT 00", true);
+                    _aspectMode = 1;
+                    break;
+
+                case 1:
+                    SendCommand(eCommandType.Aspect, "ASPECT 10", true);
+                    _aspectMode = 2;
+                    break;
+
+                case 2:
+                    SendCommand(eCommandType.Aspect, "ASPECT 20", true);
+                    _aspectMode = 0;
+                    break;
+            }
+
+            aspectTimer.Reset(60000);
+        }
+
         public void VideoMuteOn()
         {
             if (_hdmiBlanking != null)
@@ -1395,7 +1430,8 @@ namespace PepperDash.Essentials.Devices.Displays
             LampPoll,
             ErrorPoll,
             Volume,
-            VolumePoll
+            VolumePoll,
+            Aspect
         }
 
         private class EpsonQueue
@@ -1719,6 +1755,12 @@ namespace PepperDash.Essentials.Devices.Displays
                 VolumeReleaseTimer.Dispose();
             }
 
+            if (aspectTimer != null)
+            {
+                aspectTimer.Stop();
+                aspectTimer.Dispose();
+            }
+
             if (_CommandMutex != null) _CommandMutex.Dispose();
             if (_PowerMutex != null) _PowerMutex.Dispose();
             if (_rampLock != null) _rampLock.Dispose();
@@ -1727,6 +1769,19 @@ namespace PepperDash.Essentials.Devices.Displays
 
     public class EpsonProjectorJoinMap : DisplayControllerJoinMap
     {
+        [JoinName("AspectRatio")] public readonly JoinDataComplete AspectRatio = new JoinDataComplete(
+            new JoinData()
+            {
+                JoinNumber = 51,
+                JoinSpan = 1
+            },
+            new JoinMetadata()
+            {
+                JoinCapabilities = eJoinCapabilities.ToFromSIMPL,
+                JoinType = eJoinType.Digital,
+                Description = "Aspect Ratio Set/Get"
+            });
+
         [JoinName("Warming")] public readonly JoinDataComplete Warming = new JoinDataComplete(
             new JoinData()
             {

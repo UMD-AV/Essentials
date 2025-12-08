@@ -4,7 +4,6 @@ using Crestron.SimplSharp.Net.Https;
 using Newtonsoft.Json;
 using PepperDash.Core;
 using PepperDash.Core.HttpsUtility.Https;
-using PepperDash.Essentials.EpiphanPearl.Utilities;
 using HttpsClient = PepperDash.Core.HttpsUtility.Https.HttpsClient;
 
 namespace PepperDash.Essentials.EpiphanPearl

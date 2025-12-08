@@ -81,6 +81,7 @@ namespace PepperDash.Essentials.DM
         /// </summary>
         /// <param name="key"></param>
         /// <param name="name"></param>
+        /// <param name="typeName"></param>
         /// <param name="props"></param>
         /// <returns></returns>
         public static BasicDmTxControllerBase GetDmTxController(string key, string name, string typeName,
@@ -159,7 +160,6 @@ namespace PepperDash.Essentials.DM
                         tx = GetDmTxForChassisWithoutIpId(key, name, typeName, dmInput);
                         if (typeName == "hdbasettx")
                         {
-                            useChassisForOfflineFeedback = false;
                             Debug.Console(0, "DM endpoint input {0} does not support online feedback on a DM chassis",
                                 num);
                             tx.IsOnline.SetValueFunc(() => true);
@@ -174,7 +174,6 @@ namespace PepperDash.Essentials.DM
                         tx = GetDmTxForChassisWithIpId(key, name, typeName, ipid, dmInput);
                         if (typeName == "hdbasettx" || typeName == "dmtx4k100c1g")
                         {
-                            useChassisForOfflineFeedback = false;
                             Debug.Console(0,
                                 "DM endpoint input {0} does not support online feedback on a legacy DM chassis", num);
                             tx.IsOnline.SetValueFunc(() => true);
@@ -244,7 +243,6 @@ namespace PepperDash.Essentials.DM
                         tx = GetDmTxForChassisWithIpId(key, name, typeName, ipid, dmInput);
                         if (typeName == "hdbasettx" || typeName == "dmtx4k100c1g")
                         {
-                            useChassisForOfflineFeedback = false;
                             Debug.Console(0, "DM endpoint input {0} does not support online feedback on a DMPS3", num);
                             tx.IsOnline.SetValueFunc(() => true);
                         }
@@ -306,11 +304,11 @@ namespace PepperDash.Essentials.DM
     [Description("Wrapper class for all DM-TX variants")]
     public abstract class DmTxControllerBase : BasicDmTxControllerBase
     {
-        public virtual void SetPortHdcpCapability(eHdcpCapabilityType hdcpMode, uint port)
+        public void SetPortHdcpCapability(eHdcpCapabilityType hdcpMode, uint port)
         {
         }
 
-        public virtual eHdcpCapabilityType HdcpSupportCapability { get; protected set; }
+        public eHdcpCapabilityType HdcpSupportCapability { get; protected set; }
         public abstract StringFeedback ActiveVideoInputFeedback { get; protected set; }
         public RoutingInputPortWithVideoStatuses AnyVideoInput { get; protected set; }
         public IntFeedback HdcpStateFeedback { get; protected set; }
@@ -362,8 +360,6 @@ namespace PepperDash.Essentials.DM
             Debug.Console(1, tx, "Linking to Trilist '{0}'", trilist.ID.ToString("X"));
 
             tx.IsOnline.LinkInputSig(trilist.BooleanInput[joinMap.IsOnline.JoinNumber]);
-            tx.AnyVideoInput.VideoStatus.VideoSyncFeedback.LinkInputSig(
-                trilist.BooleanInput[joinMap.VideoSyncStatus.JoinNumber]);
             tx.AnyVideoInput.VideoStatus.VideoResolutionFeedback.LinkInputSig(
                 trilist.StringInput[joinMap.CurrentInputResolution.JoinNumber]);
             trilist.UShortInput[joinMap.HdcpSupportCapability.JoinNumber].UShortValue =
@@ -377,10 +373,9 @@ namespace PepperDash.Essentials.DM
             else
                 hdcpTypeSimple = true;
 
-            if (tx is ITxRouting)
+            ITxRouting txR = tx as ITxRouting;
+            if (txR != null)
             {
-                ITxRouting txR = tx as ITxRouting;
-
                 trilist.SetUShortSigAction(joinMap.VideoInput.JoinNumber,
                     i => txR.ExecuteNumericSwitch(i, 0, eRoutingSignalType.Video));
                 trilist.SetUShortSigAction(joinMap.AudioInput.JoinNumber,
@@ -449,24 +444,6 @@ namespace PepperDash.Essentials.DM
                     }
                 }
             }
-
-            IHasFreeRun txFreeRun = tx as IHasFreeRun;
-            if (txFreeRun != null)
-            {
-                txFreeRun.FreeRunEnabledFeedback.LinkInputSig(trilist.BooleanInput[joinMap.FreeRunEnabled.JoinNumber]);
-                trilist.SetBoolSigAction(joinMap.FreeRunEnabled.JoinNumber, txFreeRun.SetFreeRunEnabled);
-            }
-
-            IVgaBrightnessContrastControls txVga = tx as IVgaBrightnessContrastControls;
-            {
-                if (txVga == null) return;
-
-                txVga.VgaBrightnessFeedback.LinkInputSig(trilist.UShortInput[joinMap.VgaBrightness.JoinNumber]);
-                txVga.VgaContrastFeedback.LinkInputSig(trilist.UShortInput[joinMap.VgaContrast.JoinNumber]);
-
-                trilist.SetUShortSigAction(joinMap.VgaBrightness.JoinNumber, txVga.SetVgaBrightness);
-                trilist.SetUShortSigAction(joinMap.VgaContrast.JoinNumber, txVga.SetVgaContrast);
-            }
         }
 
         private void SetHdcpCapabilityAction(bool hdcpTypeSimple, EndpointHdmiInput port, uint join,
@@ -481,7 +458,7 @@ namespace PepperDash.Essentials.DM
                         {
                             port.HdcpSupportOff();
                         }
-                        else if (s > 0)
+                        else
                         {
                             port.HdcpSupportOn();
                         }
@@ -502,8 +479,7 @@ namespace PepperDash.Essentials.DM
             TypeNames = new List<string>()
             {
                 "dmtx200c", "dmtx201c", "dmtx201s", "dmtx4k100c", "dmtx4k202c", "dmtx4kz202c", "dmtx4k302c",
-                "dmtx4kz302c",
-                "dmtx401c", "dmtx401s", "dmtx4k100c1g", "dmtx4kz100c1g", "hdbasettx"
+                "dmtx4kz302c", "dmtx401c", "dmtx401s", "dmtx4k100c1g", "dmtx4kz100c1g", "hdbasettx"
             };
         }
 
@@ -514,8 +490,8 @@ namespace PepperDash.Essentials.DM
             Debug.Console(1, "Factory Attempting to create new DM-TX Device");
 
             DmTxPropertiesConfig props = JsonConvert.DeserializeObject
-                <PepperDash.Essentials.DM.Config.DmTxPropertiesConfig>(dc.Properties.ToString());
-            return PepperDash.Essentials.DM.DmTxHelper.GetDmTxController(dc.Key, dc.Name, type, props);
+                <DmTxPropertiesConfig>(dc.Properties.ToString());
+            return DmTxHelper.GetDmTxController(dc.Key, dc.Name, type, props);
         }
     }
 }

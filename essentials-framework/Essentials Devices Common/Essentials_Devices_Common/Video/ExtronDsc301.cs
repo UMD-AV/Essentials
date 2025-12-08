@@ -12,86 +12,63 @@ using Crestron.SimplSharpPro.DeviceSupport;
 
 namespace PepperDash.Essentials.Devices.Common.ExtronDsc301
 {
-    public class ExtronDsc301Device : EssentialsBridgeableDevice, ITxRoutingWithFeedback, IRoutingFeedback
+    public class ExtronDsc301Device : EssentialsBridgeableDevice, ITxRoutingWithFeedback
     {
         public IBasicCommunication Communication { get; private set; }
         public GenericCommunicationMonitor CommunicationMonitor { get; private set; }
-        private CrestronQueue<Dsc301Command> _commandQueue;
-        private CMutex _commandMutex;
-        private CTimer _commandTimer;
-        private CMutex _feedbackMutex;
+        private readonly CrestronQueue<Dsc301Command> _commandQueue;
+        private readonly CMutex _commandMutex;
+        private readonly CTimer _commandTimer;
+        private readonly CMutex _feedbackMutex;
         private byte[] _incomingBuffer = { };
-        private bool _queueWaiting = false;
+        private bool _queueWaiting;
         private bool _commandReady = true;
         protected eDsc301Command _lastInquiry = eDsc301Command.NoFeedback;
 
-        private bool _autoSwitchFb;
+        private bool _autoSwitchOnFb;
 
-        public bool AutoSwitchFb
-        {
-            get { return _autoSwitchFb; }
-            set
-            {
-                if (_autoSwitchFb == value) return;
-                _autoSwitchFb = value;
-
-                //Wait for input feedback to update after changing auto switch
-                CrestronInvoke.BeginInvoke((o) =>
-                {
-                    CrestronEnvironment.Sleep(500);
-                    CalculateInputFb();
-                });
-            }
-        }
-
-        private ushort _rawInputFb;
-
-        public ushort RawInputFb
-        {
-            get { return _rawInputFb; }
-            set
-            {
-                if (_rawInputFb == value || _rawInputFb > 3) return;
-                _rawInputFb = value;
-
-                CalculateInputFb();
-            }
-        }
+        public readonly BoolFeedback AutoSwitchOnFb;
 
         private ushort _inputFb;
 
-        private ushort _autoModeInputFb;
-        public IntFeedback AutoModeInputFb;
+        public ushort InputFb
+        {
+            get { return _inputFb; }
+            set
+            {
+                if (_inputFb == value || _inputFb > 3) return;
+                _inputFb = value;
+
+                VideoSourceNumericFeedback.FireUpdate();
+                AudioSourceNumericFeedback.FireUpdate();
+
+                OnSwitchChange(_inputFb);
+            }
+        }
+
 
         private bool _Input1Sync;
-        public BoolFeedback Input1SyncFb;
+        public readonly BoolFeedback Input1SyncFb;
 
         private bool _Input2Sync;
-        public BoolFeedback Input2SyncFb;
+        public readonly BoolFeedback Input2SyncFb;
 
         private bool _Input3Sync;
-        public BoolFeedback Input3SyncFb;
+        public readonly BoolFeedback Input3SyncFb;
 
-        private string _Input0Name;
-        public StringFeedback Input0NameFb;
+        public readonly StringFeedback Input1NameFb;
 
-        private string _Input1Name;
-        public StringFeedback Input1NameFb;
+        public readonly StringFeedback Input2NameFb;
 
-        private string _Input2Name;
-        public StringFeedback Input2NameFb;
-
-        private string _Input3Name;
-        public StringFeedback Input3NameFb;
+        public readonly StringFeedback Input3NameFb;
 
         public ExtronDsc301Device(string key, string name, IBasicCommunication comm,
             ExtronDsc301PropertiesConfig config)
             : base(key, name)
         {
-            _Input0Name = config.Input0Name != null ? config.Input0Name.ToString() : "";
-            _Input1Name = config.Input1Name != null ? config.Input1Name.ToString() : "";
-            _Input2Name = config.Input2Name != null ? config.Input2Name.ToString() : "";
-            _Input3Name = config.Input3Name != null ? config.Input3Name.ToString() : "";
+            string input1Name = config.Input1Name ?? "";
+            string input2Name = config.Input2Name ?? "";
+            string input3Name = config.Input3Name ?? "";
 
             _commandQueue = new CrestronQueue<Dsc301Command>(20);
             _commandMutex = new CMutex();
@@ -100,16 +77,17 @@ namespace PepperDash.Essentials.Devices.Common.ExtronDsc301
 
             VideoSourceNumericFeedback = new IntFeedback(() => _inputFb);
             AudioSourceNumericFeedback = new IntFeedback(() => _inputFb);
-            AutoModeInputFb = new IntFeedback(() => _autoModeInputFb);
+            AutoSwitchOnFb = new BoolFeedback(() => _autoSwitchOnFb);
             Input1SyncFb = new BoolFeedback(() => _Input1Sync);
             Input2SyncFb = new BoolFeedback(() => _Input2Sync);
             Input3SyncFb = new BoolFeedback(() => _Input3Sync);
-            Input0NameFb = new StringFeedback(() => _Input0Name);
-            Input1NameFb = new StringFeedback(() => _Input1Name);
-            Input2NameFb = new StringFeedback(() => _Input2Name);
-            Input3NameFb = new StringFeedback(() => _Input3Name);
+            Input1NameFb = new StringFeedback(() => input1Name);
+            Input2NameFb = new StringFeedback(() => input2Name);
+            Input3NameFb = new StringFeedback(() => input3Name);
 
             Communication = comm;
+            InputPorts = new RoutingPortCollection<RoutingInputPort>();
+            OutputPorts = new RoutingPortCollection<RoutingOutputPort>();
             Communication.BytesReceived += Communication_BytesReceived;
 
             CommunicationMonitor = new GenericCommunicationMonitor(this, Communication, 3000, 120000, 300000, Poll);
@@ -128,7 +106,7 @@ namespace PepperDash.Essentials.Devices.Common.ExtronDsc301
         {
             if (e.Status == MonitorStatus.IsOk)
             {
-                //Set Sync Timeout to 0s
+                //Set Sync Timeout to 0 s
                 QueueEscCommand(eDsc301Command.SetSyncTimeout, "T0SSAV\r");
                 //Query HDCP Notification
                 QueueEscCommand(eDsc301Command.HdcpNotification, "NHDCP\r");
@@ -263,35 +241,6 @@ namespace PepperDash.Essentials.Devices.Common.ExtronDsc301
             QueueEscCommand(eDsc301Command.AutoSwitchOff, "0AUSW\r");
         }
 
-        private void EnableHdcpNotification()
-        {
-            QueueEscCommand(eDsc301Command.HdcpNotification, "N1HDCP\r");
-        }
-
-        private void CalculateInputFb()
-        {
-            if (AutoSwitchFb)
-            {
-                _autoModeInputFb = RawInputFb;
-                AutoModeInputFb.FireUpdate();
-
-                _inputFb = 0;
-                VideoSourceNumericFeedback.FireUpdate();
-                AudioSourceNumericFeedback.FireUpdate();
-            }
-            else
-            {
-                _inputFb = RawInputFb;
-                VideoSourceNumericFeedback.FireUpdate();
-                AudioSourceNumericFeedback.FireUpdate();
-
-                _autoModeInputFb = 0;
-                AutoModeInputFb.FireUpdate();
-            }
-
-            OnSwitchChange(_inputFb);
-        }
-
         private void OnSwitchChange(ushort input)
         {
             RoutingNumericEventArgs e = new RoutingNumericEventArgs(1, input,
@@ -327,7 +276,7 @@ namespace PepperDash.Essentials.Devices.Common.ExtronDsc301
                     {
                         byte[] message = new byte[i - start - 1];
 
-                        //Copy bytes to new array without the CRLF and then process
+                        //Copy bytes to a new array without the CRLF and then process
                         Array.Copy(newBytes, start, message, 0, i - start - 1);
                         start = i + 1;
                         CrestronInvoke.BeginInvoke((o) => processResponse(message));
@@ -375,7 +324,7 @@ namespace PepperDash.Essentials.Devices.Common.ExtronDsc301
                 }
                 else if (responseText.StartsWith("HplgO"))
                 {
-                    //Found hot plug message
+                    //Found the hot plug message
                     if (responseText.Length > 5)
                     {
                         Debug.Console(0, this, "Found hotplug event on output {0}", responseText.Substring(5, 1));
@@ -383,8 +332,8 @@ namespace PepperDash.Essentials.Devices.Common.ExtronDsc301
                 }
                 else if (responseText.StartsWith("In") && responseText.EndsWith("All"))
                 {
-                    //Found route feedback message
-                    RawInputFb = ushort.Parse(responseText.Substring(2, 1));
+                    //Found the route feedback message
+                    InputFb = ushort.Parse(responseText.Substring(2, 1));
                     if (_lastInquiry == eDsc301Command.Route)
                     {
                         readyForNextCommand();
@@ -413,29 +362,33 @@ namespace PepperDash.Essentials.Devices.Common.ExtronDsc301
                             readyForNextCommand();
                             break;
                         case eDsc301Command.Route:
-                            //Found route feedback message
+                            //Found the route feedback message
                             if (responseText.Length == 1)
                             {
-                                RawInputFb = ushort.Parse(responseText);
+                                InputFb = ushort.Parse(responseText);
                             }
 
-                            Debug.Console(2, this, "Found route feedback {0}", RawInputFb);
+                            Debug.Console(2, this, "Found route feedback {0}", InputFb);
                             readyForNextCommand();
                             break;
                         case eDsc301Command.GetAutoSwitch:
                             //Auto Switch Inquiry Reply
                             if (responseText.Length == 1)
                             {
-                                if (responseText == "1" || responseText == "2")
+                                switch (responseText)
                                 {
-                                    AutoSwitchFb = true;
-                                }
-                                else if (responseText == "0")
-                                {
-                                    AutoSwitchFb = false;
+                                    case "1":
+                                    case "2":
+                                        _autoSwitchOnFb = true;
+                                        AutoSwitchOnFb.FireUpdate();
+                                        break;
+                                    case "0":
+                                        _autoSwitchOnFb = false;
+                                        AutoSwitchOnFb.FireUpdate();
+                                        break;
                                 }
 
-                                Debug.Console(2, this, "Found auto switch feedback {0}", AutoSwitchFb);
+                                Debug.Console(2, this, "Found auto switch feedback {0}", _autoSwitchOnFb);
                             }
 
                             readyForNextCommand();
@@ -462,8 +415,9 @@ namespace PepperDash.Essentials.Devices.Common.ExtronDsc301
                             //Auto Switch Disable Reply
                             if (responseText == "Ausw0")
                             {
-                                AutoSwitchFb = false;
-                                Debug.Console(2, this, "Found auto switch feedback {0}", AutoSwitchFb);
+                                _autoSwitchOnFb = false;
+                                AutoSwitchOnFb.FireUpdate();
+                                Debug.Console(2, this, "Found auto switch feedback {0}", _autoSwitchOnFb);
                             }
 
                             readyForNextCommand();
@@ -472,8 +426,9 @@ namespace PepperDash.Essentials.Devices.Common.ExtronDsc301
                             //Auto Switch Enable Reply
                             if (responseText == "Ausw1")
                             {
-                                AutoSwitchFb = true;
-                                Debug.Console(2, this, "Found auto switch feedback {0}", AutoSwitchFb);
+                                _autoSwitchOnFb = true;
+                                AutoSwitchOnFb.FireUpdate();
+                                Debug.Console(2, this, "Found auto switch feedback {0}", _autoSwitchOnFb);
                             }
 
                             readyForNextCommand();
@@ -503,7 +458,6 @@ namespace PepperDash.Essentials.Devices.Common.ExtronDsc301
 
             //Names
             trilist.StringInput[joinMap.Name.JoinNumber].StringValue = Name;
-            Input0NameFb.LinkInputSig(trilist.StringInput[joinMap.Input0Name.JoinNumber]);
             Input1NameFb.LinkInputSig(trilist.StringInput[joinMap.Input1Name.JoinNumber]);
             Input2NameFb.LinkInputSig(trilist.StringInput[joinMap.Input2Name.JoinNumber]);
             Input3NameFb.LinkInputSig(trilist.StringInput[joinMap.Input3Name.JoinNumber]);
@@ -516,9 +470,12 @@ namespace PepperDash.Essentials.Devices.Common.ExtronDsc301
             //Routing
             trilist.SetUShortSigAction(joinMap.VideoInput.JoinNumber, RouteInput);
             VideoSourceNumericFeedback.LinkInputSig(trilist.UShortInput[joinMap.VideoInput.JoinNumber]);
-            AutoModeInputFb.LinkInputSig(trilist.UShortInput[joinMap.AutoModeInput.JoinNumber]);
 
-            Input0NameFb.FireUpdate();
+            trilist.SetSigTrueAction(joinMap.AutoModeOn.JoinNumber, AutoSwitchOn);
+            trilist.SetSigTrueAction(joinMap.AutoModeOff.JoinNumber, AutoSwitchOff);
+            AutoSwitchOnFb.LinkInputSig(trilist.BooleanInput[joinMap.AutoModeOn.JoinNumber]);
+            AutoSwitchOnFb.LinkComplementInputSig(trilist.BooleanInput[joinMap.AutoModeOff.JoinNumber]);
+
             Input1NameFb.FireUpdate();
             Input2NameFb.FireUpdate();
             Input3NameFb.FireUpdate();
@@ -556,8 +513,8 @@ namespace PepperDash.Essentials.Devices.Common.ExtronDsc301
 
     public class Dsc301Command
     {
-        public eDsc301Command Command;
-        public byte[] Bytes;
+        public readonly eDsc301Command Command;
+        public readonly byte[] Bytes;
 
         public Dsc301Command(eDsc301Command command, byte[] bytes)
         {
@@ -591,10 +548,6 @@ namespace PepperDash.Essentials.Devices.Common.ExtronDsc301
         [JsonProperty("input2Name")] public string Input2Name { get; set; }
 
         [JsonProperty("input3Name")] public string Input3Name { get; set; }
-
-        public ExtronDsc301PropertiesConfig()
-        {
-        }
     }
 
     public class ExtronDsc301Factory : EssentialsDeviceFactory<ExtronDsc301Device>
