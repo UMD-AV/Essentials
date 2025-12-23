@@ -17,7 +17,7 @@ namespace PepperDash.Essentials.AverCamera
         private readonly string hostname;
         private readonly string username;
         private readonly string password;
-        private string streamUrl;
+        private readonly string streamUrl;
         private HttpClient client;
         private readonly AverCommunicationMonitor _monitor;
         private CTimer _pollTimer;
@@ -875,11 +875,13 @@ namespace PepperDash.Essentials.AverCamera
                     switch (message)
                     {
                         case "trk_tracking_on,3=0":
+                        case "trk_tracking_on=0":
                             AutoTrackingOn = false;
                             _monitor.SetOnlineStatus(true);
                             Debug.Console(1, "Aver Camera AutoTrack Off");
                             break;
                         case "trk_tracking_on,3=1":
+                        case "trk_tracking_on=1":
                             AutoTrackingOn = true;
                             _monitor.SetOnlineStatus(true);
                             Debug.Console(1, "Aver Camera AutoTrack On");
