@@ -14,8 +14,8 @@ namespace PepperDash.Essentials.EpiphanPearl
 
         [JsonProperty("panoptoKey")] public string PanoptoKey { get; set; }
 
-        [JsonProperty("stream1url")] public string Stream1Url { get; set; }
-        [JsonProperty("stream2url")] public string Stream2Url { get; set; }
-        [JsonProperty("stream3url")] public string Stream3Url { get; set; }
+        [JsonProperty("contentChannel")] public string contentChannel { get; set; }
+        [JsonProperty("camera1Channel")] public string camera1Channel { get; set; }
+        [JsonProperty("camera2Channel")] public string camera2Channel { get; set; }
     }
 }

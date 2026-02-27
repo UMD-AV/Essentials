@@ -54,14 +54,24 @@ namespace PepperDash.Essentials.EpiphanPearl
         private bool _Extend15Enabled;
         private string _hdmiOutputSource;
         public StringFeedback HdmiOutputFeedback;
-        private string _channel1layout;
 
-        public StringFeedback Channel1LayoutFeedback;
-        //private string _channel2layout;
-        //public StringFeedback Channel2LayoutFeedback;
-        //private string _channel3layout;
-        //public StringFeedback Channel3LayoutFeedback;
+        private readonly string _contentChannel;
+        private readonly string _camera1Channel;
+        private readonly string _camera2Channel;
+        private readonly string _contentUrl;
+        private readonly string _camera1Url;
+        private readonly string _camera2Url;
 
+        private string _contentLayout;
+        public StringFeedback ContentLayoutFeedback;
+        private string _camera1Layout;
+        public StringFeedback Camera1LayoutFeedback;
+        private string _camera2Layout;
+        public StringFeedback Camera2LayoutFeedback;
+
+        private readonly VideoPreview _contentPreview;
+        private readonly VideoPreview _camera1Preview;
+        private readonly VideoPreview _camera2Preview;
 
         private bool _enableVUMeterFeedback;
 
@@ -71,18 +81,34 @@ namespace PepperDash.Essentials.EpiphanPearl
             set
             {
                 _enableVUMeterFeedback = value;
-                if (_enableVUMeterFeedback)
+                if (value)
                 {
                     StartVUMeterPoll();
+                    if (_contentPreview != null)
+                        _contentPreview.EnablePreview();
+                    if (_camera1Preview != null)
+                        _camera1Preview.EnablePreview();
+                    if (_camera2Preview != null)
+                        _camera2Preview.EnablePreview();
+                }
+                else
+                {
+                    if (_contentPreview != null)
+                        _contentPreview.DisablePreview();
+                    if (_camera1Preview != null)
+                        _camera1Preview.DisablePreview();
+                    if (_camera2Preview != null)
+                        _camera2Preview.DisablePreview();
                 }
             }
         }
 
+
         private ushort _vuMeterLevel;
         public IntFeedback VUMeterFeedback;
-        public StringFeedback Stream1UrlFeedback;
-        public StringFeedback Stream2UrlFeedback;
-        public StringFeedback Stream3UrlFeedback;
+        public StringFeedback ContentUrlFeedback;
+        public StringFeedback Camera1UrlFeedback;
+        public StringFeedback Camera2UrlFeedback;
 
         private StringFeedback _runningEventStartFeedback;
         private readonly CTimer _statusTimer;
@@ -108,6 +134,47 @@ namespace PepperDash.Essentials.EpiphanPearl
             _vuMeterPollTimer = new CTimer(VUMeterPoll, Timeout.Infinite);
             _statusTimer = new CTimer(o => { GetRunningEventStatus(); }, null, Timeout.Infinite, 5000);
             _quickCheckTimer = new CTimer(o => { QuickCheckRunningEvent(); }, null, Timeout.Infinite, 5000);
+
+            _contentChannel = _devProperties.contentChannel ?? "";
+            _camera1Channel = _devProperties.camera1Channel ?? "";
+            _camera2Channel = _devProperties.camera2Channel ?? "";
+
+            if (!string.IsNullOrEmpty(_contentChannel))
+            {
+                _contentPreview = new VideoPreview(_client, "contentPreview",
+                    string.Format("/channels/{0}/preview", _contentChannel), 8091);
+                _contentUrl = string.Format("http://{0}.av.umd.edu:8091/preview/contentPreview.jpg",
+                    EthernetHelper.LanHelper.Hostname);
+            }
+            else
+            {
+                _contentUrl = "";
+            }
+
+            if (!string.IsNullOrEmpty(_camera1Channel))
+            {
+                _camera1Preview = new VideoPreview(_client, "camera1Preview",
+                    string.Format("/channels/{0}/preview", _camera1Channel), 8092);
+                _camera1Url = string.Format("http://{0}.av.umd.edu:8092/preview/camera1Preview.jpg",
+                    EthernetHelper.LanHelper.Hostname);
+            }
+            else
+            {
+                _camera1Url = "";
+            }
+
+            if (!string.IsNullOrEmpty(_camera2Channel))
+            {
+                _camera2Preview = new VideoPreview(_client, "camera2Preview",
+                    string.Format("/channels/{0}/preview", _camera2Channel), 8093);
+                _camera2Url = string.Format("http://{0}.av.umd.edu:8093/preview/camera2Preview.jpg",
+                    EthernetHelper.LanHelper.Hostname);
+            }
+            else
+            {
+                _camera2Url = "";
+            }
+
             _monitor.StatusChange += (sender, args) =>
             {
                 if (args.Status == MonitorStatus.InError)
@@ -287,12 +354,12 @@ namespace PepperDash.Essentials.EpiphanPearl
 
             HdmiOutputFeedback = new StringFeedback(() => _hdmiOutputSource);
             VUMeterFeedback = new IntFeedback(() => _vuMeterLevel);
-            Channel1LayoutFeedback = new StringFeedback(() => _channel1layout);
-            //Channel2LayoutFeedback = new StringFeedback(() => _channel2layout);
-            //Channel3LayoutFeedback = new StringFeedback(() => _channel3layout);
-            Stream1UrlFeedback = new StringFeedback(() => _devProperties.Stream1Url ?? "");
-            Stream2UrlFeedback = new StringFeedback(() => _devProperties.Stream2Url ?? "");
-            Stream3UrlFeedback = new StringFeedback(() => _devProperties.Stream3Url ?? "");
+            ContentLayoutFeedback = new StringFeedback(() => _contentLayout);
+            Camera1LayoutFeedback = new StringFeedback(() => _camera1Layout);
+            Camera2LayoutFeedback = new StringFeedback(() => _camera2Layout);
+            ContentUrlFeedback = new StringFeedback(() => _contentUrl);
+            Camera1UrlFeedback = new StringFeedback(() => _camera1Url);
+            Camera2UrlFeedback = new StringFeedback(() => _camera2Url);
         }
 
         public override void LinkToApi(BasicTriList trilist, uint joinStart, string joinMapKey, EiscApiAdvanced bridge)
@@ -316,9 +383,12 @@ namespace PepperDash.Essentials.EpiphanPearl
             trilist.SetBoolSigAction(joinMap.VUMeterEnable.JoinNumber, a => EnableVUMeterFeedback = a);
 
             trilist.SetStringSigAction(joinMap.HdmiOutputSource.JoinNumber, SetHdmiOutputSource);
-            trilist.SetStringSigAction(joinMap.Channel1Layout.JoinNumber, (layout) => SetLayout(1, layout));
-            trilist.SetStringSigAction(joinMap.Channel2Layout.JoinNumber, (layout) => SetLayout(2, layout));
-            trilist.SetStringSigAction(joinMap.Channel3Layout.JoinNumber, (layout) => SetLayout(3, layout));
+            trilist.SetStringSigAction(joinMap.ContentLayout.JoinNumber,
+                (layout) => SetLayout(ushort.Parse(_contentLayout), layout));
+            trilist.SetStringSigAction(joinMap.Camera1Layout.JoinNumber,
+                (layout) => SetLayout(ushort.Parse(_camera1Layout), layout));
+            trilist.SetStringSigAction(joinMap.Camera2Layout.JoinNumber,
+                (layout) => SetLayout(ushort.Parse(_camera2Layout), layout));
 
             CommunicationMonitor.IsOnlineFeedback.LinkInputSig(trilist.BooleanInput[joinMap.RecorderOnline.JoinNumber]);
 
@@ -351,12 +421,12 @@ namespace PepperDash.Essentials.EpiphanPearl
             _nextEventIn10mFeedback.LinkInputSig(trilist.BooleanInput[joinMap.NextRecordingIn10m.JoinNumber]);
 
             HdmiOutputFeedback.LinkInputSig(trilist.StringInput[joinMap.HdmiOutputSource.JoinNumber]);
-            Channel1LayoutFeedback.LinkInputSig(trilist.StringInput[joinMap.Channel1Layout.JoinNumber]);
-            //Channel2LayoutFeedback.LinkInputSig(trilist.StringInput[joinMap.Channel2Layout.JoinNumber]);
-            //Channel3LayoutFeedback.LinkInputSig(trilist.StringInput[joinMap.Channel3Layout.JoinNumber]);
-            Stream1UrlFeedback.LinkInputSig(trilist.StringInput[joinMap.Stream1Url.JoinNumber]);
-            Stream2UrlFeedback.LinkInputSig(trilist.StringInput[joinMap.Stream2Url.JoinNumber]);
-            Stream3UrlFeedback.LinkInputSig(trilist.StringInput[joinMap.Stream3Url.JoinNumber]);
+            ContentLayoutFeedback.LinkInputSig(trilist.StringInput[joinMap.ContentLayout.JoinNumber]);
+            Camera1LayoutFeedback.LinkInputSig(trilist.StringInput[joinMap.Camera1Layout.JoinNumber]);
+            Camera2LayoutFeedback.LinkInputSig(trilist.StringInput[joinMap.Camera2Layout.JoinNumber]);
+            ContentUrlFeedback.LinkInputSig(trilist.StringInput[joinMap.ContentUrl.JoinNumber]);
+            Camera1UrlFeedback.LinkInputSig(trilist.StringInput[joinMap.Camera1Url.JoinNumber]);
+            Camera2UrlFeedback.LinkInputSig(trilist.StringInput[joinMap.Camera2Url.JoinNumber]);
             VUMeterFeedback.LinkInputSig(trilist.UShortInput[joinMap.VUMeterFeedback.JoinNumber]);
 
             trilist.OnlineStatusChange += (device, args) =>
@@ -621,45 +691,56 @@ namespace PepperDash.Essentials.EpiphanPearl
 
         private void GetLayouts()
         {
-            BaseResponse<string> layout1 = _client.Get<BaseResponse<string>>("/channels/1/layouts/active");
-            if (layout1 == null)
+            if (!string.IsNullOrEmpty(_contentChannel))
             {
-                Debug.Console(1, this, "Unable to get layout1");
-                return;
+                BaseResponse<string> contentLayout =
+                    _client.Get<BaseResponse<string>>(string.Format("/channels/{0}/layouts/active", _contentChannel));
+                if (contentLayout == null)
+                {
+                    Debug.Console(1, this, "Unable to get content layout");
+                    return;
+                }
+
+                if (contentLayout.Status.Equals("ok", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    _contentLayout = contentLayout.Result;
+                    ContentLayoutFeedback.FireUpdate();
+                }
             }
 
-            if (layout1.Status.Equals("ok", StringComparison.InvariantCultureIgnoreCase))
+            if (!string.IsNullOrEmpty(_camera1Channel))
             {
-                _channel1layout = layout1.Result;
-                Channel1LayoutFeedback.FireUpdate();
+                BaseResponse<string> camera1Layout =
+                    _client.Get<BaseResponse<string>>(string.Format("/channels/{0}/layouts/active", _camera1Channel));
+                if (camera1Layout == null)
+                {
+                    Debug.Console(1, this, "Unable to get camera1 layout");
+                    return;
+                }
+
+                if (camera1Layout.Status.Equals("ok", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    _camera1Layout = camera1Layout.Result;
+                    Camera1LayoutFeedback.FireUpdate();
+                }
             }
 
-            /*
-            BaseResponse<string> layout2 = _client.Get<BaseResponse<string>>("/channels/2/layouts/active");
-            if (layout2 == null)
+            if (!string.IsNullOrEmpty(_camera2Channel))
             {
-                Debug.Console(1, this, "Unable to get layout2");
-                return;
-            }
+                BaseResponse<string> camera2Layout =
+                    _client.Get<BaseResponse<string>>(string.Format("/channels/{0}/layouts/active", _camera2Channel));
+                if (camera2Layout == null)
+                {
+                    Debug.Console(1, this, "Unable to get camera2 layout");
+                    return;
+                }
 
-            if (layout2.Status.Equals("ok", StringComparison.InvariantCultureIgnoreCase))
-            {
-                _channel2layout = layout2.Result;
-                Channel2LayoutFeedback.FireUpdate();
+                if (camera2Layout.Status.Equals("ok", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    _camera2Layout = camera2Layout.Result;
+                    Camera2LayoutFeedback.FireUpdate();
+                }
             }
-
-            BaseResponse<string> layout3 = _client.Get<BaseResponse<string>>("/channels/3/layouts/active");
-            if (layout3 == null)
-            {
-                Debug.Console(1, this, "Unable to get layout3");
-                return;
-            }
-
-            if (layout3.Status.Equals("ok", StringComparison.InvariantCultureIgnoreCase))
-            {
-                _channel3layout = layout3.Result;
-                Channel3LayoutFeedback.FireUpdate();
-            }*/
         }
 
         private void GetEvents()
@@ -837,6 +918,7 @@ namespace PepperDash.Essentials.EpiphanPearl
         {
             try
             {
+                Debug.Console(0, this, "vu meter poll");
                 BaseResponse<List<VUMeterResponse>> response =
                     _client.Get<BaseResponse<List<VUMeterResponse>>>("/sources/status?ids=D2P0.analog-a");
                 if (response != null && response.Status.Equals("ok", StringComparison.InvariantCultureIgnoreCase))
@@ -910,12 +992,12 @@ namespace PepperDash.Essentials.EpiphanPearl
         {
             UpdateRunningEventFeedbacks();
             HdmiOutputFeedback.FireUpdate();
-            Channel1LayoutFeedback.FireUpdate();
-            //Channel2LayoutFeedback.FireUpdate();
-            //Channel3LayoutFeedback.FireUpdate();
-            Stream1UrlFeedback.FireUpdate();
-            Stream2UrlFeedback.FireUpdate();
-            Stream3UrlFeedback.FireUpdate();
+            ContentLayoutFeedback.FireUpdate();
+            Camera1LayoutFeedback.FireUpdate();
+            Camera2LayoutFeedback.FireUpdate();
+            ContentUrlFeedback.FireUpdate();
+            Camera1UrlFeedback.FireUpdate();
+            Camera2UrlFeedback.FireUpdate();
             UpdateScheduledEventsFeedbacks();
         }
 
@@ -943,6 +1025,21 @@ namespace PepperDash.Essentials.EpiphanPearl
             {
                 _vuMeterPollTimer.Stop();
                 _vuMeterPollTimer.Dispose();
+            }
+
+            if (_contentPreview != null)
+            {
+                _contentPreview.Dispose();
+            }
+
+            if (_camera1Preview != null)
+            {
+                _camera1Preview.Dispose();
+            }
+
+            if (_camera2Preview != null)
+            {
+                _camera2Preview.Dispose();
             }
 
             if (_statusTimer != null)

@@ -103,9 +103,47 @@ namespace PepperDash.Core.HttpsUtility.Https
             }
         }
 
+        private HttpsResultBytes SendRequestBytes(string url, RequestType requestType,
+            IEnumerable<HttpsHeader> additionalHeaders, string content)
+        {
+            using (_requestLock.AcquireLock())
+            {
+                HttpsClientRequest httpRequest = CreateDefaultClientRequest(url, requestType);
+
+                if (additionalHeaders != null)
+                {
+                    foreach (HttpsHeader item in additionalHeaders)
+                        httpRequest.Header.AddHeader(item);
+                }
+
+                if (!string.IsNullOrEmpty(content))
+                {
+                    httpRequest.ContentSource = ContentSource.ContentString;
+                    httpRequest.ContentString = content;
+                }
+
+                try
+                {
+                    HttpsClientResponse httpResponse = _httpsClient.Value.Dispatch(httpRequest);
+                    return new HttpsResultBytes(httpResponse.Code, httpResponse.ResponseUrl, httpResponse.ContentBytes);
+                }
+                catch (HttpsException ex)
+                {
+                    Debug.ConsoleWithLog(0, "HttpsClient exception: {0}", ex);
+                }
+
+                return null;
+            }
+        }
+
         public HttpsResult Get(string url, IEnumerable<HttpsHeader> additionalHeaders)
         {
             return SendRequest(url, RequestType.Get, additionalHeaders, null);
+        }
+
+        public HttpsResultBytes GetBytes(string url, IEnumerable<HttpsHeader> additionalHeaders)
+        {
+            return SendRequestBytes(url, RequestType.Get, additionalHeaders, null);
         }
 
         public HttpsResult Post(string url, string value)

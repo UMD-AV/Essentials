@@ -52,7 +52,7 @@ namespace PepperDash.Essentials.EpiphanPearl.JoinMaps
                 Description = "HdmiOutputSource Set/Get"
             });
 
-        [JoinName("Channel1Layout")] public JoinDataComplete Channel1Layout = new JoinDataComplete(
+        [JoinName("ContentLayout")] public JoinDataComplete ContentLayout = new JoinDataComplete(
             new JoinData
             {
                 JoinNumber = 5,
@@ -62,10 +62,10 @@ namespace PepperDash.Essentials.EpiphanPearl.JoinMaps
             {
                 JoinCapabilities = eJoinCapabilities.ToFromSIMPL,
                 JoinType = eJoinType.Serial,
-                Description = "Channel1Layout Set/Get"
+                Description = "ContentLayout Set/Get"
             });
 
-        [JoinName("Channel2Layout")] public JoinDataComplete Channel2Layout = new JoinDataComplete(
+        [JoinName("Camera1Layout")] public JoinDataComplete Camera1Layout = new JoinDataComplete(
             new JoinData
             {
                 JoinNumber = 6,
@@ -75,10 +75,10 @@ namespace PepperDash.Essentials.EpiphanPearl.JoinMaps
             {
                 JoinCapabilities = eJoinCapabilities.ToFromSIMPL,
                 JoinType = eJoinType.Serial,
-                Description = "Channel2Layout Set/Get"
+                Description = "Camera1Layout Set/Get"
             });
 
-        [JoinName("Channel3Layout")] public JoinDataComplete Channel3Layout = new JoinDataComplete(
+        [JoinName("Camera2Layout")] public JoinDataComplete Camera2Layout = new JoinDataComplete(
             new JoinData
             {
                 JoinNumber = 7,
@@ -88,7 +88,7 @@ namespace PepperDash.Essentials.EpiphanPearl.JoinMaps
             {
                 JoinCapabilities = eJoinCapabilities.ToFromSIMPL,
                 JoinType = eJoinType.Serial,
-                Description = "Channel3Layout Set/Get"
+                Description = "Camera2Layout Set/Get"
             });
 
         [JoinName("PanoptoKey")] public JoinDataComplete PanoptoKey = new JoinDataComplete(
@@ -444,7 +444,7 @@ namespace PepperDash.Essentials.EpiphanPearl.JoinMaps
                 Description = "Next recording is starting in 10m"
             });
 
-        [JoinName("Steam1Url")] public JoinDataComplete Stream1Url = new JoinDataComplete(
+        [JoinName("ContentUrl")] public JoinDataComplete ContentUrl = new JoinDataComplete(
             new JoinData
             {
                 JoinNumber = 31,
@@ -454,10 +454,10 @@ namespace PepperDash.Essentials.EpiphanPearl.JoinMaps
             {
                 JoinCapabilities = eJoinCapabilities.ToSIMPL,
                 JoinType = eJoinType.Serial,
-                Description = "Stream 1 URL"
+                Description = "Content URL"
             });
 
-        [JoinName("Steam2Url")] public JoinDataComplete Stream2Url = new JoinDataComplete(
+        [JoinName("Camera1Url")] public JoinDataComplete Camera1Url = new JoinDataComplete(
             new JoinData
             {
                 JoinNumber = 32,
@@ -467,10 +467,10 @@ namespace PepperDash.Essentials.EpiphanPearl.JoinMaps
             {
                 JoinCapabilities = eJoinCapabilities.ToSIMPL,
                 JoinType = eJoinType.Serial,
-                Description = "Stream 2 URL"
+                Description = "Camera1 URL"
             });
 
-        [JoinName("Steam3Url")] public JoinDataComplete Stream3Url = new JoinDataComplete(
+        [JoinName("Camera2Url")] public JoinDataComplete Camera2Url = new JoinDataComplete(
             new JoinData
             {
                 JoinNumber = 33,
@@ -480,7 +480,7 @@ namespace PepperDash.Essentials.EpiphanPearl.JoinMaps
             {
                 JoinCapabilities = eJoinCapabilities.ToSIMPL,
                 JoinType = eJoinType.Serial,
-                Description = "Stream 3 URL"
+                Description = "Camera2 URL"
             });
     }
 }

@@ -9,7 +9,7 @@ namespace PepperDash.Essentials.Core
 {
     public static class FileIO
     {
-        private static CCriticalSection fileLock = new CCriticalSection();
+        private static readonly CCriticalSection fileLock = new CCriticalSection();
 
         public delegate void GotFileEventHandler(object sender, FileEventArgs e);
 
@@ -25,7 +25,7 @@ namespace PepperDash.Essentials.Core
             DirectoryInfo dirInfo = new DirectoryInfo(Path.GetDirectoryName(fileName));
             FileInfo[] files = dirInfo.GetFiles(Path.GetFileName(fileName));
             Debug.Console(0, "FileIO found: {0}, {1}", files.Count(), fileName);
-            if (files.Count() > 0)
+            if (files.Any())
             {
                 return files;
             }
@@ -40,7 +40,7 @@ namespace PepperDash.Essentials.Core
             DirectoryInfo dirInfo = new DirectoryInfo(Path.GetDirectoryName(fileName));
             FileInfo[] files = dirInfo.GetFiles(Path.GetFileName(fileName));
             Debug.Console(0, "FileIO found: {0}, {1}", files.Count(), fileName);
-            if (files.Count() > 0)
+            if (files.Any())
             {
                 return files.FirstOrDefault();
             }

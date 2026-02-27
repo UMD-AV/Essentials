@@ -53,4 +53,35 @@ namespace PepperDash.Core.HttpsUtility.Https
             _content = content;
         }
     }
+
+    public class HttpsResultBytes
+    {
+        private readonly int _status;
+
+        public int Status
+        {
+            get { return _status; }
+        }
+
+        private readonly string _responseUrl;
+
+        public string ResponseUrl
+        {
+            get { return _responseUrl; }
+        }
+
+        private readonly byte[] _content;
+
+        public byte[] Content
+        {
+            get { return _content; }
+        }
+
+        public HttpsResultBytes(int status, string responseUrl, byte[] content)
+        {
+            _status = status;
+            _responseUrl = responseUrl;
+            _content = content;
+        }
+    }
 }

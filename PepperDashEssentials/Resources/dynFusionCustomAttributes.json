@@ -341,6 +341,11 @@
         "name": "Number Of Mic Batteries - Error"
       },
       {
+        "joinNumber": 132,
+        "rwType": "R",
+        "name": "Number Of Mic Batteries"
+      },
+      {
         "joinNumber": 201,
         "rwType": "R",
         "name": "Destination 01 - Current Source"

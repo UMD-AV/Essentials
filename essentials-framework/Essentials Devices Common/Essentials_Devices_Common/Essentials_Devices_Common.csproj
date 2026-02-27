@@ -121,7 +121,7 @@
         <Compile Include="AudioCodec\MockAC\MockAcPropertiesConfig.cs"/>
         <Compile Include="Audio\Amplifier.cs"/>
         <Compile Include="Audio\CrestronNaxAmp\CrestronNaxAmp.cs"/>
-    <Compile Include="AvBridges\LumensOIP.cs" />
+        <Compile Include="AvBridges\LumensOIP.cs"/>
         <Compile Include="AvBridges\VaddioBridge\VaddioBridgeConfig.cs"/>
         <Compile Include="AvBridges\VaddioBridge\VaddioBridgeDevice.cs"/>
         <Compile Include="AvBridges\VaddioBridge\VaddioBridgeJoinMap.cs"/>
@@ -395,6 +395,7 @@
         <Compile Include="Recorders\EpiphanPearl\Models\ScheduleResponse.cs"/>
         <Compile Include="Recorders\EpiphanPearl\Models\VUMeterResponse.cs"/>
         <Compile Include="Recorders\EpiphanPearl\Utilities\EpiphanCommunicationMonitor.cs"/>
+        <Compile Include="Recorders\EpiphanPearl\Utilities\VideoPreview.cs"/>
         <Compile Include="Recorders\PanoptoCloud\PanoptoCloudController.cs"/>
         <Compile Include="Recorders\PanoptoCloud\PanoptoCloudControllerFactory.cs"/>
         <Compile Include="Recorders\PanoptoCloud\PanoptoCloudControllerJoinMap.cs"/>
