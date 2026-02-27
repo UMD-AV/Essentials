@@ -30,6 +30,35 @@ namespace PepperDash.Essentials.EpiphanPearl
             };
         }
 
+        public byte[] Get(string path)
+        {
+            string url = string.Format("{0}/api{1}", _basePath, path);
+            Debug.Console(1, this, "Getting {0}", url);
+            HttpsResultBytes result = _client.GetBytes(url, _headers);
+            try
+            {
+                if (result.Status != 200)
+                {
+                    Debug.Console(0, this, "Failed to get response from server. Code: {0}", result.Status);
+                    return null;
+                }
+
+                return result.Content;
+            }
+            catch (Exception ex)
+            {
+                Debug.Console(0, "[T Get<T>] Exception sending to {0}: {1}", path, ex.Message);
+                Debug.Console(2, "Stack Trace: {0}", ex.StackTrace);
+
+                if (ex.InnerException == null) return null;
+
+                Debug.Console(0, "[T Get<T>] Exception sending to {0}: {1}", path, ex.InnerException.Message);
+                Debug.Console(2, "Stack Trace: {0}", ex.InnerException.StackTrace);
+
+                return null;
+            }
+        }
+
         public T Get<T>(string path) where T : class
         {
             string url = string.Format("{0}/api{1}", _basePath, path);

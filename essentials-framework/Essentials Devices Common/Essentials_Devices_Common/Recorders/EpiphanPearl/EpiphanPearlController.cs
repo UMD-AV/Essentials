@@ -142,7 +142,7 @@ namespace PepperDash.Essentials.EpiphanPearl
             if (!string.IsNullOrEmpty(_contentChannel))
             {
                 _contentPreview = new VideoPreview(_client, "contentPreview",
-                    string.Format("/channels/{0}/preview", _contentChannel), 8091);
+                    string.Format("/channels/{0}/preview?resolution=480", _contentChannel), 8091);
                 _contentUrl = string.Format("http://{0}.av.umd.edu:8091/preview/contentPreview.jpg",
                     EthernetHelper.LanHelper.Hostname);
             }
@@ -154,7 +154,7 @@ namespace PepperDash.Essentials.EpiphanPearl
             if (!string.IsNullOrEmpty(_camera1Channel))
             {
                 _camera1Preview = new VideoPreview(_client, "camera1Preview",
-                    string.Format("/channels/{0}/preview", _camera1Channel), 8092);
+                    string.Format("/channels/{0}/preview?resolution=480", _camera1Channel), 8092);
                 _camera1Url = string.Format("http://{0}.av.umd.edu:8092/preview/camera1Preview.jpg",
                     EthernetHelper.LanHelper.Hostname);
             }
@@ -166,7 +166,7 @@ namespace PepperDash.Essentials.EpiphanPearl
             if (!string.IsNullOrEmpty(_camera2Channel))
             {
                 _camera2Preview = new VideoPreview(_client, "camera2Preview",
-                    string.Format("/channels/{0}/preview", _camera2Channel), 8093);
+                    string.Format("/channels/{0}/preview?resolution=480", _camera2Channel), 8093);
                 _camera2Url = string.Format("http://{0}.av.umd.edu:8093/preview/camera2Preview.jpg",
                     EthernetHelper.LanHelper.Hostname);
             }
@@ -919,16 +919,19 @@ namespace PepperDash.Essentials.EpiphanPearl
             try
             {
                 Debug.Console(0, this, "vu meter poll");
-                BaseResponse<List<VUMeterResponse>> response =
-                    _client.Get<BaseResponse<List<VUMeterResponse>>>("/sources/status?ids=D2P0.analog-a");
-                if (response != null && response.Status.Equals("ok", StringComparison.InvariantCultureIgnoreCase))
+                CrestronInvoke.BeginInvoke(obj =>
                 {
-                    if (response.Result != null && response.Result.Count > 0)
+                    BaseResponse<List<VUMeterResponse>> response =
+                        _client.Get<BaseResponse<List<VUMeterResponse>>>("/sources/status?ids=D2P0.analog-a");
+                    if (response != null && response.Status.Equals("ok", StringComparison.InvariantCultureIgnoreCase))
                     {
-                        _vuMeterLevel = ScaleToUInt16(response.Result[0].Status.Audio.Levels.Rms[0]);
-                        VUMeterFeedback.FireUpdate();
+                        if (response.Result != null && response.Result.Count > 0)
+                        {
+                            _vuMeterLevel = ScaleToUInt16(response.Result[0].Status.Audio.Levels.Rms[0]);
+                            VUMeterFeedback.FireUpdate();
+                        }
                     }
-                }
+                });
             }
             catch (Exception e)
             {
@@ -938,14 +941,7 @@ namespace PepperDash.Essentials.EpiphanPearl
             {
                 if (_enableVUMeterFeedback)
                 {
-                    if (_runningEventRunningFeedback.BoolValue)
-                    {
-                        _vuMeterPollTimer.Reset(1000);
-                    }
-                    else
-                    {
-                        _vuMeterPollTimer.Reset(100);
-                    }
+                    _vuMeterPollTimer.Reset(100);
                 }
             }
         }
