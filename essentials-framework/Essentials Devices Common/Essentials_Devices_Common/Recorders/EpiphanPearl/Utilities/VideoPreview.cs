@@ -34,7 +34,7 @@ namespace PepperDash.Essentials.EpiphanPearl.Utilities
             Key = "videoPreview-" + name;
             _imageUrl = imageUrl;
 
-            _minPollIntervalMs = 100;
+            _minPollIntervalMs = 1000;
             _imageRoutePath = "/preview/" + name + ".jpg";
 
             _httpServer = new HttpServer
@@ -70,19 +70,16 @@ namespace PepperDash.Essentials.EpiphanPearl.Utilities
             {
                 if (!EnablePreviewFeedback) return;
                 Debug.Console(0, this, "Polling image: {0}", _imageUrl);
-                CrestronInvoke.BeginInvoke(obj =>
+                byte[] img = _client.Get(_imageUrl);
+                if (img == null || img.Length == 0)
                 {
-                    byte[] img = _client.Get(_imageUrl);
-                    if (img == null || img.Length == 0)
-                    {
-                        Debug.Console(0, this, "Image response was null/empty.");
-                        return;
-                    }
+                    Debug.Console(0, this, "Image response was null/empty.");
+                    return;
+                }
 
-                    _latestJpeg = img;
+                _latestJpeg = img;
 
-                    Debug.Console(1, this, "Image cached. Size={0} bytes", img.Length);
-                });
+                Debug.Console(1, this, "Image cached. Size={0} bytes", img.Length);
             }
             catch (Exception ex)
             {

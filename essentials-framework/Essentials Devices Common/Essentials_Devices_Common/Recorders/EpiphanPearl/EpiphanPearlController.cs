@@ -919,19 +919,16 @@ namespace PepperDash.Essentials.EpiphanPearl
             try
             {
                 Debug.Console(0, this, "vu meter poll");
-                CrestronInvoke.BeginInvoke(obj =>
+                BaseResponse<List<VUMeterResponse>> response =
+                    _client.Get<BaseResponse<List<VUMeterResponse>>>("/sources/status?ids=D2P0.analog-a");
+                if (response != null && response.Status.Equals("ok", StringComparison.InvariantCultureIgnoreCase))
                 {
-                    BaseResponse<List<VUMeterResponse>> response =
-                        _client.Get<BaseResponse<List<VUMeterResponse>>>("/sources/status?ids=D2P0.analog-a");
-                    if (response != null && response.Status.Equals("ok", StringComparison.InvariantCultureIgnoreCase))
+                    if (response.Result != null && response.Result.Count > 0)
                     {
-                        if (response.Result != null && response.Result.Count > 0)
-                        {
-                            _vuMeterLevel = ScaleToUInt16(response.Result[0].Status.Audio.Levels.Rms[0]);
-                            VUMeterFeedback.FireUpdate();
-                        }
+                        _vuMeterLevel = ScaleToUInt16(response.Result[0].Status.Audio.Levels.Rms[0]);
+                        VUMeterFeedback.FireUpdate();
                     }
-                });
+                }
             }
             catch (Exception e)
             {
@@ -941,7 +938,7 @@ namespace PepperDash.Essentials.EpiphanPearl
             {
                 if (_enableVUMeterFeedback)
                 {
-                    _vuMeterPollTimer.Reset(100);
+                    _vuMeterPollTimer.Reset(200);
                 }
             }
         }
