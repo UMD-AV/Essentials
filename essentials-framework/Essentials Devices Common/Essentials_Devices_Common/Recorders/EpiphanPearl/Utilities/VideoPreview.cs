@@ -69,7 +69,6 @@ namespace PepperDash.Essentials.EpiphanPearl.Utilities
             try
             {
                 if (!EnablePreviewFeedback) return;
-                Debug.Console(0, this, "Polling image: {0}", _imageUrl);
                 byte[] img = _client.Get(_imageUrl);
                 if (img == null || img.Length == 0)
                 {

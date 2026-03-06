@@ -918,7 +918,6 @@ namespace PepperDash.Essentials.EpiphanPearl
         {
             try
             {
-                Debug.Console(0, this, "vu meter poll");
                 BaseResponse<List<VUMeterResponse>> response =
                     _client.Get<BaseResponse<List<VUMeterResponse>>>("/sources/status?ids=D2P0.analog-a");
                 if (response != null && response.Status.Equals("ok", StringComparison.InvariantCultureIgnoreCase))
