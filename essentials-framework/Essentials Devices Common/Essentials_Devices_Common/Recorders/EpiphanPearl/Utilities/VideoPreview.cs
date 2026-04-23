@@ -1,52 +1,61 @@
 using System;
 using Crestron.SimplSharp;
-using Crestron.SimplSharp.Net.Http;
+using Crestron.SimplSharp.WebScripting;
 using PepperDash.Core;
 
 namespace PepperDash.Essentials.EpiphanPearl.Utilities
 {
     /// <summary>
-    /// Polls an image from a URL using the provided EpiphanPearlSecureClient and serves the latest frame via HttpServer.
+    /// Polls an image from a URL using the provided EpiphanPearlSecureClient
+    /// and serves the latest frame via Crestron Web Scripting.
     /// </summary>
     public sealed class VideoPreview : IKeyed, IDisposable
     {
         private readonly CTimer _previewPollTimer;
         private readonly EpiphanPearlSecureClient _client;
-        private readonly HttpServer _httpServer;
-        private readonly string _imageRoutePath;
-        private byte[] _latestJpeg;
+        private readonly HttpCwsServer _cwsServer;
+        private readonly string _routePattern;
 
-        public string Key { get; private set; }
-        public bool EnablePreviewFeedback { get; private set; }
+        private byte[] _latestJpeg;
+        private byte[] _blackJpeg;
 
         private readonly string _imageUrl;
         private readonly int _minPollIntervalMs;
 
-        public VideoPreview(EpiphanPearlSecureClient httpsClient, string name, string imageUrl, int httpPort)
+        public string Key { get; private set; }
+        public bool EnablePreviewFeedback { get; private set; }
+
+        public string PreviewUrl
+        {
+            get { return "/" + _routePattern; }
+        }
+
+        public VideoPreview(EpiphanPearlSecureClient httpsClient, string name, string imageUrl)
         {
             if (httpsClient == null) throw new ArgumentNullException("httpsClient");
             if (string.IsNullOrEmpty(name)) throw new ArgumentNullException("name");
             if (string.IsNullOrEmpty(imageUrl)) throw new ArgumentNullException("imageUrl");
-            if (httpPort <= 0) throw new ArgumentOutOfRangeException("httpPort");
 
             _client = httpsClient;
-
             Key = "videoPreview-" + name;
             _imageUrl = imageUrl;
-
             _minPollIntervalMs = 1000;
-            _imageRoutePath = "/preview/" + name + ".jpg";
+            _routePattern = string.Format("preview/{0}.jpg", name);
 
-            _httpServer = new HttpServer
-            {
-                Port = httpPort
-            };
-            _httpServer.OnHttpRequest += OnHttpRequest;
-            _httpServer.Open();
+            // Optional: assign a real black jpeg here if you want the handler
+            // to return black instead of 503 when no live image is available.
+            _blackJpeg = null;
+
+            _cwsServer = new HttpCwsServer("/");
+            var route = new HttpCwsRoute(_routePattern);
+            route.RouteHandler = new PreviewRequestHandler(this);
+            _cwsServer.AddRoute(route);
+            _cwsServer.Register();
+
             _previewPollTimer = new CTimer(PreviewPoll, Timeout.Infinite);
 
-            Debug.Console(1, this, "VideoPreview created. ImageUrl={0}, HttpPort={1}, Route={2}",
-                _imageUrl, httpPort, _imageRoutePath);
+            Debug.Console(1, this, "VideoPreview created. ImageUrl={0}, Route={1}",
+                _imageUrl, PreviewUrl);
         }
 
         public void EnablePreview()
@@ -59,7 +68,7 @@ namespace PepperDash.Essentials.EpiphanPearl.Utilities
         {
             EnablePreviewFeedback = false;
             _previewPollTimer.Reset(Timeout.Infinite);
-            _latestJpeg = null;
+            HandlePreviewFailure();
         }
 
         private void PreviewPoll(object o)
@@ -68,21 +77,24 @@ namespace PepperDash.Essentials.EpiphanPearl.Utilities
 
             try
             {
-                if (!EnablePreviewFeedback) return;
+                if (!EnablePreviewFeedback)
+                    return;
+
                 byte[] img = _client.Get(_imageUrl);
                 if (img == null || img.Length == 0)
                 {
                     Debug.Console(0, this, "Image response was null/empty.");
+                    HandlePreviewFailure();
                     return;
                 }
 
                 _latestJpeg = img;
-
                 Debug.Console(1, this, "Image cached. Size={0} bytes", img.Length);
             }
             catch (Exception ex)
             {
                 Debug.Console(0, this, "Error in PreviewPoll: {0}", ex);
+                HandlePreviewFailure();
             }
             finally
             {
@@ -90,60 +102,89 @@ namespace PepperDash.Essentials.EpiphanPearl.Utilities
                 {
                     double elapsed = (DateTime.Now - pollStart).TotalMilliseconds;
                     int delay = elapsed < _minPollIntervalMs ? (int)(_minPollIntervalMs - elapsed) : 0;
-                    Debug.Console(1, this, "Poll complete. Elapsed={0}ms, NextDelay={1}ms", elapsed, delay);
                     _previewPollTimer.Reset(delay);
                 }
             }
         }
 
-        private void OnHttpRequest(object o, OnHttpRequestArgs args)
+        private void HandlePreviewFailure()
         {
-            try
-            {
-                string path = args.Request.Path.IndexOf('?') >= 0
-                    ? args.Request.Path.Substring(0, args.Request.Path.IndexOf('?'))
-                    : args.Request.Path;
-                Debug.Console(1, this, "HTTP {0} {1}", args.Request.Header.RequestType, path);
+            // Option A: make route return 503 if no image is available
+            _latestJpeg = null;
 
-                if (!string.Equals(path, _imageRoutePath, StringComparison.OrdinalIgnoreCase))
-                {
-                    args.Response.SendErrorWithCustomBody(404, "Not Found", "Not Found");
-                    Debug.Console(1, this, "HTTP 404 for path: {0}", path);
-                    return;
-                }
+            // Option B: uncomment this to serve black instead
+            // _latestJpeg = _blackJpeg;
+        }
 
-                byte[] jpeg = _latestJpeg;
-
-                if (jpeg == null || jpeg.Length == 0)
-                {
-                    args.Response.SendErrorWithCustomBody(503, "Service Unavailable", "No frame available yet");
-                    Debug.Console(1, this, "HTTP 503 - no cached frame yet.");
-                    return;
-                }
-
-                // Build response
-                args.Response.Code = 200;
-                args.Response.ResponseText = "OK";
-                args.Response.Header.ContentType = "image/jpeg";
-                args.Response.Header.SetHeaderValue("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0");
-                args.Response.ContentBytes = jpeg;
-                args.Response.FinalizeHeader();
-
-                Debug.Console(1, this, "HTTP 200 - served {0} bytes", jpeg.Length);
-            }
-            catch (Exception ex)
-            {
-                Debug.Console(1, this, "Error handling HTTP request: {0}", ex);
-                args.Response.SendErrorWithCustomBody(500, "Internal Server Error", "Internal Server Error");
-            }
+        private byte[] GetCurrentFrame()
+        {
+            return _latestJpeg;
         }
 
         public void Dispose()
         {
             _previewPollTimer.Reset(Timeout.Infinite);
             _previewPollTimer.Dispose();
-            _httpServer.Close();
-            _httpServer.Dispose();
+
+            try
+            {
+                _cwsServer.Unregister();
+            }
+            catch
+            {
+            }
+        }
+
+        private sealed class PreviewRequestHandler : IHttpCwsHandler
+        {
+            private readonly VideoPreview _parent;
+
+            public PreviewRequestHandler(VideoPreview parent)
+            {
+                _parent = parent;
+            }
+
+            public void ProcessRequest(HttpCwsContext context)
+            {
+                try
+                {
+                    var method = context.Request.HttpMethod;
+                    if (!string.Equals(method, "GET", StringComparison.OrdinalIgnoreCase))
+                    {
+                        context.Response.StatusCode = 405;
+                        context.Response.StatusDescription = "Method Not Allowed";
+                        context.Response.Write("Method Not Allowed", true);
+                        return;
+                    }
+
+                    byte[] jpeg = _parent.GetCurrentFrame();
+
+                    if (jpeg == null || jpeg.Length == 0)
+                    {
+                        context.Response.StatusCode = 503;
+                        context.Response.StatusDescription = "Service Unavailable";
+                        context.Response.Write("No frame available", true);
+                        return;
+                    }
+
+                    context.Response.StatusCode = 200;
+                    context.Response.ContentType = "image/jpeg";
+
+                    // Depending on firmware/API version, one of these patterns is usually available.
+                    // Use the one your SDK exposes:
+                    context.Response.OutputStream.Write(jpeg,0,jpeg.Length);
+
+                    // Some SDKs may also need:
+                    context.Response.End();
+                }
+                catch (Exception ex)
+                {
+                    Debug.Console(0, _parent, "Error handling CWS request: {0}", ex);
+                    context.Response.StatusCode = 500;
+                    context.Response.StatusDescription = "Internal Server Error";
+                    context.Response.Write("Internal Server Error", true);
+                }
+            }
         }
     }
 }

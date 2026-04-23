@@ -142,8 +142,8 @@ namespace PepperDash.Essentials.EpiphanPearl
             if (!string.IsNullOrEmpty(_contentChannel))
             {
                 _contentPreview = new VideoPreview(_client, "contentPreview",
-                    string.Format("/channels/{0}/preview?resolution=480", _contentChannel), 8091);
-                _contentUrl = string.Format("http://{0}.av.umd.edu:8091/preview/contentPreview.jpg",
+                    string.Format("/channels/{0}/preview?resolution=480", _contentChannel));
+                _contentUrl = string.Format("https://{0}.av.umd.edu/preview/contentPreview.jpg",
                     EthernetHelper.LanHelper.Hostname);
             }
             else
@@ -154,8 +154,8 @@ namespace PepperDash.Essentials.EpiphanPearl
             if (!string.IsNullOrEmpty(_camera1Channel))
             {
                 _camera1Preview = new VideoPreview(_client, "camera1Preview",
-                    string.Format("/channels/{0}/preview?resolution=480", _camera1Channel), 8092);
-                _camera1Url = string.Format("http://{0}.av.umd.edu:8092/preview/camera1Preview.jpg",
+                    string.Format("/channels/{0}/preview?resolution=480", _camera1Channel));
+                _camera1Url = string.Format("https://{0}.av.umd.edu/preview/camera1Preview.jpg",
                     EthernetHelper.LanHelper.Hostname);
             }
             else
@@ -166,8 +166,8 @@ namespace PepperDash.Essentials.EpiphanPearl
             if (!string.IsNullOrEmpty(_camera2Channel))
             {
                 _camera2Preview = new VideoPreview(_client, "camera2Preview",
-                    string.Format("/channels/{0}/preview?resolution=480", _camera2Channel), 8093);
-                _camera2Url = string.Format("http://{0}.av.umd.edu:8093/preview/camera2Preview.jpg",
+                    string.Format("/channels/{0}/preview?resolution=480", _camera2Channel));
+                _camera2Url = string.Format("https://{0}.av.umd.edu/preview/camera2Preview.jpg",
                     EthernetHelper.LanHelper.Hostname);
             }
             else

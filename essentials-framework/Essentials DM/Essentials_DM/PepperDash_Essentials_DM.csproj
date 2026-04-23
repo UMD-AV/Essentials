@@ -51,31 +51,31 @@
     </PropertyGroup>
     <ItemGroup>
         <Reference Include="Crestron.SimplSharpPro.DeviceSupport">
-            <HintPath>..\..\..\..\..\ProgramData\Crestron\SDK\Crestron.SimplSharpPro.DeviceSupport.dll</HintPath>
+            <HintPath>C:\Program Files (x86)\Crestron\Cresdb\Programming\Libraries\Required References\Crestron.SimplSharpPro.DeviceSupport.dll</HintPath>
         </Reference>
         <Reference Include="Crestron.SimplSharpPro.DM">
-            <HintPath>..\..\..\..\..\ProgramData\Crestron\SDK\Crestron.SimplSharpPro.DM.dll</HintPath>
+            <HintPath>C:\Program Files (x86)\Crestron\Cresdb\Programming\Libraries\Crestron.SimplSharpPro.DM.dll</HintPath>
         </Reference>
         <Reference Include="Crestron.SimplSharpPro.UI, Version=1.0.0.0, Culture=neutral, PublicKeyToken=1099c178b3b54c3b, processorArchitecture=MSIL">
             <SpecificVersion>False</SpecificVersion>
-            <HintPath>..\..\..\..\..\..\..\..\..\ProgramData\Crestron\SDK\SSPDevices\Crestron.SimplSharpPro.UI.dll</HintPath>
+            <HintPath>C:\Program Files (x86)\Crestron\Cresdb\Programming\Libraries\Crestron.SimplSharpPro.UI.dll</HintPath>
         </Reference>
         <Reference Include="mscorlib"/>
         <Reference Include="SimplSharpHelperInterface, Version=1.0.0.0, Culture=neutral, PublicKeyToken=1099c178b3b54c3b, processorArchitecture=MSIL">
             <SpecificVersion>False</SpecificVersion>
-            <HintPath>..\..\..\..\..\..\..\..\..\ProgramData\Crestron\SDK\SimplSharpHelperInterface.dll</HintPath>
+            <HintPath>C:\Program Files (x86)\Crestron\Cresdb\Programming\Libraries\Required References\SimplSharpHelperInterface.dll</HintPath>
             <Private>False</Private>
         </Reference>
         <Reference Include="SimplSharpNewtonsoft, Version=1.0.0.0, Culture=neutral, PublicKeyToken=1099c178b3b54c3b, processorArchitecture=MSIL">
             <SpecificVersion>False</SpecificVersion>
-            <HintPath>..\..\..\..\..\..\..\..\..\ProgramData\Crestron\SDK\SimplSharpNewtonsoft.dll</HintPath>
+            <HintPath>C:\Program Files (x86)\Crestron\Cresdb\Programming\Libraries\SimplSharpNewtonsoft.dll</HintPath>
         </Reference>
         <Reference Include="SimplSharpPro">
-            <HintPath>..\..\..\..\..\ProgramData\Crestron\SDK\SimplSharpPro.exe</HintPath>
+            <HintPath>C:\Program Files (x86)\Crestron\Cresdb\Programming\Libraries\Required References\SimplSharpPro.exe</HintPath>
         </Reference>
         <Reference Include="SimplSharpReflectionInterface, Version=1.0.5583.25238, Culture=neutral, PublicKeyToken=1099c178b3b54c3b, processorArchitecture=MSIL">
             <SpecificVersion>False</SpecificVersion>
-            <HintPath>..\..\..\..\..\..\..\..\..\ProgramData\Crestron\SDK\SimplSharpReflectionInterface.dll</HintPath>
+            <HintPath>C:\Program Files (x86)\Crestron\Cresdb\Programming\Libraries\SimplSharpReflectionInterface.dll</HintPath>
         </Reference>
         <Reference Include="System">
             <HintPath>..\..\..\..\..\Program Files (x86)\Microsoft.NET\SDK\CompactFramework\v3.5\WindowsCE\System.dll</HintPath>
