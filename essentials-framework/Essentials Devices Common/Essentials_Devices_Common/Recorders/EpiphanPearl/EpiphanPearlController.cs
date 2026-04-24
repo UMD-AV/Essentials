@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using Crestron.SimplSharp;
+using Crestron.SimplSharp.WebScripting;
 using Crestron.SimplSharpPro.DeviceSupport;
 using PepperDash.Core;
 using PepperDash.Essentials.Core;
@@ -23,7 +24,7 @@ namespace PepperDash.Essentials.EpiphanPearl
         private readonly EpiphanPearlSecureClient _client;
         private readonly EpiphanCommunicationMonitor _monitor;
 
-        private readonly string panoptoKey;
+        private readonly string _panoptoKey;
         private readonly CTimer _pollTimer;
         private readonly CTimer _vuMeterPollTimer;
         private Event _runningEvent;
@@ -37,23 +38,24 @@ namespace PepperDash.Essentials.EpiphanPearl
         private StringFeedback _runningEventTimeRemainingFeedback;
         private BoolFeedback _runningEventRunningFeedback;
         private BoolFeedback _runningEventPausedFeedback;
-        private BoolFeedback _Extend5EnabledFeedback;
-        private BoolFeedback _Extend15EnabledFeedback;
+        private BoolFeedback _extend5EnabledFeedback;
+        private BoolFeedback _extend15EnabledFeedback;
 
         //Next event feedbacks
         private BoolFeedback _nextEventExistsFeedback;
-        private BoolFeedback _nextEventIn5mFeedback;
-        private BoolFeedback _nextEventIn10mFeedback;
+        private BoolFeedback _nextEventIn5MFeedback;
+        private BoolFeedback _nextEventIn10MFeedback;
         private StringFeedback _nextEventNameFeedback;
         private StringFeedback _nextEventIdFeedback;
         private StringFeedback _nextEventLengthFeedback;
         private StringFeedback _nextEventStartTimeFeedback;
         private StringFeedback _nextEventEndTimeFeedback;
 
-        private bool _Extend5Enabled;
-        private bool _Extend15Enabled;
+        private bool _extend5Enabled;
+        private bool _extend15Enabled;
         private string _hdmiOutputSource;
-        public StringFeedback HdmiOutputFeedback;
+        private StringFeedback _hdmiOutputFeedback;
+        private readonly HttpCwsServer _previewApi;
 
         private readonly string _contentChannel;
         private readonly string _camera1Channel;
@@ -73,14 +75,14 @@ namespace PepperDash.Essentials.EpiphanPearl
         private readonly VideoPreview _camera1Preview;
         private readonly VideoPreview _camera2Preview;
 
-        private bool _enableVUMeterFeedback;
+        private bool _enableVuMeterFeedback;
 
-        public bool EnableVUMeterFeedback
+        public bool EnableVuMeterFeedback
         {
-            get { return _enableVUMeterFeedback; }
+            get { return _enableVuMeterFeedback; }
             set
             {
-                _enableVUMeterFeedback = value;
+                _enableVuMeterFeedback = value;
                 if (value)
                 {
                     StartVUMeterPoll();
@@ -105,7 +107,7 @@ namespace PepperDash.Essentials.EpiphanPearl
 
 
         private ushort _vuMeterLevel;
-        public IntFeedback VUMeterFeedback;
+        public IntFeedback VuMeterFeedback;
         public StringFeedback ContentUrlFeedback;
         public StringFeedback Camera1UrlFeedback;
         public StringFeedback Camera2UrlFeedback;
@@ -113,22 +115,24 @@ namespace PepperDash.Essentials.EpiphanPearl
         private StringFeedback _runningEventStartFeedback;
         private readonly CTimer _statusTimer;
         private readonly CTimer _quickCheckTimer;
-        private readonly DeviceConfig devConfig;
+        private readonly DeviceConfig _devConfig;
         private IRecordingController _recordingController;
 
         private EpiphanPearlControllerConfiguration _devProperties
         {
-            get { return devConfig.Properties.ToObject<EpiphanPearlControllerConfiguration>(); }
+            get { return _devConfig.Properties.ToObject<EpiphanPearlControllerConfiguration>(); }
         }
 
         public EpiphanPearlController(DeviceConfig config) : base(config)
         {
-            devConfig = config;
+            _devConfig = config;
             CrestronEnvironment.ProgramStatusEventHandler += CrestronEnvironment_ProgramStatusEventHandler;
             _client = new EpiphanPearlSecureClient(Key, _devProperties.Host, _devProperties.Username,
                 _devProperties.Password);
+            
+            _previewApi = new HttpCwsServer("/preview");
 
-            panoptoKey = _devProperties.PanoptoKey ?? "";
+            _panoptoKey = _devProperties.PanoptoKey ?? "";
             _monitor = new EpiphanCommunicationMonitor(this, 130000, 190000);
             _pollTimer = new CTimer(Poll, Timeout.Infinite);
             _vuMeterPollTimer = new CTimer(VUMeterPoll, Timeout.Infinite);
@@ -139,42 +143,12 @@ namespace PepperDash.Essentials.EpiphanPearl
             _camera1Channel = _devProperties.camera1Channel ?? "";
             _camera2Channel = _devProperties.camera2Channel ?? "";
 
-            if (!string.IsNullOrEmpty(_contentChannel))
-            {
-                _contentPreview = new VideoPreview(_client, "contentPreview",
-                    string.Format("/channels/{0}/preview?resolution=480", _contentChannel));
-                _contentUrl = string.Format("https://{0}.av.umd.edu/preview/contentPreview.jpg",
-                    EthernetHelper.LanHelper.Hostname);
-            }
-            else
-            {
-                _contentUrl = "";
-            }
+            _contentPreview = SetupPreview(_contentChannel, "contentPreview", out _contentUrl);
+            _camera1Preview = SetupPreview(_camera1Channel, "camera1Preview", out _camera1Url);
+            _camera2Preview = SetupPreview(_camera2Channel, "camera2Preview", out _camera2Url);
 
-            if (!string.IsNullOrEmpty(_camera1Channel))
-            {
-                _camera1Preview = new VideoPreview(_client, "camera1Preview",
-                    string.Format("/channels/{0}/preview?resolution=480", _camera1Channel));
-                _camera1Url = string.Format("https://{0}.av.umd.edu/preview/camera1Preview.jpg",
-                    EthernetHelper.LanHelper.Hostname);
-            }
-            else
-            {
-                _camera1Url = "";
-            }
-
-            if (!string.IsNullOrEmpty(_camera2Channel))
-            {
-                _camera2Preview = new VideoPreview(_client, "camera2Preview",
-                    string.Format("/channels/{0}/preview?resolution=480", _camera2Channel));
-                _camera2Url = string.Format("https://{0}.av.umd.edu/preview/camera2Preview.jpg",
-                    EthernetHelper.LanHelper.Hostname);
-            }
-            else
-            {
-                _camera2Url = "";
-            }
-
+            _previewApi.Register();
+            
             _monitor.StatusChange += (sender, args) =>
             {
                 if (args.Status == MonitorStatus.InError)
@@ -187,11 +161,25 @@ namespace PepperDash.Essentials.EpiphanPearl
             CreateFeedbacks();
         }
 
+        private VideoPreview SetupPreview(string channel, string name, out string url)
+        {
+            if (string.IsNullOrEmpty(channel))
+            {
+                url = "";
+                return null;
+            }
+
+            VideoPreview preview = new VideoPreview(_client, name, string.Format("/channels/{0}/preview?resolution=480", channel), _previewApi);
+
+            url = string.Format("https://{0}.av.umd.edu/cws/preview/{1}.jpg", EthernetHelper.LanHelper.Hostname, name);
+
+            return preview;
+        }
         public override bool CustomActivate()
         {
-            if (panoptoKey != "")
+            if (_panoptoKey != "")
             {
-                IKeyed device = DeviceManager.GetDeviceForKey(panoptoKey);
+                IKeyed device = DeviceManager.GetDeviceForKey(_panoptoKey);
                 _recordingController = device as IRecordingController;
 
                 if (_recordingController != null)
@@ -317,11 +305,11 @@ namespace PepperDash.Essentials.EpiphanPearl
                                            StringComparison.InvariantCultureIgnoreCase));
 
             _nextEventExistsFeedback = new BoolFeedback(() => _scheduledRecordings.Count > 0);
-            _nextEventIn5mFeedback = new BoolFeedback(() => _scheduledRecordings.Count > 0 &&
+            _nextEventIn5MFeedback = new BoolFeedback(() => _scheduledRecordings.Count > 0 &&
                                                             _scheduledRecordings[0].Start <
                                                             DateTime.UtcNow.AddMinutes(5));
 
-            _nextEventIn10mFeedback = new BoolFeedback(() => _scheduledRecordings.Count > 0 &&
+            _nextEventIn10MFeedback = new BoolFeedback(() => _scheduledRecordings.Count > 0 &&
                                                              _scheduledRecordings[0].Start <
                                                              DateTime.UtcNow.AddMinutes(10));
             _nextEventIdFeedback =
@@ -349,11 +337,11 @@ namespace PepperDash.Essentials.EpiphanPearl
                     ? _scheduledRecordings[0].EndText
                     : string.Empty);
 
-            _Extend5EnabledFeedback = new BoolFeedback(() => _Extend5Enabled);
-            _Extend15EnabledFeedback = new BoolFeedback(() => _Extend15Enabled);
+            _extend5EnabledFeedback = new BoolFeedback(() => _extend5Enabled);
+            _extend15EnabledFeedback = new BoolFeedback(() => _extend15Enabled);
 
-            HdmiOutputFeedback = new StringFeedback(() => _hdmiOutputSource);
-            VUMeterFeedback = new IntFeedback(() => _vuMeterLevel);
+            _hdmiOutputFeedback = new StringFeedback(() => _hdmiOutputSource);
+            VuMeterFeedback = new IntFeedback(() => _vuMeterLevel);
             ContentLayoutFeedback = new StringFeedback(() => _contentLayout);
             Camera1LayoutFeedback = new StringFeedback(() => _camera1Layout);
             Camera2LayoutFeedback = new StringFeedback(() => _camera2Layout);
@@ -372,7 +360,7 @@ namespace PepperDash.Essentials.EpiphanPearl
             }
 
             trilist.StringInput[joinMap.Name.JoinNumber].StringValue = Name;
-            trilist.StringInput[joinMap.PanoptoKey.JoinNumber].StringValue = panoptoKey;
+            trilist.StringInput[joinMap.PanoptoKey.JoinNumber].StringValue = _panoptoKey;
 
             trilist.SetSigTrueAction(joinMap.Start.JoinNumber, StartEvent);
             trilist.SetSigTrueAction(joinMap.Stop.JoinNumber, StopRunningEvent);
@@ -380,7 +368,7 @@ namespace PepperDash.Essentials.EpiphanPearl
             trilist.SetSigTrueAction(joinMap.Resume.JoinNumber, ResumeRunningEvent);
             trilist.SetSigTrueAction(joinMap.Extend5.JoinNumber, () => ExtendRunningEvent(5));
             trilist.SetSigTrueAction(joinMap.Extend15.JoinNumber, () => ExtendRunningEvent(15));
-            trilist.SetBoolSigAction(joinMap.VUMeterEnable.JoinNumber, a => EnableVUMeterFeedback = a);
+            trilist.SetBoolSigAction(joinMap.VUMeterEnable.JoinNumber, a => EnableVuMeterFeedback = a);
 
             trilist.SetStringSigAction(joinMap.HdmiOutputSource.JoinNumber, SetHdmiOutputSource);
             trilist.SetStringSigAction(joinMap.ContentLayout.JoinNumber,
@@ -395,8 +383,8 @@ namespace PepperDash.Essentials.EpiphanPearl
             //running event
             _runningEventRunningFeedback.LinkInputSig(trilist.BooleanInput[joinMap.IsRecording.JoinNumber]);
             _runningEventPausedFeedback.LinkInputSig(trilist.BooleanInput[joinMap.IsPaused.JoinNumber]);
-            _Extend5EnabledFeedback.LinkInputSig(trilist.BooleanInput[joinMap.Extend5Enable.JoinNumber]);
-            _Extend15EnabledFeedback.LinkInputSig(trilist.BooleanInput[joinMap.Extend15Enable.JoinNumber]);
+            _extend5EnabledFeedback.LinkInputSig(trilist.BooleanInput[joinMap.Extend5Enable.JoinNumber]);
+            _extend15EnabledFeedback.LinkInputSig(trilist.BooleanInput[joinMap.Extend15Enable.JoinNumber]);
             _runningEventNameFeedback.LinkInputSig(trilist.StringInput[joinMap.CurrentRecordingName.JoinNumber]);
             _runningEventStartFeedback.LinkInputSig(trilist.StringInput[joinMap.CurrentRecordingStartTime.JoinNumber]);
             _runningEventEndFeedback.LinkInputSig(trilist.StringInput[joinMap.CurrentRecordingEndTime.JoinNumber]);
@@ -417,17 +405,17 @@ namespace PepperDash.Essentials.EpiphanPearl
             _nextEventLengthFeedback
                 .LinkInputSig(trilist.StringInput[joinMap.NextRecordingLength.JoinNumber]);
             _nextEventExistsFeedback.LinkInputSig(trilist.BooleanInput[joinMap.NextRecordingExists.JoinNumber]);
-            _nextEventIn5mFeedback.LinkInputSig(trilist.BooleanInput[joinMap.NextRecordingIn5m.JoinNumber]);
-            _nextEventIn10mFeedback.LinkInputSig(trilist.BooleanInput[joinMap.NextRecordingIn10m.JoinNumber]);
+            _nextEventIn5MFeedback.LinkInputSig(trilist.BooleanInput[joinMap.NextRecordingIn5m.JoinNumber]);
+            _nextEventIn10MFeedback.LinkInputSig(trilist.BooleanInput[joinMap.NextRecordingIn10m.JoinNumber]);
 
-            HdmiOutputFeedback.LinkInputSig(trilist.StringInput[joinMap.HdmiOutputSource.JoinNumber]);
+            _hdmiOutputFeedback.LinkInputSig(trilist.StringInput[joinMap.HdmiOutputSource.JoinNumber]);
             ContentLayoutFeedback.LinkInputSig(trilist.StringInput[joinMap.ContentLayout.JoinNumber]);
             Camera1LayoutFeedback.LinkInputSig(trilist.StringInput[joinMap.Camera1Layout.JoinNumber]);
             Camera2LayoutFeedback.LinkInputSig(trilist.StringInput[joinMap.Camera2Layout.JoinNumber]);
             ContentUrlFeedback.LinkInputSig(trilist.StringInput[joinMap.ContentUrl.JoinNumber]);
             Camera1UrlFeedback.LinkInputSig(trilist.StringInput[joinMap.Camera1Url.JoinNumber]);
             Camera2UrlFeedback.LinkInputSig(trilist.StringInput[joinMap.Camera2Url.JoinNumber]);
-            VUMeterFeedback.LinkInputSig(trilist.UShortInput[joinMap.VUMeterFeedback.JoinNumber]);
+            VuMeterFeedback.LinkInputSig(trilist.UShortInput[joinMap.VUMeterFeedback.JoinNumber]);
 
             trilist.OnlineStatusChange += (device, args) =>
             {
@@ -606,8 +594,8 @@ namespace PepperDash.Essentials.EpiphanPearl
             }
 
             _runningEvent.Finish += new TimeSpan(0, 0, time, 0);
-            _Extend5EnabledFeedback.FireUpdate();
-            _Extend15EnabledFeedback.FireUpdate();
+            _extend5EnabledFeedback.FireUpdate();
+            _extend15EnabledFeedback.FireUpdate();
         }
 
         private void GetHdmiOutputSetting()
@@ -629,7 +617,7 @@ namespace PepperDash.Essentials.EpiphanPearl
             }
 
             _hdmiOutputSource = response.Result.Source;
-            HdmiOutputFeedback.FireUpdate();
+            _hdmiOutputFeedback.FireUpdate();
         }
 
         /// <summary>
@@ -873,16 +861,16 @@ namespace PepperDash.Essentials.EpiphanPearl
                     Debug.Console(1, this, "Scheduled event found, calculating extend enable: {0}, {1}",
                         _scheduledRecordings[0].StartText,
                         _runningEvent.Finish.ToLocalTime().ToString("t", new CultureInfo("en-US")));
-                    _Extend5Enabled = _scheduledRecordings[0].Start >=
+                    _extend5Enabled = _scheduledRecordings[0].Start >=
                         _runningEvent.Finish.AddMinutes(6) && _runningEvent.Finish < DateTime.UtcNow.AddHours(6);
-                    _Extend15Enabled = _scheduledRecordings[0].Start >=
+                    _extend15Enabled = _scheduledRecordings[0].Start >=
                         _runningEvent.Finish.AddMinutes(16) && _runningEvent.Finish < DateTime.UtcNow.AddHours(6);
                 }
                 else if (_runningEvent != null)
                 {
                     Debug.Console(1, this, "No scheduled event found, extend is enabled");
-                    _Extend5Enabled = _runningEvent.Finish < DateTime.UtcNow.AddHours(6);
-                    _Extend15Enabled = _runningEvent.Finish < DateTime.UtcNow.AddHours(6);
+                    _extend5Enabled = _runningEvent.Finish < DateTime.UtcNow.AddHours(6);
+                    _extend15Enabled = _runningEvent.Finish < DateTime.UtcNow.AddHours(6);
                 }
 
                 UpdateRunningEventFeedbacks();
@@ -925,7 +913,7 @@ namespace PepperDash.Essentials.EpiphanPearl
                     if (response.Result != null && response.Result.Count > 0)
                     {
                         _vuMeterLevel = ScaleToUInt16(response.Result[0].Status.Audio.Levels.Rms[0]);
-                        VUMeterFeedback.FireUpdate();
+                        VuMeterFeedback.FireUpdate();
                     }
                 }
             }
@@ -935,7 +923,7 @@ namespace PepperDash.Essentials.EpiphanPearl
             }
             finally
             {
-                if (_enableVUMeterFeedback)
+                if (_enableVuMeterFeedback)
                 {
                     _vuMeterPollTimer.Reset(200);
                 }
@@ -952,18 +940,18 @@ namespace PepperDash.Essentials.EpiphanPearl
             _runningEventTimeRemainingFeedback.FireUpdate();
             _runningEventRunningFeedback.FireUpdate();
             _runningEventPausedFeedback.FireUpdate();
-            _Extend5EnabledFeedback.FireUpdate();
-            _Extend15EnabledFeedback.FireUpdate();
+            _extend5EnabledFeedback.FireUpdate();
+            _extend15EnabledFeedback.FireUpdate();
             _nextEventExistsFeedback.FireUpdate();
-            _nextEventIn5mFeedback.FireUpdate();
-            _nextEventIn10mFeedback.FireUpdate();
+            _nextEventIn5MFeedback.FireUpdate();
+            _nextEventIn10MFeedback.FireUpdate();
         }
 
         private void UpdateScheduledEventsFeedbacks()
         {
             _nextEventExistsFeedback.FireUpdate();
-            _nextEventIn5mFeedback.FireUpdate();
-            _nextEventIn10mFeedback.FireUpdate();
+            _nextEventIn5MFeedback.FireUpdate();
+            _nextEventIn10MFeedback.FireUpdate();
             _nextEventIdFeedback.FireUpdate();
             _nextEventNameFeedback.FireUpdate();
             _nextEventLengthFeedback.FireUpdate();
@@ -983,7 +971,7 @@ namespace PepperDash.Essentials.EpiphanPearl
         private void UpdateFeedbacks()
         {
             UpdateRunningEventFeedbacks();
-            HdmiOutputFeedback.FireUpdate();
+            _hdmiOutputFeedback.FireUpdate();
             ContentLayoutFeedback.FireUpdate();
             Camera1LayoutFeedback.FireUpdate();
             Camera2LayoutFeedback.FireUpdate();
@@ -1044,6 +1032,12 @@ namespace PepperDash.Essentials.EpiphanPearl
             {
                 _quickCheckTimer.Stop();
                 _quickCheckTimer.Dispose();
+            }
+
+            if (_previewApi != null)
+            {
+                _previewApi.Unregister();
+                _previewApi.Dispose();
             }
 
             if (_client != null) _client.Dispose();

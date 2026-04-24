@@ -9,11 +9,10 @@ namespace PepperDash.Essentials.EpiphanPearl.Utilities
     /// Polls an image from a URL using the provided EpiphanPearlSecureClient
     /// and serves the latest frame via Crestron Web Scripting.
     /// </summary>
-    public sealed class VideoPreview : IKeyed, IDisposable
+    public sealed class VideoPreview : IKeyed, IDisposable, IHttpCwsHandler
     {
         private readonly CTimer _previewPollTimer;
         private readonly EpiphanPearlSecureClient _client;
-        private readonly HttpCwsServer _cwsServer;
         private readonly string _routePattern;
 
         private byte[] _latestJpeg;
@@ -30,27 +29,26 @@ namespace PepperDash.Essentials.EpiphanPearl.Utilities
             get { return "/" + _routePattern; }
         }
 
-        public VideoPreview(EpiphanPearlSecureClient httpsClient, string name, string imageUrl)
+        public VideoPreview(EpiphanPearlSecureClient httpsClient, string name, string imageUrl, HttpCwsServer previewApi)
         {
             if (httpsClient == null) throw new ArgumentNullException("httpsClient");
             if (string.IsNullOrEmpty(name)) throw new ArgumentNullException("name");
             if (string.IsNullOrEmpty(imageUrl)) throw new ArgumentNullException("imageUrl");
-
+            
+            previewApi.AddRoute(new HttpCwsRoute(string.Format("{0}.jpg", name))
+            {
+                RouteHandler = this
+            });
+            
             _client = httpsClient;
             Key = "videoPreview-" + name;
             _imageUrl = imageUrl;
             _minPollIntervalMs = 1000;
-            _routePattern = string.Format("preview/{0}.jpg", name);
+            _routePattern = string.Format("{0}.jpg", name);
 
             // Optional: assign a real black jpeg here if you want the handler
             // to return black instead of 503 when no live image is available.
             _blackJpeg = null;
-
-            _cwsServer = new HttpCwsServer("/");
-            var route = new HttpCwsRoute(_routePattern);
-            route.RouteHandler = new PreviewRequestHandler(this);
-            _cwsServer.AddRoute(route);
-            _cwsServer.Register();
 
             _previewPollTimer = new CTimer(PreviewPoll, Timeout.Infinite);
 
@@ -116,74 +114,35 @@ namespace PepperDash.Essentials.EpiphanPearl.Utilities
             // _latestJpeg = _blackJpeg;
         }
 
-        private byte[] GetCurrentFrame()
-        {
-            return _latestJpeg;
-        }
-
         public void Dispose()
         {
             _previewPollTimer.Reset(Timeout.Infinite);
             _previewPollTimer.Dispose();
-
+        }
+        
+        public void ProcessRequest(HttpCwsContext context)
+        {
+            Debug.Console(0, "Processing request {0}", context.Request.RawUrl);
             try
             {
-                _cwsServer.Unregister();
-            }
-            catch
-            {
-            }
-        }
-
-        private sealed class PreviewRequestHandler : IHttpCwsHandler
-        {
-            private readonly VideoPreview _parent;
-
-            public PreviewRequestHandler(VideoPreview parent)
-            {
-                _parent = parent;
-            }
-
-            public void ProcessRequest(HttpCwsContext context)
-            {
-                try
+                if (_latestJpeg == null || _latestJpeg.Length == 0)
                 {
-                    var method = context.Request.HttpMethod;
-                    if (!string.Equals(method, "GET", StringComparison.OrdinalIgnoreCase))
-                    {
-                        context.Response.StatusCode = 405;
-                        context.Response.StatusDescription = "Method Not Allowed";
-                        context.Response.Write("Method Not Allowed", true);
-                        return;
-                    }
-
-                    byte[] jpeg = _parent.GetCurrentFrame();
-
-                    if (jpeg == null || jpeg.Length == 0)
-                    {
-                        context.Response.StatusCode = 503;
-                        context.Response.StatusDescription = "Service Unavailable";
-                        context.Response.Write("No frame available", true);
-                        return;
-                    }
-
-                    context.Response.StatusCode = 200;
-                    context.Response.ContentType = "image/jpeg";
-
-                    // Depending on firmware/API version, one of these patterns is usually available.
-                    // Use the one your SDK exposes:
-                    context.Response.OutputStream.Write(jpeg,0,jpeg.Length);
-
-                    // Some SDKs may also need:
+                    context.Response.StatusCode = 404;
                     context.Response.End();
+                    return;
                 }
-                catch (Exception ex)
-                {
-                    Debug.Console(0, _parent, "Error handling CWS request: {0}", ex);
-                    context.Response.StatusCode = 500;
-                    context.Response.StatusDescription = "Internal Server Error";
-                    context.Response.Write("Internal Server Error", true);
-                }
+
+                context.Response.StatusCode = 200;
+                context.Response.ContentType = "image/jpeg";
+                context.Response.OutputStream.Write(_latestJpeg, 0, _latestJpeg.Length);
+                context.Response.End();
+            }
+            catch (Exception ex)
+            {
+                Debug.Console(0, "PreviewRequest exception: {0}", ex);
+
+                context.Response.StatusCode = 500;
+                context.Response.End();
             }
         }
     }
