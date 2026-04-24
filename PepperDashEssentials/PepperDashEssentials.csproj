@@ -76,18 +76,23 @@
         <Reference Include="System.Core"/>
         <Reference Include="System.Data">
             <HintPath>..\..\..\ProgramData\Crestron\SDK\System.Data.dll</HintPath>
+      <Private>False</Private>
         </Reference>
         <Reference Include="System.Runtime.Serialization">
             <HintPath>..\..\..\ProgramData\Crestron\SDK\System.Runtime.Serialization.dll</HintPath>
+      <Private>False</Private>
         </Reference>
         <Reference Include="System.ServiceModel">
             <HintPath>..\..\..\ProgramData\Crestron\SDK\System.ServiceModel.dll</HintPath>
+      <Private>False</Private>
         </Reference>
         <Reference Include="System.Xml">
             <HintPath>..\..\..\ProgramData\Crestron\SDK\System.Xml.dll</HintPath>
+      <Private>False</Private>
         </Reference>
         <Reference Include="System.Xml.Linq">
             <HintPath>..\..\..\ProgramData\Crestron\SDK\System.Xml.Linq.dll</HintPath>
+      <Private>False</Private>
         </Reference>
     </ItemGroup>
     <ItemGroup>
