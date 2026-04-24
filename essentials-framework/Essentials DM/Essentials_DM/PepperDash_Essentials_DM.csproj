@@ -79,6 +79,7 @@
         </Reference>
         <Reference Include="System">
             <HintPath>..\..\..\..\..\Program Files (x86)\Microsoft.NET\SDK\CompactFramework\v3.5\WindowsCE\System.dll</HintPath>
+      <Private>False</Private>
         </Reference>
         <Reference Include="System.Core"/>
     </ItemGroup>
