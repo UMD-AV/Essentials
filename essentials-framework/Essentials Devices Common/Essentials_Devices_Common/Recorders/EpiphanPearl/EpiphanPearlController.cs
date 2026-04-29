@@ -63,6 +63,9 @@ namespace PepperDash.Essentials.EpiphanPearl
         private readonly string _contentUrl;
         private readonly string _camera1Url;
         private readonly string _camera2Url;
+        private readonly string _contentUrlRtsp;
+        private readonly string _camera1UrlRtsp;
+        private readonly string _camera2UrlRtsp;
 
         private string _contentLayout;
         public StringFeedback ContentLayoutFeedback;
@@ -111,6 +114,9 @@ namespace PepperDash.Essentials.EpiphanPearl
         public StringFeedback ContentUrlFeedback;
         public StringFeedback Camera1UrlFeedback;
         public StringFeedback Camera2UrlFeedback;
+        public StringFeedback ContentUrlRtspFeedback;
+        public StringFeedback Camera1UrlRtspFeedback;
+        public StringFeedback Camera2UrlRtspFeedback;
 
         private StringFeedback _runningEventStartFeedback;
         private readonly CTimer _statusTimer;
@@ -143,9 +149,9 @@ namespace PepperDash.Essentials.EpiphanPearl
             _camera1Channel = _devProperties.camera1Channel ?? "";
             _camera2Channel = _devProperties.camera2Channel ?? "";
 
-            _contentPreview = SetupPreview(_contentChannel, "contentPreview", out _contentUrl);
-            _camera1Preview = SetupPreview(_camera1Channel, "camera1Preview", out _camera1Url);
-            _camera2Preview = SetupPreview(_camera2Channel, "camera2Preview", out _camera2Url);
+            _contentPreview = SetupPreview(_contentChannel, "contentPreview", out _contentUrl, out _contentUrlRtsp);
+            _camera1Preview = SetupPreview(_camera1Channel, "camera1Preview", out _camera1Url, out _camera1UrlRtsp);
+            _camera2Preview = SetupPreview(_camera2Channel, "camera2Preview", out _camera2Url, out _camera2UrlRtsp);
 
             _previewApi.Register();
             
@@ -161,18 +167,19 @@ namespace PepperDash.Essentials.EpiphanPearl
             CreateFeedbacks();
         }
 
-        private VideoPreview SetupPreview(string channel, string name, out string url)
+        private VideoPreview SetupPreview(string channel, string name, out string url, out string urlRtsp)
         {
             if (string.IsNullOrEmpty(channel))
             {
                 url = "";
+                urlRtsp = "";
                 return null;
             }
 
             VideoPreview preview = new VideoPreview(_client, name, string.Format("/channels/{0}/preview?resolution=480", channel), _previewApi);
 
             url = string.Format("https://{0}.av.umd.edu/cws/preview/{1}.jpg", EthernetHelper.LanHelper.Hostname, name);
-
+            urlRtsp = string.Format("rtsp://{0}.av.umd.edu:{1}/stream.sdp", EthernetHelper.LanHelper.Hostname, 553 + int.Parse(channel));
             return preview;
         }
         public override bool CustomActivate()
@@ -348,6 +355,9 @@ namespace PepperDash.Essentials.EpiphanPearl
             ContentUrlFeedback = new StringFeedback(() => _contentUrl);
             Camera1UrlFeedback = new StringFeedback(() => _camera1Url);
             Camera2UrlFeedback = new StringFeedback(() => _camera2Url);
+            ContentUrlRtspFeedback = new StringFeedback(() => _contentUrlRtsp);
+            Camera1UrlRtspFeedback = new StringFeedback(() => _camera1UrlRtsp);
+            Camera2UrlRtspFeedback = new StringFeedback(() => _camera2UrlRtsp);
         }
 
         public override void LinkToApi(BasicTriList trilist, uint joinStart, string joinMapKey, EiscApiAdvanced bridge)
@@ -415,6 +425,9 @@ namespace PepperDash.Essentials.EpiphanPearl
             ContentUrlFeedback.LinkInputSig(trilist.StringInput[joinMap.ContentUrl.JoinNumber]);
             Camera1UrlFeedback.LinkInputSig(trilist.StringInput[joinMap.Camera1Url.JoinNumber]);
             Camera2UrlFeedback.LinkInputSig(trilist.StringInput[joinMap.Camera2Url.JoinNumber]);
+            ContentUrlRtspFeedback.LinkInputSig(trilist.StringInput[joinMap.ContentUrlRtsp.JoinNumber]);
+            Camera1UrlRtspFeedback.LinkInputSig(trilist.StringInput[joinMap.Camera1UrlRtsp.JoinNumber]);
+            Camera2UrlRtspFeedback.LinkInputSig(trilist.StringInput[joinMap.Camera2UrlRtsp.JoinNumber]);
             VuMeterFeedback.LinkInputSig(trilist.UShortInput[joinMap.VUMeterFeedback.JoinNumber]);
 
             trilist.OnlineStatusChange += (device, args) =>
@@ -978,6 +991,9 @@ namespace PepperDash.Essentials.EpiphanPearl
             ContentUrlFeedback.FireUpdate();
             Camera1UrlFeedback.FireUpdate();
             Camera2UrlFeedback.FireUpdate();
+            ContentUrlRtspFeedback.FireUpdate();
+            Camera1UrlRtspFeedback.FireUpdate();
+            Camera2UrlRtspFeedback.FireUpdate();
             UpdateScheduledEventsFeedbacks();
         }
 

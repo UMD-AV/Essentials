@@ -393,6 +393,19 @@ namespace ViscaCameraPlugin
                 JoinCapabilities = eJoinCapabilities.ToSIMPL,
                 JoinType = eJoinType.Serial
             });
+        
+        [JoinName("StreamUrlRtsp")] public JoinDataComplete StreamUrlRtsp = new JoinDataComplete(
+            new JoinData()
+            {
+                JoinNumber = 4,
+                JoinSpan = 1
+            },
+            new JoinMetadata()
+            {
+                Description = "URL for camera stream RTSP",
+                JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                JoinType = eJoinType.Serial
+            });
 
         [JoinName("PresetName")] public JoinDataComplete PresetNames = new JoinDataComplete(
             new JoinData()

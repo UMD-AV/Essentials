@@ -16,18 +16,12 @@ namespace PepperDash.Essentials.EpiphanPearl.Utilities
         private readonly string _routePattern;
 
         private byte[] _latestJpeg;
-        private byte[] _blackJpeg;
 
         private readonly string _imageUrl;
         private readonly int _minPollIntervalMs;
-
+        private bool _enablePreviewFeedback;
+        
         public string Key { get; private set; }
-        public bool EnablePreviewFeedback { get; private set; }
-
-        public string PreviewUrl
-        {
-            get { return "/" + _routePattern; }
-        }
 
         public VideoPreview(EpiphanPearlSecureClient httpsClient, string name, string imageUrl, HttpCwsServer previewApi)
         {
@@ -46,25 +40,21 @@ namespace PepperDash.Essentials.EpiphanPearl.Utilities
             _minPollIntervalMs = 1000;
             _routePattern = string.Format("{0}.jpg", name);
 
-            // Optional: assign a real black jpeg here if you want the handler
-            // to return black instead of 503 when no live image is available.
-            _blackJpeg = null;
-
             _previewPollTimer = new CTimer(PreviewPoll, Timeout.Infinite);
 
             Debug.Console(1, this, "VideoPreview created. ImageUrl={0}, Route={1}",
-                _imageUrl, PreviewUrl);
+                _imageUrl);
         }
 
         public void EnablePreview()
         {
-            EnablePreviewFeedback = true;
+            _enablePreviewFeedback = true;
             _previewPollTimer.Reset(0);
         }
 
         public void DisablePreview()
         {
-            EnablePreviewFeedback = false;
+            _enablePreviewFeedback = false;
             _previewPollTimer.Reset(Timeout.Infinite);
             HandlePreviewFailure();
         }
@@ -75,7 +65,7 @@ namespace PepperDash.Essentials.EpiphanPearl.Utilities
 
             try
             {
-                if (!EnablePreviewFeedback)
+                if (!_enablePreviewFeedback)
                     return;
 
                 byte[] img = _client.Get(_imageUrl);
@@ -96,7 +86,7 @@ namespace PepperDash.Essentials.EpiphanPearl.Utilities
             }
             finally
             {
-                if (EnablePreviewFeedback)
+                if (_enablePreviewFeedback)
                 {
                     double elapsed = (DateTime.Now - pollStart).TotalMilliseconds;
                     int delay = elapsed < _minPollIntervalMs ? (int)(_minPollIntervalMs - elapsed) : 0;
@@ -107,11 +97,7 @@ namespace PepperDash.Essentials.EpiphanPearl.Utilities
 
         private void HandlePreviewFailure()
         {
-            // Option A: make route return 503 if no image is available
             _latestJpeg = null;
-
-            // Option B: uncomment this to serve black instead
-            // _latestJpeg = _blackJpeg;
         }
 
         public void Dispose()
@@ -122,7 +108,6 @@ namespace PepperDash.Essentials.EpiphanPearl.Utilities
         
         public void ProcessRequest(HttpCwsContext context)
         {
-            Debug.Console(0, "Processing request {0}", context.Request.RawUrl);
             try
             {
                 if (_latestJpeg == null || _latestJpeg.Length == 0)

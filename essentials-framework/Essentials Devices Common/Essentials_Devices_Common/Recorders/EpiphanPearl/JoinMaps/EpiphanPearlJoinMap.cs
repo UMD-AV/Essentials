@@ -482,5 +482,43 @@ namespace PepperDash.Essentials.EpiphanPearl.JoinMaps
                 JoinType = eJoinType.Serial,
                 Description = "Camera2 URL"
             });
+        [JoinName("ContentUrlRtsp")] public JoinDataComplete ContentUrlRtsp = new JoinDataComplete(
+            new JoinData
+            {
+                JoinNumber = 34,
+                JoinSpan = 1
+            },
+            new JoinMetadata
+            {
+                JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                JoinType = eJoinType.Serial,
+                Description = "Content URL RTSP"
+            });
+
+        [JoinName("Camera1UrlRtsp")] public JoinDataComplete Camera1UrlRtsp = new JoinDataComplete(
+            new JoinData
+            {
+                JoinNumber = 35,
+                JoinSpan = 1
+            },
+            new JoinMetadata
+            {
+                JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                JoinType = eJoinType.Serial,
+                Description = "Camera1 URL RTSP"
+            });
+
+        [JoinName("Camera2UrlRtsp")] public JoinDataComplete Camera2UrlRtsp = new JoinDataComplete(
+            new JoinData
+            {
+                JoinNumber = 36,
+                JoinSpan = 1
+            },
+            new JoinMetadata
+            {
+                JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                JoinType = eJoinType.Serial,
+                Description = "Camera2 URL RTSP"
+            });
     }
 }
