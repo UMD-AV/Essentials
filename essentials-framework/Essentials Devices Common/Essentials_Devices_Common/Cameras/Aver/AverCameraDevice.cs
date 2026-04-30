@@ -20,7 +20,8 @@ namespace PepperDash.Essentials.AverCamera
         private readonly string streamUrl;
         private readonly string streamUrlRtsp;
         private HttpClient client;
-        private readonly AverCommunicationMonitor _monitor;
+        private readonly AverCommunicationMonitor _httpMonitor;
+        private readonly AverCommunicationMonitor _viscaMonitor;
         private CTimer _pollTimer;
         private uint _pollTracker;
         private readonly IBasicCommunication _comms;
@@ -348,8 +349,9 @@ namespace PepperDash.Essentials.AverCamera
             streamUrlRtsp = config.StreamUrlRtsp;
 
             BuildClient();
-            _monitor = new AverCommunicationMonitor(this, 60000, 120000);
-            OnlineFeedback = new BoolFeedback(() => _monitor.IsOnline);
+            _httpMonitor = new AverCommunicationMonitor(this, 60000, 120000);
+            _viscaMonitor = new AverCommunicationMonitor(this, 60000, 120000);
+            OnlineFeedback = new BoolFeedback(() => _httpMonitor.IsOnline && _viscaMonitor.IsOnline);
             AutoTrackingCapable = new BoolFeedback(() => _autoTrackingCapable);
             PowerFeedback = new BoolFeedback(() => Power);
             AutoFocusFeedback = new BoolFeedback(() => AutoFocus);
@@ -392,7 +394,8 @@ namespace PepperDash.Essentials.AverCamera
 
             _comms = comms;
             _comms.BytesReceived += Handle_BytesReceived;
-            DeviceManager.AddDevice(_monitor);
+            DeviceManager.AddDevice(_httpMonitor);
+            DeviceManager.AddDevice(_viscaMonitor);
 
             _commandQueue = new CrestronQueue<ViscaCameraCommand>(10);
             _commandMutex = new CMutex();
@@ -406,8 +409,8 @@ namespace PepperDash.Essentials.AverCamera
                 SocketStatusFeedback = new IntFeedback(() => (int)socket.ClientStatus);
             }
 
-            _monitor.StatusChange += (sender, args) => { OnlineFeedback.FireUpdate(); };
-
+            _httpMonitor.StatusChange += (sender, args) => { OnlineFeedback.FireUpdate(); };
+            _viscaMonitor.StatusChange += (sender, args) => { OnlineFeedback.FireUpdate(); };
             InitializePresets(_config.Presets);
         }
 
@@ -421,7 +424,8 @@ namespace PepperDash.Essentials.AverCamera
             // Essentials will handle the connect method to the device
             _comms.Connect();
             _pollTimer = new CTimer(o => Poll(), null, 0, 30000);
-            _monitor.Start();
+            _httpMonitor.Start();
+            _viscaMonitor.Start();
             OnlineFeedback.FireUpdate();
 
             return base.CustomActivate();
@@ -429,7 +433,7 @@ namespace PepperDash.Essentials.AverCamera
 
         public StatusMonitorBase CommunicationMonitor
         {
-            get { return _monitor; }
+            get { return _httpMonitor; }
         }
 
         private void BuildClient()
@@ -871,7 +875,7 @@ namespace PepperDash.Essentials.AverCamera
 
         private void HttpParseMessage(eAverCameraInquiry request, string message)
         {
-            Debug.Console(1, "Aver Camera Parsing: {0}, request: {1}", message, request.ToString());
+            Debug.Console(1,this, "Aver Camera Parsing: {0}, request: {1}", message, request.ToString());
             switch (request)
             {
                 case eAverCameraInquiry.AutoTrackInquiry:
@@ -880,13 +884,13 @@ namespace PepperDash.Essentials.AverCamera
                         case "trk_tracking_on,3=0":
                         case "trk_tracking_on=0":
                             AutoTrackingOn = false;
-                            _monitor.SetOnlineStatus(true);
+                            _httpMonitor.SetOnlineStatus(true);
                             Debug.Console(1, "Aver Camera AutoTrack Off");
                             break;
                         case "trk_tracking_on,3=1":
                         case "trk_tracking_on=1":
                             AutoTrackingOn = true;
-                            _monitor.SetOnlineStatus(true);
+                            _httpMonitor.SetOnlineStatus(true);
                             Debug.Console(1, "Aver Camera AutoTrack On");
                             break;
                     }
@@ -913,7 +917,7 @@ namespace PepperDash.Essentials.AverCamera
         {
             Debug.Console(1, this, "Parsing: {0}, last inquiry: {1}", ComTextHelper.GetEscapedText(message),
                 _lastInquiry.ToString());
-
+            _viscaMonitor.SetOnlineStatus(true);
             // Message: [0x90, 0x41, 0xFF]
             // 0xz0 = Address, z = device address + 8, or 9 for visca over IP
             // 0x4y = ACK (acknowledgment), y = socket number
