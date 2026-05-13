@@ -13,9 +13,29 @@ namespace NvxEpi.Services.Feedback
                 return new BoolFeedback(() => false);
 
             BoolFeedback feedback = new BoolFeedback(string.Format(Key, _inputNumber),
-                () => device.HdmiIn[_inputNumber].SyncDetectedFeedback.BoolValue);
+                () => device.HdmiIn[_inputNumber].SyncDetectedFeedback.BoolValue && device.IsOnline && device.HdmiIn[_inputNumber].VideoAttributes.VerticalResolutionFeedback.UShortValue > 1);
 
+            device.HdmiIn[_inputNumber].VideoAttributes.AttributeChange += (s, args) => feedback.FireUpdate();
             device.HdmiIn[_inputNumber].StreamChange += (stream, args) => feedback.FireUpdate();
+            device.OnlineStatusChange += (s, args) => feedback.FireUpdate();
+            return feedback;
+        }
+    }
+    
+    public class UsbcSyncDetectedFeedback
+    {
+        public const string Key = "Usbc{0}SyncDetected";
+
+        public static BoolFeedback GetFeedback(DmNvx38x device, uint _inputNumber)
+        {
+            if (device.UsbcIn == null || device.UsbcIn[_inputNumber] == null)
+                return new BoolFeedback(() => false);
+
+            BoolFeedback feedback = new BoolFeedback(string.Format(Key, _inputNumber),
+                () => device.UsbcIn[_inputNumber].SyncDetectedFeedback.BoolValue && device.IsOnline && device.UsbcIn[_inputNumber].VideoAttributes.VerticalResolutionFeedback.UShortValue > 1);
+
+            device.UsbcIn[_inputNumber].StreamChange += (stream, args) => feedback.FireUpdate();
+            device.OnlineStatusChange += (s, args) => feedback.FireUpdate();
             return feedback;
         }
     }
@@ -53,6 +73,23 @@ namespace NvxEpi.Services.Feedback
                 () => (int)device.HdmiIn[_inputNumber].HdcpCapabilityFeedback);
 
             device.HdmiIn[_inputNumber].StreamChange += (stream, args) => feedback.FireUpdate();
+            return feedback;
+        }
+    }
+    
+    public class UsbcHdcpCapabilityValueFeedback
+    {
+        public const string Key = "Usbc{0}HdcpCapabilityValue";
+
+        public static IntFeedback GetFeedback(DmNvx38x device, uint _inputNumber)
+        {
+            if (device.UsbcIn == null || device.UsbcIn[_inputNumber] == null)
+                return new IntFeedback(() => 0);
+
+            IntFeedback feedback = new IntFeedback(string.Format(Key, _inputNumber),
+                () => (int)device.UsbcIn[_inputNumber].HdcpCapabilityFeedback);
+
+            device.UsbcIn[_inputNumber].StreamChange += (stream, args) => feedback.FireUpdate();
             return feedback;
         }
     }
@@ -113,6 +150,32 @@ namespace NvxEpi.Services.Feedback
             });
 
             device.HdmiIn[_inputNumber].VideoAttributes.AttributeChange += (a, args) => feedback.FireUpdate();
+
+            return feedback;
+        }
+    }
+    
+    public class UsbcCurrentResolutionFeedback
+    {
+        public const string Key = "Usbc{0}CurrentResolution";
+
+        public static StringFeedback GetFeedback(DmNvx38x device, uint _inputNumber)
+        {
+            if (device.UsbcIn == null || device.UsbcIn[_inputNumber] == null)
+            {
+                return new StringFeedback(() => string.Empty);
+            }
+
+            StringFeedback feedback = new StringFeedback(string.Format(Key, _inputNumber), () =>
+            {
+                string resolution = string.Format("{0}x{1}@{2}",
+                    device.UsbcIn[_inputNumber].VideoAttributes.HorizontalResolutionFeedback.UShortValue,
+                    device.UsbcIn[_inputNumber].VideoAttributes.VerticalResolutionFeedback.UShortValue,
+                    device.UsbcIn[_inputNumber].VideoAttributes.FramesPerSecondFeedback.UShortValue);
+                return resolution;
+            });
+
+            device.UsbcIn[_inputNumber].VideoAttributes.AttributeChange += (a, args) => feedback.FireUpdate();
 
             return feedback;
         }

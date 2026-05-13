@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using NvxEpi.Abstractions;
 using NvxEpi.Abstractions.HdmiInput;
@@ -167,7 +168,14 @@ namespace NvxEpi.Application.Entities
                 if (hdmiSwitcher == null)
                     return;
 
-                HdmiSyncDetected = hdmiInput.SyncDetected[1];
+                HdmiSyncDetected = new BoolFeedback(() =>
+                {
+                    return hdmiInput.SyncDetected.Any(i => hdmiInput.SyncDetected[i.Key].BoolValue);
+                });
+                foreach (KeyValuePair<uint, BoolFeedback> i in hdmiInput.SyncDetected)
+                {
+                    hdmiInput.SyncDetected[i.Key].OutputChange += (sender, args) => HdmiSyncDetected.FireUpdate();
+                }
                 HdcpState = hdmiInput.HdcpCapability[1];
                 InputResolution = hdmiInput.CurrentResolution[1];
             }

@@ -9,6 +9,8 @@
         public static readonly DeviceInputEnum Stream = new DeviceInputEnum(0, "Stream");
         public static readonly DeviceInputEnum Hdmi1 = new DeviceInputEnum(1, "Hdmi1");
         public static readonly DeviceInputEnum Hdmi2 = new DeviceInputEnum(2, "Hdmi2");
+        public static readonly DeviceInputEnum Usbc1 = new DeviceInputEnum(8, "Usbc1");
+        public static readonly DeviceInputEnum Usbc2 = new DeviceInputEnum(9, "Usbc2");
         public static readonly DeviceInputEnum AnalogAudio = new DeviceInputEnum(3, "AnalogAudio");
         public static readonly DeviceInputEnum PrimaryAudio = new DeviceInputEnum(4, "PrimaryAudio");
         public static readonly DeviceInputEnum SecondaryAudio = new DeviceInputEnum(5, "SecondaryAudio");

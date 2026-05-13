@@ -13,9 +13,10 @@ namespace NvxEpi.Services.Feedback
                 return new BoolFeedback(() => false);
 
             BoolFeedback feedback = new BoolFeedback(Key,
-                () => device.HdmiIn[1].SyncDetectedFeedback.BoolValue);
+                () => device.HdmiIn[1].SyncDetectedFeedback.BoolValue && device.IsOnline);
 
             device.HdmiIn[1].StreamChange += (stream, args) => feedback.FireUpdate();
+            device.OnlineStatusChange += (status, args) => feedback.FireUpdate();
             return feedback;
         }
     }
