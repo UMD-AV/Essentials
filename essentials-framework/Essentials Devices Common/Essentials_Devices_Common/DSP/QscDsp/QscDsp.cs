@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.RegularExpressions;
 using Crestron.SimplSharp;
-using Crestron.SimplSharp.Reflection;
 using Crestron.SimplSharpPro.DeviceSupport;
 using Newtonsoft.Json;
 using PepperDash.Core;
@@ -10,15 +10,12 @@ using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Bridges;
 using PepperDash.Essentials.Core.Config;
 
-namespace QscQsysDspPlugin
+namespace PepperDash.Essentials.Devices.Common.DSP.QscDsp
 {
     /// <summary>
     /// DSP Device 
     /// </summary>
     /// <remarks>
-    /// Questions:
-    /// 1. When subscribing, just use the Instance ID for custom name?
-    /// 2. Verbose on subscription?
     /// 
     /// - Example subscription feedback responses:
     /// ! "publishToken":"name" "value":-77.0
@@ -29,27 +26,24 @@ namespace QscQsysDspPlugin
         /// <summary>
         /// Communication object
         /// </summary>
-        public IBasicCommunication Communication { get; private set; }
+        private IBasicCommunication Communication { get; set; }
 
         /// <summary>
         /// Gather
         /// </summary>
-        public CommunicationGather PortGather { get; private set; }
+        private CommunicationGather PortGather { get; set; }
 
         /// <summary>
         /// Communication monitor object
         /// </summary>
         public StatusMonitorBase CommunicationMonitor { get; private set; }
-
         public Dictionary<string, QscDspLevelControl> LevelControlPoints { get; private set; }
-        public Dictionary<string, QscDspDialer> Dialers { get; set; }
-        public Dictionary<string, QscDspCamera> Cameras { get; set; }
+        public List<QscDspMonitoringPoint> MonitoringControlPoints { get; private set; }
         public readonly List<QscDspPresets> PresetList = new List<QscDspPresets>();
 
-        private readonly DeviceConfig _Dc;
+        private readonly DeviceConfig _dc;
 
-        private uint HeartbeatTracker = 0;
-        public bool ShowHexResponse { get; set; }
+        private uint _heartbeatTracker;
 
         /// <summary>
         /// Constructor
@@ -61,10 +55,7 @@ namespace QscQsysDspPlugin
         public QscDsp(string key, string name, IBasicCommunication comm, DeviceConfig dc)
             : base(key, name)
         {
-            _Dc = dc;
-            QscDspPropertiesConfig props =
-                JsonConvert.DeserializeObject<QscDspPropertiesConfig>(dc.Properties.ToString());
-            Debug.Console(2, this, "Made it to device constructor");
+            _dc = dc;
 
             Communication = comm;
             ISocketStatus socket = comm as ISocketStatus;
@@ -78,16 +69,15 @@ namespace QscQsysDspPlugin
                 // This instance uses RS-232 control
             }
 
-            PortGather = new CommunicationGather(Communication, "\x0a");
+            PortGather = new CommunicationGather(Communication, "\n");
             PortGather.LineReceived += Port_LineReceived;
 
-            // Custom monitoring, will check the heartbeat tracker count every 20s and reset. Heartbeat sbould be coming in every 20s if subscriptions are valid
+            // Custom monitoring, will check the heartbeat tracker count every 20s and reset. Heartbeat should be coming in every 20s if subscriptions are valid
             CommunicationMonitor =
                 new GenericCommunicationMonitor(this, Communication, 20000, 120000, 300000, CheckSubscriptions);
 
             LevelControlPoints = new Dictionary<string, QscDspLevelControl>();
-            Dialers = new Dictionary<string, QscDspDialer>();
-            Cameras = new Dictionary<string, QscDspCamera>();
+            MonitoringControlPoints = new List<QscDspMonitoringPoint>();
             CreateDspObjects();
         }
 
@@ -129,15 +119,14 @@ namespace QscQsysDspPlugin
                 return string.Format("{0}{1}", prefix, tag);
         }
 
-        public void CreateDspObjects()
+        private void CreateDspObjects()
         {
             QscDspPropertiesConfig props =
-                JsonConvert.DeserializeObject<QscDspPropertiesConfig>(_Dc.Properties.ToString());
+                JsonConvert.DeserializeObject<QscDspPropertiesConfig>(_dc.Properties.ToString());
 
             LevelControlPoints.Clear();
             PresetList.Clear();
-            Dialers.Clear();
-            Cameras.Clear();
+            MonitoringControlPoints.Clear();
 
             // Check for prefix
             string prefix = "";
@@ -163,75 +152,22 @@ namespace QscQsysDspPlugin
 
             if (props.Presets != null)
             {
-                foreach (KeyValuePair<string, QscDspPresets> preset in props.Presets)
+                foreach (QscDspPresets value in props.Presets.Select(preset => preset.Value))
                 {
-                    QscDspPresets value = preset.Value;
                     value.Preset = string.Format("{0}{1}", prefix, value.Preset);
-                    addPreset(value);
+                    AddPreset(value);
                     Debug.Console(2, this, "Added Preset {0} {1}", value.Label, value.Preset);
                 }
             }
 
-            if (props.CameraControlBlocks != null)
+            if (props.MonitoringPoints != null)
             {
-                foreach (KeyValuePair<string, QscDspCameraConfig> camera in props.CameraControlBlocks)
+                foreach (QscDspMonitoringPointConfig monitorConfig in props.MonitoringPoints)
                 {
-                    QscDspCameraConfig value = camera.Value;
-                    string key = camera.Key;
-
-                    value.PanLeftTag = FormatTag(prefix, value.PanLeftTag);
-                    value.PanRightTag = FormatTag(prefix, value.PanRightTag);
-                    value.TiltUpTag = FormatTag(prefix, value.TiltUpTag);
-                    value.TiltDownTag = FormatTag(prefix, value.TiltDownTag);
-                    value.ZoomInTag = FormatTag(prefix, value.ZoomInTag);
-                    value.ZoomOutTag = FormatTag(prefix, value.ZoomOutTag);
-                    value.PresetBankTag = FormatTag(prefix, value.PresetBankTag);
-                    value.Privacy = FormatTag(prefix, value.Privacy);
-                    value.OnlineStatus = FormatTag(prefix, value.OnlineStatus);
-                    foreach (KeyValuePair<string, QscDspPresets> preset in value.Presets)
-                    {
-                        value.Presets[preset.Key].Bank = FormatTag(prefix, value.Presets[preset.Key].Bank);
-                    }
-
-                    Cameras.Add(key, new QscDspCamera(this, key, key, value));
-                    Debug.Console(2, this, "Added Camera {0}\n {1}", key, value);
+                    MonitoringControlPoints.Add(new QscDspMonitoringPoint(monitorConfig.InstanceTag, monitorConfig.Name, this));
+                    Debug.Console(0, this, "Added Monitoring Control Point {0} - {1}", monitorConfig.Name, monitorConfig.InstanceTag);
                 }
             }
-
-            if (props.DialerControlBlocks != null)
-            {
-                foreach (KeyValuePair<string, QscDialerConfig> dialerConfig in props.DialerControlBlocks)
-                {
-                    QscDialerConfig value = dialerConfig.Value;
-                    string key = dialerConfig.Key;
-                    key = string.Format("{0}{1}", prefix, key);
-                    value.AutoAnswerTag = FormatTag(prefix, value.AutoAnswerTag);
-                    value.CallStatusTag = FormatTag(prefix, value.CallStatusTag);
-                    value.ConnectTag = FormatTag(prefix, value.ConnectTag);
-                    value.DialStringTag = FormatTag(prefix, value.DialStringTag);
-                    value.DisconnectTag = FormatTag(prefix, value.DisconnectTag);
-                    value.DoNotDisturbTag = FormatTag(prefix, value.DoNotDisturbTag);
-                    value.HookStatusTag = FormatTag(prefix, value.HookStatusTag);
-                    value.IncomingCallRingerTag = FormatTag(prefix, value.IncomingCallRingerTag);
-                    value.Keypad0Tag = FormatTag(prefix, value.Keypad0Tag);
-                    value.Keypad1Tag = FormatTag(prefix, value.Keypad1Tag);
-                    value.Keypad2Tag = FormatTag(prefix, value.Keypad2Tag);
-                    value.Keypad3Tag = FormatTag(prefix, value.Keypad3Tag);
-                    value.Keypad4Tag = FormatTag(prefix, value.Keypad4Tag);
-                    value.Keypad5Tag = FormatTag(prefix, value.Keypad5Tag);
-                    value.Keypad6Tag = FormatTag(prefix, value.Keypad6Tag);
-                    value.Keypad7Tag = FormatTag(prefix, value.Keypad7Tag);
-                    value.Keypad8Tag = FormatTag(prefix, value.Keypad8Tag);
-                    value.Keypad9Tag = FormatTag(prefix, value.Keypad9Tag);
-                    value.KeypadBackspaceTag = FormatTag(prefix, value.KeypadBackspaceTag);
-                    value.KeypadClearTag = FormatTag(prefix, value.KeypadClearTag);
-                    value.KeypadPoundTag = FormatTag(prefix, value.KeypadPoundTag);
-                    value.KeypadStarTag = FormatTag(prefix, value.KeypadStarTag);
-                    Dialers.Add(key, new QscDspDialer(value, this));
-                    Debug.Console(2, this, "Added Dialer {0}\n {1}", key, value);
-                }
-            }
-
             SubscribeToAttributes();
         }
 
@@ -240,18 +176,18 @@ namespace QscQsysDspPlugin
         /// </summary>
         private void CheckSubscriptions()
         {
-            HeartbeatTracker++;
+            _heartbeatTracker++;
             SendLine("cgp 2");
 
             CrestronInvoke.BeginInvoke(o =>
             {
                 CrestronEnvironment.Sleep(1000);
-                if (HeartbeatTracker > 0)
+                if (_heartbeatTracker > 0)
                 {
-                    Debug.Console(1, this, "Heartbeat missed, count {0}", HeartbeatTracker);
-                    if (HeartbeatTracker % 5 != 0) return;
+                    Debug.Console(1, this, "Heartbeat missed, count {0}", _heartbeatTracker);
+                    if (_heartbeatTracker % 5 != 0) return;
                     Debug.Console(1, this, "Heartbeat missed 5 times, subscriptions lost? Resubscribing now");
-                    if (HeartbeatTracker == 5)
+                    if (_heartbeatTracker == 5)
                         Debug.LogError(Debug.ErrorLogLevel.Warning,
                             "Heartbeat missed 5 times - subscriptions lost? Attempting resubscribe.");
                     SubscribeToAttributes();
@@ -283,15 +219,10 @@ namespace QscQsysDspPlugin
             {
                 level.Value.Subscribe();
             }
-
-            foreach (KeyValuePair<string, QscDspDialer> dialer in Dialers)
+            
+            foreach (QscDspMonitoringPoint monitoringPoint in MonitoringControlPoints)
             {
-                dialer.Value.Subscribe();
-            }
-
-            foreach (KeyValuePair<string, QscDspCamera> camera in Cameras)
-            {
-                camera.Value.Subscribe();
+                monitoringPoint.Subscribe();
             }
 
             if (CommunicationMonitor != null)
@@ -313,20 +244,20 @@ namespace QscQsysDspPlugin
                 if (args.Text.EndsWith("cgpa\r"))
                 {
                     Debug.Console(1, this, "Found poll response");
-                    HeartbeatTracker = 0;
+                    _heartbeatTracker = 0;
                 }
 
-                if (args.Text.IndexOf("sr ") > -1)
+                if (args.Text.IndexOf("sr ", StringComparison.Ordinal) > -1)
                 {
                 }
-                else if (args.Text.IndexOf("cv") > -1)
+                else if (args.Text.IndexOf("cv", StringComparison.Ordinal) > -1)
                 {
                     string[] changeMessage =
                         Regex.Split(args.Text,
                             " (?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)"); //Splits by space unless enclosed in double quotes using look ahead method: https://stackoverflow.com/questions/18893390/splitting-on-comma-outside-quotes
 
-                    string changedInstance = changeMessage[1].Replace("\"", "");
-                    Debug.Console(1, this, "cv parse Instance: {0}", changedInstance);
+                    string changedInstance = changeMessage[1].Replace("\"", "").Trim();
+                    Debug.Console(2, this, "cv parse Instance: {0}", changedInstance);
                     foreach (KeyValuePair<string, QscDspLevelControl> controlPoint in LevelControlPoints)
                     {
                         if (changedInstance == controlPoint.Value.LevelInstanceTag)
@@ -343,40 +274,14 @@ namespace QscQsysDspPlugin
                             return;
                         }
                     }
-
-                    foreach (KeyValuePair<string, QscDspDialer> dialer in Dialers)
+                    
+                    foreach (QscDspMonitoringPoint monitoringPoint in MonitoringControlPoints)
                     {
-                        PropertyInfo[] properties = dialer.Value.Tags.GetType().GetCType().GetProperties();
-                        foreach (PropertyInfo prop in properties)
+                        Debug.Console(2, this, "DSP Monitoring Point Status Compare: {0} == {1}", changedInstance,
+                            monitoringPoint.InstanceTag);
+                        if (changedInstance == monitoringPoint.InstanceTag)
                         {
-                            string propValue = prop.GetValue(dialer.Value.Tags, null) as string;
-                            if (changedInstance == propValue)
-                            {
-                                if (changeMessage[2].Contains("Dialing") || changeMessage[2].Contains("Connected"))
-                                {
-                                    dialer.Value.ParseSubscriptionMessage(changedInstance,
-                                        changeMessage[2].Replace("\"", "") + " " +
-                                        changeMessage[4].Replace("\"", ""));
-                                }
-                                else
-                                {
-                                    dialer.Value.ParseSubscriptionMessage(changedInstance,
-                                        changeMessage[2].Replace("\"", ""));
-                                }
-
-                                return;
-                            }
-                        }
-                    }
-
-                    foreach (KeyValuePair<string, QscDspCamera> camera in Cameras)
-                    {
-                        Debug.Console(1, this, "DSP Camera Status Compare: {0} ==? {1}", changedInstance,
-                            camera.Value.Config.OnlineStatus);
-                        if (changedInstance == camera.Value.Config.OnlineStatus)
-                        {
-                            camera.Value.ParseSubscriptionMessage(changedInstance,
-                                changeMessage[2].Replace("\"", ""), null);
+                            monitoringPoint.ParseSubscriptionMessage(changedInstance, changeMessage[2].Replace("\"", "").Trim());
                             return;
                         }
                     }
@@ -395,8 +300,8 @@ namespace QscQsysDspPlugin
         /// <param name="s">Command to send</param>
         public void SendLine(string s)
         {
-            Debug.Console(1, this, "TX: '{0}'", s);
-            Communication.SendText(s + "\x0a");
+            Debug.Console(2, this, "TX: '{0}'", s);
+            Communication.SendText(s + "\n");
         }
 
         /// <summary>
@@ -412,7 +317,7 @@ namespace QscQsysDspPlugin
         /// Adds a preset
         /// </summary>
         /// <param name="s">QscDspPresets</param>
-        public void addPreset(QscDspPresets s)
+        private void AddPreset(QscDspPresets s)
         {
             PresetList.Add(s);
         }
@@ -435,6 +340,7 @@ namespace QscQsysDspPlugin
         /// <param name="trilist">BasicTriList</param>
         /// <param name="joinStart">uint</param>
         /// <param name="joinMapKey">string</param>
+        /// <param name="bridge"></param>
         public override void LinkToApi(BasicTriList trilist, uint joinStart, string joinMapKey, EiscApiAdvanced bridge)
         {
             this.LinkToApiExt(trilist, joinStart, joinMapKey, bridge);

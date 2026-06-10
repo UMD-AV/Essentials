@@ -3,7 +3,7 @@ using PepperDash.Core;
 using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Config;
 
-namespace QscQsysDspPlugin
+namespace PepperDash.Essentials.Devices.Common.DSP.QscDsp
 {
     public class QscDspFactory : EssentialsPluginDeviceFactory<QscDsp>
     {
@@ -30,14 +30,9 @@ namespace QscQsysDspPlugin
             }
 
             QscDspPropertiesConfig propertiesConfig = dc.Properties.ToObject<QscDspPropertiesConfig>();
-            if (propertiesConfig == null)
-            {
-                Debug.Console(2, "[{0}] QSC DSP: failed to read properties config for {1}", dc.Key, dc.Name);
-                return null;
-            }
-
-            return new QscDsp(dc.Key, dc.Name, comms, dc);
-            ;
+            if (propertiesConfig != null) return new QscDsp(dc.Key, dc.Name, comms, dc);
+            Debug.Console(2, "[{0}] QSC DSP: failed to read properties config for {1}", dc.Key, dc.Name);
+            return null;
         }
     }
 }

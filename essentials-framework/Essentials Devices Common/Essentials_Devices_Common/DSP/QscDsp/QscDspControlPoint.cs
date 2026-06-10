@@ -1,13 +1,11 @@
-﻿using PepperDash.Essentials.Devices.Common.DSP;
-
-namespace QscQsysDspPlugin
+﻿namespace PepperDash.Essentials.Devices.Common.DSP.QscDsp
 {
     public abstract class QscDspControlPoint : DspControlPoint
     {
         public string Key { get; protected set; }
 
-        public string LevelInstanceTag { get; set; }
-        public string MuteInstanceTag { get; set; }
+        public string LevelInstanceTag { get; private set; }
+        public string MuteInstanceTag { get; private set; }
         protected QscDsp Parent { get; private set; }
 
         /// <summary>

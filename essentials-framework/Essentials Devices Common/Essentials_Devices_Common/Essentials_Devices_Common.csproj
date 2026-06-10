@@ -153,6 +153,7 @@
         <Compile Include="DSP\ExtronDmpDsp\ExtronDmpFactory.cs"/>
         <Compile Include="DSP\ExtronDmpDsp\ExtronDmpJoinMap.cs"/>
         <Compile Include="DSP\ExtronDmpDsp\ExtronDmpLevelControl.cs"/>
+    <Compile Include="DSP\QscDsp\QscDspMonitoringPoint.cs" />
         <Compile Include="DSP\Tesira\Bridge\JoinMaps\TesiraCrosspointStateJoinMap.cs"/>
         <Compile Include="DSP\Tesira\Bridge\JoinMaps\TesiraDeviceJoinMap.cs"/>
         <Compile Include="DSP\Tesira\Bridge\JoinMaps\TesiraDialerJoinMap.cs"/>
@@ -419,10 +420,7 @@
         <Compile Include="DSP\QscDsp\IQscDspBasicLevel.cs"/>
         <Compile Include="DSP\QscDsp\QscDsp.cs"/>
         <Compile Include="DSP\QscDsp\QscDspBridge.cs"/>
-        <Compile Include="DSP\QscDsp\QscDspCamera.cs"/>
-        <Compile Include="DSP\QscDsp\QscDspCameraJoinMap.cs"/>
         <Compile Include="DSP\QscDsp\QscDspControlPoint.cs"/>
-        <Compile Include="DSP\QscDsp\QscDspDialer.cs"/>
         <Compile Include="DSP\QscDsp\QscDspFactory.cs"/>
         <Compile Include="DSP\QscDsp\QscDspLevelControl.cs"/>
         <Compile Include="DSP\QscDsp\QscDspPropertiesConfig.cs"/>

@@ -3,7 +3,7 @@ using Crestron.SimplSharp;
 using PepperDash.Core;
 using PepperDash.Essentials.Core;
 
-namespace QscQsysDspPlugin
+namespace PepperDash.Essentials.Devices.Common.DSP.QscDsp
 {
     public class QscDspLevelControl : QscDspControlPoint, IBasicVolumeWithFeedback, IKeyed
     {
@@ -14,10 +14,10 @@ namespace QscQsysDspPlugin
 
         public IntFeedback VolumeLevelFeedback { get; private set; }
 
-        public bool Enabled { get; set; }
-        public bool UseAbsoluteValue { get; set; }
-        public ePdtLevelTypes Type;
-        public int Permissions { get; set; }
+        public bool Enabled { get; private set; }
+        private bool UseAbsoluteValue { get; set; }
+        public EPdtLevelTypes Type;
+        public int Permissions { get; private set; }
         private CTimer _volumeUpRepeatTimer;
         private CTimer _volumeDownRepeatTimer;
         private CMutex _volumeUpLock;
@@ -37,10 +37,10 @@ namespace QscQsysDspPlugin
             }
         }
 
-        public bool AutomaticUnmuteOnVolume { get; private set; }
+        private bool AutomaticUnmuteOnVolume { get; set; }
 
-        public bool HasMute { get; private set; }
-        public bool HasLevel { get; private set; }
+        private bool HasMute { get; set; }
+        private bool HasLevel { get; set; }
 
         private bool _muteIsSubscribed;
         private bool _levelIsSubscribed;
@@ -81,12 +81,12 @@ namespace QscQsysDspPlugin
         /// </summary>
         /// <param name="key">instance key</param>
         /// <param name="config">level control block configuration object</param>
-        public void Initialize(string key, QscDspLevelControlBlockConfig config)
+        private void Initialize(string key, QscDspLevelControlBlockConfig config)
         {
             Key = string.Format("{0}-{1}", Parent.Key, key);
             Enabled = true;
             DeviceManager.AddDevice(this);
-            Type = config.IsMic ? ePdtLevelTypes.Microphone : ePdtLevelTypes.Speaker;
+            Type = config.IsMic ? EPdtLevelTypes.Microphone : EPdtLevelTypes.Speaker;
             Permissions = config.Permissions;
 
             Debug.Console(2, this, "Adding LevelControl '{0}'", Key);
@@ -237,7 +237,7 @@ namespace QscQsysDspPlugin
         /// Increments volume level
         /// </summary>
         /// <param name="callbackObject"></param>
-        public void VolumeUpRepeat(object callbackObject)
+        private void VolumeUpRepeat(object callbackObject)
         {
             VolumeUp(_volumeUpCount > 0);
         }
@@ -246,7 +246,7 @@ namespace QscQsysDspPlugin
         /// Decrements volume level
         /// </summary>
         /// <param name="callbackObject"></param>
-        public void VolumeDownRepeat(object callbackObject)
+        private void VolumeDownRepeat(object callbackObject)
         {
             VolumeDown(_volumeDownCount > 0);
         }
@@ -353,7 +353,7 @@ namespace QscQsysDspPlugin
     /// <summary>
     /// Level type enum
     /// </summary>
-    public enum ePdtLevelTypes
+    public enum EPdtLevelTypes
     {
         Speaker = 0,
         Microphone = 1

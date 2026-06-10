@@ -9,7 +9,7 @@ namespace NvxEpi.Factories
     {
         public NvxMockDeviceFactory()
         {
-            TypeNames = new List<string> { "MockNvxDevice", "mocknvxdevice" };
+            TypeNames = new List<string> { "mocknvxdevice" };
         }
 
         public override EssentialsDevice BuildDevice(DeviceConfig dc)
