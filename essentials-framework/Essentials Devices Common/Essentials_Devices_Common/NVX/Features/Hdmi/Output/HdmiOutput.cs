@@ -19,15 +19,19 @@ namespace NvxEpi.Features.Hdmi.Output
             EdidManufacturer = HdmiOutputEdidFeedback.GetFeedback(device.Hardware);
             OutputResolution = HdmiOutputResolutionFeedback.GetFeedback(device.Hardware);
             HdmiOutputBlankedFeedback = HdmiOutputBlankEnabledFeedback.GetFeedback(device.Hardware);
+            OutputSinkConnected = HdmiOutputSinkConnectedFeedback.GetFeedback(device.Hardware);
 
             device.Feedbacks.Add(DisabledByHdcp);
             device.Feedbacks.Add(HorizontalResolution);
             device.Feedbacks.Add(OutputResolution);
             device.Feedbacks.Add(EdidManufacturer);
             device.Feedbacks.Add(HdmiOutputBlankedFeedback);
+            device.Feedbacks.Add(OutputSinkConnected);
         }
 
         public BoolFeedback DisabledByHdcp { get; private set; }
+
+        public BoolFeedback OutputSinkConnected { get; private set; }
 
         public DmNvxBaseClass Hardware
         {

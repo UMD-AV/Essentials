@@ -27,6 +27,8 @@ namespace NvxEpi.Application.Entities
         public IntFeedback HorizontalResolution { get; private set; }
         public StringFeedback EdidManufacturer { get; private set; }
         public IntFeedback AspectRatioMode { get; private set; }
+        public BoolFeedback OutputSinkConnected { get; private set; }
+        public bool OutputMonitoringEnabled { get; private set; }
 
         public NvxApplicationVideoReceiver(string key, NvxApplicationDeviceVideoConfig config, int deviceId,
             IEnumerable<NvxApplicationVideoTransmitter> transmitters) : base(key)
@@ -35,6 +37,7 @@ namespace NvxEpi.Application.Entities
             DeviceId = deviceId;
             MockDisplay sink = new MockDisplay(key + "--sink", key + "--videoSink");
             Display = sink;
+            OutputMonitoringEnabled = config.OutputMonitoringEnabled ?? true;
 
             AddPostActivationAction(() =>
             {
@@ -106,6 +109,7 @@ namespace NvxEpi.Application.Entities
                 HorizontalResolution = new IntFeedback(() => 0);
                 AspectRatioMode = new IntFeedback(() => 0);
                 EdidManufacturer = new StringFeedback(() => string.Empty);
+                OutputSinkConnected = new BoolFeedback(() => false);
 
                 IHdmiOutput hdmiOut = Device as IHdmiOutput;
                 if (hdmiOut == null)
@@ -114,6 +118,7 @@ namespace NvxEpi.Application.Entities
                 DisabledByHdcp = hdmiOut.DisabledByHdcp;
                 HorizontalResolution = hdmiOut.HorizontalResolution;
                 EdidManufacturer = hdmiOut.EdidManufacturer;
+                OutputSinkConnected = hdmiOut.OutputSinkConnected;
 
                 IVideowallMode aspect = Device as IVideowallMode;
                 if (aspect == null)

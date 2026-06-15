@@ -8,7 +8,7 @@ namespace NvxEpi.Abstractions.HdmiOutput
         BoolFeedback DisabledByHdcp { get; }
         IntFeedback HorizontalResolution { get; }
         StringFeedback EdidManufacturer { get; }
-
+        BoolFeedback OutputSinkConnected { get; }
         StringFeedback OutputResolution { get; }
     }
 }

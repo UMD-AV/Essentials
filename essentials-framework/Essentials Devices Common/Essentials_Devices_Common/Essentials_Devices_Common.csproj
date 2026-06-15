@@ -338,6 +338,7 @@
         <Compile Include="NVX\Services\Feedback\HdmiOutputBlankedFeedback.cs"/>
         <Compile Include="NVX\Services\Feedback\HdmiOutputDisabledFeedback.cs"/>
         <Compile Include="NVX\Services\Feedback\HdmiOutputResolutionFeedback.cs"/>
+    <Compile Include="NVX\Services\Feedback\HdmiOutputSinkDetectedFeedback.cs" />
         <Compile Include="NVX\Services\Feedback\HorizontalResolutionFeedback.cs"/>
         <Compile Include="NVX\Services\Feedback\IsStreamingSecondaryAudioFeedback.cs"/>
         <Compile Include="NVX\Services\Feedback\IsStreamingVideoFeedback.cs"/>

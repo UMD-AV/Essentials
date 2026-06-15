@@ -3,55 +3,21 @@ using System.Collections.Generic;
 using System.Linq;
 using NvxEpi.Abstractions;
 using NvxEpi.Application.Config;
+using NvxEpi.Extensions;
 using NvxEpi.Features.Routing;
 using NvxEpi.Features.Streams.Audio;
-using NvxEpi.Services.InputSwitching;
 using NvxEpi.Services.Feedback;
-using NvxEpi.Extensions;
-using PepperDash.Essentials.Devices.Common;
+using NvxEpi.Services.InputSwitching;
 using PepperDash.Essentials.Core;
+using PepperDash.Essentials.Devices.Common;
 
 namespace NvxEpi.Application.Entities
 {
     public class NvxApplicationAudioReceiver : EssentialsDevice
     {
-        private readonly IEnumerable<NvxApplicationAudioTransmitter> _transmitters;
-        private readonly int _deviceId;
-        private INvxDeviceWithHardware _device;
         private readonly IRoutingSink _amp;
-        private StringFeedback _audioName;
-        private StringFeedback _currentAudioRouteName;
-        private IntFeedback _currentAudioRouteId;
-
-        public int DeviceId
-        {
-            get { return _deviceId; }
-        }
-
-        public INvxDeviceWithHardware Device
-        {
-            get { return _device; }
-        }
-
-        public IRoutingSink Amp
-        {
-            get { return _amp; }
-        }
-
-        public StringFeedback AudioName
-        {
-            get { return _audioName; }
-        }
-
-        public StringFeedback CurrentAudioRouteName
-        {
-            get { return _currentAudioRouteName; }
-        }
-
-        public IntFeedback CurrentAudioRouteId
-        {
-            get { return _currentAudioRouteId; }
-        }
+        private readonly int _deviceId;
+        private readonly IEnumerable<NvxApplicationAudioTransmitter> _transmitters;
 
         public NvxApplicationAudioReceiver(string key, NvxApplicationDeviceAudioConfig config, int deviceId,
             IEnumerable<NvxApplicationAudioTransmitter> transmitters)
@@ -64,14 +30,14 @@ namespace NvxEpi.Application.Entities
 
             AddPostActivationAction(() =>
             {
-                _device = DeviceManager.GetDeviceForKey(config.DeviceKey) as INvxDeviceWithHardware;
-                if (_device == null)
+                Device = DeviceManager.GetDeviceForKey(config.DeviceKey) as INvxDeviceWithHardware;
+                if (Device == null)
                     throw new NullReferenceException(string.Format("Device at key: {0} is null.", config.DeviceKey));
             });
 
             AddPostActivationAction(() =>
             {
-                RoutingOutputPort port = _device.OutputPorts[SwitcherForAnalogAudioOutput.Key];
+                RoutingOutputPort port = Device.OutputPorts[SwitcherForAnalogAudioOutput.Key];
                 if (port == null)
                     throw new NullReferenceException("Audio output routing port is null.");
 
@@ -80,25 +46,25 @@ namespace NvxEpi.Application.Entities
 
             AddPostActivationAction(() =>
             {
-                Name = _device.Name;
-                _audioName = new StringFeedback(() =>
-                    string.IsNullOrEmpty(config.AudioName) ? _device.Name : config.AudioName);
-                _audioName.FireUpdate();
+                Name = Device.Name;
+                AudioName = new StringFeedback(() =>
+                    string.IsNullOrEmpty(config.AudioName) ? Device.Name : config.AudioName);
+                AudioName.FireUpdate();
             });
 
             AddPostActivationAction(() =>
             {
-                StringFeedback feedback = _device.Feedbacks[CurrentSecondaryAudioStream.RouteNameKey] as StringFeedback;
+                StringFeedback feedback = Device.Feedbacks[CurrentSecondaryAudioStream.RouteNameKey] as StringFeedback;
                 if (feedback == null)
                     throw new NullReferenceException(CurrentSecondaryAudioStream.RouteNameKey);
 
-                StringFeedback audioSourceFeedback = _device.Feedbacks[AudioInputFeedback.Key] as StringFeedback;
+                StringFeedback audioSourceFeedback = Device.Feedbacks[AudioInputFeedback.Key] as StringFeedback;
                 if (audioSourceFeedback == null)
                     throw new NullReferenceException(AudioInputFeedback.Key);
 
-                _currentAudioRouteId = new IntFeedback(Key + "--appRouteAudioCurrentId", () =>
+                CurrentAudioRouteId = new IntFeedback(Key + "--appRouteAudioCurrentId", () =>
                 {
-                    if (AudioInputExtensions.AudioInputIsLocal(_device))
+                    if (AudioInputExtensions.AudioInputIsLocal(Device))
                     {
                         NvxApplicationAudioTransmitter self =
                             _transmitters.FirstOrDefault(t => t.Name.Equals(Name));
@@ -113,38 +79,56 @@ namespace NvxEpi.Application.Entities
                     return result == null ? 0 : result.DeviceId;
                 });
 
-                feedback.OutputChange += (sender, args) => _currentAudioRouteId.FireUpdate();
-                audioSourceFeedback.OutputChange += (sender, args) => _currentAudioRouteId.FireUpdate();
-                _device.Feedbacks.Add(_currentAudioRouteId);
+                feedback.OutputChange += (sender, args) => CurrentAudioRouteId.FireUpdate();
+                audioSourceFeedback.OutputChange += (sender, args) => CurrentAudioRouteId.FireUpdate();
+                Device.Feedbacks.Add(CurrentAudioRouteId);
             });
 
             AddPostActivationAction(() =>
             {
-                StringFeedback audioSourceFeedback = _device.Feedbacks[AudioInputFeedback.Key] as StringFeedback;
+                StringFeedback audioSourceFeedback = Device.Feedbacks[AudioInputFeedback.Key] as StringFeedback;
                 if (audioSourceFeedback == null)
                     throw new NullReferenceException(AudioInputFeedback.Key);
 
-                _currentAudioRouteName = new StringFeedback(Key + "--appRouteAudioName", () =>
+                CurrentAudioRouteName = new StringFeedback(Key + "--appRouteAudioName", () =>
                 {
-                    if (AudioInputExtensions.AudioInputIsLocal(_device))
+                    if (AudioInputExtensions.AudioInputIsLocal(Device))
                     {
                         NvxApplicationAudioTransmitter self = _transmitters.FirstOrDefault(t =>
-                            t.DeviceId.Equals(_currentAudioRouteId.IntValue));
+                            t.DeviceId.Equals(CurrentAudioRouteId.IntValue));
                         return self == null ? NvxGlobalRouter.NoSourceText : self.AudioName.StringValue;
                     }
 
-                    if (_currentAudioRouteId.IntValue == 0)
+                    if (CurrentAudioRouteId.IntValue == 0)
                         return NvxGlobalRouter.NoSourceText;
 
                     NvxApplicationAudioTransmitter result =
-                        _transmitters.FirstOrDefault(t => t.DeviceId.Equals(_currentAudioRouteId.IntValue));
+                        _transmitters.FirstOrDefault(t => t.DeviceId.Equals(CurrentAudioRouteId.IntValue));
                     return result == null ? NvxGlobalRouter.NoSourceText : result.AudioName.StringValue;
                 });
 
-                _currentAudioRouteId.OutputChange += (sender, args) => _currentAudioRouteName.FireUpdate();
-                audioSourceFeedback.OutputChange += (sender, args) => _currentAudioRouteName.FireUpdate();
-                _device.Feedbacks.Add(_currentAudioRouteName);
+                CurrentAudioRouteId.OutputChange += (sender, args) => CurrentAudioRouteName.FireUpdate();
+                audioSourceFeedback.OutputChange += (sender, args) => CurrentAudioRouteName.FireUpdate();
+                Device.Feedbacks.Add(CurrentAudioRouteName);
             });
         }
+
+        public int DeviceId
+        {
+            get { return _deviceId; }
+        }
+
+        public INvxDeviceWithHardware Device { get; private set; }
+
+        public IRoutingSink Amp
+        {
+            get { return _amp; }
+        }
+
+        public StringFeedback AudioName { get; private set; }
+
+        public StringFeedback CurrentAudioRouteName { get; private set; }
+
+        public IntFeedback CurrentAudioRouteId { get; private set; }
     }
 }

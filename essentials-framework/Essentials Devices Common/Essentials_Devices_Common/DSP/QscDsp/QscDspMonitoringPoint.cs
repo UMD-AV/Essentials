@@ -62,6 +62,7 @@ namespace PepperDash.Essentials.Devices.Common.DSP.QscDsp
                 }
 
                 IsSubscribed = true;
+                IsOnline.FireUpdate();
         }
 
         /// <summary>

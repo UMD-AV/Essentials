@@ -67,6 +67,11 @@ namespace NvxEpi.Devices
         {
             get { return _hdmiOutput.EdidManufacturer; }
         }
+        
+        public BoolFeedback OutputSinkConnected
+        {
+            get { return _hdmiOutput.OutputSinkConnected; }
+        }
 
         public StringFeedback OutputResolution
         {

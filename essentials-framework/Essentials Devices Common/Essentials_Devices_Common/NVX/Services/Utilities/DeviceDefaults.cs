@@ -31,8 +31,11 @@ namespace NvxEpi.Services.Utilities
             {
                 try
                 {
-                    device.Control.VideoSource =
-                        (eSfpVideoSourceTypes)Enum.Parse(typeof(eSfpVideoSourceTypes), props.DefaultVideoInput, true);
+                    if (!(device is DmNvxD3x || device is DmNvxE3x))
+                    {
+                        device.Control.VideoSource =
+                            (eSfpVideoSourceTypes)Enum.Parse(typeof(eSfpVideoSourceTypes), props.DefaultVideoInput, true);
+                    }
                 }
                 catch (Exception ex)
                 {

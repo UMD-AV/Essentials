@@ -176,9 +176,9 @@ namespace NvxEpi.Application.JoinMap
             },
             new JoinMetadata
             {
-                Description = "Analog value of horizontal resolution on HDMI output",
+                Description = "EDID manufacturer on HDMI output",
                 JoinCapabilities = eJoinCapabilities.ToSIMPL,
-                JoinType = eJoinType.Analog
+                JoinType = eJoinType.Serial
             });
 
         [JoinName("OutputEndpointOnline")] public JoinDataComplete OutputEndpointOnline =
@@ -227,7 +227,7 @@ namespace NvxEpi.Application.JoinMap
             new JoinDataComplete(new JoinData { JoinNumber = 901, JoinSpan = 200 },
                 new JoinMetadata
                 {
-                    Description = "Video Input Name",
+                    Description = "Video Output Name",
                     JoinCapabilities = eJoinCapabilities.ToFromSIMPL,
                     JoinType = eJoinType.Serial
                 });
@@ -246,7 +246,7 @@ namespace NvxEpi.Application.JoinMap
             });
 
         [JoinName("TxAdvancedIsPresent")] public JoinDataComplete TxAdvancedIsPresent =
-            new JoinDataComplete(new JoinData { JoinNumber = 1001, JoinSpan = 200 },
+            new JoinDataComplete(new JoinData { JoinNumber = 1001, JoinSpan = 32 },
                 new JoinMetadata
                 {
                     Description = "Tx Advanced Is Present",
@@ -255,10 +255,28 @@ namespace NvxEpi.Application.JoinMap
                 });
 
         [JoinName("VideoSyncStatus")] public JoinDataComplete VideoSyncStatus =
-            new JoinDataComplete(new JoinData { JoinNumber = 101, JoinSpan = 200 },
+            new JoinDataComplete(new JoinData { JoinNumber = 101, JoinSpan = 100 },
                 new JoinMetadata
                 {
                     Description = "Input Video Sync",
+                    JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                    JoinType = eJoinType.Digital
+                });
+        
+        [JoinName("OutputSinkConnected")] public JoinDataComplete OutputSinkConnected =
+            new JoinDataComplete(new JoinData { JoinNumber = 201, JoinSpan = 100 },
+                new JoinMetadata
+                {
+                    Description = "Output Sink Connected",
+                    JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                    JoinType = eJoinType.Digital
+                });
+        
+        [JoinName("OutputMonitoringEnabled")] public JoinDataComplete OutputMonitoringEnabled =
+            new JoinDataComplete(new JoinData { JoinNumber = 301, JoinSpan = 100 },
+                new JoinMetadata
+                {
+                    Description = "Output Monitoring Enabled",
                     JoinCapabilities = eJoinCapabilities.ToSIMPL,
                     JoinType = eJoinType.Digital
                 });

@@ -2,13 +2,13 @@
 using System.Collections.Generic;
 using Crestron.SimplSharp;
 using Crestron.SimplSharpPro.CrestronThread;
+using Crestron.SimplSharpPro.DeviceSupport;
 using PepperDash.Core;
 using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Bridges;
 using PepperDash.Essentials.Core.Config;
-using Crestron.SimplSharpPro.DeviceSupport;
 
-namespace PepperDash.Essentials.Devices.Common.LightwareUcx
+namespace PepperDash.Essentials.Devices.Common.Video.LightwareUcx
 {
     public class LightwareUcxDevice : EssentialsBridgeableDevice, IRoutingNumericWithFeedback, IDisposable
     {

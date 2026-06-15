@@ -87,7 +87,7 @@ namespace PepperDash.Essentials.Devices.Common.DSP.QscDsp
                 i++;
             }
 
-            while (i < 10)
+            while (i < joinMap.MonitoringPointOffline.JoinSpan)
             {
                 trilist.StringInput[joinMap.MonitoringPointName.JoinNumber + i].StringValue = "";
                 trilist.BooleanInput[joinMap.MonitoringPointOffline.JoinNumber + i].BoolValue = false;
@@ -120,7 +120,7 @@ namespace PepperDash.Essentials.Devices.Common.DSP.QscDsp
                 });
 
         [JoinName("MonitoringPointName")] public JoinDataComplete MonitoringPointName =
-            new JoinDataComplete(new JoinData { JoinNumber = 11, JoinSpan = 10 },
+            new JoinDataComplete(new JoinData { JoinNumber = 11, JoinSpan = 30 },
                 new JoinMetadata
                 {
                     Description = "Monitoring Point Name Feedback",
@@ -129,7 +129,7 @@ namespace PepperDash.Essentials.Devices.Common.DSP.QscDsp
                 });
         
         [JoinName("MonitoringPointOffline")] public JoinDataComplete MonitoringPointOffline =
-            new JoinDataComplete(new JoinData { JoinNumber = 11, JoinSpan = 10 },
+            new JoinDataComplete(new JoinData { JoinNumber = 11, JoinSpan = 30 },
                 new JoinMetadata
                 {
                     Description = "Monitoring Point Offline Feedback",

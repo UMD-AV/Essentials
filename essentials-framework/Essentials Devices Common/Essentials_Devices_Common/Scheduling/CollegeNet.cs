@@ -21,18 +21,20 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
         public event EventHandler CurrentMeetingUpdated;
         public event EventHandler NextMeetingUpdated;
         public event EventHandler SpaceInfoUpdated;
-        public List<Meeting> Meetings { get; private set; }
-        public string SpaceName { get; private set; }
-        public string Instructions { get; private set; }
-        public List<Feature> SpaceFeatures { get; private set; }
-        private CTimer updateCurrentMeeting;
-        private CTimer scheduleUpdateTimer;
-        private CTimer scheduleTimeout;
-        private uint scheduleFailCount;
-        private readonly Random randomGenerator;
-        private ushort nextMeetingIndex;
+        private List<Meeting> Meetings { get; set; }
+        private string SpaceName { get; set; }
+        private string Instructions { get; set; }
+        private List<Feature> SpaceFeatures { get; set; }
+        private CTimer _updateCurrentMeeting;
+        private CTimer _scheduleUpdateTimer;
+        private CTimer _scheduleTimeout;
+        private uint _scheduleFailCount;
+        private readonly Random _randomGenerator;
+        private ushort _nextMeetingIndex;
 
-        public bool ScheduleOnline { get; private set; }
+        private readonly string _baseUrl = "https://webservices.collegenet.com/r25ws/wrd/umd/run/";
+
+        private bool ScheduleOnline { get; set; }
 
         private CurrentMeeting _currentMeeting;
 
@@ -64,27 +66,32 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
             }
         }
 
-        private readonly string username;
-        private readonly string password;
-        private int spaceId;
-        private string roomName;
-        private HttpsClient secureClient;
-        private readonly CMutex meetingMutex;
-        private readonly JsonSerializerSettings jsonSettings;
+        private readonly string _username;
+        private readonly string _password;
+        private int _spaceId;
+        private string _roomName;
+        private HttpsClient _secureClient;
+        private readonly CMutex _meetingMutex;
+        private readonly JsonSerializerSettings _jsonSettings;
 
         public CollegeNet(string key, string name, CollegeNetPropertiesConfig props) :
             base(key, name)
         {
-            if (props.spaceId > 0)
+            if (props.SpaceId > 0)
             {
-                spaceId = props.spaceId;
+                _spaceId = props.SpaceId;
             }
 
-            username = props.username;
-            password = props.password;
-            meetingMutex = new CMutex();
-            randomGenerator = new Random();
-            jsonSettings = new JsonSerializerSettings
+            _username = props.Username;
+            _password = props.Password;
+            if (!string.IsNullOrEmpty(props.Url))
+            {
+                _baseUrl = props.Url;
+            }
+
+            _meetingMutex = new CMutex();
+            _randomGenerator = new Random();
+            _jsonSettings = new JsonSerializerSettings
             {
                 MissingMemberHandling = MissingMemberHandling.Ignore,
                 NullValueHandling = NullValueHandling.Ignore
@@ -96,10 +103,10 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
         {
             BuildClient();
             ScheduleOnline = false;
-            scheduleTimeout = new CTimer(scheduleTimeoutCallback, Timeout.Infinite);
-            scheduleUpdateTimer = new CTimer(scheduleUpdateTimerCallback, 5000);
-            updateCurrentMeeting = new CTimer(UpdateCurrentMeetingCallback, Timeout.Infinite);
-            armScheduleUpdateTimer();
+            _scheduleTimeout = new CTimer(ScheduleTimeoutCallback, Timeout.Infinite);
+            _scheduleUpdateTimer = new CTimer(ScheduleUpdateTimerCallback, 5000);
+            _updateCurrentMeeting = new CTimer(UpdateCurrentMeetingCallback, Timeout.Infinite);
+            ArmScheduleUpdateTimer();
             return true;
         }
 
@@ -231,7 +238,7 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
                     trilist.StringInput[joinMap.NextMeetingEndTime.JoinNumber].StringValue =
                         NextMeeting.End.ToString("h:mm tt");
                     trilist.UShortInput[joinMap.NextMeetingIndex.JoinNumber].UShortValue =
-                        (ushort)(nextMeetingIndex + 1);
+                        (ushort)(_nextMeetingIndex + 1);
                 }
             };
 
@@ -272,7 +279,7 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
         {
             try
             {
-                secureClient = new HttpsClient()
+                _secureClient = new HttpsClient()
                 {
                     UserAgent = "crestron",
                     KeepAlive = false,
@@ -295,15 +302,15 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
                 Debug.Console(1, this, "Getting https: {0}", data);
                 HttpsClientRequest req = new HttpsClientRequest();
                 string auth = string.Format("Basic {0}",
-                    Convert.ToBase64String(Encoding.ASCII.GetBytes(username + ":" + password)));
-                string url = string.Format("https://webservices.collegenet.com/r25ws/wrd/umd/run/{0}", data);
+                    Convert.ToBase64String(Encoding.ASCII.GetBytes(_username + ":" + _password)));
+                string url = string.Format("{0}{1}", _baseUrl, data);
                 Debug.Console(1, this, "url: {0} auth: {1}", url, auth);
                 req.Header.ContentType = "application/json";
                 req.Header.SetHeaderValue("Authorization", auth);
                 req.Encoding = Encoding.UTF8;
                 req.RequestType = RequestType.Get;
                 req.Url.Parse(url);
-                secureClient.DispatchAsyncEx(req, HttpsCallback, requestName);
+                _secureClient.DispatchAsyncEx(req, HttpsCallback, requestName);
             }
             catch (Exception ex)
             {
@@ -318,11 +325,11 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
 
         private void GetTodaysReservations()
         {
-            Debug.Console(1, this, "Getting reservations for spaceId {0}", spaceId);
-            if (spaceId != 0)
+            Debug.Console(1, this, "Getting reservations for spaceId {0}", _spaceId);
+            if (_spaceId != 0)
             {
-                scheduleTimeout.Reset(20000);
-                GetData(string.Format("reservations.json?space_id={0}", spaceId), "Reservations");
+                _scheduleTimeout.Reset(20000);
+                GetData(string.Format("reservations.json?space_id={0}", _spaceId), "Reservations");
             }
             else
             {
@@ -332,10 +339,10 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
 
         public void ManualGetTodaysReservations()
         {
-            Debug.Console(0, this, "Manually getting reservations for spaceId {0}", spaceId);
-            if (spaceId != 0)
+            Debug.Console(0, this, "Manually getting reservations for spaceId {0}", _spaceId);
+            if (_spaceId != 0)
             {
-                GetData(string.Format("reservations.json?space_id={0}", spaceId), "Reservations");
+                GetData(string.Format("reservations.json?space_id={0}", _spaceId), "Reservations");
             }
             else
             {
@@ -345,10 +352,10 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
 
         public void GetSpaceInfo()
         {
-            Debug.Console(1, this, "Getting space info for spaceId {0}", spaceId);
-            if (spaceId != 0)
+            Debug.Console(1, this, "Getting space info for spaceId {0}", _spaceId);
+            if (_spaceId != 0)
             {
-                GetData(string.Format("space.json?space_id={0}", spaceId), "Space");
+                GetData(string.Format("space.json?space_id={0}", _spaceId), "Space");
             }
             else
             {
@@ -356,22 +363,22 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
             }
         }
 
-        public void SetRoomName(string _roomName)
+        public void SetRoomName(string roomName)
         {
-            if (_roomName != roomName && _roomName.Length > 3)
+            if (roomName != this._roomName && roomName.Length > 3)
             {
-                roomName = _roomName;
+                this._roomName = roomName;
                 GetSpaceId();
             }
         }
 
         private void GetSpaceId()
         {
-            if (roomName != null)
+            if (_roomName != null)
             {
-                scheduleTimeout.Reset(20000);
-                Debug.Console(1, this, "Getting space id for room with name: {0}", roomName);
-                GetData(string.Format("spaces.json?name={0}", roomName), "SpacesName");
+                _scheduleTimeout.Reset(20000);
+                Debug.Console(1, this, "Getting space id for room with name: {0}", _roomName);
+                GetData(string.Format("spaces.json?name={0}", _roomName), "SpacesName");
             }
             else
             {
@@ -379,12 +386,12 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
             }
         }
 
-        private void scheduleTimeoutCallback(object o)
+        private void ScheduleTimeoutCallback(object o)
         {
-            if (scheduleFailCount < 5)
+            if (_scheduleFailCount < 5)
             {
-                scheduleFailCount++;
-                Debug.ConsoleWithLog(0, this, "CollegeNet Schedule Timeout. Attempt {0}", scheduleFailCount);
+                _scheduleFailCount++;
+                Debug.ConsoleWithLog(0, this, "CollegeNet Schedule Timeout. Attempt {0}", _scheduleFailCount);
                 CrestronEnvironment.Sleep(60000);
                 GetTodaysReservations();
             }
@@ -401,68 +408,88 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
             }
         }
 
-        private void armScheduleUpdateTimer()
+        private void ArmScheduleUpdateTimer()
         {
             DateTime now = DateTime.Now;
-            DateTime oneAM = DateTime.Today.AddHours(1);
+            DateTime oneAm = DateTime.Today.AddHours(1);
 
-            if (now >= oneAM)
+            if (now >= oneAm)
             {
-                oneAM = oneAM.AddDays(1);
+                oneAm = oneAm.AddDays(1);
             }
 
-            int timeUntilOneAM = (int)(oneAM - now).TotalMilliseconds;
-            int randomOffset = randomGenerator.Next(0, 3600000); //Choose random offset within one hour
-            scheduleUpdateTimer.Reset(timeUntilOneAM + 60000 + randomOffset);
+            int timeUntilOneAm = (int)(oneAm - now).TotalMilliseconds;
+            int randomOffset = _randomGenerator.Next(0, 3600000); //Choose random offset within one hour
+            _scheduleUpdateTimer.Reset(timeUntilOneAm + 60000 + randomOffset);
         }
 
-        private void scheduleUpdateTimerCallback(object o)
+        private void ScheduleUpdateTimerCallback(object o)
         {
-            armScheduleUpdateTimer();
-            scheduleFailCount = 0;
+            ArmScheduleUpdateTimer();
+            _scheduleFailCount = 0;
             Meetings = new List<Meeting>();
             GetTodaysReservations();
         }
 
         private void UpdateCurrentMeetingCallback(object unused)
         {
-            Meeting _currentMeetingTemp = null;
-            Meeting _nextMeetingTemp = null;
+            Meeting currentMeetingTemp = null;
+            Meeting nextMeetingTemp = null;
 
             if (Meetings != null && Meetings.Count > 0)
             {
                 //Recheck every minute for current meeting
-                updateCurrentMeeting.Reset(60000);
+                _updateCurrentMeeting.Reset(60000);
 
                 ushort count = 0;
                 foreach (Meeting m in Meetings)
                 {
-                    //Check for current meeting
-                    //Current meeting is valid if meeting starts in 20 minutes or is currently active
-                    if (DateTime.Now >= (m.Start - TimeSpan.FromMinutes(20)) && DateTime.Now <= m.End &&
-                        (_currentMeetingTemp == null || _currentMeetingTemp.Start > m.Start))
+                    try
                     {
-                        _currentMeetingTemp = m;
+                        DateTime startMinus20;
+                        //Get start time minus 20 minutes
+                        if (m.Start < DateTime.MinValue + TimeSpan.FromMinutes(20))
+                        {
+                            Debug.ConsoleWithLog(0, this,
+                                "Current meeting has min datetime start: {0} start {1} end {2}", m.Name, m.Start,
+                                m.End);
+                            startMinus20 = DateTime.MinValue;
+                        }
+                        else
+                        {
+                            startMinus20 = m.Start - TimeSpan.FromMinutes(20);
+                        }
+
+                        //Current meeting is valid if meeting starts in 20 minutes or is currently active
+                        if (DateTime.Now >= startMinus20 && DateTime.Now <= m.End &&
+                            (currentMeetingTemp == null || currentMeetingTemp.Start > m.Start))
+                        {
+                            currentMeetingTemp = m;
+                        }
+                        //If not the current meeting, make the next meeting if it occurs in the future and isn't later than the current "next meeting"
+                        else if (DateTime.Now < m.Start && (nextMeetingTemp == null || nextMeetingTemp.Start > m.Start))
+                        {
+                            nextMeetingTemp = m;
+                            _nextMeetingIndex = count;
+                        }
                     }
-                    //If not the current meeting, make the next meeting if it occurs in the future and isn't later than the current "next meeting"
-                    else if (DateTime.Now < m.Start && (_nextMeetingTemp == null || _nextMeetingTemp.Start > m.Start))
+                    catch (Exception e)
                     {
-                        _nextMeetingTemp = m;
-                        nextMeetingIndex = count;
+                        Debug.ConsoleWithLog(0, this, "Exception processing current meeting: {0}", e.Message);
                     }
 
                     count++;
                 }
             }
 
-            if (_currentMeetingTemp == null)
+            if (currentMeetingTemp == null)
             {
                 if (CurrentMeeting != null)
                     CurrentMeeting = null;
             }
-            else if (CurrentMeeting == null || (_currentMeetingTemp.Id != CurrentMeeting.Id))
+            else if (CurrentMeeting == null || (currentMeetingTemp.Id != CurrentMeeting.Id))
             {
-                CurrentMeeting = new CurrentMeeting(_currentMeetingTemp);
+                CurrentMeeting = new CurrentMeeting(currentMeetingTemp);
                 GetEvent(CurrentMeeting.Id);
             }
             else
@@ -473,14 +500,14 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
                 }
             }
 
-            if (_nextMeetingTemp == null)
+            if (nextMeetingTemp == null)
             {
                 if (NextMeeting != null)
                     NextMeeting = null;
             }
-            else if (NextMeeting == null || (_nextMeetingTemp.Id != NextMeeting.Id))
+            else if (NextMeeting == null || (nextMeetingTemp.Id != NextMeeting.Id))
             {
-                NextMeeting = _nextMeetingTemp;
+                NextMeeting = nextMeetingTemp;
             }
         }
 
@@ -528,47 +555,47 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
                 {
                     try
                     {
-                        meetingMutex.WaitForMutex();
+                        _meetingMutex.WaitForMutex();
                         Meetings = new List<Meeting>();
 
                         ReservationsResponse response =
-                            JsonConvert.DeserializeObject<ReservationsResponse>(content, jsonSettings);
-                        scheduleTimeout.Stop();
+                            JsonConvert.DeserializeObject<ReservationsResponse>(content, _jsonSettings);
+                        _scheduleTimeout.Stop();
                         ScheduleOnline = true;
-                        scheduleFailCount = 0;
-                        if (response.reservations != null && response.reservations.reservation != null)
+                        _scheduleFailCount = 0;
+                        if (response.Reservations != null && response.Reservations.Reservation != null)
                         {
-                            foreach (Reservation reservation in response.reservations.reservation)
+                            foreach (Reservation reservation in response.Reservations.Reservation)
                             {
                                 try
                                 {
                                     bool matchExists = false;
                                     List<Meeting> matchesStart =
-                                        Meetings.FindAll(m => m.Start == reservation.reservation_start_dt);
+                                        Meetings.FindAll(m => m.Start == reservation.ReservationStartDt);
                                     if (matchesStart.Count > 0)
                                     {
-                                        matchExists = matchesStart.Exists(m => m.End == reservation.reservation_end_dt);
+                                        matchExists = matchesStart.Exists(m => m.End == reservation.ReservationEndDt);
                                     }
 
                                     if (!matchExists)
                                     {
                                         Meetings.Add(new Meeting()
                                         {
-                                            Id = reservation.event_id = reservation.event_id,
-                                            Name = reservation.event_name != null
-                                                ? SimplifyClassName(reservation.event_name)
+                                            Id = reservation.EventId,
+                                            Name = reservation.EventName != null
+                                                ? SimplifyClassName(reservation.EventName)
                                                 : "",
-                                            Title = reservation.event_title ?? "",
-                                            Start = reservation.reservation_start_dt = reservation.reservation_start_dt,
-                                            End = reservation.reservation_end_dt = reservation.reservation_end_dt,
-                                            Type = reservation.event_type_name ?? ""
+                                            Title = reservation.EventTitle ?? "",
+                                            Start = reservation.ReservationStartDt,
+                                            End = reservation.ReservationEndDt,
+                                            Type = reservation.EventTypeName ?? ""
                                         });
                                     }
                                     else
                                     {
-                                        string newName = SimplifyClassName(reservation.event_name);
+                                        string newName = SimplifyClassName(reservation.EventName);
                                         Meeting meeting =
-                                            matchesStart.First(m => m.End == reservation.reservation_end_dt);
+                                            matchesStart.First(m => m.End == reservation.ReservationEndDt);
                                         Debug.Console(0, this,
                                             "New overlapping meeting: {0}, newName: {1}, length: {2}",
                                             meeting.Name, newName, meeting.Name.Length + newName.Length);
@@ -601,7 +628,7 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
                     }
                     finally
                     {
-                        meetingMutex.ReleaseMutex();
+                        _meetingMutex.ReleaseMutex();
                     }
 
                     if (MeetingsUpdated != null)
@@ -615,28 +642,28 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
                 case "Event":
                     try
                     {
-                        meetingMutex.WaitForMutex();
+                        _meetingMutex.WaitForMutex();
                         EventsResponse response = JsonConvert.DeserializeObject<EventsResponse>(content);
-                        if (CurrentMeeting.Id == response.events._event.event_id)
+                        if (CurrentMeeting.Id == response.Events.Event.EventId)
                         {
                             Contact c = null;
-                            foreach (Role role in response.events._event.role)
+                            foreach (Role role in response.Events.Event.Role)
                             {
-                                if (role.role_name == "INSTRUCTOR")
+                                if (role.RoleName == "INSTRUCTOR")
                                 {
-                                    c = role.contact;
+                                    c = role.Contact;
                                     break;
                                 }
-                                else if (role.role_name != "Scheduler")
+                                else if (role.RoleName != "Scheduler")
                                 {
-                                    c = role.contact;
+                                    c = role.Contact;
                                 }
                             }
 
                             if (c != null)
                             {
-                                CurrentMeeting.OrganizerName = c.contact_first_name + " " + c.contact_last_name;
-                                CurrentMeeting.OrganizerEmail = c.email.Replace("@g.umd.edu", "@umd.edu");
+                                CurrentMeeting.OrganizerName = c.ContactFirstName + " " + c.ContactLastName;
+                                CurrentMeeting.OrganizerEmail = c.Email.Replace("@g.umd.edu", "@umd.edu");
                                 if (CurrentMeetingUpdated != null)
                                 {
                                     CurrentMeetingUpdated(this, EventArgs.Empty);
@@ -650,7 +677,7 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
                     }
                     finally
                     {
-                        meetingMutex.ReleaseMutex();
+                        _meetingMutex.ReleaseMutex();
                     }
 
                     break;
@@ -678,25 +705,25 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
                         SpaceResponse response = JsonConvert.DeserializeObject<SpaceResponse>(content);
                         if (response.Spaces.Space.Count == 1)
                         {
-                            spaceId = response.Spaces.Space[0].SpaceId;
+                            _spaceId = response.Spaces.Space[0].SpaceId;
                         }
                         else if (response.Spaces.Space.Count > 1)
                         {
-                            if (response.Spaces.Space.Exists(s => s.SpaceName == roomName))
+                            if (response.Spaces.Space.Exists(s => s.SpaceName == _roomName))
                             {
-                                Space resultSpace = response.Spaces.Space.Find(s => s.SpaceName == roomName);
-                                spaceId = resultSpace.SpaceId;
+                                Space resultSpace = response.Spaces.Space.Find(s => s.SpaceName == _roomName);
+                                _spaceId = resultSpace.SpaceId;
                             }
                             else
                             {
-                                spaceId = response.Spaces.Space[0].SpaceId;
+                                _spaceId = response.Spaces.Space[0].SpaceId;
                                 Debug.ConsoleWithLog(0, this, "SpacesName no exact match found for: {0}, using id {1}",
-                                    roomName, spaceId);
+                                    _roomName, _spaceId);
                             }
                         }
                         else
                         {
-                            Debug.ConsoleWithLog(0, this, "SpacesName no results found for: {0}", roomName);
+                            Debug.ConsoleWithLog(0, this, "SpacesName no results found for: {0}", _roomName);
                         }
 
                         GetTodaysReservations();
@@ -721,11 +748,11 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
 
         public void Dispose()
         {
-            if (secureClient != null) secureClient.Dispose();
-            if (updateCurrentMeeting != null) updateCurrentMeeting.Dispose();
-            if (scheduleUpdateTimer != null) scheduleUpdateTimer.Dispose();
-            if (scheduleTimeout != null) scheduleTimeout.Dispose();
-            if (meetingMutex != null) meetingMutex.Dispose();
+            if (_secureClient != null) _secureClient.Dispose();
+            if (_updateCurrentMeeting != null) _updateCurrentMeeting.Dispose();
+            if (_scheduleUpdateTimer != null) _scheduleUpdateTimer.Dispose();
+            if (_scheduleTimeout != null) _scheduleTimeout.Dispose();
+            if (_meetingMutex != null) _meetingMutex.Dispose();
         }
     }
 
@@ -777,57 +804,68 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
 
     public class ReservationsResponse
     {
-        public Reservations reservations { get; set; }
+        [JsonProperty("reservations")] public Reservations Reservations { get; set; }
     }
 
     public class Reservations
     {
         [JsonProperty("reservation")]
         [JsonConverter(typeof(SingleOrArrayConverter<Reservation>))]
-        public List<Reservation> reservation { get; set; }
+        public List<Reservation> Reservation { get; set; }
     }
 
     public class Reservation
     {
-        public int event_id { get; set; }
-        public string event_title { get; set; }
-        public string event_name { get; set; }
-        public string event_type_name { get; set; }
-        public DateTime reservation_start_dt { get; set; }
-        public DateTime reservation_end_dt { get; set; }
+        [JsonProperty("event_id")] public int EventId { get; set; }
+
+        [JsonProperty("event_title")] public string EventTitle { get; set; }
+
+        [JsonProperty("event_name")] public string EventName { get; set; }
+
+        [JsonProperty("event_type_name")] public string EventTypeName { get; set; }
+
+        [JsonProperty("reservation_start_dt")] public DateTime ReservationStartDt { get; set; }
+
+        [JsonProperty("reservation_end_dt")] public DateTime ReservationEndDt { get; set; }
     }
 
     public class EventsResponse
     {
-        public Events events { get; set; }
+        [JsonProperty("events")] public Events Events { get; set; }
     }
 
     public class Events
     {
-        [JsonProperty("event")] public Event _event { get; set; }
+        [JsonProperty("event")] public Event Event { get; set; }
     }
 
     public class Event
     {
+        [JsonProperty("role")]
         [JsonConverter(typeof(SingleOrArrayConverter<Role>))]
-        public List<Role> role { get; set; }
+        public List<Role> Role { get; set; }
 
-        public int event_id { get; set; }
+        [JsonProperty("event_id")] public int EventId { get; set; }
     }
 
     public class Role
     {
-        public string role_name { get; set; }
-        public Contact contact { get; set; }
+        [JsonProperty("role_name")] public string RoleName { get; set; }
+
+        [JsonProperty("contact")] public Contact Contact { get; set; }
     }
 
     public class Contact
     {
-        public string contact_middle_name { get; set; }
-        public string contact_name { get; set; }
-        public string contact_last_name { get; set; }
-        public string contact_first_name { get; set; }
-        public string email { get; set; }
+        [JsonProperty("contact_middle_name")] public string ContactMiddleName { get; set; }
+
+        [JsonProperty("contact_name")] public string ContactName { get; set; }
+
+        [JsonProperty("contact_last_name")] public string ContactLastName { get; set; }
+
+        [JsonProperty("contact_first_name")] public string ContactFirstName { get; set; }
+
+        [JsonProperty("email")] public string Email { get; set; }
     }
 
     public class CurrentMeeting : Meeting
@@ -906,20 +944,21 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
         {
             get
             {
-                double totalMinutes;
-                if (Start <= DateTime.Now)
+                try
                 {
-                    totalMinutes = End.Subtract(DateTime.Now).TotalMinutes;
-                }
-                else
-                {
-                    totalMinutes = End.Subtract(Start).TotalMinutes;
-                }
+                    double totalMinutes = Start <= DateTime.Now
+                        ? End.Subtract(DateTime.Now).TotalMinutes
+                        : End.Subtract(Start).TotalMinutes;
 
-                if (totalMinutes >= 0)
-                    return (ushort)Math.Round(totalMinutes);
-                else
+                    if (totalMinutes >= 0)
+                        return (ushort)Math.Round(totalMinutes);
                     return 0;
+                }
+                catch (Exception e)
+                {
+                    Debug.ConsoleWithLog(0, "CollegeNet Meeting - error getting time remaining: {0}", e);
+                    return 0;
+                }
             }
         }
 
@@ -928,9 +967,8 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
             get
             {
                 string hourTag = "";
-                string minTag = "";
-                double hours = TimeRemainingInMin / 60;
-                double minutes = TimeRemainingInMin % 60;
+                int hours = TimeRemainingInMin / 60;
+                int minutes = TimeRemainingInMin % 60;
                 if (hours > 1)
                 {
                     hourTag = "Hours";
@@ -940,23 +978,11 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
                     hourTag = "Hour";
                 }
 
-                if (minutes == 1)
-                {
-                    minTag = "Minute";
-                }
-                else
-                {
-                    minTag = "Minutes";
-                }
+                string minTag = minutes == 1 ? "Minute" : "Minutes";
 
-                if (hourTag.Length == 0)
-                {
-                    return string.Format("{0} {1}", minutes, minTag);
-                }
-                else
-                {
-                    return string.Format("{0} {1} {2} {3}", hours, hourTag, minutes, minTag);
-                }
+                return hourTag.Length == 0
+                    ? string.Format("{0} {1}", minutes, minTag)
+                    : string.Format("{0} {1} {2} {3}", hours, hourTag, minutes, minTag);
             }
         }
     }
@@ -993,9 +1019,10 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
 
     public class CollegeNetPropertiesConfig
     {
-        public string username { get; set; }
-        public string password { get; set; }
-        public int spaceId { get; set; }
+        [JsonProperty("username")] public string Username { get; set; }
+        [JsonProperty("password")] public string Password { get; set; }
+        [JsonProperty("url")] public string Url { get; set; }
+        [JsonProperty("spaceId")] public int SpaceId { get; set; }
     }
 
     public class CollegeNetJoinMap : JoinMapBaseAdvanced

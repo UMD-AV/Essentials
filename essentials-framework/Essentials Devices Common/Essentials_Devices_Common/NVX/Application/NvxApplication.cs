@@ -21,11 +21,14 @@ namespace NvxEpi.Application
 {
     public class NvxApplication : EssentialsBridgeableDevice, IRoutingNumericWithFeedback
     {
-        private readonly CCriticalSection _lock = new CCriticalSection();
-        private readonly Dictionary<int, NvxApplicationVideoTransmitter> _transmitters;
-        private readonly Dictionary<int, NvxApplicationVideoReceiver> _receivers;
-        private readonly Dictionary<int, NvxApplicationAudioTransmitter> _audioTransmitters;
         private readonly Dictionary<int, NvxApplicationAudioReceiver> _audioReceivers;
+        private readonly Dictionary<int, NvxApplicationAudioTransmitter> _audioTransmitters;
+        private readonly BoolFeedback _enableAudioBreakawayFeedback;
+        private readonly CCriticalSection _lock = new CCriticalSection();
+        private readonly Dictionary<int, NvxApplicationVideoReceiver> _receivers;
+        private readonly Dictionary<int, NvxApplicationVideoTransmitter> _transmitters;
+
+        private bool _enableAudioBreakaway;
 
         public NvxApplication(INvxApplicationBuilder applicationBuilder) : base(applicationBuilder.Key)
         {
@@ -77,8 +80,30 @@ namespace NvxEpi.Application
             _enableAudioBreakawayFeedback = new BoolFeedback(() => _enableAudioBreakaway);
         }
 
-        private bool _enableAudioBreakaway;
-        private readonly BoolFeedback _enableAudioBreakawayFeedback;
+        public RoutingPortCollection<RoutingInputPort> InputPorts { get; private set; }
+
+        public RoutingPortCollection<RoutingOutputPort> OutputPorts { get; private set; }
+
+        public void ExecuteSwitch(object inputSelector, object outputSelector, eRoutingSignalType signalType)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void ExecuteNumericSwitch(ushort input, ushort output, eRoutingSignalType type)
+        {
+            switch (type)
+            {
+                case eRoutingSignalType.Video:
+                case eRoutingSignalType.AudioVideo:
+                    makeVideoRoute(input, output);
+                    break;
+                case eRoutingSignalType.Audio:
+                    makeAudioRoute(input, output);
+                    break;
+            }
+        }
+
+        public event EventHandler<RoutingNumericEventArgs> NumericSwitchChange;
 
         public override void LinkToApi(BasicTriList trilist, uint joinStart, string joinMapKey, EiscApiAdvanced bridge)
         {
@@ -143,10 +168,7 @@ namespace NvxEpi.Application
                 item.DeviceActual.VideoName.LinkInputSig(
                     trilist.StringInput[(uint)(joinMap.InputVideoNames.JoinNumber + item.DeviceId - 1)]);
 
-                if (item.DeviceActual.Device is NvxMockDevice)
-                {
-                    continue;
-                }
+                if (item.DeviceActual.Device is NvxMockDevice) continue;
 
                 Debug.Console(2, this, "Linking {0} Input Resolution to join {1}", item.DeviceActual.Key,
                     joinMap.InputCurrentResolution.JoinNumber + item.DeviceId - 1);
@@ -209,15 +231,20 @@ namespace NvxEpi.Application
                     item.DeviceActual.EdidManufacturer.LinkInputSig(
                         trilist.StringInput[(uint)(joinMap.OutputEdidManufacturer.JoinNumber + item.DeviceId - 1)]);
 
-                    Debug.Console(2, this, "Linking {0} OutputEdidManufacturer to join {1}", item.DeviceActual.Key,
-                        joinMap.OutputEdidManufacturer.JoinNumber + item.DeviceId - 1);
-                    item.DeviceActual.EdidManufacturer.LinkInputSig(
-                        trilist.StringInput[(uint)(joinMap.OutputEdidManufacturer.JoinNumber + item.DeviceId - 1)]);
-
                     Debug.Console(2, this, "Linking {0} OutputAspectRatioMode to join {1}", item.DeviceActual.Key,
                         joinMap.OutputAspectRatioMode.JoinNumber + item.DeviceId - 1);
                     item.DeviceActual.AspectRatioMode.LinkInputSig(
                         trilist.UShortInput[(uint)(joinMap.OutputAspectRatioMode.JoinNumber + item.DeviceId - 1)]);
+
+                    Debug.Console(2, this, "Linking {0} OutputSinkConncted to join {1}", item.DeviceActual.Key,
+                        joinMap.OutputSinkConnected.JoinNumber + item.DeviceId - 1);
+                    item.DeviceActual.OutputSinkConnected.LinkInputSig(
+                        trilist.BooleanInput[(uint)(joinMap.OutputSinkConnected.JoinNumber + item.DeviceId - 1)]);
+
+                    Debug.Console(2, this, "Linking {0} OutputMonitoringEnabled to join {1}", item.DeviceActual.Key,
+                        joinMap.OutputMonitoringEnabled.JoinNumber + item.DeviceId - 1);
+                    trilist.BooleanInput[(uint)(joinMap.OutputMonitoringEnabled.JoinNumber + item.DeviceId - 1)]
+                        .BoolValue = item.DeviceActual.OutputMonitoringEnabled;
                 }
 
                 Debug.Console(2, this, "Linking {0} OutputVideo to join {1}", item.DeviceActual.Key,
@@ -236,10 +263,8 @@ namespace NvxEpi.Application
 
                 IVideowallMode hdmiOut = item.DeviceActual.Device as IVideowallMode;
                 if (hdmiOut != null)
-                {
                     trilist.SetUShortSigAction((uint)(joinMap.OutputAspectRatioMode.JoinNumber + item.DeviceId - 1),
                         hdmiOut.SetVideoAspectRatioMode);
-                }
 
                 item.DeviceActual.CurrentVideoRouteId.OutputChange += (sender, e) =>
                 {
@@ -346,40 +371,12 @@ namespace NvxEpi.Application
             }
         }
 
-        public RoutingPortCollection<RoutingInputPort> InputPorts { get; private set; }
-
-        public RoutingPortCollection<RoutingOutputPort> OutputPorts { get; private set; }
-
-        public void ExecuteSwitch(object inputSelector, object outputSelector, eRoutingSignalType signalType)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void ExecuteNumericSwitch(ushort input, ushort output, eRoutingSignalType type)
-        {
-            switch (type)
-            {
-                case eRoutingSignalType.Video:
-                case eRoutingSignalType.AudioVideo:
-                    makeVideoRoute(input, output);
-                    break;
-                case eRoutingSignalType.Audio:
-                    makeAudioRoute(input, output);
-                    break;
-            }
-        }
-
         private void OnSwitchChange(ushort input, ushort output, eRoutingSignalType signalType)
         {
             RoutingNumericEventArgs e = new RoutingNumericEventArgs(output, input,
                 null, null, signalType);
 
-            if (NumericSwitchChange != null)
-            {
-                NumericSwitchChange(this, e);
-            }
+            if (NumericSwitchChange != null) NumericSwitchChange(this, e);
         }
-
-        public event EventHandler<RoutingNumericEventArgs> NumericSwitchChange;
     }
 }
