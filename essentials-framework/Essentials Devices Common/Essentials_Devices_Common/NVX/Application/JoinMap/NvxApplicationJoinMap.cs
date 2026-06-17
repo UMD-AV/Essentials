@@ -13,15 +13,6 @@ namespace NvxEpi.Application.JoinMap
                     JoinType = eJoinType.Serial
                 });
 
-        [JoinName("OnlineFb")] public JoinDataComplete OnlineFb =
-            new JoinDataComplete(new JoinData { JoinNumber = 11, JoinSpan = 1 },
-                new JoinMetadata
-                {
-                    Description = "NVX App Online Fb",
-                    JoinCapabilities = eJoinCapabilities.ToSIMPL,
-                    JoinType = eJoinType.Digital
-                });
-
         [JoinName("EnableAudioBreakaway")] public JoinDataComplete EnableAudioBreakaway = new JoinDataComplete(
             new JoinData { JoinNumber = 4, JoinSpan = 1 },
             new JoinMetadata
@@ -86,6 +77,15 @@ namespace NvxEpi.Application.JoinMap
                     JoinType = eJoinType.Digital
                 });
 
+        [JoinName("InputMonitoringEnabled")] public JoinDataComplete InputMonitoringEnabled =
+            new JoinDataComplete(new JoinData { JoinNumber = 301, JoinSpan = 100 },
+                new JoinMetadata
+                {
+                    Description = "Input Monitoring Enabled",
+                    JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                    JoinType = eJoinType.Digital
+                });
+
         [JoinName("InputNames")] public JoinDataComplete InputNames =
             new JoinDataComplete(new JoinData { JoinNumber = 101, JoinSpan = 200 },
                 new JoinMetadata
@@ -102,6 +102,15 @@ namespace NvxEpi.Application.JoinMap
                     Description = "Video Input Name",
                     JoinCapabilities = eJoinCapabilities.ToFromSIMPL,
                     JoinType = eJoinType.Serial
+                });
+
+        [JoinName("OnlineFb")] public JoinDataComplete OnlineFb =
+            new JoinDataComplete(new JoinData { JoinNumber = 11, JoinSpan = 1 },
+                new JoinMetadata
+                {
+                    Description = "NVX App Online Fb",
+                    JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                    JoinType = eJoinType.Digital
                 });
 
         [JoinName("OutputAspectRatioMode")] public JoinDataComplete OutputAspectRatioMode = new JoinDataComplete
@@ -205,6 +214,15 @@ namespace NvxEpi.Application.JoinMap
                 JoinType = eJoinType.Analog
             });
 
+        [JoinName("OutputMonitoringEnabled")] public JoinDataComplete OutputMonitoringEnabled =
+            new JoinDataComplete(new JoinData { JoinNumber = 401, JoinSpan = 100 },
+                new JoinMetadata
+                {
+                    Description = "Output Monitoring Enabled",
+                    JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                    JoinType = eJoinType.Digital
+                });
+
         [JoinName("OutputNames")] public JoinDataComplete OutputNames =
             new JoinDataComplete(new JoinData { JoinNumber = 301, JoinSpan = 200 },
                 new JoinMetadata
@@ -212,6 +230,15 @@ namespace NvxEpi.Application.JoinMap
                     Description = "Output Name",
                     JoinCapabilities = eJoinCapabilities.ToSIMPL,
                     JoinType = eJoinType.Serial
+                });
+
+        [JoinName("OutputSinkConnected")] public JoinDataComplete OutputSinkConnected =
+            new JoinDataComplete(new JoinData { JoinNumber = 201, JoinSpan = 100 },
+                new JoinMetadata
+                {
+                    Description = "Output Sink Connected",
+                    JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                    JoinType = eJoinType.Digital
                 });
 
         [JoinName("OutputVideo")] public JoinDataComplete OutputVideo =
@@ -259,24 +286,6 @@ namespace NvxEpi.Application.JoinMap
                 new JoinMetadata
                 {
                     Description = "Input Video Sync",
-                    JoinCapabilities = eJoinCapabilities.ToSIMPL,
-                    JoinType = eJoinType.Digital
-                });
-        
-        [JoinName("OutputSinkConnected")] public JoinDataComplete OutputSinkConnected =
-            new JoinDataComplete(new JoinData { JoinNumber = 201, JoinSpan = 100 },
-                new JoinMetadata
-                {
-                    Description = "Output Sink Connected",
-                    JoinCapabilities = eJoinCapabilities.ToSIMPL,
-                    JoinType = eJoinType.Digital
-                });
-        
-        [JoinName("OutputMonitoringEnabled")] public JoinDataComplete OutputMonitoringEnabled =
-            new JoinDataComplete(new JoinData { JoinNumber = 301, JoinSpan = 100 },
-                new JoinMetadata
-                {
-                    Description = "Output Monitoring Enabled",
                     JoinCapabilities = eJoinCapabilities.ToSIMPL,
                     JoinType = eJoinType.Digital
                 });

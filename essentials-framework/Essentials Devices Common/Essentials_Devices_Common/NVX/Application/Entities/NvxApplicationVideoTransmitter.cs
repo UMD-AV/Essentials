@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using NvxEpi.Abstractions;
 using NvxEpi.Abstractions.HdmiInput;
+using NvxEpi.Abstractions.InputSwitching;
 using NvxEpi.Application.Config;
+using NvxEpi.Devices;
 using NvxEpi.Enums;
 using NvxEpi.Extensions;
-using NvxEpi.Abstractions.InputSwitching;
-using NvxEpi.Devices;
 using PepperDash.Core;
 using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Routing;
@@ -16,23 +16,7 @@ namespace NvxEpi.Application.Entities
 {
     public class NvxApplicationVideoTransmitter : EssentialsDevice, IOnline
     {
-        public int DeviceId { get; private set; }
-        public BoolFeedback HdmiSyncDetected { get; private set; }
-        public IntFeedback HdcpState { get; private set; }
-        public IntFeedback HdcpCapability { get; private set; }
-        public StringFeedback InputResolution { get; private set; }
-        public StringFeedback NameFeedback { get; private set; }
-        public StringFeedback VideoName { get; private set; }
-
         private readonly DummyRoutingInputsDevice _source;
-
-        public IRoutingSource Source
-        {
-            get { return _source; }
-        }
-
-        public INvxDevice Device { get; private set; }
-
         private bool _useHdmiInput2;
 
         public NvxApplicationVideoTransmitter(string key, NvxApplicationDeviceVideoConfig config, int deviceId)
@@ -40,6 +24,7 @@ namespace NvxEpi.Application.Entities
         {
             DeviceId = deviceId;
             _source = new DummyRoutingInputsDevice(config.DeviceKey + "--videoSource");
+            InputMonitoringEnabled = config.InputMonitoringEnabled ?? false;
 
             AddPostActivationAction(() =>
             {
@@ -70,6 +55,28 @@ namespace NvxEpi.Application.Entities
                     Debug.Console(0, this, "Caught an exception:{0}", ex);
                 }
             });
+        }
+
+        public bool InputMonitoringEnabled { get; private set; }
+
+        public int DeviceId { get; private set; }
+        public BoolFeedback HdmiSyncDetected { get; private set; }
+        public IntFeedback HdcpState { get; private set; }
+        public IntFeedback HdcpCapability { get; private set; }
+        public StringFeedback InputResolution { get; private set; }
+        public StringFeedback NameFeedback { get; private set; }
+        public StringFeedback VideoName { get; private set; }
+
+        public IRoutingSource Source
+        {
+            get { return _source; }
+        }
+
+        public INvxDevice Device { get; private set; }
+
+        public BoolFeedback IsOnline
+        {
+            get { return Device.IsOnline; }
         }
 
         private void LinkRoutingInputPort(string routingPortKey)
@@ -173,23 +180,18 @@ namespace NvxEpi.Application.Entities
                     return hdmiInput.SyncDetected.Any(i => hdmiInput.SyncDetected[i.Key].BoolValue);
                 });
                 foreach (KeyValuePair<uint, BoolFeedback> i in hdmiInput.SyncDetected)
-                {
                     hdmiInput.SyncDetected[i.Key].OutputChange += (sender, args) => HdmiSyncDetected.FireUpdate();
-                }
                 HdcpState = hdmiInput.HdcpCapability[1];
                 InputResolution = hdmiInput.CurrentResolution[1];
             }
             else
+            {
                 throw new NotSupportedException(routingPortKey);
+            }
 
             HdmiSyncDetected.FireUpdate();
             HdcpCapability.FireUpdate();
             InputResolution.FireUpdate();
-        }
-
-        public BoolFeedback IsOnline
-        {
-            get { return Device.IsOnline; }
         }
 
         public void SetHdcpState(ushort state)

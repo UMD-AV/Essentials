@@ -22,6 +22,7 @@ namespace NvxEpi.Application.Config
         public string DeviceKey { get; set; }
         public string VideoName { get; set; }
         public string NvxRoutingPort { get; set; }
+        public bool? InputMonitoringEnabled { get; set; }
         public bool? OutputMonitoringEnabled { get; set; }
     }
 

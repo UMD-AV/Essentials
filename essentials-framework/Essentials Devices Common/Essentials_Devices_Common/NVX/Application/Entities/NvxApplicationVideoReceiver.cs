@@ -37,7 +37,7 @@ namespace NvxEpi.Application.Entities
             DeviceId = deviceId;
             MockDisplay sink = new MockDisplay(key + "--sink", key + "--videoSink");
             Display = sink;
-            OutputMonitoringEnabled = config.OutputMonitoringEnabled ?? true;
+            OutputMonitoringEnabled = config.OutputMonitoringEnabled ?? false;
 
             AddPostActivationAction(() =>
             {

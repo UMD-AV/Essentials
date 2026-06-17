@@ -190,6 +190,11 @@ namespace NvxEpi.Application
                 item.DeviceActual.HdcpState.LinkInputSig(
                     trilist.UShortInput[(uint)(joinMap.HdcpSupportState.JoinNumber + item.DeviceId - 1)]);
 
+                Debug.Console(2, this, "Linking {0} InputMonitoringEnabled to join {1}", item.DeviceActual.Key,
+                    joinMap.InputMonitoringEnabled.JoinNumber + item.DeviceId - 1);
+                trilist.BooleanInput[(uint)(joinMap.InputMonitoringEnabled.JoinNumber + item.DeviceId - 1)]
+                    .BoolValue = item.DeviceActual.InputMonitoringEnabled;
+
                 trilist.SetUShortSigAction((uint)(joinMap.HdcpSupportState.JoinNumber + item.DeviceId - 1),
                     item.DeviceActual.SetHdcpState);
             }
