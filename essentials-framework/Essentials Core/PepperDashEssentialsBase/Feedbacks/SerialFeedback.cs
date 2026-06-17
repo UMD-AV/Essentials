@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Crestron.SimplSharp;
 using Crestron.SimplSharpPro;
 
 namespace PepperDash.Essentials.Core
@@ -25,6 +26,7 @@ namespace PepperDash.Essentials.Core
         public string TestValue { get; private set; }
 
         private List<StringInputSig> LinkedInputSigs = new List<StringInputSig>();
+        private CMutex LinkedInputSigsMutex = new CMutex();
 
         public SerialFeedback()
         {
@@ -43,19 +45,50 @@ namespace PepperDash.Essentials.Core
         public void FireUpdate(string newValue)
         {
             _SerialValue = newValue;
-            LinkedInputSigs.ForEach(s => UpdateSig(s, newValue));
+            StringInputSig[] inputSigs;
+
+            LinkedInputSigsMutex.WaitForMutex();
+            try
+            {
+                inputSigs = LinkedInputSigs.ToArray();
+            }
+            finally
+            {
+                LinkedInputSigsMutex.ReleaseMutex();
+            }
+
+            for (int i = 0; i < inputSigs.Length; i++)
+                UpdateSig(inputSigs[i], newValue);
+
             OnOutputChange(newValue);
         }
 
         public void LinkInputSig(StringInputSig sig)
         {
-            LinkedInputSigs.Add(sig);
+            LinkedInputSigsMutex.WaitForMutex();
+            try
+            {
+                LinkedInputSigs.Add(sig);
+            }
+            finally
+            {
+                LinkedInputSigsMutex.ReleaseMutex();
+            }
+
             UpdateSig(sig);
         }
 
         public void UnlinkInputSig(StringInputSig sig)
         {
-            LinkedInputSigs.Remove(sig);
+            LinkedInputSigsMutex.WaitForMutex();
+            try
+            {
+                LinkedInputSigs.Remove(sig);
+            }
+            finally
+            {
+                LinkedInputSigsMutex.ReleaseMutex();
+            }
         }
 
         public override string ToString()

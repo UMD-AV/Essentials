@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Crestron.SimplSharp;
 using Crestron.SimplSharpPro;
 
 namespace PepperDash.Essentials.Core
@@ -32,6 +33,8 @@ namespace PepperDash.Essentials.Core
 
         private List<BoolInputSig> LinkedInputSigs = new List<BoolInputSig>();
         private List<BoolInputSig> LinkedComplementInputSigs = new List<BoolInputSig>();
+        private CMutex LinkedInputSigsMutex = new CMutex();
+        private CMutex LinkedComplementInputSigsMutex = new CMutex();
 
         private List<Crestron.SimplSharpPro.DeviceSupport.Feedback> LinkedCrestronFeedbacks =
             new List<Crestron.SimplSharpPro.DeviceSupport.Feedback>();
@@ -75,8 +78,35 @@ namespace PepperDash.Essentials.Core
             if (newValue != _BoolValue)
             {
                 _BoolValue = newValue;
-                LinkedInputSigs.ForEach(s => UpdateSig(s));
-                LinkedComplementInputSigs.ForEach(s => UpdateComplementSig(s));
+                BoolInputSig[] inputSigs;
+                BoolInputSig[] complementInputSigs;
+
+                LinkedInputSigsMutex.WaitForMutex();
+                try
+                {
+                    inputSigs = LinkedInputSigs.ToArray();
+                }
+                finally
+                {
+                    LinkedInputSigsMutex.ReleaseMutex();
+                }
+
+                LinkedComplementInputSigsMutex.WaitForMutex();
+                try
+                {
+                    complementInputSigs = LinkedComplementInputSigs.ToArray();
+                }
+                finally
+                {
+                    LinkedComplementInputSigsMutex.ReleaseMutex();
+                }
+
+                for (int i = 0; i < inputSigs.Length; i++)
+                    UpdateSig(inputSigs[i]);
+
+                for (int i = 0; i < complementInputSigs.Length; i++)
+                    UpdateComplementSig(complementInputSigs[i]);
+
                 OnOutputChange(newValue);
             }
         }
@@ -87,7 +117,16 @@ namespace PepperDash.Essentials.Core
         /// <param name="sig"></param>
         public void LinkInputSig(BoolInputSig sig)
         {
-            LinkedInputSigs.Add(sig);
+            LinkedInputSigsMutex.WaitForMutex();
+            try
+            {
+                LinkedInputSigs.Add(sig);
+            }
+            finally
+            {
+                LinkedInputSigsMutex.ReleaseMutex();
+            }
+
             UpdateSig(sig);
         }
 
@@ -97,7 +136,15 @@ namespace PepperDash.Essentials.Core
         /// <param name="sig"></param>
         public void UnlinkInputSig(BoolInputSig sig)
         {
-            LinkedInputSigs.Remove(sig);
+            LinkedInputSigsMutex.WaitForMutex();
+            try
+            {
+                LinkedInputSigs.Remove(sig);
+            }
+            finally
+            {
+                LinkedInputSigsMutex.ReleaseMutex();
+            }
         }
 
         /// <summary>
@@ -106,7 +153,16 @@ namespace PepperDash.Essentials.Core
         /// <param name="sig"></param>
         public void LinkComplementInputSig(BoolInputSig sig)
         {
-            LinkedComplementInputSigs.Add(sig);
+            LinkedComplementInputSigsMutex.WaitForMutex();
+            try
+            {
+                LinkedComplementInputSigs.Add(sig);
+            }
+            finally
+            {
+                LinkedComplementInputSigsMutex.ReleaseMutex();
+            }
+
             UpdateComplementSig(sig);
         }
 
@@ -116,7 +172,15 @@ namespace PepperDash.Essentials.Core
         /// <param name="sig"></param>
         public void UnlinkComplementInputSig(BoolInputSig sig)
         {
-            LinkedComplementInputSigs.Remove(sig);
+            LinkedComplementInputSigsMutex.WaitForMutex();
+            try
+            {
+                LinkedComplementInputSigs.Remove(sig);
+            }
+            finally
+            {
+                LinkedComplementInputSigsMutex.ReleaseMutex();
+            }
         }
 
         /// <summary>

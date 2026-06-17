@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Crestron.SimplSharp;
 using Crestron.SimplSharpPro;
 
 namespace PepperDash.Essentials.Core
@@ -28,6 +29,7 @@ namespace PepperDash.Essentials.Core
         private Func<int> ValueFunc;
 
         private List<UShortInputSig> LinkedInputSigs = new List<UShortInputSig>();
+        private CMutex LinkedInputSigsMutex = new CMutex();
 
         /// <summary>
         /// Creates the feedback with the Func as described.
@@ -69,20 +71,51 @@ namespace PepperDash.Essentials.Core
             if (newValue != _IntValue)
             {
                 _IntValue = newValue;
-                LinkedInputSigs.ForEach(s => UpdateSig(s));
+                UShortInputSig[] inputSigs;
+
+                LinkedInputSigsMutex.WaitForMutex();
+                try
+                {
+                    inputSigs = LinkedInputSigs.ToArray();
+                }
+                finally
+                {
+                    LinkedInputSigsMutex.ReleaseMutex();
+                }
+
+                for (int i = 0; i < inputSigs.Length; i++)
+                    UpdateSig(inputSigs[i]);
+
                 OnOutputChange(newValue);
             }
         }
 
         public void LinkInputSig(UShortInputSig sig)
         {
-            LinkedInputSigs.Add(sig);
+            LinkedInputSigsMutex.WaitForMutex();
+            try
+            {
+                LinkedInputSigs.Add(sig);
+            }
+            finally
+            {
+                LinkedInputSigsMutex.ReleaseMutex();
+            }
+
             UpdateSig(sig);
         }
 
         public void UnlinkInputSig(UShortInputSig sig)
         {
-            LinkedInputSigs.Remove(sig);
+            LinkedInputSigsMutex.WaitForMutex();
+            try
+            {
+                LinkedInputSigs.Remove(sig);
+            }
+            finally
+            {
+                LinkedInputSigsMutex.ReleaseMutex();
+            }
         }
 
         public override string ToString()
