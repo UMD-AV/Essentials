@@ -198,6 +198,22 @@
             "joinStart": 2751
           },
           {
+            "deviceKey": "microphone17",
+            "joinStart": 2801
+          },
+          {
+            "deviceKey": "microphone18",
+            "joinStart": 2851
+          },
+          {
+            "deviceKey": "microphone19",
+            "joinStart": 2901
+          },
+          {
+            "deviceKey": "microphone20",
+            "joinStart": 2951
+          },
+          {
             "deviceKey": "micdock01",
             "joinStart": 3001
           },

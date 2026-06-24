@@ -3,15 +3,15 @@ using Crestron.SimplSharpPro;
 using Crestron.SimplSharpPro.Fusion;
 using PepperDash.Essentials.Core;
 using PepperDash.Core;
-using PepperDash.Essentials.Devices.Common.ShureUlxd;
+using PepperDash.Essentials.Devices.Common.Microphones;
 
 namespace DynFusion.Assets
 {
     public class MicStaticAsset : StaticAsset
     {
-        private ShureUlxdMicrophone _mic;
+        private WirelessMic _mic;
 
-        public MicStaticAsset(string name, ShureUlxdMicrophone mic, uint assetNumber, FusionRoom symbol) :
+        public MicStaticAsset(string name, WirelessMic mic, uint assetNumber, FusionRoom symbol) :
             base(name, name + "-Asset", assetNumber, "Microphone", symbol)
         {
             _mic = mic;

@@ -1,15 +1,15 @@
 ﻿using Crestron.SimplSharpPro;
 using Crestron.SimplSharpPro.Fusion;
 using PepperDash.Core;
-using PepperDash.Essentials.Devices.Common.ShureSbc;
+using PepperDash.Essentials.Devices.Common.Microphones;
 
 namespace DynFusion.Assets
 {
     public class MicBatteryStaticAsset : StaticAsset
     {
-        private ShureSbcBattery _battery;
+        private WirelessMic _battery;
 
-        public MicBatteryStaticAsset(string name, ShureSbcBattery battery, uint assetNumber, FusionRoom symbol) :
+        public MicBatteryStaticAsset(string name, WirelessMic battery, uint assetNumber, FusionRoom symbol) :
             base(name, name + "-Asset", assetNumber, "Mic Battery", symbol)
         {
             _battery = battery;
@@ -20,18 +20,18 @@ namespace DynFusion.Assets
             _asset.Connected.AddSigToRVIFile = true;
 
             _asset.Connected.InputSig.BoolValue = true;
-            _battery.BatteryErrorTextFeedback.LinkInputSig(_asset.AssetError.InputSig);
+            _battery.ErrorStringFeedback.LinkInputSig(_asset.AssetError.InputSig);
 
             _asset.ParamMake.Value = "Shure";
             _asset.ParamModel.Value = "Battery";
 
             //Battery Present
             _asset.AddSig(eSigType.Bool, 1, "Mic Battery - Present", eSigIoMask.InputSigOnly);
-            _battery.BatteryPresentFeedback.LinkInputSig(_asset.FusionGenericAssetDigitalsAsset1.BooleanInput[50]);
+            _battery.OnDockFeedback.LinkInputSig(_asset.FusionGenericAssetDigitalsAsset1.BooleanInput[50]);
 
             //Battery Error Int
             _asset.AddSig(eSigType.UShort, 1, "Mic Battery - Error", eSigIoMask.InputSigOnly);
-            _battery.BatteryErrorFeedback.LinkInputSig(_asset.FusionGenericAssetAnalogsAsset2.UShortInput[50]);
+            _battery.BatteryErrorAnalogFeedback.LinkInputSig(_asset.FusionGenericAssetAnalogsAsset2.UShortInput[50]);
 
             //Battery % Health
             _asset.AddSig(eSigType.UShort, 2, "Mic Battery - % Health", eSigIoMask.InputSigOnly);
@@ -47,11 +47,11 @@ namespace DynFusion.Assets
 
             //Battery State
             _asset.AddSig(eSigType.String, 1, "Mic Battery - State", eSigIoMask.InputSigOnly);
-            _battery.BatteryStateFeedback.LinkInputSig(_asset.FusionGenericAssetSerialsAsset3.StringInput[50]);
+            _battery.StateFeedback.LinkInputSig(_asset.FusionGenericAssetSerialsAsset3.StringInput[50]);
 
             //Battery Error String
             _asset.AddSig(eSigType.String, 2, "Mic Battery - Error Text", eSigIoMask.InputSigOnly);
-            _battery.BatteryErrorTextFeedback.LinkInputSig(_asset.FusionGenericAssetSerialsAsset3.StringInput[51]);
+            _battery.ErrorStringFeedback.LinkInputSig(_asset.FusionGenericAssetSerialsAsset3.StringInput[51]);
         }
 
         public override void FusionAssetStateChange(FusionAssetStateEventArgs args)

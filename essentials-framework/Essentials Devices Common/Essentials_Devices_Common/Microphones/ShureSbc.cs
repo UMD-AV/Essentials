@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
-using Newtonsoft.Json;
-using Crestron.SimplSharp;
 using Crestron.SimplSharpPro.DeviceSupport;
 using PepperDash.Core;
 using PepperDash.Essentials.Core;
@@ -10,7 +8,7 @@ using PepperDash.Essentials.Core.Bridges;
 using PepperDash.Essentials.Core.Config;
 using PepperDash.Essentials.Core.Queues;
 
-namespace PepperDash.Essentials.Devices.Common.ShureSbc
+namespace PepperDash.Essentials.Devices.Common.Microphones
 {
     public class ShureSbcDevice : EssentialsBridgeableDevice, IHasErrorString
     {
@@ -20,13 +18,13 @@ namespace PepperDash.Essentials.Devices.Common.ShureSbc
         private readonly GenericQueue _commsQueue;
         public int SbcSize { get; private set; }
         public readonly ShureSbcBattery[] Batteries;
-        private CTimer batteryCheckTimer;
+        public readonly WirelessMic[] Microphones;
 
-        private readonly Regex regexPattern = new Regex(
+        private readonly Regex _regexPattern = new Regex(
             @"< REP (?<Index>[0-9]\s)?(?<Command>.*\b) (?<State>\w+|\{.*\}) >",
             RegexOptions.IgnoreCase);
 
-        private readonly CommunicationGather commsGather;
+        private readonly CommunicationGather _commsGather;
 
         /// <summary>
         /// Reports socket status feedback through the bridge
@@ -104,27 +102,6 @@ namespace PepperDash.Essentials.Devices.Common.ShureSbc
         /// </summary>
         public StringFeedback ErrorFeedback { get; private set; }
 
-        // battery check ran field
-        private bool _batteryCheckRan5AM;
-
-        /// <summary>
-        /// battery check ran property
-        /// </summary>
-        public bool BatteryCheckRan5AM
-        {
-            get { return _batteryCheckRan5AM; }
-            set
-            {
-                _batteryCheckRan5AM = value;
-                BatteryCheckRan5AMFeedback.FireUpdate();
-            }
-        }
-
-        /// <summary>
-        /// Battery check ran feedback
-        /// </summary>
-        public BoolFeedback BatteryCheckRan5AMFeedback { get; private set; }
-
         #endregion
 
         /// <summary>
@@ -136,7 +113,7 @@ namespace PepperDash.Essentials.Devices.Common.ShureSbc
         /// <param name="comms">device communication as IBasicCommunication</param>
         /// <see cref="PepperDash.Core.IBasicCommunication"/>
         /// <seealso cref="Crestron.SimplSharp.CrestronSockets.SocketStatus"/>
-        public ShureSbcDevice(string key, string name, ShureSbcPropertiesConfig config, IBasicCommunication comms)
+        public ShureSbcDevice(string key, string name, MicController config, IBasicCommunication comms)
             : base(key, name)
         {
             Debug.Console(0, this, "Constructing new {0} instance", name);
@@ -148,19 +125,21 @@ namespace PepperDash.Essentials.Devices.Common.ShureSbc
             DeviceModelFeedback = new StringFeedback(() => DeviceModel);
             DeviceFirmwareVersionFeedback = new StringFeedback(() => DeviceFirmwareVersion);
             ErrorFeedback = new StringFeedback(() => DeviceError);
-            BatteryCheckRan5AMFeedback = new BoolFeedback(() => BatteryCheckRan5AM);
 
-            SbcSize = config.size <= 8 ? config.size : 8;
-            Batteries = new ShureSbcBattery[8];
+            SbcSize = MicControllerUtilities.GetConfiguredSize(config, 8, 8);
+            Batteries = MicControllerUtilities.BuildMicrophones(this, 8, config, "Shure Battery", true,
+                (micKey, micName) => new ShureSbcBattery(micKey, micName));
+            Microphones = new WirelessMic[8];
             for (ushort i = 0; i < 8; i++)
             {
-                Batteries[i] = new ShureSbcBattery();
+                Batteries[i].MicrophoneEnabled = i < SbcSize;
+                Microphones[i] = Batteries[i];
             }
 
             _comms = comms;
-            commsGather = new CommunicationGather(_comms, CommsDelimiter)
+            _commsGather = new CommunicationGather(_comms, CommsDelimiter)
                 { IncludeDelimiter = true };
-            commsGather.LineReceived += Handle_LineReceived;
+            _commsGather.LineReceived += Handle_LineReceived;
             _commsMonitor = new GenericCommunicationMonitor(this, _comms, 30000, 180000, 300000, Poll);
             _commsQueue = new GenericQueue(key + "-queue");
 
@@ -182,64 +161,8 @@ namespace PepperDash.Essentials.Devices.Common.ShureSbc
         {
             _comms.Connect();
             _commsMonitor.Start();
-            batteryCheckTimer = new CTimer(batteryCheckTimerCallback, Timeout.Infinite);
-            armBatteryCheckTimer();
 
             return base.CustomActivate();
-        }
-
-        private void armBatteryCheckTimer()
-        {
-            //Try to arm check for 5 AM
-            //This will typically run at 4 AM then adjust to 5 AM.
-            //The purpose of running at 4 AM is to check in case of DST that we didn't jump forward 1 hour
-            DateTime now = DateTime.Now;
-            DateTime fiveAM = DateTime.Today.AddHours(5);
-
-            if (now >= fiveAM)
-            {
-                fiveAM = fiveAM.AddHours(23);
-            }
-
-            int timeUntilFourAM = (int)(fiveAM - now).TotalMilliseconds + 10000;
-            batteryCheckTimer.Reset(timeUntilFourAM);
-        }
-
-        private void batteryCheckTimerCallback(object o)
-        {
-            armBatteryCheckTimer();
-            BatteryCheckRan5AM = false;
-
-            if ((DateTime.Now > DateTime.Today.AddHours(5)) && isWeekday(DateTime.Today.DayOfWeek))
-            {
-                int count = 0;
-                foreach (ShureSbcBattery b in Batteries)
-                {
-                    b.BatteryPresent5AM = b.BatteryPresent;
-                    if (b.BatteryPresent)
-                    {
-                        count++;
-                    }
-                }
-
-                Debug.ConsoleWithLog(0, "5 AM battery check found {0} batteries", count);
-                CrestronEnvironment.Sleep(1000);
-                BatteryCheckRan5AM = true;
-            }
-        }
-
-        private bool isWeekday(DayOfWeek day)
-        {
-            if (day == DayOfWeek.Monday ||
-                day == DayOfWeek.Tuesday ||
-                day == DayOfWeek.Wednesday ||
-                day == DayOfWeek.Thursday ||
-                day == DayOfWeek.Friday)
-            {
-                return true;
-            }
-
-            return false;
         }
 
         // socket connection change event handler
@@ -264,7 +187,7 @@ namespace PepperDash.Essentials.Devices.Common.ShureSbc
             if (string.IsNullOrEmpty(lineReceived)) return;
             Debug.Console(2, this, "ProcessLinereceived: lineReceived = {0}", lineReceived);
 
-            Match responses = regexPattern.Match(lineReceived);
+            Match responses = _regexPattern.Match(lineReceived);
             char[] trimPattern = { '{', '}', ' ' };
 
             string indexString = responses.Groups["Index"].Value.Trim();
@@ -288,13 +211,9 @@ namespace PepperDash.Essentials.Devices.Common.ShureSbc
                     {
                         short stateInt = Convert.ToInt16(state);
                         if (stateInt >= 0 && stateInt <= 100)
-                        {
                             Batteries[index].PercentCharge = stateInt;
-                        }
                         else
-                        {
                             Batteries[index].PercentCharge = 0;
-                        }
                     }
 
                     break;
@@ -309,13 +228,9 @@ namespace PepperDash.Essentials.Devices.Common.ShureSbc
                     {
                         short stateInt = Convert.ToInt16(state);
                         if (stateInt >= 0 && stateInt <= 100)
-                        {
                             Batteries[index].PercentHealth = stateInt;
-                        }
                         else
-                        {
                             Batteries[index].PercentHealth = 0;
-                        }
                     }
 
                     break;
@@ -330,13 +245,9 @@ namespace PepperDash.Essentials.Devices.Common.ShureSbc
                     {
                         short stateInt = Convert.ToInt16(state);
                         if (stateInt >= 0 && stateInt <= 253)
-                        {
                             Batteries[index].TemperatureF = stateInt;
-                        }
                         else
-                        {
                             Batteries[index].TemperatureF = 0;
-                        }
                     }
 
                     break;
@@ -397,10 +308,7 @@ namespace PepperDash.Essentials.Devices.Common.ShureSbc
                 case "BATT_STATE":
                 {
                     int index = Convert.ToInt16(indexString) - 1;
-                    if (index < 8)
-                    {
-                        Batteries[index].BatteryState = state;
-                    }
+                    if (index < 8) SetBatteryState(index, state);
 
                     break;
                 }
@@ -418,6 +326,7 @@ namespace PepperDash.Essentials.Devices.Common.ShureSbc
                 case "FW_VER":
                 {
                     DeviceFirmwareVersion = state;
+                    for (ushort i = 0; i < 8; i++) Batteries[i].DeviceFirmwareVersion = state;
                     break;
                 }
                 case "BATT_MODULE_TYPE":
@@ -426,8 +335,8 @@ namespace PepperDash.Essentials.Devices.Common.ShureSbc
                     if (index < 4)
                     {
                         short stateInt = Convert.ToInt16(state);
-                        Batteries[index * 2].BatteryEnabled = (stateInt > 0);
-                        Batteries[index * 2 + 1].BatteryEnabled = (stateInt > 0);
+                        Batteries[index * 2].BatteryEnabled = stateInt > 0;
+                        Batteries[index * 2 + 1].BatteryEnabled = stateInt > 0;
                     }
 
                     break;
@@ -439,6 +348,22 @@ namespace PepperDash.Essentials.Devices.Common.ShureSbc
                     break;
                 }
             }
+        }
+
+        private void SetBatteryState(int index, string state)
+        {
+            ShureSbcBattery battery = Batteries[index];
+            battery.BatteryState = state;
+
+            if (battery.BatteryPresent)
+            {
+                WirelessMicAssignmentManager.Release(battery.Key);
+                battery.MicrophonePresent = false;
+                return;
+            }
+
+            battery.OnDock = false;
+            WirelessMicAssignmentManager.AssignFirstAvailable(battery.Key, battery);
         }
 
         /// <summary>
@@ -486,13 +411,10 @@ namespace PepperDash.Essentials.Devices.Common.ShureSbc
         {
             try
             {
-                ShureSbcBridgeJoinMap joinMap = new ShureSbcBridgeJoinMap(joinStart);
+                MicControllerJoinMap joinMap = new MicControllerJoinMap(joinStart);
 
                 // This adds the join map to the collection on the bridge
-                if (bridge != null)
-                {
-                    bridge.AddJoinMap(Key, joinMap);
-                }
+                if (bridge != null) bridge.AddJoinMap(Key, joinMap);
 
                 Debug.Console(1, "Linking to Trilist '{0}'", trilist.ID.ToString("X"));
                 Debug.Console(0, "Linking to Bridge Type {0}", GetType().Name);
@@ -505,31 +427,6 @@ namespace PepperDash.Essentials.Devices.Common.ShureSbc
                 _commsMonitor.IsOnlineFeedback.LinkInputSig(trilist.BooleanInput[joinMap.IsOnline.JoinNumber]);
                 SocketStatusFeedback.LinkInputSig(trilist.UShortInput[joinMap.SocketStatus.JoinNumber]);
                 MonitorStatusFeedback.LinkInputSig(trilist.UShortInput[joinMap.MonitorStatus.JoinNumber]);
-                BatteryCheckRan5AMFeedback.LinkInputSig(trilist.BooleanInput[joinMap.Battery5AMCheckRan.JoinNumber]);
-
-                // battery info **feedback only**
-                for (ushort i = 0; i < 8; i++)
-                {
-                    ushort index = i;
-                    Batteries[index].BatteryEnabledFeedback
-                        .LinkInputSig(trilist.BooleanInput[joinMap.BatteryEnabled.JoinNumber + index]);
-                    Batteries[index].BatteryPresentFeedback
-                        .LinkInputSig(trilist.BooleanInput[joinMap.BatteryPresent.JoinNumber + index]);
-                    Batteries[index].BatteryPresent5AMFeedback
-                        .LinkInputSig(trilist.BooleanInput[joinMap.BatteryPresent5AM.JoinNumber + index]);
-                    Batteries[index].PercentChargeFeedback
-                        .LinkInputSig(trilist.UShortInput[joinMap.PercentCharge.JoinNumber + index]);
-                    Batteries[index].PercentHealthFeedback
-                        .LinkInputSig(trilist.UShortInput[joinMap.PercentHealth.JoinNumber + index]);
-                    Batteries[index].TemperatureFFeedback
-                        .LinkInputSig(trilist.UShortInput[joinMap.TemperatureF.JoinNumber + index]);
-                    Batteries[index].BatteryErrorFeedback
-                        .LinkInputSig(trilist.UShortInput[joinMap.BatteryError.JoinNumber + index]);
-                    Batteries[index].BatteryErrorTextFeedback
-                        .LinkInputSig(trilist.StringInput[joinMap.BatteryErrorText.JoinNumber + index]);
-                    Batteries[index].BatteryStateFeedback
-                        .LinkInputSig(trilist.StringInput[joinMap.BatteryStateText.JoinNumber + index]);
-                }
 
                 // device information feedback
                 DeviceModelFeedback.LinkInputSig(trilist.StringInput[joinMap.DeviceModel.JoinNumber]);
@@ -557,21 +454,7 @@ namespace PepperDash.Essentials.Devices.Common.ShureSbc
             MonitorStatusFeedback.FireUpdate();
             DeviceModelFeedback.FireUpdate();
             DeviceFirmwareVersionFeedback.FireUpdate();
-
-            for (ushort i = 0; i < 8; i++)
-            {
-                Batteries[i].BatteryEnabledFeedback.FireUpdate();
-                Batteries[i].BatteryPresentFeedback.FireUpdate();
-                Batteries[i].BatteryPresent5AMFeedback.FireUpdate();
-                Batteries[i].PercentChargeFeedback.FireUpdate();
-                Batteries[i].PercentHealthFeedback.FireUpdate();
-                Batteries[i].TemperatureFFeedback.FireUpdate();
-                Batteries[i].BatteryErrorFeedback.FireUpdate();
-                Batteries[i].BatteryErrorTextFeedback.FireUpdate();
-                Batteries[i].BatteryStateFeedback.FireUpdate();
-            }
-
-            BatteryCheckRan5AMFeedback.FireUpdate();
+            MicControllerUtilities.FireMicrophoneFeedbacks(Microphones);
         }
 
         #endregion Overrides of EssentialsBridgeableDevice
@@ -586,532 +469,81 @@ namespace PepperDash.Essentials.Devices.Common.ShureSbc
         }
     }
 
-    public class ShureSbcBattery
+    public class ShureSbcBattery : WirelessMic
     {
-        #region Battery Enabled
+        public ShureSbcBattery()
+            : this(Guid.NewGuid().ToString(), "Shure SBC Battery")
+        {
+        }
 
-        private bool _batteryEnabled;
+        public ShureSbcBattery(string key, string name)
+            : base(key, name)
+        {
+            Model = "Shure Battery";
+        }
 
         public bool BatteryEnabled
         {
-            get { return _batteryEnabled; }
-            set
-            {
-                _batteryEnabled = value;
-                BatteryEnabledFeedback.FireUpdate();
-            }
+            get { return MicrophoneEnabled; }
+            set { MicrophoneEnabled = value; }
         }
 
-        /// <summary>
-        /// Battery enabled feedback
-        /// </summary>
-        public BoolFeedback BatteryEnabledFeedback { get; private set; }
-
-        #endregion
-
-        #region Battery Present
-
-        private bool _batteryPresent;
+        public BoolFeedback BatteryEnabledFeedback
+        {
+            get { return MicrophoneEnabledFeedback; }
+        }
 
         public bool BatteryPresent
         {
-            get { return _batteryPresent; }
+            get { return OnDock; }
             set
             {
-                _batteryPresent = value;
-                BatteryPresentFeedback.FireUpdate();
-
-                //Fix for issue where battery health persists after battery disappears
-                if (!_batteryPresent)
-                {
-                    PercentHealth = 0;
-                }
+                OnDock = value;
+                if (!value) PercentHealth = 0;
             }
         }
 
-        /// <summary>
-        /// Battery present feedback
-        /// </summary>
-        public BoolFeedback BatteryPresentFeedback { get; private set; }
-
-        #endregion
-
-        #region Battery Present 5AM
-
-        private bool _batteryPresent5AM;
-
-        public bool BatteryPresent5AM
+        public BoolFeedback BatteryPresentFeedback
         {
-            get { return _batteryPresent5AM; }
-            set
-            {
-                _batteryPresent5AM = value;
-                BatteryPresent5AMFeedback.FireUpdate();
-            }
+            get { return OnDockFeedback; }
         }
-
-        /// <summary>
-        /// Battery present 5AM feedback
-        /// </summary>
-        public BoolFeedback BatteryPresent5AMFeedback { get; private set; }
-
-        #endregion
-
-        #region Percent Charge (BATT_CHARGE)
-
-        private int _percentCharge;
-
-        public int PercentCharge
-        {
-            get { return _percentCharge; }
-            set
-            {
-                _percentCharge = value;
-                PercentChargeFeedback.FireUpdate();
-            }
-        }
-
-        /// <summary>
-        /// Battery percent charge feedback
-        /// </summary>
-        public IntFeedback PercentChargeFeedback { get; private set; }
-
-        #endregion
-
-        #region Percent Health (BATT_HEALTH)
-
-        private int _percentHealth;
-
-        public int PercentHealth
-        {
-            get { return _percentHealth; }
-            set
-            {
-                if (value > 0)
-                {
-                    _percentHealth = value;
-                    PercentHealthFeedback.FireUpdate();
-                }
-            }
-        }
-
-        /// <summary>
-        /// Battery percent health feedback
-        /// </summary>
-        public IntFeedback PercentHealthFeedback { get; private set; }
-
-        #endregion
-
-        #region TemperatureF (BATT_TEMP_F)
-
-        private int _temperatureF;
-
-        public int TemperatureF
-        {
-            get { return _temperatureF; }
-            set
-            {
-                _temperatureF = value;
-                TemperatureFFeedback.FireUpdate();
-            }
-        }
-
-        /// <summary>
-        /// Battery temperature in F feedback
-        /// </summary>
-        public IntFeedback TemperatureFFeedback { get; private set; }
-
-        #endregion
-
-        #region Battery Error (BATT_ERROR)
-
-        private int _batteryError;
 
         public int BatteryError
         {
-            get { return _batteryError; }
-            set
-            {
-                _batteryError = value;
-                BatteryErrorFeedback.FireUpdate();
-            }
+            get { return BatteryErrorAnalog; }
+            set { BatteryErrorAnalog = value; }
         }
 
-        /// <summary>
-        /// Battery error feedback
-        /// </summary>
-        public IntFeedback BatteryErrorFeedback { get; private set; }
-
-        #endregion
-
-        #region Battery Error Text (BATT_ERROR)
-
-        private string _batteryErrorText;
+        public IntFeedback BatteryErrorFeedback
+        {
+            get { return BatteryErrorAnalogFeedback; }
+        }
 
         public string BatteryErrorText
         {
-            get { return _batteryErrorText; }
-            set
-            {
-                _batteryErrorText = value;
-                BatteryErrorTextFeedback.FireUpdate();
-            }
+            get { return ErrorString; }
+            set { ErrorString = value; }
         }
 
-        /// <summary>
-        /// Battery error text feedback
-        /// </summary>
-        public StringFeedback BatteryErrorTextFeedback { get; private set; }
-
-        #endregion
-
-        #region Battery State (BATT_STATE)
-
-        private string _batteryState;
+        public StringFeedback BatteryErrorTextFeedback
+        {
+            get { return ErrorStringFeedback; }
+        }
 
         public string BatteryState
         {
-            get { return _batteryState; }
+            get { return State; }
             set
             {
-                _batteryState = value;
-                BatteryPresent = (value.Length > 0 && value != "NO_BATT");
-                BatteryStateFeedback.FireUpdate();
+                State = value;
+                BatteryPresent = !string.IsNullOrEmpty(value) &&
+                                 !value.Equals("NO_BATT", StringComparison.OrdinalIgnoreCase);
             }
         }
 
-        /// <summary>
-        /// Battery state message feedback
-        /// </summary>
-        public StringFeedback BatteryStateFeedback { get; private set; }
-
-        #endregion
-
-        public ShureSbcBattery()
+        public StringFeedback BatteryStateFeedback
         {
-            BatteryEnabledFeedback = new BoolFeedback(() => BatteryEnabled);
-            BatteryPresentFeedback = new BoolFeedback(() => BatteryPresent);
-            BatteryPresent5AMFeedback = new BoolFeedback(() => BatteryPresent5AM);
-            PercentChargeFeedback = new IntFeedback(() => PercentCharge);
-            PercentHealthFeedback = new IntFeedback(() => PercentHealth);
-            TemperatureFFeedback = new IntFeedback(() => TemperatureF);
-            BatteryErrorFeedback = new IntFeedback(() => BatteryError);
-            BatteryErrorTextFeedback = new StringFeedback(() => BatteryErrorText);
-            BatteryStateFeedback = new StringFeedback(() => BatteryState);
-        }
-    }
-
-    public class ShureSbcBridgeJoinMap : JoinMapBaseAdvanced
-    {
-        #region Digital
-
-        /// <summary>
-        /// Get device online feedback
-        /// </summary>
-        [JoinName("IsOnline")] public readonly JoinDataComplete IsOnline = new JoinDataComplete(
-            new JoinData
-            {
-                JoinNumber = 1,
-                JoinSpan = 1
-            },
-            new JoinMetadata
-            {
-                Description = "Is Online",
-                JoinCapabilities = eJoinCapabilities.ToSIMPL,
-                JoinType = eJoinType.Digital
-            });
-
-        /// <summary>
-        /// Refresh all data
-        /// </summary>
-        [JoinName("RefreshData")] public readonly JoinDataComplete RefreshData = new JoinDataComplete(
-            new JoinData
-            {
-                JoinNumber = 2,
-                JoinSpan = 1
-            },
-            new JoinMetadata
-            {
-                Description = "Refresh all battery data",
-                JoinCapabilities = eJoinCapabilities.FromSIMPL,
-                JoinType = eJoinType.Digital
-            });
-
-        /// <summary>
-        /// Get enabled feedback for a battery
-        /// </summary>
-        [JoinName("TxEnabled")] public readonly JoinDataComplete BatteryEnabled = new JoinDataComplete(
-            new JoinData
-            {
-                JoinNumber = 11,
-                JoinSpan = 8
-            },
-            new JoinMetadata
-            {
-                Description = "Enabled feedback for a battery",
-                JoinCapabilities = eJoinCapabilities.ToSIMPL,
-                JoinType = eJoinType.Digital
-            });
-
-        /// <summary>
-        /// Get present feedback for a battery
-        /// </summary>
-        [JoinName("TxDocked")] public readonly JoinDataComplete BatteryPresent = new JoinDataComplete(
-            new JoinData
-            {
-                JoinNumber = 21,
-                JoinSpan = 8
-            },
-            new JoinMetadata
-            {
-                Description = "Present feedback for a battery",
-                JoinCapabilities = eJoinCapabilities.ToSIMPL,
-                JoinType = eJoinType.Digital
-            });
-
-        /// <summary>
-        /// Get present feedback for a battery at 5AM
-        /// </summary>
-        [JoinName("TxDocked5AM")] public readonly JoinDataComplete BatteryPresent5AM = new JoinDataComplete(
-            new JoinData
-            {
-                JoinNumber = 31,
-                JoinSpan = 8
-            },
-            new JoinMetadata
-            {
-                Description = "Present feedback at 5AM for a battery",
-                JoinCapabilities = eJoinCapabilities.ToSIMPL,
-                JoinType = eJoinType.Digital
-            });
-
-        /// <summary>
-        /// Report battery check ran at 5AM
-        /// </summary>
-        [JoinName("Docked5AMCheckRan")] public readonly JoinDataComplete Battery5AMCheckRan = new JoinDataComplete(
-            new JoinData
-            {
-                JoinNumber = 40,
-                JoinSpan = 1
-            },
-            new JoinMetadata
-            {
-                Description = "Report if battery check at 5AM ran already",
-                JoinCapabilities = eJoinCapabilities.ToSIMPL,
-                JoinType = eJoinType.Digital
-            });
-
-        #endregion
-
-        #region Analog
-
-        /// <summary>
-        /// Get device socket status join map
-        /// </summary>
-        /// <see cref="Crestron.SimplSharp.CrestronSockets.SocketStatus"/>
-        [JoinName("SocketStatus")] public readonly JoinDataComplete SocketStatus = new JoinDataComplete(
-            new JoinData
-            {
-                JoinNumber = 1,
-                JoinSpan = 1
-            },
-            new JoinMetadata
-            {
-                Description = "Socket SocketStatus",
-                JoinCapabilities = eJoinCapabilities.ToSIMPL,
-                JoinType = eJoinType.Analog
-            });
-
-        /// <summary>
-        /// Get device monitor status join map
-        /// </summary>
-        /// <see cref="PepperDash.Essentials.Core.MonitorStatus"/>
-        [JoinName("MonitorStatus")] public readonly JoinDataComplete MonitorStatus = new JoinDataComplete(
-            new JoinData
-            {
-                JoinNumber = 2,
-                JoinSpan = 1
-            },
-            new JoinMetadata
-            {
-                Description = "Monitor Status",
-                JoinCapabilities = eJoinCapabilities.ToSIMPL,
-                JoinType = eJoinType.Analog
-            });
-
-        /// <summary>
-        /// Get percent charge for a battery
-        /// </summary>
-        /// <remarks>
-        /// 000-100 = percent charge,
-        /// 254 = error,
-        /// 255 = unknown
-        /// </remarks>
-        [JoinName("PercentCharge")] public readonly JoinDataComplete PercentCharge = new JoinDataComplete(
-            new JoinData
-            {
-                JoinNumber = 11,
-                JoinSpan = 8
-            },
-            new JoinMetadata
-            {
-                Description = "Percent charge for a battery",
-                JoinCapabilities = eJoinCapabilities.ToSIMPL,
-                JoinType = eJoinType.Analog
-            });
-
-        /// <summary>
-        /// Get health for a battery
-        /// </summary>
-        /// <remarks>
-        /// 000-100 = percent health,
-        /// 254 = error,
-        /// 255 = unknown
-        /// </remarks>
-        [JoinName("PercentHealth")] public readonly JoinDataComplete PercentHealth = new JoinDataComplete(
-            new JoinData
-            {
-                JoinNumber = 21,
-                JoinSpan = 8
-            },
-            new JoinMetadata
-            {
-                Description = "Percent health for a battery",
-                JoinCapabilities = eJoinCapabilities.ToSIMPL,
-                JoinType = eJoinType.Analog
-            });
-
-        /// <summary>
-        /// Get temperature in F for a battery
-        /// </summary>
-        /// <remarks>
-        /// 000-253 = temperature in F,
-        /// 254 = error,
-        /// 255 = unknown
-        /// </remarks>
-        [JoinName("TemperatureF")] public readonly JoinDataComplete TemperatureF = new JoinDataComplete(
-            new JoinData
-            {
-                JoinNumber = 31,
-                JoinSpan = 8
-            },
-            new JoinMetadata
-            {
-                Description = "Temperature in F for a battery",
-                JoinCapabilities = eJoinCapabilities.ToSIMPL,
-                JoinType = eJoinType.Analog
-            });
-
-        /// <summary>
-        /// Get battery error
-        /// </summary>
-        [JoinName("BatteryError")] public readonly JoinDataComplete BatteryError = new JoinDataComplete(
-            new JoinData
-            {
-                JoinNumber = 41,
-                JoinSpan = 8
-            },
-            new JoinMetadata
-            {
-                Description = "Battery Error",
-                JoinCapabilities = eJoinCapabilities.ToSIMPL,
-                JoinType = eJoinType.Analog
-            });
-
-        #endregion
-
-        #region Serial
-
-        /// <summary>
-        /// Get the device name
-        /// </summary>
-        [JoinName("DeviceName")] public readonly JoinDataComplete DeviceName = new JoinDataComplete(
-            new JoinData
-            {
-                JoinNumber = 1,
-                JoinSpan = 1
-            },
-            new JoinMetadata
-            {
-                Description = "Device Name",
-                JoinCapabilities = eJoinCapabilities.ToSIMPL,
-                JoinType = eJoinType.Serial
-            });
-
-        /// <summary>
-        /// Get the device model
-        /// </summary>
-        [JoinName("DeviceModel")] public readonly JoinDataComplete DeviceModel = new JoinDataComplete(
-            new JoinData
-            {
-                JoinNumber = 2,
-                JoinSpan = 1
-            },
-            new JoinMetadata
-            {
-                Description = "Device Model",
-                JoinCapabilities = eJoinCapabilities.ToSIMPL,
-                JoinType = eJoinType.Serial
-            });
-
-        /// <summary>
-        /// Get the device firmware version
-        /// </summary>
-        [JoinName("DeviceFirmwareVersion")] public readonly JoinDataComplete DeviceFirmwareVersion =
-            new JoinDataComplete(
-                new JoinData
-                {
-                    JoinNumber = 4,
-                    JoinSpan = 1
-                },
-                new JoinMetadata
-                {
-                    Description = "Device Firmware Version",
-                    JoinCapabilities = eJoinCapabilities.ToSIMPL,
-                    JoinType = eJoinType.Serial
-                });
-
-        /// <summary>
-        /// Get the battery error text
-        /// </summary>
-        [JoinName("BatteryErrorText")] public readonly JoinDataComplete BatteryErrorText = new JoinDataComplete(
-            new JoinData
-            {
-                JoinNumber = 11,
-                JoinSpan = 8
-            },
-            new JoinMetadata
-            {
-                Description = "Battery Error Text",
-                JoinCapabilities = eJoinCapabilities.ToSIMPL,
-                JoinType = eJoinType.Serial
-            });
-
-        /// <summary>
-        /// Get the battery state text
-        /// </summary>
-        [JoinName("TxStatusText")] public readonly JoinDataComplete BatteryStateText = new JoinDataComplete(
-            new JoinData
-            {
-                JoinNumber = 21,
-                JoinSpan = 8
-            },
-            new JoinMetadata
-            {
-                Description = "Battery State Text",
-                JoinCapabilities = eJoinCapabilities.ToSIMPL,
-                JoinType = eJoinType.Serial
-            });
-
-        #endregion
-
-        /// <summary>
-        /// Plugin device BridgeJoinMap constructor
-        /// </summary>
-        /// <param name="joinStart">This will be the join it starts on the EISC bridge</param>
-        public ShureSbcBridgeJoinMap(uint joinStart)
-            : base(joinStart, typeof(ShureSbcBridgeJoinMap))
-        {
+            get { return StateFeedback; }
         }
     }
 
@@ -1125,7 +557,7 @@ namespace PepperDash.Essentials.Devices.Common.ShureSbc
         /// </summary>
         public ShureSbcFactory()
         {
-            TypeNames = new List<string>() { "shuresbc" };
+            TypeNames = new List<string> { "shuresbc" };
         }
 
         /// <summary>
@@ -1140,13 +572,7 @@ namespace PepperDash.Essentials.Devices.Common.ShureSbc
             {
                 Debug.Console(0, "[{0}] Factory attempting to create new device from type: {1}", dc.Key, dc.Type);
 
-                // get the device properties configuration object and check for null 
-                ShureSbcPropertiesConfig propertiesConfig = dc.Properties.ToObject<ShureSbcPropertiesConfig>();
-                if (propertiesConfig == null)
-                {
-                    Debug.Console(0, "[{0}] Factory: failed to read properties config for {1}", dc.Key, dc.Name);
-                    return null;
-                }
+                MicController propertiesConfig = dc.Properties.ToObject<MicController>();
 
                 // build the device comms (for all other comms methods) & check for null			
                 IBasicCommunication comms = CommFactory.CreateCommForDevice(dc);
@@ -1160,10 +586,5 @@ namespace PepperDash.Essentials.Devices.Common.ShureSbc
                 return null;
             }
         }
-    }
-
-    public class ShureSbcPropertiesConfig
-    {
-        [JsonProperty("size")] public int size { get; set; }
     }
 }

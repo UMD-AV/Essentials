@@ -16,9 +16,7 @@ using Crestron.SimplSharp;
 using PepperDash_Essentials_Core.Extensions;
 using System.Text.RegularExpressions;
 using Newtonsoft.Json.Linq;
-using PepperDash.Essentials.Devices.Common.ShureMxwapxd2;
-using PepperDash.Essentials.Devices.Common.ShureSbc;
-using PepperDash.Essentials.Devices.Common.ShureUlxd;
+using PepperDash.Essentials.Devices.Common.Microphones;
 
 namespace DynFusion
 {
@@ -77,9 +75,7 @@ namespace DynFusion
             HelpRequest = new DynFusionHelpRequest(FusionSymbol.Help);
 
             if (FusionSymbol.Register() != eDeviceRegistrationUnRegistrationResponse.Success)
-            {
                 Debug.Console(0, this, "Failure to register Fusion Symbol");
-            }
 
             FusionSymbol.ExtenderFusionRoomDataReservedSigs.Use();
         }
@@ -106,7 +102,6 @@ namespace DynFusion
                     FusionSymbol_RoomDataDeviceExtenderSigChange;
 
                 if (customResourceConfig != null)
-                {
                     try
                     {
                         DynFusionConfigObjectTemplate customAttrConfig = JObject.Parse(customResourceConfig)
@@ -118,7 +113,6 @@ namespace DynFusion
 
                         // Create Custom Atributes 
                         if (customAttrConfig.CustomAttributes.DigitalAttributes != null)
-                        {
                             foreach (DynFusionAttributeBase att in customAttrConfig.CustomAttributes.DigitalAttributes)
                             {
                                 Debug.Console(0, "Fusion embdedded attribute: {0}", att.Name);
@@ -136,15 +130,11 @@ namespace DynFusion
                                 }
 
                                 if (att.RwType == eReadWrite.ReadWrite || att.RwType == eReadWrite.Write)
-                                {
                                     DigitalAttributesFromFusion.Add(att.JoinNumber,
                                         new DynFusionDigitalAttribute(att.Name, att.JoinNumber));
-                                }
                             }
-                        }
 
                         if (customAttrConfig.CustomAttributes.AnalogAttributes != null)
-                        {
                             foreach (DynFusionAttributeBase att in customAttrConfig.CustomAttributes.AnalogAttributes)
                             {
                                 FusionSymbol.AddSig(eSigType.UShort, att.JoinNumber - FusionJoinOffset, att.Name,
@@ -160,15 +150,11 @@ namespace DynFusion
                                 }
 
                                 if (att.RwType == eReadWrite.ReadWrite || att.RwType == eReadWrite.Write)
-                                {
                                     AnalogAttributesFromFusion.Add(att.JoinNumber,
                                         new DynFusionAnalogAttribute(att.Name, att.JoinNumber));
-                                }
                             }
-                        }
 
                         if (customAttrConfig.CustomAttributes.SerialAttributes != null)
-                        {
                             foreach (DynFusionAttributeBase att in customAttrConfig.CustomAttributes.SerialAttributes)
                             {
                                 FusionSymbol.AddSig(eSigType.String, att.JoinNumber - FusionJoinOffset, att.Name,
@@ -183,50 +169,34 @@ namespace DynFusion
                                 }
 
                                 if (att.RwType == eReadWrite.ReadWrite || att.RwType == eReadWrite.Write)
-                                {
                                     SerialAttributesFromFusion.Add(att.JoinNumber,
                                         new DynFusionSerialAttribute(att.Name, att.JoinNumber));
-                                }
                             }
-                        }
 
 
                         if (customAttrConfig.CustomProperties != null)
                         {
                             if (customAttrConfig.CustomProperties.DigitalProperties != null)
-                            {
                                 foreach (FusionCustomProperty att in
                                          customAttrConfig.CustomProperties.DigitalProperties)
-                                {
                                     DigitalAttributesFromFusion.Add(att.JoinNumber,
                                         new DynFusionDigitalAttribute(att.ID, att.JoinNumber));
-                                }
-                            }
 
                             if (customAttrConfig.CustomProperties.AnalogProperties != null)
-                            {
                                 foreach (FusionCustomProperty att in customAttrConfig.CustomProperties.AnalogProperties)
-                                {
                                     AnalogAttributesFromFusion.Add(att.JoinNumber,
                                         new DynFusionAnalogAttribute(att.ID, att.JoinNumber));
-                                }
-                            }
 
                             if (customAttrConfig.CustomProperties.SerialProperties != null)
-                            {
                                 foreach (FusionCustomProperty att in customAttrConfig.CustomProperties.SerialProperties)
-                                {
                                     SerialAttributesFromFusion.Add(att.JoinNumber,
                                         new DynFusionSerialAttribute(att.ID, att.JoinNumber));
-                                }
-                            }
                         }
                     }
                     catch (Exception ex)
                     {
                         Debug.ConsoleWithLog(0, "Fusion embedded config exception: {0}", ex.Message);
                     }
-                }
 
                 // Create Links for Standard joins 
                 CreateStandardJoin(JoinMapStatic.SystemPowerOn, FusionSymbol.SystemPowerOn);
@@ -272,7 +242,6 @@ namespace DynFusion
                 }
 
                 foreach (IKeyed device in DeviceManager.AllDevices)
-                {
                     try
                     {
                         DisplayBase displayDevice = device as DisplayBase;
@@ -292,7 +261,7 @@ namespace DynFusion
                                 uint num = GetNextAvailableAssetNumber(FusionSymbol);
                                 string name = string.Format("{0} - Battery {1}", sbcDevice.Name, i);
                                 StaticAssets.Add(num,
-                                    new MicBatteryStaticAsset(name, sbcDevice.Batteries[i - 1], num, FusionSymbol));
+                                    new MicBatteryStaticAsset(name, sbcDevice.Microphones[i - 1], num, FusionSymbol));
                             }
 
                             continue;
@@ -321,7 +290,7 @@ namespace DynFusion
                                 uint num = GetNextAvailableAssetNumber(FusionSymbol);
                                 string name = string.Format("{0} - Mxw Tx {1}", mxwapxd2Device.Name, i);
                                 StaticAssets.Add(num,
-                                    new MxwTxStaticAsset(name, mxwapxd2Device.Txs[i - 1], num,
+                                    new MxwTxStaticAsset(name, mxwapxd2Device.Microphones[i - 1], num,
                                         FusionSymbol));
                             }
 
@@ -333,7 +302,6 @@ namespace DynFusion
                         Debug.Console(0, this, "Exception creating static asset for device key {0}: {1}", device.Key,
                             ex.Message);
                     }
-                }
 
                 Debug.Console(0, this, "Generating Fuson RVI");
                 FusionRVI.GenerateFileForAllFusionDevices();
@@ -351,14 +319,10 @@ namespace DynFusion
             {
                 DeviceUsage = new DynFusionDeviceUsage(string.Format("{0}-DeviceUsage", Key), this);
                 if (_Config.DeviceUsage.usageMinThreshold > 0)
-                {
                     DeviceUsage.usageMinThreshold = _Config.DeviceUsage.usageMinThreshold;
-                }
 
                 if (_Config.DeviceUsage.Devices != null && _Config.DeviceUsage.Devices.Count > 0)
-                {
                     foreach (DeviceUsageDevice device in _Config.DeviceUsage.Devices)
-                    {
                         try
                         {
                             Debug.Console(1, this, "Creating Device: {0}, {1}, {2}", device.joinNumber, device.type,
@@ -369,13 +333,9 @@ namespace DynFusion
                         {
                             Debug.Console(0, this, "{0}", ex);
                         }
-                    }
-                }
 
                 if (_Config.DeviceUsage.Displays != null && _Config.DeviceUsage.Displays.Count > 0)
-                {
                     foreach (DisplayUsageDevice display in _Config.DeviceUsage.Displays)
-                    {
                         try
                         {
                             Debug.Console(1, this, "Creating Display: {0}, {1}", display.joinNumber, display.name);
@@ -385,13 +345,9 @@ namespace DynFusion
                         {
                             Debug.Console(0, this, "{0}", ex);
                         }
-                    }
-                }
 
                 if (_Config.DeviceUsage.Sources != null && _Config.DeviceUsage.Sources.Count > 0)
-                {
                     foreach (DeviceUsageSoruce source in _Config.DeviceUsage.Sources)
-                    {
                         try
                         {
                             Debug.Console(1, this, "Creating Source: {0}, {1}", source.sourceNumber, source.name);
@@ -401,8 +357,6 @@ namespace DynFusion
                         {
                             Debug.Console(0, this, "{0}", ex);
                         }
-                    }
-                }
             }
         }
 
@@ -410,10 +364,8 @@ namespace DynFusion
         {
             if (join.Metadata.JoinCapabilities == eJoinCapabilities.ToFromSIMPL ||
                 join.Metadata.JoinCapabilities == eJoinCapabilities.ToSIMPL)
-            {
                 DigitalAttributesFromFusion.Add(join.JoinNumber,
                     new DynFusionDigitalAttribute(join.Metadata.Description, join.JoinNumber));
-            }
 
             if (join.Metadata.JoinCapabilities == eJoinCapabilities.ToFromSIMPL ||
                 join.Metadata.JoinCapabilities == eJoinCapabilities.FromSIMPL)
@@ -428,10 +380,8 @@ namespace DynFusion
         {
             if (join.Metadata.JoinCapabilities == eJoinCapabilities.ToFromSIMPL ||
                 join.Metadata.JoinCapabilities == eJoinCapabilities.ToSIMPL)
-            {
                 AnalogAttributesFromFusion.Add(join.JoinNumber,
                     new DynFusionAnalogAttribute(join.Metadata.Description, join.JoinNumber));
-            }
 
             if (join.Metadata.JoinCapabilities == eJoinCapabilities.ToFromSIMPL ||
                 join.Metadata.JoinCapabilities == eJoinCapabilities.FromSIMPL)
@@ -446,10 +396,8 @@ namespace DynFusion
         {
             if (join.Metadata.JoinCapabilities == eJoinCapabilities.ToFromSIMPL ||
                 join.Metadata.JoinCapabilities == eJoinCapabilities.ToSIMPL)
-            {
                 SerialAttributesFromFusion.Add(join.JoinNumber,
                     new DynFusionSerialAttribute(join.Metadata.Description, join.JoinNumber));
-            }
 
             if (join.Metadata.JoinCapabilities == eJoinCapabilities.ToFromSIMPL ||
                 join.Metadata.JoinCapabilities == eJoinCapabilities.FromSIMPL)
@@ -464,10 +412,8 @@ namespace DynFusion
         {
             if (join.Metadata.JoinCapabilities == eJoinCapabilities.ToFromSIMPL ||
                 join.Metadata.JoinCapabilities == eJoinCapabilities.ToSIMPL)
-            {
                 SerialAttributesFromFusion.Add(join.JoinNumber,
                     new DynFusionSerialAttribute(join.Metadata.Description, join.JoinNumber));
-            }
 
             if (join.Metadata.JoinCapabilities == eJoinCapabilities.ToFromSIMPL ||
                 join.Metadata.JoinCapabilities == eJoinCapabilities.FromSIMPL)
@@ -492,15 +438,11 @@ namespace DynFusion
                     DynFusionSerialAttribute output;
 
                     if (SerialAttributesFromFusion.TryGetValue(joinNumber, out output))
-                    {
                         output.StringValue = args.Sig.StringValue;
-                    }
 
                     if (args.Sig == FusionSymbol.ExtenderFusionRoomDataReservedSigs.RoomConfigResponse &&
                         args.Sig.StringValue != null)
-                    {
                         RoomConfigParseData(args.Sig.StringValue);
-                    }
 
                     break;
             }
@@ -517,9 +459,8 @@ namespace DynFusion
                     BooleanSigDataFixedName sigDetails = args.UserConfiguredSigDetail as BooleanSigDataFixedName;
                     DynFusionDigitalAttribute output;
                     if (DigitalAttributesFromFusion.TryGetValue(JoinMapStatic.SystemPowerOn.JoinNumber, out output))
-                    {
-                        if (sigDetails != null) output.BoolValue = sigDetails.OutputSig.BoolValue;
-                    }
+                        if (sigDetails != null)
+                            output.BoolValue = sigDetails.OutputSig.BoolValue;
 
                     break;
                 }
@@ -528,9 +469,8 @@ namespace DynFusion
                     BooleanSigDataFixedName sigDetails = args.UserConfiguredSigDetail as BooleanSigDataFixedName;
                     DynFusionDigitalAttribute output;
                     if (DigitalAttributesFromFusion.TryGetValue(JoinMapStatic.SystemPowerOff.JoinNumber, out output))
-                    {
-                        if (sigDetails != null) output.BoolValue = sigDetails.OutputSig.BoolValue;
-                    }
+                        if (sigDetails != null)
+                            output.BoolValue = sigDetails.OutputSig.BoolValue;
 
                     break;
                 }
@@ -539,9 +479,8 @@ namespace DynFusion
                     BooleanSigDataFixedName sigDetails = args.UserConfiguredSigDetail as BooleanSigDataFixedName;
                     DynFusionDigitalAttribute output;
                     if (DigitalAttributesFromFusion.TryGetValue(JoinMapStatic.DisplayPowerOn.JoinNumber, out output))
-                    {
-                        if (sigDetails != null) output.BoolValue = sigDetails.OutputSig.BoolValue;
-                    }
+                        if (sigDetails != null)
+                            output.BoolValue = sigDetails.OutputSig.BoolValue;
 
                     break;
                 }
@@ -550,9 +489,8 @@ namespace DynFusion
                     BooleanSigDataFixedName sigDetails = args.UserConfiguredSigDetail as BooleanSigDataFixedName;
                     DynFusionDigitalAttribute output;
                     if (DigitalAttributesFromFusion.TryGetValue(JoinMapStatic.DisplayPowerOff.JoinNumber, out output))
-                    {
-                        if (sigDetails != null) output.BoolValue = sigDetails.OutputSig.BoolValue;
-                    }
+                        if (sigDetails != null)
+                            output.BoolValue = sigDetails.OutputSig.BoolValue;
 
                     break;
                 }
@@ -561,9 +499,8 @@ namespace DynFusion
                     UShortSigDataFixedName sigDetails = args.UserConfiguredSigDetail as UShortSigDataFixedName;
                     DynFusionAnalogAttribute output;
                     if (AnalogAttributesFromFusion.TryGetValue(JoinMapStatic.BroadcastMsgType.JoinNumber, out output))
-                    {
-                        if (sigDetails != null) output.UShortValue = sigDetails.OutputSig.UShortValue;
-                    }
+                        if (sigDetails != null)
+                            output.UShortValue = sigDetails.OutputSig.UShortValue;
 
                     break;
                 }
@@ -583,9 +520,8 @@ namespace DynFusion
                     StringSigDataFixedName sigDetails = args.UserConfiguredSigDetail as StringSigDataFixedName;
                     DynFusionSerialAttribute output;
                     if (SerialAttributesFromFusion.TryGetValue(JoinMapStatic.TextMessage.JoinNumber, out output))
-                    {
-                        if (sigDetails != null) output.StringValue = sigDetails.OutputSig.StringValue;
-                    }
+                        if (sigDetails != null)
+                            output.StringValue = sigDetails.OutputSig.StringValue;
 
                     break;
                 }
@@ -594,9 +530,8 @@ namespace DynFusion
                     StringSigDataFixedName sigDetails = args.UserConfiguredSigDetail as StringSigDataFixedName;
                     DynFusionSerialAttribute output;
                     if (SerialAttributesFromFusion.TryGetValue(JoinMapStatic.BroadcastMsg.JoinNumber, out output))
-                    {
-                        if (sigDetails != null) output.StringValue = sigDetails.OutputSig.StringValue;
-                    }
+                        if (sigDetails != null)
+                            output.StringValue = sigDetails.OutputSig.StringValue;
 
                     break;
                 }
@@ -605,9 +540,8 @@ namespace DynFusion
                     StringSigDataFixedName sigDetails = args.UserConfiguredSigDetail as StringSigDataFixedName;
                     DynFusionSerialAttribute output;
                     if (SerialAttributesFromFusion.TryGetValue(JoinMapStatic.GroupMembership.JoinNumber, out output))
-                    {
-                        if (sigDetails != null) output.StringValue = sigDetails.OutputSig.StringValue;
-                    }
+                        if (sigDetails != null)
+                            output.StringValue = sigDetails.OutputSig.StringValue;
 
                     break;
                 }
@@ -617,9 +551,8 @@ namespace DynFusion
                     DynFusionSerialAttribute output;
                     if (SerialAttributesFromFusion.TryGetValue(JoinMapStatic.AuthenticationFailed.JoinNumber,
                             out output))
-                    {
-                        if (sigDetails != null) output.StringValue = sigDetails.OutputSig.StringValue;
-                    }
+                        if (sigDetails != null)
+                            output.StringValue = sigDetails.OutputSig.StringValue;
 
                     break;
                 }
@@ -629,9 +562,8 @@ namespace DynFusion
                     DynFusionSerialAttribute output;
                     if (SerialAttributesFromFusion.TryGetValue(JoinMapStatic.AuthenticationSucceeded.JoinNumber,
                             out output))
-                    {
-                        if (sigDetails != null) output.StringValue = sigDetails.OutputSig.StringValue;
-                    }
+                        if (sigDetails != null)
+                            output.StringValue = sigDetails.OutputSig.StringValue;
 
                     break;
                 }
@@ -647,9 +579,7 @@ namespace DynFusion
                             sigDetails.Name, sigDetails.OutputSig.BoolValue);
 
                         if (DigitalAttributesFromFusion.TryGetValue(joinNumber, out output))
-                        {
                             output.BoolValue = sigDetails.OutputSig.BoolValue;
-                        }
                     }
 
                     break;
@@ -666,9 +596,7 @@ namespace DynFusion
                             sigDetails.Name, sigDetails.OutputSig.UShortValue);
 
                         if (AnalogAttributesFromFusion.TryGetValue(joinNumber, out output))
-                        {
                             output.UShortValue = sigDetails.OutputSig.UShortValue;
-                        }
                     }
 
                     break;
@@ -684,9 +612,7 @@ namespace DynFusion
                             sigDetails.Name, sigDetails.OutputSig.StringValue);
 
                         if (SerialAttributesFromFusion.TryGetValue(joinNumber, out output))
-                        {
                             output.StringValue = sigDetails.OutputSig.StringValue;
-                        }
                     }
 
                     break;
@@ -698,15 +624,12 @@ namespace DynFusion
         {
             Debug.Console(1, this, "DynFusion Asset State Change index:{0}", args.UserConfigurableAssetDetailIndex);
             if (StaticAssets.ContainsKey(args.UserConfigurableAssetDetailIndex))
-            {
                 StaticAssets[args.UserConfigurableAssetDetailIndex].FusionAssetStateChange(args);
-            }
         }
 
         private void CrestronEnvironment_EthernetEventHandler(EthernetEventArgs args)
         {
             if (_isInitialized && args.EthernetAdapter == EthernetAdapterType.EthernetLANAdapter)
-            {
                 switch (args.EthernetEventType)
                 {
                     case eEthernetEventType.LinkUp:
@@ -718,7 +641,6 @@ namespace DynFusion
                         FusionSymbol.UnRegister();
                         break;
                 }
-            }
         }
 
         private void FusionSymbol_OnlineStatusChange(GenericBase currentDevice, OnlineOfflineEventArgs args)
@@ -779,25 +701,18 @@ namespace DynFusion
                     break;
             }
 
-            return (type);
+            return type;
         }
 
         public static uint GetNextAvailableAssetNumber(FusionRoom room)
         {
             uint slotNum = 1;
             foreach (CustomFusionAssetData item in room.UserConfigurableAssetDetails)
-            {
                 if (item.Number >= slotNum)
-                {
                     slotNum = item.Number + 1;
-                }
-            }
 
             //Skip odd slots as these seem to be causing issues
-            if (slotNum % 2 == 0)
-            {
-                slotNum++;
-            }
+            if (slotNum % 2 == 0) slotNum++;
 
             Debug.Console(1, string.Format("Next available fusion asset number is: {0}", slotNum));
 
@@ -864,17 +779,13 @@ namespace DynFusion
             {
                 ErrorLogLastMessageSent = tempLogMessage;
                 if (ErrorLogTimer == null)
-                {
                     ErrorLogTimer = new CTimer(o =>
                     {
                         Debug.Console(2, this, "Sent Message {0}", ErrorLogLastMessageSent);
                         FusionSymbol.ErrorMessage.InputSig.StringValue = ErrorLogLastMessageSent;
                     }, errorlogThrottleTime);
-                }
                 else
-                {
                     ErrorLogTimer.Reset(errorlogThrottleTime);
-                }
             }
         }
 
@@ -902,9 +813,7 @@ namespace DynFusion
                 XmlElement requestRoomConfiguration = roomConfigResponse["RoomConfigurationResponse"];
 
                 if (requestRoomConfiguration != null)
-                {
                     foreach (XmlElement e in roomConfigResponse.FirstChild.ChildNodes)
-                    {
                         if (e.Name == "RoomInformation")
                         {
                             XmlReader roomInfo = new XmlReader(e.OuterXml);
@@ -916,9 +825,7 @@ namespace DynFusion
                             Debug.Console(1, "Got fusion room name: {0}", RoomInformation.Name);
 
                             if (attirbute.Value != null && RoomInformation.Name.Length > 0)
-                            {
                                 attirbute.Value.StringValue = RoomInformation.Name;
-                            }
                         }
                         else if (e.Name == "CustomFields")
                         {
@@ -933,37 +840,26 @@ namespace DynFusion
                                     KeyValuePair<uint, DynFusionDigitalAttribute> attribute =
                                         DigitalAttributesFromFusion.SingleOrDefault(x => x.Value.Name == id);
 
-                                    if (attribute.Value != null)
-                                    {
-                                        attribute.Value.BoolValue = bool.Parse(val);
-                                    }
+                                    if (attribute.Value != null) attribute.Value.BoolValue = bool.Parse(val);
                                 }
                                 else if (type == "Integer")
                                 {
                                     KeyValuePair<uint, DynFusionAnalogAttribute> attribute =
                                         AnalogAttributesFromFusion.SingleOrDefault(x => x.Value.Name == id);
 
-                                    if (attribute.Value != null)
-                                    {
-                                        attribute.Value.UShortValue = uint.Parse(val);
-                                    }
+                                    if (attribute.Value != null) attribute.Value.UShortValue = uint.Parse(val);
                                 }
                                 else if (type == "String" || type == "Text" || type == "URL")
                                 {
                                     KeyValuePair<uint, DynFusionSerialAttribute> attribute =
                                         SerialAttributesFromFusion.SingleOrDefault(x => x.Value.Name == id);
 
-                                    if (attribute.Value != null)
-                                    {
-                                        attribute.Value.StringValue = val;
-                                    }
+                                    if (attribute.Value != null) attribute.Value.StringValue = val;
                                 }
 
                                 Debug.Console(2, this, "RoomConfigParseData {0} {1} {2}", type, id, val);
                             }
                         }
-                    }
-                }
             }
             catch (Exception e)
             {
@@ -971,10 +867,7 @@ namespace DynFusion
             }
             finally
             {
-                if (RoomInformationUpdated != null)
-                {
-                    RoomInformationUpdated(this, EventArgs.Empty);
-                }
+                if (RoomInformationUpdated != null) RoomInformationUpdated(this, EventArgs.Empty);
             }
         }
 
@@ -1024,12 +917,8 @@ namespace DynFusion
             }
 
             if (OccSensors != null)
-            {
                 foreach (DynFusionAssetOccupancySensor occSensor in OccSensors)
-                {
                     occSensor.LinkApi(trilist, joinStart);
-                }
-            }
 
             //HelpRequest
             HelpRequest.HelpMessageFromFusionEvent += (o, a) =>
@@ -1050,9 +939,7 @@ namespace DynFusion
             trilist.SetSigTrueAction(joinMap.RoomConfig.JoinNumber, () => GetRoomConfig());
 
             if (DeviceUsage != null)
-            {
                 foreach (KeyValuePair<string, DynFusionDeviceUsage.UsageInfo> device in DeviceUsage.usageInfoDict)
-                {
                     switch (device.Value.usageType)
                     {
                         case DynFusionDeviceUsage.UsageType.Display:
@@ -1070,8 +957,6 @@ namespace DynFusion
                             break;
                         }
                     }
-                }
-            }
 
             trilist.OnlineStatusChange += (o, a) =>
             {
@@ -1099,10 +984,7 @@ namespace DynFusion
         {
             if (args.DeviceOnLine)
             {
-                if (EiscOfflineTimer != null)
-                {
-                    EiscOfflineTimer.Stop();
-                }
+                if (EiscOfflineTimer != null) EiscOfflineTimer.Stop();
 
                 FusionOnlineFeedback.FireUpdate();
 
@@ -1112,13 +994,9 @@ namespace DynFusion
             else
             {
                 if (EiscOfflineTimer == null)
-                {
                     EiscOfflineTimer = new CTimer(EiscOfflineTimerExpired, 300000); //5 minute timer
-                }
                 else
-                {
                     EiscOfflineTimer.Reset();
-                }
             }
         }
 

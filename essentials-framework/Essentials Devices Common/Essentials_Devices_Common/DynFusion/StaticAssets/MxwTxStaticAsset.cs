@@ -1,13 +1,13 @@
 ﻿using Crestron.SimplSharpPro;
 using Crestron.SimplSharpPro.Fusion;
 using PepperDash.Core;
-using PepperDash.Essentials.Devices.Common.ShureMxwapxd2;
+using PepperDash.Essentials.Devices.Common.Microphones;
 
 namespace DynFusion.Assets
 {
     public class MxwTxStaticAsset : StaticAsset
     {
-        public MxwTxStaticAsset(string name, ShureMxwTx tx, uint assetNumber, FusionRoom symbol) :
+        public MxwTxStaticAsset(string name, WirelessMic tx, uint assetNumber, FusionRoom symbol) :
             base(name, name + "-Asset", assetNumber, "Mxw Tx", symbol)
         {
             _asset.AssetUsage.AddSigToRVIFile = false;
@@ -23,7 +23,7 @@ namespace DynFusion.Assets
 
             //Battery Present
             _asset.AddSig(eSigType.Bool, 1, "Mic Battery - Present", eSigIoMask.InputSigOnly);
-            tx.TxPresentFeedback.LinkInputSig(_asset.FusionGenericAssetDigitalsAsset1.BooleanInput[50]);
+            tx.OnDockFeedback.LinkInputSig(_asset.FusionGenericAssetDigitalsAsset1.BooleanInput[50]);
 
             //Battery % Health
             _asset.AddSig(eSigType.UShort, 2, "Mic Battery - % Health", eSigIoMask.InputSigOnly);

@@ -52,30 +52,30 @@
         <GenerateSerializationAssemblies>off</GenerateSerializationAssemblies>
     </PropertyGroup>
     <ItemGroup>
-    <Reference Include="Crestron.SimplSharpPro.DeviceSupport">
-      <HintPath>..\..\..\..\..\Program Files (x86)\Crestron\Cresdb\Programming\Libraries\Required References\Crestron.SimplSharpPro.DeviceSupport.dll</HintPath>
-    </Reference>
-    <Reference Include="Crestron.SimplSharpPro.EthernetCommunications">
-      <HintPath>..\..\..\..\..\Program Files (x86)\Crestron\Cresdb\Programming\Libraries\Crestron.SimplSharpPro.EthernetCommunications.dll</HintPath>
-    </Reference>
-    <Reference Include="Crestron.SimplSharpPro.Fusion">
-      <HintPath>..\..\..\..\..\Program Files (x86)\Crestron\Cresdb\Programming\Libraries\Crestron.SimplSharpPro.Fusion.dll</HintPath>
-    </Reference>
-    <Reference Include="Crestron.SimplSharpPro.Gateways">
-      <HintPath>..\..\..\..\..\Program Files (x86)\Crestron\Cresdb\Programming\Libraries\Crestron.SimplSharpPro.Gateways.dll</HintPath>
-    </Reference>
-    <Reference Include="Crestron.SimplSharpPro.GeneralIO">
-      <HintPath>..\..\..\..\..\Program Files (x86)\Crestron\Cresdb\Programming\Libraries\Crestron.SimplSharpPro.GeneralIO.dll</HintPath>
-    </Reference>
-    <Reference Include="Crestron.SimplSharpPro.Remotes">
-      <HintPath>..\..\..\..\..\Program Files (x86)\Crestron\Cresdb\Programming\Libraries\Crestron.SimplSharpPro.Remotes.dll</HintPath>
-    </Reference>
-    <Reference Include="Crestron.SimplSharpPro.ThreeSeriesCards">
-      <HintPath>..\..\..\..\..\Program Files (x86)\Crestron\Cresdb\Programming\Libraries\Crestron.SimplSharpPro.ThreeSeriesCards.dll</HintPath>
-    </Reference>
-    <Reference Include="Crestron.SimplSharpPro.UI">
-      <HintPath>..\..\..\..\..\Program Files (x86)\Crestron\Cresdb\Programming\Libraries\Crestron.SimplSharpPro.UI.dll</HintPath>
-    </Reference>
+        <Reference Include="Crestron.SimplSharpPro.DeviceSupport">
+            <HintPath>..\..\..\..\..\Program Files (x86)\Crestron\Cresdb\Programming\Libraries\Required References\Crestron.SimplSharpPro.DeviceSupport.dll</HintPath>
+        </Reference>
+        <Reference Include="Crestron.SimplSharpPro.EthernetCommunications">
+            <HintPath>..\..\..\..\..\Program Files (x86)\Crestron\Cresdb\Programming\Libraries\Crestron.SimplSharpPro.EthernetCommunications.dll</HintPath>
+        </Reference>
+        <Reference Include="Crestron.SimplSharpPro.Fusion">
+            <HintPath>..\..\..\..\..\Program Files (x86)\Crestron\Cresdb\Programming\Libraries\Crestron.SimplSharpPro.Fusion.dll</HintPath>
+        </Reference>
+        <Reference Include="Crestron.SimplSharpPro.Gateways">
+            <HintPath>..\..\..\..\..\Program Files (x86)\Crestron\Cresdb\Programming\Libraries\Crestron.SimplSharpPro.Gateways.dll</HintPath>
+        </Reference>
+        <Reference Include="Crestron.SimplSharpPro.GeneralIO">
+            <HintPath>..\..\..\..\..\Program Files (x86)\Crestron\Cresdb\Programming\Libraries\Crestron.SimplSharpPro.GeneralIO.dll</HintPath>
+        </Reference>
+        <Reference Include="Crestron.SimplSharpPro.Remotes">
+            <HintPath>..\..\..\..\..\Program Files (x86)\Crestron\Cresdb\Programming\Libraries\Crestron.SimplSharpPro.Remotes.dll</HintPath>
+        </Reference>
+        <Reference Include="Crestron.SimplSharpPro.ThreeSeriesCards">
+            <HintPath>..\..\..\..\..\Program Files (x86)\Crestron\Cresdb\Programming\Libraries\Crestron.SimplSharpPro.ThreeSeriesCards.dll</HintPath>
+        </Reference>
+        <Reference Include="Crestron.SimplSharpPro.UI">
+            <HintPath>..\..\..\..\..\Program Files (x86)\Crestron\Cresdb\Programming\Libraries\Crestron.SimplSharpPro.UI.dll</HintPath>
+        </Reference>
         <Reference Include="mscorlib"/>
         <Reference Include="SimplSharpHelperInterface, Version=1.0.0.0, Culture=neutral, PublicKeyToken=1099c178b3b54c3b, processorArchitecture=MSIL">
             <SpecificVersion>False</SpecificVersion>
@@ -223,6 +223,7 @@
         <Compile Include="Global\EthernetAdapterInfo.cs"/>
         <Compile Include="Interfaces\ILogStrings.cs"/>
         <Compile Include="Interfaces\ILogStringsWithLevel.cs"/>
+        <Compile Include="Monitoring\ManualCommunicationMonitor.cs"/>
         <Compile Include="Occupancy\GlsOccupancySensorPropertiesConfig.cs"/>
         <Compile Include="Occupancy\GlsOirOccupancySensorController.cs"/>
         <Compile Include="PartitionSensor\GlsPartitionSensorPropertiesConfig.cs"/>

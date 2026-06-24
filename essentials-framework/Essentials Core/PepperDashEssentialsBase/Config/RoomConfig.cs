@@ -78,6 +78,8 @@ namespace PepperDash.Essentials.Core.Config
 
         [JsonProperty("overflowOutFaderKey")] public string OverflowOutFaderKey { get; set; }
 
+        [JsonProperty("mics")] public List<string> Mics { get; set; }
+
         [JsonProperty("faders")] public List<Fader> Faders { get; set; }
 
         [JsonProperty("cameras")] public List<Camera> Cameras { get; set; }
@@ -170,7 +172,7 @@ namespace PepperDash.Essentials.Core.Config
 
         public Route Copy()
         {
-            return new Route()
+            return new Route
             {
                 RouteKey = RouteKey,
                 Input = Input,

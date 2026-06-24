@@ -1,13 +1,13 @@
 ﻿using PepperDash.Core;
 using PepperDash.Essentials.Core;
 
-namespace PepperDash.Essentials.AverCamera
+namespace PepperDash_Essentials_Core.Monitoring
 {
-    public class AverCommunicationMonitor : StatusMonitorBase
+    public class ManualCommunicationMonitor : StatusMonitorBase
     {
         private bool _isStarted;
 
-        public AverCommunicationMonitor(IKeyed parent, long warningTime, long errorTime) : base(parent, warningTime,
+        public ManualCommunicationMonitor(IKeyed parent, long warningTime, long errorTime) : base(parent, warningTime,
             errorTime)
         {
         }

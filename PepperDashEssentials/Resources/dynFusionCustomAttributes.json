@@ -18,23 +18,8 @@
       },
       {
         "joinNumber": 54,
-        "rwType": "R",
-        "name": "TP01 - SIP Enabled"
-      },
-      {
-        "joinNumber": 55,
-        "rwType": "R",
-        "name": "TP02 - SIP Enabled"
-      },
-      {
-        "joinNumber": 56,
-        "rwType": "R",
-        "name": "TP03 - SIP Enabled"
-      },
-      {
-        "joinNumber": 57,
-        "rwType": "R",
-        "name": "TP04 - SIP Enabled"
+        "rwType": "W",
+        "name": "Trigger Mic Battery Email"
       },
       {
         "joinNumber": 61,

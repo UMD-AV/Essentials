@@ -4,14 +4,14 @@ using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Config;
 using ViscaCameraPlugin;
 
-namespace PepperDash.Essentials.AverCamera
+namespace PepperDash.Essentials.Devices.Common.Cameras.Aver
 {
     public class AverCameraFactory : EssentialsPluginDeviceFactory<AverCameraDevice>
     {
         public AverCameraFactory()
         {
             // In the constructor we initialize the list with the typenames that will build an instance of this device
-            TypeNames = new List<string>() { "avercamera" };
+            TypeNames = new List<string> { "avercamera" };
         }
 
         // Builds and returns an instance of EssentialsPluginDeviceTemplate

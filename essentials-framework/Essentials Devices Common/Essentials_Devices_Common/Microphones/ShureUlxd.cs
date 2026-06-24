@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
-using Newtonsoft.Json;
 using Crestron.SimplSharpPro.DeviceSupport;
 using PepperDash.Core;
 using PepperDash.Essentials.Core;
@@ -9,9 +8,9 @@ using PepperDash.Essentials.Core.Bridges;
 using PepperDash.Essentials.Core.Config;
 using PepperDash.Essentials.Core.Queues;
 
-namespace PepperDash.Essentials.Devices.Common.ShureUlxd
+namespace PepperDash.Essentials.Devices.Common.Microphones
 {
-    public class ShureUlxdDevice : EssentialsBridgeableDevice
+    public class ShureUlxdDevice : EssentialsBridgeableDevice, IWirelessMicReceiver, IDisposable
     {
         private readonly IBasicCommunication _comms;
         private readonly GenericCommunicationMonitor _commsMonitor;
@@ -19,12 +18,23 @@ namespace PepperDash.Essentials.Devices.Common.ShureUlxd
         private readonly GenericQueue _commsQueue;
         public int UlxdSize { get; private set; }
 
-        private readonly Regex regexPattern = new Regex(
+        private readonly Regex _regexPattern = new Regex(
             @"< REP (?<Index>[0-9]\s)?(?<Command>.*\b) (?<State>\w+|\{.*\}) >",
             RegexOptions.IgnoreCase);
 
-        private readonly CommunicationGather commsGather;
-        public readonly ShureUlxdMicrophone[] Microphones;
+        private readonly CommunicationGather _commsGather;
+        private readonly MicController _config;
+
+        private readonly Dictionary<string, AssignedMicrophone> _assignedMicrophones =
+            new Dictionary<string, AssignedMicrophone>(StringComparer.OrdinalIgnoreCase);
+
+        public readonly WirelessMic[] Microphones;
+
+        private class AssignedMicrophone
+        {
+            public int ChannelIndex { get; set; }
+            public WirelessMic Target { get; set; }
+        }
 
         /// <summary>
         /// Reports socket status feedback through the bridge
@@ -92,9 +102,10 @@ namespace PepperDash.Essentials.Devices.Common.ShureUlxd
         /// <param name="comms">device communication as IBasicCommunication</param>
         /// <see cref="PepperDash.Core.IBasicCommunication"/>
         /// <seealso cref="Crestron.SimplSharp.CrestronSockets.SocketStatus"/>
-        public ShureUlxdDevice(string key, string name, ShureUlxdPropertiesConfig config, IBasicCommunication comms)
+        public ShureUlxdDevice(string key, string name, MicController config, IBasicCommunication comms)
             : base(key, name)
         {
+            _config = config ?? new MicController();
             Debug.Console(0, this, "Constructing new {0} instance", name);
             MonitorStatusFeedback = new IntFeedback(() =>
             {
@@ -103,22 +114,17 @@ namespace PepperDash.Essentials.Devices.Common.ShureUlxd
             });
             DeviceModelFeedback = new StringFeedback(() => DeviceModel);
             DeviceFirmwareVersionFeedback = new StringFeedback(() => DeviceFirmwareVersion);
-            UlxdSize = config.size <= 4 ? config.size : 4;
-            Microphones = new ShureUlxdMicrophone[4];
-            for (ushort i = 0; i < 4; i++)
-            {
-                Microphones[i] = new ShureUlxdMicrophone();
-                if (i < UlxdSize)
-                {
-                    Microphones[i].MicrophoneEnabled = true;
-                }
-            }
+            UlxdSize = MicControllerUtilities.GetConfiguredSize(_config, 4, 4);
+            MicController channelConfig = new MicController { Size = _config.Size };
+            Microphones = MicControllerUtilities.BuildMicrophones(this, 4, channelConfig, "ULXD", false,
+                (micKey, micName) => new WirelessMic(micKey, micName));
+            for (ushort i = 0; i < 4; i++) Microphones[i].MicrophoneEnabled = i < UlxdSize;
 
             _comms = comms;
 
-            commsGather = new CommunicationGather(_comms, CommsDelimiter)
+            _commsGather = new CommunicationGather(_comms, CommsDelimiter)
                 { IncludeDelimiter = true };
-            commsGather.LineReceived += Handle_LineReceived;
+            _commsGather.LineReceived += Handle_LineReceived;
             _commsMonitor = new GenericCommunicationMonitor(this, _comms, 30000, 180000, 300000, Poll);
             _commsQueue = new GenericQueue(key + "-queue");
 
@@ -129,6 +135,8 @@ namespace PepperDash.Essentials.Devices.Common.ShureUlxd
                 socket.ConnectionChange += socket_ConnectionChange;
                 SocketStatusFeedback = new IntFeedback(() => (int)socket.ClientStatus);
             }
+
+            WirelessMicAssignmentManager.RegisterReceiver(this);
         }
 
         /// <summary>
@@ -166,7 +174,7 @@ namespace PepperDash.Essentials.Devices.Common.ShureUlxd
             if (string.IsNullOrEmpty(lineReceived)) return;
             Debug.Console(2, this, "ProcessLinereceived: lineReceived = {0}", lineReceived);
 
-            Match responses = regexPattern.Match(lineReceived);
+            Match responses = _regexPattern.Match(lineReceived);
             char[] trimPattern = { '{', '}', ' ' };
 
             string indexString = responses.Groups["Index"].Value.Trim();
@@ -191,13 +199,17 @@ namespace PepperDash.Essentials.Devices.Common.ShureUlxd
                         if (state.Length == 0 || state == "UNKN")
                         {
                             Microphones[index].Model = "";
+                            Microphones[index].State = state;
                             Microphones[index].MicrophonePresent = false;
                         }
                         else
                         {
                             Microphones[index].Model = state;
+                            Microphones[index].State = state;
                             Microphones[index].MicrophonePresent = true;
                         }
+
+                        ChannelStateChanged(index);
                     }
 
                     break;
@@ -213,13 +225,11 @@ namespace PepperDash.Essentials.Devices.Common.ShureUlxd
                     {
                         short stateInt = Convert.ToInt16(state);
                         if (stateInt >= 0 && stateInt <= 100)
-                        {
                             Microphones[index].PercentCharge = stateInt;
-                        }
                         else
-                        {
                             Microphones[index].PercentCharge = 0;
-                        }
+
+                        ChannelStateChanged(index);
                     }
 
                     break;
@@ -234,13 +244,11 @@ namespace PepperDash.Essentials.Devices.Common.ShureUlxd
                     {
                         short stateInt = Convert.ToInt16(state);
                         if (stateInt >= 0 && stateInt <= 100)
-                        {
                             Microphones[index].PercentHealth = stateInt;
-                        }
                         else
-                        {
                             Microphones[index].PercentHealth = 0;
-                        }
+
+                        ChannelStateChanged(index);
                     }
 
                     break;
@@ -255,13 +263,11 @@ namespace PepperDash.Essentials.Devices.Common.ShureUlxd
                     {
                         short stateInt = Convert.ToInt16(state);
                         if (stateInt >= 0 && stateInt <= 253)
-                        {
                             Microphones[index].TemperatureF = stateInt;
-                        }
                         else
-                        {
                             Microphones[index].TemperatureF = 0;
-                        }
+
+                        ChannelStateChanged(index);
                     }
 
                     break;
@@ -277,6 +283,7 @@ namespace PepperDash.Essentials.Devices.Common.ShureUlxd
                     if (index < 4)
                     {
                         Microphones[index].Runtime = stateInt;
+                        ChannelStateChanged(index);
                     }
 
                     break;
@@ -291,10 +298,7 @@ namespace PepperDash.Essentials.Devices.Common.ShureUlxd
                     if (state.StartsWith("ULXD4Q"))
                     {
                         //quad rx model
-                        for (ushort i = 0; i < 4; i++)
-                        {
-                            Microphones[i].MicrophoneEnabled = true;
-                        }
+                        for (ushort i = 0; i < 4; i++) Microphones[i].MicrophoneEnabled = true;
                     }
                     else if (state.StartsWith("ULXD4D"))
                     {
@@ -315,12 +319,11 @@ namespace PepperDash.Essentials.Devices.Common.ShureUlxd
                     else
                     {
                         //unknown model
-                        for (ushort i = 0; i < 4; i++)
-                        {
-                            Microphones[i].MicrophoneEnabled = i < UlxdSize;
-                        }
+                        for (ushort i = 0; i < 4; i++) Microphones[i].MicrophoneEnabled = i < UlxdSize;
                     }
 
+                    PropagateAllAssignments();
+                    WirelessMicAssignmentManager.RetryPendingAssignments();
                     break;
                 }
                 // Firmware Version
@@ -329,6 +332,8 @@ namespace PepperDash.Essentials.Devices.Common.ShureUlxd
                 case "FW_VER":
                 {
                     DeviceFirmwareVersion = state;
+                    for (ushort i = 0; i < 4; i++) Microphones[i].DeviceFirmwareVersion = state;
+                    PropagateAllAssignments();
                     break;
                 }
                 default:
@@ -338,6 +343,123 @@ namespace PepperDash.Essentials.Devices.Common.ShureUlxd
                     break;
                 }
             }
+        }
+
+        public bool TryAssignMicrophone(string micKey, WirelessMic microphone)
+        {
+            if (!MicControllerUtilities.MicKeyAllowed(_config, micKey) || microphone == null)
+                return false;
+
+            lock (_assignedMicrophones)
+            {
+                AssignedMicrophone existingAssignment;
+                if (_assignedMicrophones.TryGetValue(micKey, out existingAssignment))
+                {
+                    existingAssignment.Target = microphone;
+                    CopyChannelToTarget(existingAssignment.ChannelIndex, existingAssignment.Target);
+                    return true;
+                }
+
+                for (ushort i = 0; i < UlxdSize && i < Microphones.Length; i++)
+                {
+                    if (!ChannelAvailableForAssignment(i)) continue;
+
+                    _assignedMicrophones[micKey] = new AssignedMicrophone
+                    {
+                        ChannelIndex = i,
+                        Target = microphone
+                    };
+
+                    CopyChannelToTarget(i, microphone);
+                    Debug.Console(1, this, "Assigned mic '{0}' to ULXD channel {1}", micKey, i + 1);
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        public void ReleaseMicrophone(string micKey)
+        {
+            if (string.IsNullOrEmpty(micKey)) return;
+
+            lock (_assignedMicrophones)
+            {
+                if (_assignedMicrophones.Remove(micKey))
+                    Debug.Console(1, this, "Released mic '{0}' from ULXD receiver assignment", micKey);
+            }
+        }
+
+        private void ChannelStateChanged(int index)
+        {
+            PropagateAssignments(index);
+            WirelessMicAssignmentManager.RetryPendingAssignments();
+        }
+
+        private void PropagateAllAssignments()
+        {
+            for (ushort i = 0; i < Microphones.Length; i++)
+                PropagateAssignments(i);
+        }
+
+        private void PropagateAssignments(int channelIndex)
+        {
+            List<KeyValuePair<string, AssignedMicrophone>> assignments =
+                new List<KeyValuePair<string, AssignedMicrophone>>();
+
+            lock (_assignedMicrophones)
+            {
+                foreach (KeyValuePair<string, AssignedMicrophone> assignment in _assignedMicrophones)
+                    if (assignment.Value.ChannelIndex == channelIndex)
+                        assignments.Add(assignment);
+            }
+
+            if (assignments.Count == 0) return;
+
+            if (channelIndex < 0 || channelIndex >= Microphones.Length || !Microphones[channelIndex].MicrophonePresent)
+            {
+                foreach (KeyValuePair<string, AssignedMicrophone> assignment in assignments)
+                {
+                    lock (_assignedMicrophones)
+                    {
+                        _assignedMicrophones.Remove(assignment.Key);
+                    }
+
+                    WirelessMicAssignmentManager.AssignFirstAvailable(assignment.Key, assignment.Value.Target);
+                }
+
+                return;
+            }
+
+            foreach (KeyValuePair<string, AssignedMicrophone> assignment in assignments)
+                CopyChannelToTarget(channelIndex, assignment.Value.Target);
+        }
+
+        private bool ChannelAvailableForAssignment(int channelIndex)
+        {
+            if (channelIndex < 0 || channelIndex >= Microphones.Length)
+                return false;
+
+            WirelessMic channel = Microphones[channelIndex];
+            if (channel == null || !channel.MicrophoneEnabled || !channel.MicrophonePresent)
+                return false;
+
+            foreach (AssignedMicrophone assignment in _assignedMicrophones.Values)
+                if (assignment.ChannelIndex == channelIndex)
+                    return false;
+
+            return true;
+        }
+
+        private void CopyChannelToTarget(int channelIndex, WirelessMic target)
+        {
+            if (target == null || channelIndex < 0 || channelIndex >= Microphones.Length) return;
+
+            target.OnDock = false;
+            target.CopyStatusFrom(Microphones[channelIndex]);
+
+            if (string.IsNullOrEmpty(target.State))
+                target.State = string.Format("ULXD channel {0}", channelIndex + 1);
         }
 
         /// <summary>
@@ -388,10 +510,7 @@ namespace PepperDash.Essentials.Devices.Common.ShureUlxd
                 ShureUlxdBridgeJoinMap joinMap = new ShureUlxdBridgeJoinMap(joinStart);
 
                 // This adds the join map to the collection on the bridge
-                if (bridge != null)
-                {
-                    bridge.AddJoinMap(Key, joinMap);
-                }
+                if (bridge != null) bridge.AddJoinMap(Key, joinMap);
 
                 Debug.Console(1, "Linking to Trilist '{0}'", trilist.ID.ToString("X"));
                 Debug.Console(0, "Linking to Bridge Type {0}", GetType().Name);
@@ -477,14 +596,13 @@ namespace PepperDash.Essentials.Devices.Common.ShureUlxd
 
         public void Dispose()
         {
+            WirelessMicAssignmentManager.UnregisterReceiver(this);
+
             // Unsubscribe from events
             ISocketStatus socket = _comms as ISocketStatus;
-            if (socket != null)
-            {
-                socket.ConnectionChange -= socket_ConnectionChange;
-            }
+            if (socket != null) socket.ConnectionChange -= socket_ConnectionChange;
 
-            commsGather.LineReceived -= Handle_LineReceived;
+            _commsGather.LineReceived -= Handle_LineReceived;
 
             // Stop the communication monitor
             _commsMonitor.Stop();
@@ -498,185 +616,7 @@ namespace PepperDash.Essentials.Devices.Common.ShureUlxd
             DeviceModelFeedback = null;
             DeviceFirmwareVersionFeedback = null;
 
-            foreach (var mic in Microphones)
-            {
-                mic.DisposeFeedbacks();
-            }
-
             Debug.Console(0, this, "Disposed ShureUlxdDevice resources.");
-        }
-    }
-
-    public class ShureUlxdMicrophone
-    {
-        #region Microphone Enabled
-
-        private bool _microphoneEnabled;
-
-        public bool MicrophoneEnabled
-        {
-            get { return _microphoneEnabled; }
-            set
-            {
-                _microphoneEnabled = value;
-                MicrophoneEnabledFeedback.FireUpdate();
-            }
-        }
-
-        /// <summary>
-        /// Microphone enabled feedback
-        /// </summary>
-        public BoolFeedback MicrophoneEnabledFeedback { get; private set; }
-
-        #endregion
-
-        #region Microphone Present
-
-        private bool _microphonePresent;
-
-        public bool MicrophonePresent
-        {
-            get { return _microphonePresent; }
-            set
-            {
-                _microphonePresent = value;
-                MicrophonePresentFeedback.FireUpdate();
-            }
-        }
-
-        /// <summary>
-        /// Microphone present feedback
-        /// </summary>
-        public BoolFeedback MicrophonePresentFeedback { get; private set; }
-
-        #endregion
-
-        #region Percent Charge (BATT_CHARGE)
-
-        private int _percentCharge;
-
-        public int PercentCharge
-        {
-            get { return _percentCharge; }
-            set
-            {
-                _percentCharge = value;
-                PercentChargeFeedback.FireUpdate();
-            }
-        }
-
-        /// <summary>
-        /// Battery percent charge feedback
-        /// </summary>
-        public IntFeedback PercentChargeFeedback { get; private set; }
-
-        #endregion
-
-        #region Percent Health (BATT_HEALTH)
-
-        private int _percentHealth;
-
-        public int PercentHealth
-        {
-            get { return _percentHealth; }
-            set
-            {
-                _percentHealth = value;
-                PercentHealthFeedback.FireUpdate();
-            }
-        }
-
-        /// <summary>
-        /// Battery percent health feedback
-        /// </summary>
-        public IntFeedback PercentHealthFeedback { get; private set; }
-
-        #endregion
-
-        #region TemperatureF (BATT_TEMP_F)
-
-        private int _temperatureF;
-
-        public int TemperatureF
-        {
-            get { return _temperatureF; }
-            set
-            {
-                _temperatureF = value;
-                TemperatureFFeedback.FireUpdate();
-            }
-        }
-
-        /// <summary>
-        /// Battery temperature in F feedback
-        /// </summary>
-        public IntFeedback TemperatureFFeedback { get; private set; }
-
-        #endregion
-
-        #region Runtime (RUN_TIME)
-
-        private int _runtime;
-
-        public int Runtime
-        {
-            get { return _runtime; }
-            set
-            {
-                _runtime = value;
-                RuntimeFeedback.FireUpdate();
-            }
-        }
-
-        /// <summary>
-        /// Run time feedback
-        /// </summary>
-        public IntFeedback RuntimeFeedback { get; private set; }
-
-        #endregion
-
-        #region Model (MODEL)
-
-        private string _model;
-
-        public string Model
-        {
-            get { return _model; }
-            set
-            {
-                _model = value;
-                ModelFeedback.FireUpdate();
-            }
-        }
-
-        /// <summary>
-        /// Model feedback
-        /// </summary>
-        public StringFeedback ModelFeedback { get; private set; }
-
-        #endregion
-
-        public ShureUlxdMicrophone()
-        {
-            _runtime = 65535;
-            MicrophoneEnabledFeedback = new BoolFeedback(() => MicrophoneEnabled);
-            MicrophonePresentFeedback = new BoolFeedback(() => MicrophonePresent);
-            PercentChargeFeedback = new IntFeedback(() => PercentCharge);
-            PercentHealthFeedback = new IntFeedback(() => PercentHealth);
-            TemperatureFFeedback = new IntFeedback(() => TemperatureF);
-            RuntimeFeedback = new IntFeedback(() => Runtime);
-            ModelFeedback = new StringFeedback(() => Model);
-        }
-
-        public void DisposeFeedbacks()
-        {
-            MicrophoneEnabledFeedback = null;
-            MicrophonePresentFeedback = null;
-            PercentChargeFeedback = null;
-            PercentHealthFeedback = null;
-            TemperatureFFeedback = null;
-            RuntimeFeedback = null;
-            ModelFeedback = null;
         }
     }
 
@@ -955,7 +895,7 @@ namespace PepperDash.Essentials.Devices.Common.ShureUlxd
         /// </summary>
         public ShureUlxdFactory()
         {
-            TypeNames = new List<string>() { "shureulxd" };
+            TypeNames = new List<string> { "shureulxd" };
         }
 
         /// <summary>
@@ -970,13 +910,7 @@ namespace PepperDash.Essentials.Devices.Common.ShureUlxd
             {
                 Debug.Console(0, "[{0}] Factory attempting to create new device from type: {1}", dc.Key, dc.Type);
 
-                // get the device properties configuration object and check for null 
-                ShureUlxdPropertiesConfig propertiesConfig = dc.Properties.ToObject<ShureUlxdPropertiesConfig>();
-                if (propertiesConfig == null)
-                {
-                    Debug.Console(0, "[{0}] Factory: failed to read properties config for {1}", dc.Key, dc.Name);
-                    return null;
-                }
+                MicController propertiesConfig = dc.Properties.ToObject<MicController>();
 
                 // build the device comms (for all other comms methods) & check for null			
                 IBasicCommunication comms = CommFactory.CreateCommForDevice(dc);
@@ -989,15 +923,6 @@ namespace PepperDash.Essentials.Devices.Common.ShureUlxd
                 Debug.Console(0, "[{0}] Factory BuildDevice Exception: {1}", dc.Key, ex);
                 return null;
             }
-        }
-    }
-
-    public class ShureUlxdPropertiesConfig
-    {
-        [JsonProperty("size")] public int size { get; set; }
-
-        public ShureUlxdPropertiesConfig()
-        {
         }
     }
 }

@@ -154,26 +154,30 @@ namespace PepperDash.Essentials.Core
             {
                 int cameraCount = Math.Min(8, roomConfig.Cameras.Count);
                 for (int i = 0; i < cameraCount; i++)
-                {
                     if (roomConfig.Cameras != null && roomConfig.Cameras[i] != null)
                     {
                         roomTriList.StringInput[joinMap.CameraKey.JoinNumber + (uint)i].StringValue =
                             roomConfig.Cameras[i].Key;
-                        
+
                         int? camSource = roomConfig.Cameras[i].Source;
                         if (camSource != null)
-                        {
                             roomTriList.UShortInput[joinMap.CameraSource.JoinNumber + (uint)i].UShortValue =
                                 (ushort)camSource;
-                        }
 
                         bool? camHide = roomConfig.Cameras[i].Hide;
                         if (camHide != null)
-                        {
                             roomTriList.BooleanInput[joinMap.CameraHide.JoinNumber + (uint)i].BoolValue = (bool)camHide;
-                        }
                     }
-                }
+            }
+
+            //mics
+            if (roomConfig.Mics != null)
+            {
+                int micCount = Math.Min(20, roomConfig.Mics.Count);
+                for (int i = 0; i < micCount; i++)
+                    if (roomConfig.Mics[i] != null)
+                        roomTriList.StringInput[joinMap.MicKey.JoinNumber + (uint)i].StringValue =
+                            roomConfig.Mics[i];
             }
 
             //faders
@@ -181,7 +185,6 @@ namespace PepperDash.Essentials.Core
             {
                 int faderCount = Math.Min(40, roomConfig.Faders.Count);
                 for (int i = 0; i < faderCount; i++)
-                {
                     if (roomConfig.Faders != null && roomConfig.Faders[i] != null)
                     {
                         roomTriList.BooleanInput[joinMap.FaderVisibleUser.JoinNumber + (uint)i].BoolValue =
@@ -199,7 +202,6 @@ namespace PepperDash.Essentials.Core
                         roomTriList.StringInput[joinMap.FaderKey.JoinNumber + (uint)i].StringValue =
                             roomConfig.Faders[i].Key;
                     }
-                }
             }
         }
 

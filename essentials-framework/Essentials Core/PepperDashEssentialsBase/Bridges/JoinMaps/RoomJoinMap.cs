@@ -327,6 +327,15 @@ namespace PepperDash.Essentials.Core.Bridges
                 JoinType = eJoinType.Serial
             });
 
+        [JoinName("MicKey")] public JoinDataComplete MicKey = new JoinDataComplete(
+            new JoinData { JoinNumber = 41, JoinSpan = 20 },
+            new JoinMetadata
+            {
+                Description = "Keys for mic devices",
+                JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                JoinType = eJoinType.Serial
+            });
+
         [JoinName("FaderName")] public JoinDataComplete FaderName = new JoinDataComplete(
             new JoinData { JoinNumber = 101, JoinSpan = 40 },
             new JoinMetadata

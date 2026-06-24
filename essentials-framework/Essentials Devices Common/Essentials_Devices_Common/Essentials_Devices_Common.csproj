@@ -71,9 +71,9 @@
             <HintPath>C:\Program Files (x86)\Crestron\Cresdb\Programming\Libraries\Crestron.SimplSharpPro.Lighting.dll</HintPath>
         </Reference>
         <Reference Include="mscorlib"/>
-    <Reference Include="SimplSharpCWSHelperInterface">
-      <HintPath>..\..\..\..\..\Program Files (x86)\Crestron\Cresdb\Programming\Libraries\SimplSharpCWSHelperInterface.dll</HintPath>
-    </Reference>
+        <Reference Include="SimplSharpCWSHelperInterface">
+            <HintPath>..\..\..\..\..\Program Files (x86)\Crestron\Cresdb\Programming\Libraries\SimplSharpCWSHelperInterface.dll</HintPath>
+        </Reference>
         <Reference Include="SimplSharpHelperInterface, Version=1.0.0.0, Culture=neutral, PublicKeyToken=1099c178b3b54c3b, processorArchitecture=MSIL">
             <SpecificVersion>False</SpecificVersion>
             <HintPath>C:\Program Files (x86)\Crestron\Cresdb\Programming\Libraries\Required References\SimplSharpHelperInterface.dll</HintPath>
@@ -94,13 +94,13 @@
             <SpecificVersion>False</SpecificVersion>
             <HintPath>C:\Program Files (x86)\Crestron\Cresdb\Programming\Libraries\SimplSharpReflectionInterface.dll</HintPath>
         </Reference>
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Runtime.Serialization" />
-    <Reference Include="System.ServiceModel" />
-    <Reference Include="System.Xml" />
-    <Reference Include="System.Xml.Linq" />
+        <Reference Include="System"/>
+        <Reference Include="System.Core"/>
+        <Reference Include="System.Data"/>
+        <Reference Include="System.Runtime.Serialization"/>
+        <Reference Include="System.ServiceModel"/>
+        <Reference Include="System.Xml"/>
+        <Reference Include="System.Xml.Linq"/>
     </ItemGroup>
     <ItemGroup>
         <Compile Include="AudioCodec\AudioCodecBase.cs"/>
@@ -118,7 +118,6 @@
         <Compile Include="CameraControllers\BlackmagicAtem.cs"/>
         <Compile Include="Cameras\Aver\AverCameraFactory.cs"/>
         <Compile Include="Cameras\Aver\AverCameraDevice.cs"/>
-        <Compile Include="Cameras\Aver\AverCommunicationMonitor.cs"/>
         <Compile Include="Cameras\CameraBase.cs"/>
         <Compile Include="Cameras\RemoteCamera.cs"/>
         <Compile Include="Cameras\Crestron\CrestronCameraDevice.cs"/>
@@ -153,7 +152,7 @@
         <Compile Include="DSP\ExtronDmpDsp\ExtronDmpFactory.cs"/>
         <Compile Include="DSP\ExtronDmpDsp\ExtronDmpJoinMap.cs"/>
         <Compile Include="DSP\ExtronDmpDsp\ExtronDmpLevelControl.cs"/>
-    <Compile Include="DSP\QscDsp\QscDspMonitoringPoint.cs" />
+        <Compile Include="DSP\QscDsp\QscDspMonitoringPoint.cs"/>
         <Compile Include="DSP\Tesira\Bridge\JoinMaps\TesiraCrosspointStateJoinMap.cs"/>
         <Compile Include="DSP\Tesira\Bridge\JoinMaps\TesiraDeviceJoinMap.cs"/>
         <Compile Include="DSP\Tesira\Bridge\JoinMaps\TesiraDialerJoinMap.cs"/>
@@ -207,10 +206,13 @@
         <Compile Include="Environment\nLight\nLight.cs"/>
         <Compile Include="Environment\Overflow\Overflow.cs"/>
         <Compile Include="Microphones\Catchbox.cs"/>
+        <Compile Include="Microphones\MicController.cs"/>
+        <Compile Include="Microphones\MicrophoneDeviceJoinMap.cs"/>
         <Compile Include="Microphones\ShureMxwapxd2.cs"/>
         <Compile Include="Microphones\ShureUlxd.cs"/>
         <Compile Include="Microphones\ShureSbc.cs"/>
         <Compile Include="Microphones\ShureMxa.cs"/>
+        <Compile Include="Microphones\WirelessMic.cs"/>
         <Compile Include="NVX\Abstractions\Dante\IDanteAudio.cs"/>
         <Compile Include="NVX\Abstractions\Device\IDeviceId.cs"/>
         <Compile Include="NVX\Abstractions\Device\IDeviceMode.cs"/>
@@ -218,7 +220,7 @@
         <Compile Include="NVX\Abstractions\Device\ITransmitterReceiver.cs"/>
         <Compile Include="NVX\Abstractions\Hardware\INvx35XHardware.cs"/>
         <Compile Include="NVX\Abstractions\Hardware\INvx36XHardware.cs"/>
-    <Compile Include="NVX\Abstractions\Hardware\INvx38XHardware.cs" />
+        <Compile Include="NVX\Abstractions\Hardware\INvx38XHardware.cs"/>
         <Compile Include="NVX\Abstractions\Hardware\INvxD3XHardware.cs"/>
         <Compile Include="NVX\Abstractions\Hardware\INvxD8XHardware.cs"/>
         <Compile Include="NVX\Abstractions\Hardware\INvxE3XHardware.cs"/>
@@ -259,7 +261,7 @@
         <Compile Include="NVX\Application\Services\AudioFollowsVideoHandler.cs"/>
         <Compile Include="NVX\Devices\Nvx35x.cs"/>
         <Compile Include="NVX\Devices\Nvx36X.cs"/>
-    <Compile Include="NVX\Devices\Nvx38X.cs" />
+        <Compile Include="NVX\Devices\Nvx38X.cs"/>
         <Compile Include="NVX\Devices\NvxBaseDevice.cs"/>
         <Compile Include="NVX\Devices\NvxD3X.cs"/>
         <Compile Include="NVX\Devices\NvxE3X.cs"/>
@@ -280,7 +282,7 @@
         <Compile Include="NVX\Factories\DeviceFactory.cs"/>
         <Compile Include="NVX\Factories\Nvx35XDeviceFactory.cs"/>
         <Compile Include="NVX\Factories\Nvx36XDeviceFactory.cs"/>
-    <Compile Include="NVX\Factories\Nvx38XDeviceFactory.cs" />
+        <Compile Include="NVX\Factories\Nvx38XDeviceFactory.cs"/>
         <Compile Include="NVX\Factories\NvxBaseDeviceFactory.cs"/>
         <Compile Include="NVX\Factories\NvxD3XDeviceFactory.cs"/>
         <Compile Include="NVX\Factories\NvxDirectorFactory.cs"/>
@@ -288,14 +290,14 @@
         <Compile Include="NVX\Factories\NvxE760XDeviceFactory.cs"/>
         <Compile Include="NVX\Factories\NvxMockDeviceFactory.cs"/>
         <Compile Include="NVX\Features\Audio\Nvx36xAudio.cs"/>
-    <Compile Include="NVX\Features\Audio\Nvx38xAudio.cs" />
+        <Compile Include="NVX\Features\Audio\Nvx38xAudio.cs"/>
         <Compile Include="NVX\Features\AutomaticRouting\AutomaticInputRouter.cs"/>
         <Compile Include="NVX\Features\Config\NvxDeviceProperties.cs"/>
         <Compile Include="NVX\Features\Config\NvxDirectorConfig.cs"/>
         <Compile Include="NVX\Features\Hdmi\Input\DmInput.cs"/>
         <Compile Include="NVX\Features\Hdmi\Input\HdmiInput.cs"/>
         <Compile Include="NVX\Features\Hdmi\Input\HdmiInputBase.cs"/>
-    <Compile Include="NVX\Features\Hdmi\Input\HdmiUsbcInput.cs" />
+        <Compile Include="NVX\Features\Hdmi\Input\HdmiUsbcInput.cs"/>
         <Compile Include="NVX\Features\Hdmi\Output\HdmiOutput.cs"/>
         <Compile Include="NVX\Features\Hdmi\Output\VideowallModeOutput.cs"/>
         <Compile Include="NVX\Features\InputSwitching\AudioInputSwitcher.cs"/>
@@ -338,7 +340,7 @@
         <Compile Include="NVX\Services\Feedback\HdmiOutputBlankedFeedback.cs"/>
         <Compile Include="NVX\Services\Feedback\HdmiOutputDisabledFeedback.cs"/>
         <Compile Include="NVX\Services\Feedback\HdmiOutputResolutionFeedback.cs"/>
-    <Compile Include="NVX\Services\Feedback\HdmiOutputSinkDetectedFeedback.cs" />
+        <Compile Include="NVX\Services\Feedback\HdmiOutputSinkDetectedFeedback.cs"/>
         <Compile Include="NVX\Services\Feedback\HorizontalResolutionFeedback.cs"/>
         <Compile Include="NVX\Services\Feedback\IsStreamingSecondaryAudioFeedback.cs"/>
         <Compile Include="NVX\Services\Feedback\IsStreamingVideoFeedback.cs"/>

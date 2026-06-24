@@ -1,334 +1,88 @@
 ﻿using System;
-using System.Text;
 using System.Collections.Generic;
+using System.Text;
 using Crestron.SimplSharp;
-using Crestron.SimplSharpPro.DeviceSupport;
-using Crestron.SimplSharpPro.CrestronThread;
 using Crestron.SimplSharp.Net.Http;
+using Crestron.SimplSharpPro.CrestronThread;
+using Crestron.SimplSharpPro.DeviceSupport;
+using PepperDash_Essentials_Core.Monitoring;
+using PepperDash.Core;
 using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Bridges;
-using PepperDash.Core;
 using ViscaCameraPlugin;
 
-namespace PepperDash.Essentials.AverCamera
+namespace PepperDash.Essentials.Devices.Common.Cameras.Aver
 {
     public class AverCameraDevice : EssentialsBridgeableDevice, ICommunicationMonitor, IDisposable
     {
-        private readonly string hostname;
-        private readonly string username;
-        private readonly string password;
-        private readonly string streamUrl;
-        private readonly string streamUrlRtsp;
-        private HttpClient client;
-        private readonly AverCommunicationMonitor _httpMonitor;
-        private readonly AverCommunicationMonitor _viscaMonitor;
-        private CTimer _pollTimer;
-        private uint _pollTracker;
-        private readonly IBasicCommunication _comms;
-        private readonly CrestronQueue<ViscaCameraCommand> _commandQueue;
-        private readonly CMutex _commandMutex;
-        private readonly CTimer _commandTimer;
-        private readonly CMutex _feedbackMutex;
-        private byte[] _incomingBuffer = { };
-        private bool _queueWaiting;
-        private bool _commandReady = true;
-        private bool _offlineIFClearSent;
-        private uint _counter;
-        protected readonly bool _autoTrackingCapable;
-        protected uint _lastCalledPreset;
-        private readonly uint _homePreset;
-        private EDirection _moveInProgress = EDirection.Stop;
-        protected eViscaCameraCommand _lastInquiry = eViscaCameraCommand.NoFeedback;
-
-        private readonly ViscaCameraConfig _config;
-        private Dictionary<uint, uint> presetIds;
-
-        protected readonly byte _address = 0x81;
-        protected readonly byte _feedbackAddress = 0x90;
         private const uint AddressMax = 7;
-        private readonly uint? _privacyOnPreset;
-        private readonly uint? _privacyOffPreset;
-
-        private bool _power;
-
-        /// <summary>
-        /// Power feedback
-        /// </summary>
-        public BoolFeedback PowerFeedback { get; private set; }
-
-        /// <summary>
-        /// Power property
-        /// </summary>
-        protected bool Power
-        {
-            get { return _power; }
-            set
-            {
-                if (_power == value) return;
-                if (Power == false)
-                {
-                    ActivePreset = 0;
-                }
-
-                _power = value;
-                PowerFeedback.FireUpdate();
-            }
-        }
-
-        private bool _autoTrackingOn;
-
-        /// <summary>
-        /// Auto tracking on feedback
-        /// </summary>
-        public BoolFeedback AutoTrackingOnFeedback { get; private set; }
-
-        /// <summary>
-        /// Auto tracking on property
-        /// </summary>
-        protected bool AutoTrackingOn
-        {
-            get { return _autoTrackingOn; }
-            set
-            {
-                if (_autoTrackingOn == value) return;
-                _autoTrackingOn = value;
-                ActivePreset = 0;
-                AutoTrackingOnFeedback.FireUpdate();
-            }
-        }
-
-        private bool _privacyOn;
-
-        /// <summary>
-        /// Privacy On feedback
-        /// </summary>
-        public BoolFeedback PrivacyOnFeedback { get; private set; }
-
-        /// <summary>
-        /// Power property
-        /// </summary>
-        public bool PrivacyOn
-        {
-            get { return _privacyOn; }
-            set
-            {
-                if (_privacyOn == value) return;
-                _privacyOn = value;
-                PrivacyOnFeedback.FireUpdate();
-            }
-        }
-
-        private bool _autoFocus;
-
-        /// <summary>
-        /// Autofocus feedback
-        /// </summary>
-        public BoolFeedback AutoFocusFeedback { get; private set; }
-
-        /// <summary>
-        /// Autofocus property
-        /// </summary>
-        public bool AutoFocus
-        {
-            get { return _autoFocus; }
-            set
-            {
-                if (_autoFocus == value) return;
-                _autoFocus = value;
-                AutoFocusFeedback.FireUpdate();
-            }
-        }
 
         private const int PresetMax = 16;
-        private int _presetCount;
-
-        /// <summary>
-        /// Preset count feedback
-        /// </summary>
-        public IntFeedback PresetCountFeedback { get; private set; }
-
-        /// <summary>
-        /// Preset count property
-        /// </summary>
-        public uint PresetCount
-        {
-            get { return (uint)_presetCount; }
-            set
-            {
-                if (_presetCount == value) return;
-                _presetCount = (int)value;
-                PresetCountFeedback.FireUpdate();
-            }
-        }
-
-        private int _activePreset;
-
-        /// <summary>
-        /// Preset count feedback
-        /// </summary>
-        public IntFeedback ActivePresetFeedback { get; private set; }
-
-        /// <summary>
-        /// Preset count property
-        /// </summary>
-        protected uint ActivePreset
-        {
-            get { return (uint)_activePreset; }
-            set
-            {
-                if (_activePreset == value) return;
-                _activePreset = (int)value;
-                ActivePresetFeedback.FireUpdate();
-                foreach (KeyValuePair<uint, BoolFeedback> feedback in PresetActiveFeedbacks)
-                {
-                    feedback.Value.FireUpdate();
-                }
-            }
-        }
-
-        private bool _tallyOn;
-
-        /// <summary>
-        /// Tally on feedback
-        /// </summary>
-        public BoolFeedback TallyOnFeedback { get; private set; }
-
-        /// <summary>
-        /// Tally on property
-        /// </summary>
-        protected bool TallyOn
-        {
-            get { return _tallyOn; }
-            set
-            {
-                if (_tallyOn == value) return;
-                _tallyOn = value;
-                TallyOnFeedback.FireUpdate();
-            }
-        }
-
-        /// <summary>
-        /// Preset name feedbacks
-        /// </summary>
-        public Dictionary<uint, StringFeedback> PresetNameFeedbacks { get; private set; }
-
-        /// <summary>
-        /// Preset active feedbacks
-        /// </summary>
-        public Dictionary<uint, BoolFeedback> PresetActiveFeedbacks { get; private set; }
 
         private const uint PanSpeedDefault = 9; // 00...18 (hex)
         private const uint PanSpeedMax = 18;
-        private uint _panSpeed = PanSpeedDefault;
-
-        /// <summary>
-        /// Pan speed
-        /// </summary>
-        public uint PanSpeed
-        {
-            get { return _panSpeed; }
-            set
-            {
-                if (_panSpeed == value) return;
-                _panSpeed = (value < 1 || value > PanSpeedMax) ? PanSpeedDefault : value;
-            }
-        }
 
         private const uint TiltSpeedDefault = 9; // 00...18 (hex)
         private const uint TiltSpeedMax = 18;
-        private uint _tiltSpeed = TiltSpeedDefault;
-
-        /// <summary>
-        /// Tilt speed
-        /// </summary>
-        public uint TiltSpeed
-        {
-            get { return _tiltSpeed; }
-            set
-            {
-                if (_tiltSpeed == value) return;
-                _tiltSpeed = (value < 1 || value > TiltSpeedMax) ? TiltSpeedDefault : value;
-            }
-        }
 
         private const uint ZoomSpeedDefault = 4; // 00...07 (hex)
         private const uint ZoomSpeedMax = 7;
-        private uint _zoomSpeed = ZoomSpeedDefault;
-
-        /// <summary>
-        /// Zoom speed
-        /// </summary>
-        public uint ZoomSpeed
-        {
-            get { return _zoomSpeed; }
-            set
-            {
-                if (_zoomSpeed == value) return;
-                _zoomSpeed = (value < 1 || value > ZoomSpeedMax) ? ZoomSpeedDefault : value;
-            }
-        }
 
         private const uint FocusSpeedDefault = 4; // 00...07 (hex)
         private const uint FocusSpeedMax = 7;
+
+        private readonly byte _address = 0x81;
+        private readonly bool _autoTrackingCapable;
+        private readonly CMutex _commandMutex;
+        private readonly CrestronQueue<ViscaCameraCommand> _commandQueue;
+        private readonly CTimer _commandTimer;
+        private readonly IBasicCommunication _comms;
+
+        private readonly ViscaCameraConfig _config;
+        private readonly byte _feedbackAddress = 0x90;
+        private readonly CMutex _feedbackMutex;
+        private readonly uint _homePreset;
+        private readonly string _hostname;
+        private readonly ManualCommunicationMonitor _httpMonitor;
+        private readonly string _password;
+        private readonly uint? _privacyOffPreset;
+        private readonly uint? _privacyOnPreset;
+        private readonly string _streamUrl;
+        private readonly string _streamUrlRtsp;
+        private readonly string _username;
+        private readonly ManualCommunicationMonitor _viscaMonitor;
+
+        private int _activePreset;
+
+        private bool _autoFocus;
+
+        private bool _autoTrackingOn;
+        private HttpClient _client;
+        private bool _commandReady = true;
+        private uint _counter;
         private uint _focusSpeed = FocusSpeedDefault;
+        private byte[] _incomingBuffer = { };
+        private EDirection _moveInProgress = EDirection.Stop;
+        private bool _offlineIfClearSent;
+        private uint _panSpeed = PanSpeedDefault;
+        private CTimer _pollTimer;
+        private uint _pollTracker;
+
+        private bool _power;
+        private int _presetCount;
+        private Dictionary<uint, uint> _presetIds;
+
+        private bool _privacyOn;
+        private bool _queueWaiting;
+
+        private bool _tallyOn;
+        private uint _tiltSpeed = TiltSpeedDefault;
+        private uint _zoomSpeed = ZoomSpeedDefault;
+        protected uint LastCalledPreset;
+        protected eViscaCameraCommand LastInquiry = eViscaCameraCommand.NoFeedback;
 
         /// <summary>
-        /// Focus speed
-        /// </summary>
-        public uint FocusSpeed
-        {
-            get { return _focusSpeed; }
-            set
-            {
-                if (_focusSpeed == value) return;
-                _focusSpeed = (value < 1 || value > FocusSpeedMax) ? FocusSpeedDefault : value;
-            }
-        }
-
-        public class ViscaCameraCommand
-        {
-            public readonly eViscaCameraCommand Command;
-            public readonly byte[] Bytes;
-
-            public ViscaCameraCommand(eViscaCameraCommand command, byte[] bytes)
-            {
-                Command = command;
-                Bytes = bytes;
-            }
-        }
-
-        /// <summary>
-        /// For tracking feedback responses from camera
-        /// </summary>
-        private enum eAverCameraInquiry
-        {
-            AutoTrackOnCmd,
-            AutoTrackOffCmd,
-            AutoTrackInquiry
-        }
-
-        /// <summary>
-        /// Online feedback
-        /// </summary>
-        public BoolFeedback OnlineFeedback { get; private set; }
-
-        /// <summary>
-        /// Socket status feedback
-        /// </summary>
-        public IntFeedback SocketStatusFeedback { get; private set; }
-
-        /// <summary>
-        /// Auto Tracking Capable Feedback
-        /// </summary>
-        public BoolFeedback AutoTrackingCapable { get; private set; }
-
-        /// <summary>
-        /// Preset Saved Feedback
-        /// </summary>
-        public event EventHandler PresetSaved;
-
-        /// <summary>
-        /// Constructor
+        ///     Constructor
         /// </summary>
         /// <param name="key">device key</param>
         /// <param name="name">device name</param>
@@ -342,15 +96,15 @@ namespace PepperDash.Essentials.AverCamera
             Debug.Console(0, this, "Constructing new Aver Camera instance");
 
             _config = config;
-            hostname = commConfig.TcpSshProperties.Address;
-            username = commConfig.TcpSshProperties.Username;
-            password = commConfig.TcpSshProperties.Password;
-            streamUrl = config.StreamUrl;
-            streamUrlRtsp = config.StreamUrlRtsp;
+            _hostname = commConfig.TcpSshProperties.Address;
+            _username = commConfig.TcpSshProperties.Username;
+            _password = commConfig.TcpSshProperties.Password;
+            _streamUrl = config.StreamUrl;
+            _streamUrlRtsp = config.StreamUrlRtsp;
 
             BuildClient();
-            _httpMonitor = new AverCommunicationMonitor(this, 60000, 120000);
-            _viscaMonitor = new AverCommunicationMonitor(this, 60000, 120000);
+            _httpMonitor = new ManualCommunicationMonitor(this, 60000, 120000);
+            _viscaMonitor = new ManualCommunicationMonitor(this, 60000, 120000);
             OnlineFeedback = new BoolFeedback(() => _httpMonitor.IsOnline && _viscaMonitor.IsOnline);
             AutoTrackingCapable = new BoolFeedback(() => _autoTrackingCapable);
             PowerFeedback = new BoolFeedback(() => Power);
@@ -399,7 +153,7 @@ namespace PepperDash.Essentials.AverCamera
 
             _commandQueue = new CrestronQueue<ViscaCameraCommand>(10);
             _commandMutex = new CMutex();
-            _commandTimer = new CTimer(commandTimeout, Timeout.Infinite);
+            _commandTimer = new CTimer(CommandTimeout, Timeout.Infinite);
             _feedbackMutex = new CMutex();
 
             ISocketStatus socket = _comms as ISocketStatus;
@@ -414,9 +168,244 @@ namespace PepperDash.Essentials.AverCamera
             InitializePresets(_config.Presets);
         }
 
+        /// <summary>
+        ///     Power feedback
+        /// </summary>
+        public BoolFeedback PowerFeedback { get; private set; }
 
         /// <summary>
-        /// Use custom activate to connect the device and start the comms monitor
+        ///     Power property
+        /// </summary>
+        protected bool Power
+        {
+            get { return _power; }
+            set
+            {
+                if (_power == value) return;
+                if (!Power) ActivePreset = 0;
+
+                _power = value;
+                PowerFeedback.FireUpdate();
+            }
+        }
+
+        /// <summary>
+        ///     Auto tracking on feedback
+        /// </summary>
+        public BoolFeedback AutoTrackingOnFeedback { get; private set; }
+
+        /// <summary>
+        ///     Auto tracking on property
+        /// </summary>
+        protected bool AutoTrackingOn
+        {
+            get { return _autoTrackingOn; }
+            set
+            {
+                if (_autoTrackingOn == value) return;
+                _autoTrackingOn = value;
+                ActivePreset = 0;
+                AutoTrackingOnFeedback.FireUpdate();
+            }
+        }
+
+        /// <summary>
+        ///     Privacy On feedback
+        /// </summary>
+        public BoolFeedback PrivacyOnFeedback { get; private set; }
+
+        /// <summary>
+        ///     Power property
+        /// </summary>
+        public bool PrivacyOn
+        {
+            get { return _privacyOn; }
+            set
+            {
+                if (_privacyOn == value) return;
+                _privacyOn = value;
+                PrivacyOnFeedback.FireUpdate();
+            }
+        }
+
+        /// <summary>
+        ///     Autofocus feedback
+        /// </summary>
+        public BoolFeedback AutoFocusFeedback { get; private set; }
+
+        /// <summary>
+        ///     Autofocus property
+        /// </summary>
+        public bool AutoFocus
+        {
+            get { return _autoFocus; }
+            set
+            {
+                if (_autoFocus == value) return;
+                _autoFocus = value;
+                AutoFocusFeedback.FireUpdate();
+            }
+        }
+
+        /// <summary>
+        ///     Preset count feedback
+        /// </summary>
+        public IntFeedback PresetCountFeedback { get; private set; }
+
+        /// <summary>
+        ///     Preset count property
+        /// </summary>
+        public uint PresetCount
+        {
+            get { return (uint)_presetCount; }
+            set
+            {
+                if (_presetCount == value) return;
+                _presetCount = (int)value;
+                PresetCountFeedback.FireUpdate();
+            }
+        }
+
+        /// <summary>
+        ///     Preset count feedback
+        /// </summary>
+        public IntFeedback ActivePresetFeedback { get; private set; }
+
+        /// <summary>
+        ///     Preset count property
+        /// </summary>
+        protected uint ActivePreset
+        {
+            get { return (uint)_activePreset; }
+            set
+            {
+                if (_activePreset == value) return;
+                _activePreset = (int)value;
+                ActivePresetFeedback.FireUpdate();
+                foreach (KeyValuePair<uint, BoolFeedback> feedback in PresetActiveFeedbacks)
+                    feedback.Value.FireUpdate();
+            }
+        }
+
+        /// <summary>
+        ///     Tally on feedback
+        /// </summary>
+        public BoolFeedback TallyOnFeedback { get; private set; }
+
+        /// <summary>
+        ///     Tally on property
+        /// </summary>
+        protected bool TallyOn
+        {
+            get { return _tallyOn; }
+            set
+            {
+                if (_tallyOn == value) return;
+                _tallyOn = value;
+                TallyOnFeedback.FireUpdate();
+            }
+        }
+
+        /// <summary>
+        ///     Preset name feedbacks
+        /// </summary>
+        public Dictionary<uint, StringFeedback> PresetNameFeedbacks { get; private set; }
+
+        /// <summary>
+        ///     Preset active feedbacks
+        /// </summary>
+        public Dictionary<uint, BoolFeedback> PresetActiveFeedbacks { get; private set; }
+
+        /// <summary>
+        ///     Pan speed
+        /// </summary>
+        public uint PanSpeed
+        {
+            get { return _panSpeed; }
+            set
+            {
+                if (_panSpeed == value) return;
+                _panSpeed = value < 1 || value > PanSpeedMax ? PanSpeedDefault : value;
+            }
+        }
+
+        /// <summary>
+        ///     Tilt speed
+        /// </summary>
+        public uint TiltSpeed
+        {
+            get { return _tiltSpeed; }
+            set
+            {
+                if (_tiltSpeed == value) return;
+                _tiltSpeed = value < 1 || value > TiltSpeedMax ? TiltSpeedDefault : value;
+            }
+        }
+
+        /// <summary>
+        ///     Zoom speed
+        /// </summary>
+        public uint ZoomSpeed
+        {
+            get { return _zoomSpeed; }
+            set
+            {
+                if (_zoomSpeed == value) return;
+                _zoomSpeed = value < 1 || value > ZoomSpeedMax ? ZoomSpeedDefault : value;
+            }
+        }
+
+        /// <summary>
+        ///     Focus speed
+        /// </summary>
+        public uint FocusSpeed
+        {
+            get { return _focusSpeed; }
+            set
+            {
+                if (_focusSpeed == value) return;
+                _focusSpeed = value < 1 || value > FocusSpeedMax ? FocusSpeedDefault : value;
+            }
+        }
+
+        /// <summary>
+        ///     Online feedback
+        /// </summary>
+        public BoolFeedback OnlineFeedback { get; private set; }
+
+        /// <summary>
+        ///     Socket status feedback
+        /// </summary>
+        public IntFeedback SocketStatusFeedback { get; private set; }
+
+        /// <summary>
+        ///     Auto Tracking Capable Feedback
+        /// </summary>
+        public BoolFeedback AutoTrackingCapable { get; private set; }
+
+        public StatusMonitorBase CommunicationMonitor
+        {
+            get { return _httpMonitor; }
+        }
+
+        public void Dispose()
+        {
+            if (_client != null) _client.Dispose();
+            if (_pollTimer != null) _pollTimer.Dispose();
+            if (_commandQueue != null) _commandQueue.Dispose();
+            if (_commandMutex != null) _commandMutex.Dispose();
+            if (_commandTimer != null) _commandTimer.Dispose();
+            if (_feedbackMutex != null) _feedbackMutex.Dispose();
+        }
+
+        /// <summary>
+        ///     Preset Saved Feedback
+        /// </summary>
+        public event EventHandler PresetSaved;
+
+
+        /// <summary>
+        ///     Use custom activate to connect the device and start the comms monitor
         /// </summary>
         /// <returns></returns>
         public override bool CustomActivate()
@@ -431,14 +420,9 @@ namespace PepperDash.Essentials.AverCamera
             return base.CustomActivate();
         }
 
-        public StatusMonitorBase CommunicationMonitor
-        {
-            get { return _httpMonitor; }
-        }
-
         private void BuildClient()
         {
-            client = new HttpClient()
+            _client = new HttpClient
             {
                 UserAgent = "crestron",
                 KeepAlive = false,
@@ -457,7 +441,7 @@ namespace PepperDash.Essentials.AverCamera
 
             Debug.Console(0, this, "Intializing presets");
 
-            presetIds = new Dictionary<uint, uint>();
+            _presetIds = new Dictionary<uint, uint>();
             PresetNameFeedbacks = new Dictionary<uint, StringFeedback>();
             PresetActiveFeedbacks = new Dictionary<uint, BoolFeedback>();
             foreach (ViscaCameraPresetConfig preset in presets)
@@ -466,210 +450,11 @@ namespace PepperDash.Essentials.AverCamera
                 Debug.Console(0, this, "Preset {0} Name: {1}", p.Index, p.Name);
                 uint viscaId = p.ViscaId ?? p.Index;
 
-                presetIds.Add(p.Index, viscaId);
+                _presetIds.Add(p.Index, viscaId);
                 PresetNameFeedbacks.Add(p.Index, new StringFeedback(() => p.Name));
                 PresetActiveFeedbacks.Add(p.Index, new BoolFeedback(() => viscaId == ActivePreset));
             }
         }
-
-        #region Overrides of EssentialsBridgeableDevice
-
-        /// <summary>
-        /// Link to API method replaces bridge class, the bridge will call this method directly
-        /// </summary>
-        /// <param name="trilist"></param>
-        /// <param name="joinStart"></param>
-        /// <param name="joinMapKey"></param>
-        /// <param name="bridge"></param>
-        public override void LinkToApi(BasicTriList trilist, uint joinStart, string joinMapKey, EiscApiAdvanced bridge)
-        {
-            ViscaCameraBridgeJoinMap joinMap = new ViscaCameraBridgeJoinMap(joinStart);
-
-            // This adds the join map to the collection on the bridge
-            if (bridge != null)
-            {
-                bridge.AddJoinMap(Key, joinMap);
-            }
-
-            Dictionary<string, JoinData> customJoins = JoinMapHelper.TryGetJoinMapAdvancedForDevice(joinMapKey);
-            if (customJoins != null)
-            {
-                joinMap.SetCustomJoinData(customJoins);
-            }
-
-            Debug.Console(1, "Linking to Trilist '{0}'", trilist.ID.ToString("X"));
-            Debug.Console(0, "Linking to Bridge Type {0}", GetType().Name);
-
-            // link joins to bridge
-            trilist.SetString(joinMap.DeviceName.JoinNumber, Name);
-
-            AutoTrackingCapable.LinkInputSig(trilist.BooleanInput[joinMap.AutoTrackingCapable.JoinNumber]);
-
-            OnlineFeedback.LinkInputSig(trilist.BooleanInput[joinMap.IsOnline.JoinNumber]);
-            // must null check so LinkToApi doesn't except when the device is TCP or UDP
-            if (SocketStatusFeedback != null)
-                SocketStatusFeedback.LinkInputSig(trilist.UShortInput[joinMap.Status.JoinNumber]);
-
-            // power on
-            trilist.SetSigTrueAction(joinMap.PowerOn.JoinNumber, SetPowerOn);
-            PowerFeedback.LinkInputSig(trilist.BooleanInput[joinMap.PowerOn.JoinNumber]);
-            // power off
-            trilist.SetSigTrueAction(joinMap.PowerOff.JoinNumber, SetPowerOff);
-            PowerFeedback.LinkComplementInputSig(trilist.BooleanInput[joinMap.PowerOff.JoinNumber]);
-
-            // home
-            trilist.SetBoolSigAction(joinMap.Home.JoinNumber, sig => RecallHomePosition());
-
-            // pan
-            trilist.SetBoolSigAction(joinMap.PanLeft.JoinNumber, sig => Move(sig, EDirection.PanLeft));
-            trilist.SetBoolSigAction(joinMap.PanRight.JoinNumber, sig => Move(sig, EDirection.PanRight));
-
-            // tilt
-            trilist.SetBoolSigAction(joinMap.TiltUp.JoinNumber, sig => Move(sig, EDirection.TiltUp));
-            trilist.SetBoolSigAction(joinMap.TiltDown.JoinNumber, sig => Move(sig, EDirection.TiltDown));
-
-            // zoom
-            trilist.SetBoolSigAction(joinMap.ZoomIn.JoinNumber, sig => Move(sig, EDirection.ZoomIn));
-            trilist.SetBoolSigAction(joinMap.ZoomOut.JoinNumber, sig => Move(sig, EDirection.ZoomOut));
-
-            // auto tracking on
-            trilist.SetSigTrueAction(joinMap.AutoTrackingOn.JoinNumber, SetAutoTrackingOn);
-            AutoTrackingOnFeedback.LinkInputSig(trilist.BooleanInput[joinMap.AutoTrackingOn.JoinNumber]);
-
-            // auto tracking off
-            trilist.SetSigTrueAction(joinMap.AutoTrackingOff.JoinNumber, SetAutoTrackingOff);
-            AutoTrackingOnFeedback.LinkComplementInputSig(trilist.BooleanInput[joinMap.AutoTrackingOff.JoinNumber]);
-
-            // focus
-            trilist.SetSigTrueAction(joinMap.AutoFocusOn.JoinNumber, () => AutoFocusSet(true));
-            AutoFocusFeedback.LinkInputSig(trilist.BooleanInput[joinMap.AutoFocusOn.JoinNumber]);
-
-            trilist.SetSigTrueAction(joinMap.AutoFocusOff.JoinNumber, () => AutoFocusSet(false));
-            AutoFocusFeedback.LinkComplementInputSig(trilist.BooleanInput[joinMap.AutoFocusOff.JoinNumber]);
-
-            // privacy
-            trilist.SetBoolSigAction(joinMap.PrivacyOn.JoinNumber, sig =>
-            {
-                if (_privacyOnPreset != null)
-                {
-                    RecallPresetByNumber((uint)_privacyOnPreset);
-                }
-            });
-            trilist.SetBoolSigAction(joinMap.PrivacyOff.JoinNumber, sig =>
-            {
-                if (_privacyOffPreset != null)
-                {
-                    RecallPresetByNumber((uint)_privacyOffPreset);
-                }
-            });
-            PrivacyOnFeedback.LinkInputSig(trilist.BooleanInput[joinMap.PrivacyOn.JoinNumber]);
-            PrivacyOnFeedback.LinkComplementInputSig(trilist.BooleanInput[joinMap.PrivacyOff.JoinNumber]);
-            UpdateFeedbacks();
-
-            // preset saved
-            PresetSaved += (o, a) =>
-            {
-                trilist.BooleanInput[joinMap.PresetSaved.JoinNumber].BoolValue = true;
-                CTimer unused = new CTimer(x => trilist.BooleanInput[joinMap.PresetSaved.JoinNumber].BoolValue = false,
-                    3000);
-            };
-
-            // preset - analog recall and save by number
-            trilist.SetUShortSigAction(joinMap.PresetRecallByNumber.JoinNumber, value =>
-            {
-                RecallPresetByNumber(value);
-                Debug.Console(1, this, "LinkToApi PresetRecallByNumber[{0}] => RecallPreset({1})",
-                    joinMap.PresetRecallByNumber.JoinNumber, value);
-            });
-            trilist.SetUShortSigAction(joinMap.PresetSaveByNumber.JoinNumber, value =>
-            {
-                SavePresetByNumber(value);
-                Debug.Console(1, this, "LinkToApi PresetSaveByNumber[{0}] => SavePreset({1})",
-                    joinMap.PresetSaveByNumber.JoinNumber, value);
-            });
-            ActivePresetFeedback.LinkInputSig(trilist.UShortInput[joinMap.PresetRecallByNumber.JoinNumber]);
-
-            // preset count feedback
-            PresetCountFeedback.LinkInputSig(trilist.UShortInput[joinMap.PresetCount.JoinNumber]);
-
-            foreach (KeyValuePair<uint, StringFeedback> item in PresetNameFeedbacks)
-            {
-                // preset number
-                ushort preset = (ushort)item.Key;
-
-                // preset names
-                uint nameJoin = preset + joinMap.PresetNames.JoinNumber - 1;
-                StringFeedback nameFeedback = item.Value;
-                nameFeedback.LinkInputSig(trilist.StringInput[nameJoin]);
-
-                // preset recall
-                uint recallJoin = preset + joinMap.PresetRecall.JoinNumber - 1;
-                trilist.SetSigTrueAction(recallJoin, () =>
-                {
-                    if (presetIds.ContainsKey(preset))
-                    {
-                        RecallPresetByNumber(presetIds[preset]);
-                        Debug.Console(1, this, "LinkToApi PresetRecall[{0}]: RecallPreset({1})", recallJoin, preset);
-                    }
-                });
-
-                // preset save/store
-                uint saveJoin = preset + joinMap.PresetSave.JoinNumber - 1;
-                trilist.SetSigTrueAction(saveJoin, () =>
-                {
-                    if (presetIds.ContainsKey(presetIds[preset]))
-                    {
-                        SavePresetByNumber(preset);
-                        Debug.Console(1, this, "LinkToApi PresetSave[{0}]: SavePreset({1})", saveJoin, preset);
-                    }
-                });
-            }
-
-            //Link boolean preset feedback
-            foreach (KeyValuePair<uint, BoolFeedback> item in PresetActiveFeedbacks)
-            {
-                item.Value.LinkInputSig(trilist.BooleanInput[item.Key + joinMap.PresetRecall.JoinNumber - 1]);
-            }
-
-            //stream url
-            trilist.StringInput[joinMap.StreamUrl.JoinNumber].StringValue = streamUrl;
-            trilist.StringInput[joinMap.StreamUrlRtsp.JoinNumber].StringValue = streamUrlRtsp;
-
-            // online status 
-            trilist.OnlineStatusChange += (o, a) =>
-            {
-                if (!a.DeviceOnLine) return;
-                trilist.SetString(joinMap.DeviceName.JoinNumber, Name);
-                UpdateFeedbacks();
-            };
-
-            //tally light on/off
-            TallyOnFeedback.LinkInputSig(trilist.BooleanInput[joinMap.TallyOn.JoinNumber]);
-            TallyOnFeedback.LinkComplementInputSig(trilist.BooleanInput[joinMap.TallyOff.JoinNumber]);
-            trilist.SetSigTrueAction(joinMap.TallyOn.JoinNumber, SetTallyRed);
-            trilist.SetSigTrueAction(joinMap.TallyOff.JoinNumber, SetTallyOff);
-        }
-
-        private void UpdateFeedbacks()
-        {
-            OnlineFeedback.FireUpdate();
-            if (SocketStatusFeedback != null) SocketStatusFeedback.FireUpdate();
-
-            PowerFeedback.FireUpdate();
-            PresetCountFeedback.FireUpdate();
-            AutoTrackingCapable.FireUpdate();
-            AutoTrackingOnFeedback.FireUpdate();
-            PrivacyOnFeedback.FireUpdate();
-            ActivePresetFeedback.FireUpdate();
-
-            foreach (KeyValuePair<uint, StringFeedback> item in PresetNameFeedbacks)
-                item.Value.FireUpdate();
-
-            foreach (KeyValuePair<uint, BoolFeedback> item in PresetActiveFeedbacks)
-                item.Value.FireUpdate();
-        }
-
-        #endregion
 
         private void socket_ConnectionChange(object sender, GenericSocketStatusChageEventArgs args)
         {
@@ -680,30 +465,26 @@ namespace PepperDash.Essentials.AverCamera
             if (SocketStatusFeedback != null) SocketStatusFeedback.FireUpdate();
 
             if (!args.Client.IsConnected)
-            {
                 _commandQueue.Clear();
-            }
             else
-            {
                 InitializeCamera();
-            }
         }
 
-        private void commandTimeout(object o)
+        private void CommandTimeout(object o)
         {
-            if (_lastInquiry == eViscaCameraCommand.PowerInquiry && !_offlineIFClearSent)
+            if (LastInquiry == eViscaCameraCommand.PowerInquiry && !_offlineIfClearSent)
             {
-                _offlineIFClearSent = true;
+                _offlineIfClearSent = true;
                 Debug.Console(0, this,
                     "Power inquiry never received response, possible camera issue. Sending IF Clear.");
-                IFClear();
+                IfClear();
             }
 
             _commandReady = true;
             ProcessQueue();
         }
 
-        protected void readyForNextCommand()
+        protected void ReadyForNextCommand()
         {
             _commandTimer.Stop(); //No need for timeout on last command
             _commandReady = true;
@@ -712,10 +493,10 @@ namespace PepperDash.Essentials.AverCamera
 
         private void ProcessQueue()
         {
-            CrestronInvoke.BeginInvoke((o) =>
+            CrestronInvoke.BeginInvoke(o =>
             {
                 //Thread safe queue processing below
-                if (_queueWaiting == false)
+                if (!_queueWaiting)
                 {
                     _queueWaiting = true;
                     if (_commandMutex.WaitForMutex())
@@ -727,16 +508,16 @@ namespace PepperDash.Essentials.AverCamera
                             while (!_commandQueue.IsEmpty)
                             {
                                 int count = 0;
-                                while (!_commandReady && (count < 50))
+                                while (!_commandReady && count < 50)
                                 {
                                     Thread.Sleep(100);
                                     count++;
                                 }
 
                                 ViscaCameraCommand cmd = _commandQueue.TryToDequeue();
-                                _lastInquiry = cmd.Command;
+                                LastInquiry = cmd.Command;
                                 _commandReady = false;
-                                switch (_lastInquiry)
+                                switch (LastInquiry)
                                 {
                                     case eViscaCameraCommand.PtzCommand:
                                     case eViscaCameraCommand.AutoFocusCommand:
@@ -750,7 +531,7 @@ namespace PepperDash.Essentials.AverCamera
                                         break;
                                 }
 
-                                CrestronInvoke.BeginInvoke((obj) => { SendBytes(cmd.Bytes); });
+                                CrestronInvoke.BeginInvoke(obj => { SendBytes(cmd.Bytes); });
                             }
                         }
                         catch (Exception ex)
@@ -787,20 +568,17 @@ namespace PepperDash.Essentials.AverCamera
             else
             {
                 Debug.Console(0, this, "Command queue is full! Dropping command.");
-                readyForNextCommand();
+                ReadyForNextCommand();
             }
         }
 
         /// <summary>
-        /// Send bytes to the device
+        ///     Send bytes to the device
         /// </summary>
         /// <param name="bytes"></param>
         private void SendBytes(byte[] bytes)
         {
-            if (bytes == null)
-            {
-                return;
-            }
+            if (bytes == null) return;
 
             Debug.Console(1, this, "Tx: {0}", ComTextHelper.GetEscapedText(bytes));
             // VISCA-over-IP counter
@@ -826,10 +604,7 @@ namespace PepperDash.Essentials.AverCamera
             try
             {
                 _feedbackMutex.WaitForMutex();
-                if (_offlineIFClearSent)
-                {
-                    _offlineIFClearSent = false;
-                }
+                if (_offlineIfClearSent) _offlineIfClearSent = false;
 
                 // Append the incoming bytes to whatever is in the buffer
                 byte[] newBytes = new byte[_incomingBuffer.Length + e.Bytes.Length];
@@ -839,15 +614,13 @@ namespace PepperDash.Essentials.AverCamera
                 // Look for FF and process when found
                 int start = 0;
                 for (int i = 0; i < newBytes.Length; i++)
-                {
                     if (newBytes[i] == 0xFF)
                     {
                         byte[] message = new byte[i - start + 1];
                         Array.Copy(newBytes, start, message, 0, i - start + 1);
                         start = i + 1;
-                        CrestronInvoke.BeginInvoke((o) => ParseMessage(message));
+                        CrestronInvoke.BeginInvoke(o => ParseMessage(message));
                     }
-                }
 
                 int extraDataLength = newBytes.Length - start;
                 if (extraDataLength > 0 && extraDataLength < 16)
@@ -873,12 +646,12 @@ namespace PepperDash.Essentials.AverCamera
             }
         }
 
-        private void HttpParseMessage(eAverCameraInquiry request, string message)
+        private void HttpParseMessage(EAverCameraInquiry request, string message)
         {
-            Debug.Console(1,this, "Aver Camera Parsing: {0}, request: {1}", message, request.ToString());
+            Debug.Console(1, this, "Aver Camera Parsing: {0}, request: {1}", message, request.ToString());
             switch (request)
             {
-                case eAverCameraInquiry.AutoTrackInquiry:
+                case EAverCameraInquiry.AutoTrackInquiry:
                     switch (message)
                     {
                         case "trk_tracking_on,3=0":
@@ -896,18 +669,12 @@ namespace PepperDash.Essentials.AverCamera
                     }
 
                     break;
-                case eAverCameraInquiry.AutoTrackOnCmd:
-                    if (message.StartsWith("method return"))
-                    {
-                        AutoTrackingOn = true;
-                    }
+                case EAverCameraInquiry.AutoTrackOnCmd:
+                    if (message.StartsWith("method return")) AutoTrackingOn = true;
 
                     break;
-                case eAverCameraInquiry.AutoTrackOffCmd:
-                    if (message.StartsWith("method return"))
-                    {
-                        AutoTrackingOn = false;
-                    }
+                case EAverCameraInquiry.AutoTrackOffCmd:
+                    if (message.StartsWith("method return")) AutoTrackingOn = false;
 
                     break;
             }
@@ -916,20 +683,17 @@ namespace PepperDash.Essentials.AverCamera
         private void ParseMessage(byte[] message)
         {
             Debug.Console(1, this, "Parsing: {0}, last inquiry: {1}", ComTextHelper.GetEscapedText(message),
-                _lastInquiry.ToString());
+                LastInquiry.ToString());
             _viscaMonitor.SetOnlineStatus(true);
             // Message: [0x90, 0x41, 0xFF]
             // 0xz0 = Address, z = device address + 8, or 9 for visca over IP
             // 0x4y = ACK (acknowledgment), y = socket number
             // 0xFF = Terminator
-            if (message.Length > 2 && (message[message.Length - 2] >> 4) == 4 &&
+            if (message.Length > 2 && message[message.Length - 2] >> 4 == 4 &&
                 message[message.Length - 3] == _feedbackAddress)
             {
                 Debug.Console(1, this, "Received ack");
-                if (_lastInquiry == eViscaCameraCommand.PresetRecallCmd)
-                {
-                    ActivePreset = _lastCalledPreset;
-                }
+                if (LastInquiry == eViscaCameraCommand.PresetRecallCmd) ActivePreset = LastCalledPreset;
 
                 return;
             }
@@ -938,21 +702,21 @@ namespace PepperDash.Essentials.AverCamera
             // 0x6y = Error message, y = socket number
             // 0x41 = Command not executable
             // 0xFF = Terminator
-            if (message.Length > 3 && (message[message.Length - 2] >> 4) == 4 &&
-                (message[message.Length - 3] >> 4) == 6 && message[message.Length - 4] == _feedbackAddress)
+            if (message.Length > 3 && message[message.Length - 2] >> 4 == 4 &&
+                message[message.Length - 3] >> 4 == 6 && message[message.Length - 4] == _feedbackAddress)
             {
-                switch (_lastInquiry)
+                switch (LastInquiry)
                 {
                     case eViscaCameraCommand.PowerInquiry:
                         Debug.Console(0, this,
                             "Power inquiry received command not executable, possible camera issue. Sending IF Clear.");
-                        IFClear();
+                        IfClear();
                         break;
                 }
 
                 Debug.Console(0, this, "Received command not executable");
-                _lastInquiry = eViscaCameraCommand.NoFeedback;
-                readyForNextCommand();
+                LastInquiry = eViscaCameraCommand.NoFeedback;
+                ReadyForNextCommand();
                 return;
             }
 
@@ -961,16 +725,16 @@ namespace PepperDash.Essentials.AverCamera
             if (message.Length > 2 && message[message.Length - 2] == 0x51 &&
                 message[message.Length - 3] == _feedbackAddress)
             {
-                Debug.Console(1, this, "Received execution confirmation, last inquiry: {0}", _lastInquiry.ToString());
-                switch (_lastInquiry)
+                Debug.Console(1, this, "Received execution confirmation, last inquiry: {0}", LastInquiry.ToString());
+                switch (LastInquiry)
                 {
                     case eViscaCameraCommand.PresetSave:
-                        ActivePreset = _lastCalledPreset;
+                        ActivePreset = LastCalledPreset;
                         PresetSavedFb();
                         break;
                     case eViscaCameraCommand.PowerOnCmd:
                         Power = true;
-                        CrestronInvoke.BeginInvoke((o) =>
+                        CrestronInvoke.BeginInvoke(o =>
                         {
                             CrestronEnvironment.Sleep(2000);
                             PollPower();
@@ -978,37 +742,35 @@ namespace PepperDash.Essentials.AverCamera
                         break;
                     case eViscaCameraCommand.PowerOffCmd:
                         Power = false;
-                        CrestronInvoke.BeginInvoke((o) =>
+                        CrestronInvoke.BeginInvoke(o =>
                         {
                             CrestronEnvironment.Sleep(2000);
                             PollPower();
                         });
                         break;
                     case eViscaCameraCommand.PresetRecallCmd:
-                        ActivePreset = _lastCalledPreset;
+                        ActivePreset = LastCalledPreset;
                         break;
                 }
 
-                _lastInquiry = eViscaCameraCommand.NoFeedback;
-                readyForNextCommand();
+                LastInquiry = eViscaCameraCommand.NoFeedback;
+                ReadyForNextCommand();
                 return;
             }
 
             // Message: [0x87, 0x09, 0x04, 0x00, 0xFF]
             // Vaddio heartbeat from some devices
-            if (message.Length == 5 && (message[message.Length - 5] == 0x87) &&
-                (message[message.Length - 4] == 0x09) &&
-                (message[message.Length - 3] == 0x04) &&
-                (message[message.Length - 2] == 0x00) &&
-                (message[message.Length - 1] == 0xFF))
-            {
+            if (message.Length == 5 && message[message.Length - 5] == 0x87 &&
+                message[message.Length - 4] == 0x09 &&
+                message[message.Length - 3] == 0x04 &&
+                message[message.Length - 2] == 0x00 &&
+                message[message.Length - 1] == 0xFF)
                 //Ignore
                 return;
-            }
 
-            if (_lastInquiry != eViscaCameraCommand.NoFeedback && message.Length > 3)
+            if (LastInquiry != eViscaCameraCommand.NoFeedback && message.Length > 3)
             {
-                switch (_lastInquiry)
+                switch (LastInquiry)
                 {
                     case eViscaCameraCommand.PowerInquiry:
                         if (message[message.Length - 3] == 0x50)
@@ -1024,8 +786,8 @@ namespace PepperDash.Essentials.AverCamera
                                     break;
                             }
 
-                            _lastInquiry = eViscaCameraCommand.NoFeedback;
-                            readyForNextCommand();
+                            LastInquiry = eViscaCameraCommand.NoFeedback;
+                            ReadyForNextCommand();
                         }
 
                         break;
@@ -1042,8 +804,8 @@ namespace PepperDash.Essentials.AverCamera
                                     break;
                             }
 
-                            _lastInquiry = eViscaCameraCommand.NoFeedback;
-                            readyForNextCommand();
+                            LastInquiry = eViscaCameraCommand.NoFeedback;
+                            ReadyForNextCommand();
                         }
 
                         break;
@@ -1061,8 +823,8 @@ namespace PepperDash.Essentials.AverCamera
                             Debug.Console(0, this, "Exception parsing preset feedback");
                         }
 
-                        _lastInquiry = eViscaCameraCommand.NoFeedback;
-                        readyForNextCommand();
+                        LastInquiry = eViscaCameraCommand.NoFeedback;
+                        ReadyForNextCommand();
                         break;
                     case eViscaCameraCommand.TallyInquiry:
                         if (message[message.Length - 3] == 0x50)
@@ -1077,8 +839,8 @@ namespace PepperDash.Essentials.AverCamera
                                     break;
                             }
 
-                            _lastInquiry = eViscaCameraCommand.NoFeedback;
-                            readyForNextCommand();
+                            LastInquiry = eViscaCameraCommand.NoFeedback;
+                            ReadyForNextCommand();
                         }
 
                         break;
@@ -1093,14 +855,14 @@ namespace PepperDash.Essentials.AverCamera
             ParseAdditionalFeedback(message);
         }
 
-        private void PostData(string data, eAverCameraInquiry requestName)
+        private void PostData(string data, EAverCameraInquiry requestName)
         {
             try
             {
                 Debug.Console(1, "Aver Camera Post {0} http:{1}", requestName, data);
                 HttpClientRequest req = new HttpClientRequest();
-                string url = string.Format("http://{0}/{1}", hostname, data);
-                string auth = Convert.ToBase64String(Encoding.ASCII.GetBytes(username + ":" + password));
+                string url = string.Format("http://{0}/{1}", _hostname, data);
+                string auth = Convert.ToBase64String(Encoding.ASCII.GetBytes(_username + ":" + _password));
                 req.Header.SetHeaderValue("Authorization", "Basic " + auth);
                 req.Header.ContentType = "text/plain";
                 req.Header.SetHeaderValue("Content-Length", "0");
@@ -1109,7 +871,7 @@ namespace PepperDash.Essentials.AverCamera
                 req.Url.Parse(url);
 
                 Debug.Console(1, "Aver Camera Post to url {0} with token {1}", url, auth);
-                client.DispatchAsyncEx(req, HttpCallback, requestName);
+                _client.DispatchAsyncEx(req, HttpCallback, requestName);
             }
             catch (Exception ex)
             {
@@ -1137,13 +899,9 @@ namespace PepperDash.Essentials.AverCamera
                         Debug.Console(1, "Aver Camera Http client response content:{0}",
                             response.ContentString);
                         if (response.ContentLength > 0)
-                        {
-                            HttpParseMessage((eAverCameraInquiry)requestName, response.ContentString.Trim());
-                        }
+                            HttpParseMessage((EAverCameraInquiry)requestName, response.ContentString.Trim());
                         else
-                        {
                             Debug.Console(0, "Aver Camera Empty http client response");
-                        }
                     }
                 }
             }
@@ -1159,10 +917,7 @@ namespace PepperDash.Essentials.AverCamera
                 message[message.Length - 3] == _feedbackAddress)
             {
                 Debug.Console(1, this, "Received ack");
-                if (_lastInquiry == eViscaCameraCommand.PresetRecallCmd)
-                {
-                    ActivePreset = _lastCalledPreset;
-                }
+                if (LastInquiry == eViscaCameraCommand.PresetRecallCmd) ActivePreset = LastCalledPreset;
 
                 return;
             }
@@ -1170,16 +925,16 @@ namespace PepperDash.Essentials.AverCamera
             if (message.Length > 2 && message[message.Length - 2] == 0x52 &&
                 message[message.Length - 3] == _feedbackAddress)
             {
-                Debug.Console(1, this, "Received execution confirmation, last inquiry: {0}", _lastInquiry.ToString());
-                switch (_lastInquiry)
+                Debug.Console(1, this, "Received execution confirmation, last inquiry: {0}", LastInquiry.ToString());
+                switch (LastInquiry)
                 {
                     case eViscaCameraCommand.PresetSave:
-                        ActivePreset = _lastCalledPreset;
+                        ActivePreset = LastCalledPreset;
                         PresetSavedFb();
                         break;
                     case eViscaCameraCommand.PowerOnCmd:
                         Power = true;
-                        CrestronInvoke.BeginInvoke((o) =>
+                        CrestronInvoke.BeginInvoke(o =>
                         {
                             CrestronEnvironment.Sleep(2000);
                             PollPower();
@@ -1187,24 +942,24 @@ namespace PepperDash.Essentials.AverCamera
                         break;
                     case eViscaCameraCommand.PowerOffCmd:
                         Power = false;
-                        CrestronInvoke.BeginInvoke((o) =>
+                        CrestronInvoke.BeginInvoke(o =>
                         {
                             CrestronEnvironment.Sleep(2000);
                             PollPower();
                         });
                         break;
                     case eViscaCameraCommand.PresetRecallCmd:
-                        ActivePreset = _lastCalledPreset;
+                        ActivePreset = LastCalledPreset;
                         break;
                 }
 
-                _lastInquiry = eViscaCameraCommand.NoFeedback;
-                readyForNextCommand();
+                LastInquiry = eViscaCameraCommand.NoFeedback;
+                ReadyForNextCommand();
             }
         }
 
         /// <summary>
-        /// Initialize the camera by sending Address Set Broadcast and IF Clear Broadcast
+        ///     Initialize the camera by sending Address Set Broadcast and IF Clear Broadcast
         /// </summary>
         protected void InitializeCamera()
         {
@@ -1217,13 +972,13 @@ namespace PepperDash.Essentials.AverCamera
             QueueCommand(cmd);
         }
 
-        private void IFClear()
+        private void IfClear()
         {
             SendBytes(new byte[] { 0x88, 0x01, 0x00, 0x01, 0xFF });
         }
 
         /// <summary>
-        /// Poll 
+        ///     Poll
         /// </summary>
         public void Poll()
         {
@@ -1260,7 +1015,7 @@ namespace PepperDash.Essentials.AverCamera
 
         private void PollAutoTrack()
         {
-            PostData("cgi-bin?Get=trk_tracking_on,3&_=X", eAverCameraInquiry.AutoTrackInquiry);
+            PostData("cgi-bin?Get=trk_tracking_on,3&_=X", EAverCameraInquiry.AutoTrackInquiry);
         }
 
         private void PollFocus()
@@ -1276,7 +1031,7 @@ namespace PepperDash.Essentials.AverCamera
         }
 
         /// <summary>
-        /// Set power state on
+        ///     Set power state on
         /// </summary>
         public void SetPowerOn()
         {
@@ -1284,7 +1039,7 @@ namespace PepperDash.Essentials.AverCamera
         }
 
         /// <summary>
-        /// Set power state off
+        ///     Set power state off
         /// </summary>
         public void SetPowerOff()
         {
@@ -1293,22 +1048,20 @@ namespace PepperDash.Essentials.AverCamera
         }
 
         /// <summary>
-        /// Turn AutoTracking On
+        ///     Turn AutoTracking On
         /// </summary>
         public void SetAutoTrackingOn()
         {
             if (AutoTrackingCapable.BoolValue)
-            {
-                PostData("cgi-bin?Set=trk_tracking_on,3,1", eAverCameraInquiry.AutoTrackOnCmd);
-            }
+                PostData("cgi-bin?Set=trk_tracking_on,3,1", EAverCameraInquiry.AutoTrackOnCmd);
         }
 
         /// <summary>
-        /// Turn AutoTracking Off
+        ///     Turn AutoTracking Off
         /// </summary>
         public void SetAutoTrackingOff()
         {
-            PostData("cgi-bin?Set=trk_tracking_on,3,0", eAverCameraInquiry.AutoTrackOffCmd);
+            PostData("cgi-bin?Set=trk_tracking_on,3,0", EAverCameraInquiry.AutoTrackOffCmd);
         }
 
         public bool OverrideAutoTracking()
@@ -1329,7 +1082,7 @@ namespace PepperDash.Essentials.AverCamera
         }
 
         /// <summary>
-        /// Move camera with automatic speed setting
+        ///     Move camera with automatic speed setting
         /// </summary>
         /// <param name="state">sig action true/false</param>
         /// <param name="direction">EMoveDirection direction</param>
@@ -1370,7 +1123,7 @@ namespace PepperDash.Essentials.AverCamera
 
                 Move(direction, slow);
 
-                CrestronInvoke.BeginInvoke((o) =>
+                CrestronInvoke.BeginInvoke(o =>
                 {
                     while (_moveInProgress == direction)
                     {
@@ -1403,7 +1156,7 @@ namespace PepperDash.Essentials.AverCamera
         }
 
         /// <summary>
-        /// Move camera with manual speed and manual stop
+        ///     Move camera with manual speed and manual stop
         /// </summary>
         /// <param name="direction">EMoveDirection direction</param>
         /// <param name="speed">speed to move</param>
@@ -1464,7 +1217,7 @@ namespace PepperDash.Essentials.AverCamera
         }
 
         /// <summary>
-        /// Stop camera
+        ///     Stop camera
         /// </summary>
         /// <param name="direction">EMoveDirection direction</param>
         public void Stop(EDirection direction)
@@ -1491,7 +1244,7 @@ namespace PepperDash.Essentials.AverCamera
         }
 
         /// <summary>
-        /// Autofocus on/off
+        ///     Autofocus on/off
         /// </summary>
         /// <param name="state">sig action true/false</param>
         public void AutoFocusSet(bool state)
@@ -1504,7 +1257,7 @@ namespace PepperDash.Essentials.AverCamera
         }
 
         /// <summary>
-        /// Recall Home Position
+        ///     Recall Home Position
         /// </summary>
         public void RecallHomePosition()
         {
@@ -1513,14 +1266,11 @@ namespace PepperDash.Essentials.AverCamera
 
         protected void PresetSavedFb()
         {
-            if (PresetSaved != null)
-            {
-                PresetSaved(this, null);
-            }
+            if (PresetSaved != null) PresetSaved(this, null);
         }
 
         /// <summary>
-        /// Set the tally light to red
+        ///     Set the tally light to red
         /// </summary>
         public void SetTallyRed()
         {
@@ -1530,7 +1280,7 @@ namespace PepperDash.Essentials.AverCamera
         }
 
         /// <summary>
-        /// Set the tally light to green
+        ///     Set the tally light to green
         /// </summary>
         public void SetTallyGreen()
         {
@@ -1540,7 +1290,7 @@ namespace PepperDash.Essentials.AverCamera
         }
 
         /// <summary>
-        /// Set the tally light to off
+        ///     Set the tally light to off
         /// </summary>
         public void SetTallyOff()
         {
@@ -1550,7 +1300,7 @@ namespace PepperDash.Essentials.AverCamera
         }
 
         /// <summary>
-        /// Recall Preset by Number
+        ///     Recall Preset by Number
         /// </summary>
         /// <param name="preset"></param>
         public void RecallPresetByNumber(uint preset)
@@ -1561,13 +1311,13 @@ namespace PepperDash.Essentials.AverCamera
             if (!OverrideAutoTracking())
                 return;
 
-            _lastCalledPreset = preset;
+            LastCalledPreset = preset;
             byte[] cmd = { _address, 0x01, 0x04, 0x3F, 0x02, Convert.ToByte(preset), 0xFF };
             QueueCommand(eViscaCameraCommand.PresetRecallCmd, cmd);
         }
 
         /// <summary>
-        /// Save Preset by Number
+        ///     Save Preset by Number
         /// </summary>
         /// <param name="preset">preset 1...16</param>
         public void SavePresetByNumber(uint preset)
@@ -1575,19 +1325,216 @@ namespace PepperDash.Essentials.AverCamera
             if (preset <= 0)
                 return;
 
-            _lastCalledPreset = preset;
+            LastCalledPreset = preset;
             byte[] cmd = { _address, 0x01, 0x04, 0x3F, 0x01, Convert.ToByte(preset), 0xFF };
             QueueCommand(eViscaCameraCommand.PresetSave, cmd);
         }
 
-        public void Dispose()
+        public class ViscaCameraCommand
         {
-            if (client != null) client.Dispose();
-            if (_pollTimer != null) _pollTimer.Dispose();
-            if (_commandQueue != null) _commandQueue.Dispose();
-            if (_commandMutex != null) _commandMutex.Dispose();
-            if (_commandTimer != null) _commandTimer.Dispose();
-            if (_feedbackMutex != null) _feedbackMutex.Dispose();
+            public readonly byte[] Bytes;
+            public readonly eViscaCameraCommand Command;
+
+            public ViscaCameraCommand(eViscaCameraCommand command, byte[] bytes)
+            {
+                Command = command;
+                Bytes = bytes;
+            }
         }
+
+        /// <summary>
+        ///     For tracking feedback responses from camera
+        /// </summary>
+        private enum EAverCameraInquiry
+        {
+            AutoTrackOnCmd,
+            AutoTrackOffCmd,
+            AutoTrackInquiry
+        }
+
+        #region Overrides of EssentialsBridgeableDevice
+
+        /// <summary>
+        ///     Link to API method replaces bridge class, the bridge will call this method directly
+        /// </summary>
+        /// <param name="trilist"></param>
+        /// <param name="joinStart"></param>
+        /// <param name="joinMapKey"></param>
+        /// <param name="bridge"></param>
+        public override void LinkToApi(BasicTriList trilist, uint joinStart, string joinMapKey, EiscApiAdvanced bridge)
+        {
+            ViscaCameraBridgeJoinMap joinMap = new ViscaCameraBridgeJoinMap(joinStart);
+
+            // This adds the join map to the collection on the bridge
+            if (bridge != null) bridge.AddJoinMap(Key, joinMap);
+
+            Dictionary<string, JoinData> customJoins = JoinMapHelper.TryGetJoinMapAdvancedForDevice(joinMapKey);
+            if (customJoins != null) joinMap.SetCustomJoinData(customJoins);
+
+            Debug.Console(1, "Linking to Trilist '{0}'", trilist.ID.ToString("X"));
+            Debug.Console(0, "Linking to Bridge Type {0}", GetType().Name);
+
+            // link joins to bridge
+            trilist.SetString(joinMap.DeviceName.JoinNumber, Name);
+
+            AutoTrackingCapable.LinkInputSig(trilist.BooleanInput[joinMap.AutoTrackingCapable.JoinNumber]);
+
+            OnlineFeedback.LinkInputSig(trilist.BooleanInput[joinMap.IsOnline.JoinNumber]);
+            // must null check so LinkToApi doesn't except when the device is TCP or UDP
+            if (SocketStatusFeedback != null)
+                SocketStatusFeedback.LinkInputSig(trilist.UShortInput[joinMap.Status.JoinNumber]);
+
+            // power on
+            trilist.SetSigTrueAction(joinMap.PowerOn.JoinNumber, SetPowerOn);
+            PowerFeedback.LinkInputSig(trilist.BooleanInput[joinMap.PowerOn.JoinNumber]);
+            // power off
+            trilist.SetSigTrueAction(joinMap.PowerOff.JoinNumber, SetPowerOff);
+            PowerFeedback.LinkComplementInputSig(trilist.BooleanInput[joinMap.PowerOff.JoinNumber]);
+
+            // home
+            trilist.SetBoolSigAction(joinMap.Home.JoinNumber, sig => RecallHomePosition());
+
+            // pan
+            trilist.SetBoolSigAction(joinMap.PanLeft.JoinNumber, sig => Move(sig, EDirection.PanLeft));
+            trilist.SetBoolSigAction(joinMap.PanRight.JoinNumber, sig => Move(sig, EDirection.PanRight));
+
+            // tilt
+            trilist.SetBoolSigAction(joinMap.TiltUp.JoinNumber, sig => Move(sig, EDirection.TiltUp));
+            trilist.SetBoolSigAction(joinMap.TiltDown.JoinNumber, sig => Move(sig, EDirection.TiltDown));
+
+            // zoom
+            trilist.SetBoolSigAction(joinMap.ZoomIn.JoinNumber, sig => Move(sig, EDirection.ZoomIn));
+            trilist.SetBoolSigAction(joinMap.ZoomOut.JoinNumber, sig => Move(sig, EDirection.ZoomOut));
+
+            // auto tracking on
+            trilist.SetSigTrueAction(joinMap.AutoTrackingOn.JoinNumber, SetAutoTrackingOn);
+            AutoTrackingOnFeedback.LinkInputSig(trilist.BooleanInput[joinMap.AutoTrackingOn.JoinNumber]);
+
+            // auto tracking off
+            trilist.SetSigTrueAction(joinMap.AutoTrackingOff.JoinNumber, SetAutoTrackingOff);
+            AutoTrackingOnFeedback.LinkComplementInputSig(trilist.BooleanInput[joinMap.AutoTrackingOff.JoinNumber]);
+
+            // focus
+            trilist.SetSigTrueAction(joinMap.AutoFocusOn.JoinNumber, () => AutoFocusSet(true));
+            AutoFocusFeedback.LinkInputSig(trilist.BooleanInput[joinMap.AutoFocusOn.JoinNumber]);
+
+            trilist.SetSigTrueAction(joinMap.AutoFocusOff.JoinNumber, () => AutoFocusSet(false));
+            AutoFocusFeedback.LinkComplementInputSig(trilist.BooleanInput[joinMap.AutoFocusOff.JoinNumber]);
+
+            // privacy
+            trilist.SetBoolSigAction(joinMap.PrivacyOn.JoinNumber, sig =>
+            {
+                if (_privacyOnPreset != null) RecallPresetByNumber((uint)_privacyOnPreset);
+            });
+            trilist.SetBoolSigAction(joinMap.PrivacyOff.JoinNumber, sig =>
+            {
+                if (_privacyOffPreset != null) RecallPresetByNumber((uint)_privacyOffPreset);
+            });
+            PrivacyOnFeedback.LinkInputSig(trilist.BooleanInput[joinMap.PrivacyOn.JoinNumber]);
+            PrivacyOnFeedback.LinkComplementInputSig(trilist.BooleanInput[joinMap.PrivacyOff.JoinNumber]);
+            UpdateFeedbacks();
+
+            // preset saved
+            PresetSaved += (o, a) =>
+            {
+                trilist.BooleanInput[joinMap.PresetSaved.JoinNumber].BoolValue = true;
+                CTimer unused = new CTimer(x => trilist.BooleanInput[joinMap.PresetSaved.JoinNumber].BoolValue = false,
+                    3000);
+            };
+
+            // preset - analog recall and save by number
+            trilist.SetUShortSigAction(joinMap.PresetRecallByNumber.JoinNumber, value =>
+            {
+                RecallPresetByNumber(value);
+                Debug.Console(1, this, "LinkToApi PresetRecallByNumber[{0}] => RecallPreset({1})",
+                    joinMap.PresetRecallByNumber.JoinNumber, value);
+            });
+            trilist.SetUShortSigAction(joinMap.PresetSaveByNumber.JoinNumber, value =>
+            {
+                SavePresetByNumber(value);
+                Debug.Console(1, this, "LinkToApi PresetSaveByNumber[{0}] => SavePreset({1})",
+                    joinMap.PresetSaveByNumber.JoinNumber, value);
+            });
+            ActivePresetFeedback.LinkInputSig(trilist.UShortInput[joinMap.PresetRecallByNumber.JoinNumber]);
+
+            // preset count feedback
+            PresetCountFeedback.LinkInputSig(trilist.UShortInput[joinMap.PresetCount.JoinNumber]);
+
+            foreach (KeyValuePair<uint, StringFeedback> item in PresetNameFeedbacks)
+            {
+                // preset number
+                ushort preset = (ushort)item.Key;
+
+                // preset names
+                uint nameJoin = preset + joinMap.PresetNames.JoinNumber - 1;
+                StringFeedback nameFeedback = item.Value;
+                nameFeedback.LinkInputSig(trilist.StringInput[nameJoin]);
+
+                // preset recall
+                uint recallJoin = preset + joinMap.PresetRecall.JoinNumber - 1;
+                trilist.SetSigTrueAction(recallJoin, () =>
+                {
+                    if (_presetIds.ContainsKey(preset))
+                    {
+                        RecallPresetByNumber(_presetIds[preset]);
+                        Debug.Console(1, this, "LinkToApi PresetRecall[{0}]: RecallPreset({1})", recallJoin, preset);
+                    }
+                });
+
+                // preset save/store
+                uint saveJoin = preset + joinMap.PresetSave.JoinNumber - 1;
+                trilist.SetSigTrueAction(saveJoin, () =>
+                {
+                    if (_presetIds.ContainsKey(_presetIds[preset]))
+                    {
+                        SavePresetByNumber(preset);
+                        Debug.Console(1, this, "LinkToApi PresetSave[{0}]: SavePreset({1})", saveJoin, preset);
+                    }
+                });
+            }
+
+            //Link boolean preset feedback
+            foreach (KeyValuePair<uint, BoolFeedback> item in PresetActiveFeedbacks)
+                item.Value.LinkInputSig(trilist.BooleanInput[item.Key + joinMap.PresetRecall.JoinNumber - 1]);
+
+            //stream url
+            trilist.StringInput[joinMap.StreamUrl.JoinNumber].StringValue = _streamUrl;
+            trilist.StringInput[joinMap.StreamUrlRtsp.JoinNumber].StringValue = _streamUrlRtsp;
+
+            // online status 
+            trilist.OnlineStatusChange += (o, a) =>
+            {
+                if (!a.DeviceOnLine) return;
+                trilist.SetString(joinMap.DeviceName.JoinNumber, Name);
+                UpdateFeedbacks();
+            };
+
+            //tally light on/off
+            TallyOnFeedback.LinkInputSig(trilist.BooleanInput[joinMap.TallyOn.JoinNumber]);
+            TallyOnFeedback.LinkComplementInputSig(trilist.BooleanInput[joinMap.TallyOff.JoinNumber]);
+            trilist.SetSigTrueAction(joinMap.TallyOn.JoinNumber, SetTallyRed);
+            trilist.SetSigTrueAction(joinMap.TallyOff.JoinNumber, SetTallyOff);
+        }
+
+        private void UpdateFeedbacks()
+        {
+            OnlineFeedback.FireUpdate();
+            if (SocketStatusFeedback != null) SocketStatusFeedback.FireUpdate();
+
+            PowerFeedback.FireUpdate();
+            PresetCountFeedback.FireUpdate();
+            AutoTrackingCapable.FireUpdate();
+            AutoTrackingOnFeedback.FireUpdate();
+            PrivacyOnFeedback.FireUpdate();
+            ActivePresetFeedback.FireUpdate();
+
+            foreach (KeyValuePair<uint, StringFeedback> item in PresetNameFeedbacks)
+                item.Value.FireUpdate();
+
+            foreach (KeyValuePair<uint, BoolFeedback> item in PresetActiveFeedbacks)
+                item.Value.FireUpdate();
+        }
+
+        #endregion
     }
 }
