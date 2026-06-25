@@ -53,7 +53,7 @@ namespace PepperDash.Essentials.Devices.Common.Microphones
         [JoinName("IsWireless")] public JoinDataComplete IsWireless = new JoinDataComplete(
             new JoinData
             {
-                JoinNumber = 7,
+                JoinNumber = 4,
                 JoinSpan = 1
             },
             new JoinMetadata
@@ -66,7 +66,7 @@ namespace PepperDash.Essentials.Devices.Common.Microphones
         [JoinName("OnDock")] public JoinDataComplete OnDock = new JoinDataComplete(
             new JoinData
             {
-                JoinNumber = 4,
+                JoinNumber = 5,
                 JoinSpan = 1
             },
             new JoinMetadata
@@ -79,25 +79,12 @@ namespace PepperDash.Essentials.Devices.Common.Microphones
         [JoinName("IsPresent")] public JoinDataComplete IsPresent = new JoinDataComplete(
             new JoinData
             {
-                JoinNumber = 5,
+                JoinNumber = 6,
                 JoinSpan = 1
             },
             new JoinMetadata
             {
                 Description = "Device is a wireless mic and has link",
-                JoinCapabilities = eJoinCapabilities.ToSIMPL,
-                JoinType = eJoinType.Digital
-            });
-
-        [JoinName("MicrophoneEnabled")] public JoinDataComplete MicrophoneEnabled = new JoinDataComplete(
-            new JoinData
-            {
-                JoinNumber = 8,
-                JoinSpan = 1
-            },
-            new JoinMetadata
-            {
-                Description = "Wireless microphone is enabled in config",
                 JoinCapabilities = eJoinCapabilities.ToSIMPL,
                 JoinType = eJoinType.Digital
             });

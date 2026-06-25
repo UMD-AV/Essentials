@@ -16,6 +16,7 @@ using Crestron.SimplSharp;
 using PepperDash_Essentials_Core.Extensions;
 using System.Text.RegularExpressions;
 using Newtonsoft.Json.Linq;
+using PepperDash.Essentials.Devices.Common.DynFusion.StaticAssets;
 using PepperDash.Essentials.Devices.Common.Microphones;
 
 namespace DynFusion
@@ -291,6 +292,21 @@ namespace DynFusion
                                 string name = string.Format("{0} - Mxw Tx {1}", mxwapxd2Device.Name, i);
                                 StaticAssets.Add(num,
                                     new MxwTxStaticAsset(name, mxwapxd2Device.Microphones[i - 1], num,
+                                        FusionSymbol));
+                            }
+
+                            continue;
+                        }
+
+                        CatchboxDevice catchboxDevice = device as CatchboxDevice;
+                        if (catchboxDevice != null)
+                        {
+                            for (uint i = 1; i <= catchboxDevice.CatchboxSize; i++)
+                            {
+                                uint num = GetNextAvailableAssetNumber(FusionSymbol);
+                                string name = string.Format("{0} - Catchbox {1}", catchboxDevice.Name, i);
+                                StaticAssets.Add(num,
+                                    new MxwTxStaticAsset(name, catchboxDevice.Microphones[i - 1], num,
                                         FusionSymbol));
                             }
 

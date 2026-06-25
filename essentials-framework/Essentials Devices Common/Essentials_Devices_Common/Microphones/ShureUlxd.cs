@@ -115,10 +115,9 @@ namespace PepperDash.Essentials.Devices.Common.Microphones
             DeviceModelFeedback = new StringFeedback(() => DeviceModel);
             DeviceFirmwareVersionFeedback = new StringFeedback(() => DeviceFirmwareVersion);
             UlxdSize = MicControllerUtilities.GetConfiguredSize(_config, 4, 4);
-            MicController channelConfig = new MicController { Size = _config.Size };
+            MicController channelConfig = new MicController();
             Microphones = MicControllerUtilities.BuildMicrophones(this, 4, channelConfig, "ULXD", false,
                 (micKey, micName) => new WirelessMic(micKey, micName));
-            for (ushort i = 0; i < 4; i++) Microphones[i].MicrophoneEnabled = i < UlxdSize;
 
             _comms = comms;
 
@@ -297,29 +296,18 @@ namespace PepperDash.Essentials.Devices.Common.Microphones
                     DeviceModel = state;
                     if (state.StartsWith("ULXD4Q"))
                     {
-                        //quad rx model
-                        for (ushort i = 0; i < 4; i++) Microphones[i].MicrophoneEnabled = true;
                     }
                     else if (state.StartsWith("ULXD4D"))
                     {
                         //dual rx model
-                        Microphones[0].MicrophoneEnabled = true;
-                        Microphones[1].MicrophoneEnabled = true;
-                        Microphones[2].MicrophoneEnabled = false;
-                        Microphones[3].MicrophoneEnabled = false;
                     }
                     else if (state.StartsWith("ULXD4"))
                     {
                         //single rx model
-                        Microphones[0].MicrophoneEnabled = true;
-                        Microphones[1].MicrophoneEnabled = false;
-                        Microphones[2].MicrophoneEnabled = false;
-                        Microphones[3].MicrophoneEnabled = false;
                     }
                     else
                     {
                         //unknown model
-                        for (ushort i = 0; i < 4; i++) Microphones[i].MicrophoneEnabled = i < UlxdSize;
                     }
 
                     PropagateAllAssignments();
@@ -441,7 +429,7 @@ namespace PepperDash.Essentials.Devices.Common.Microphones
                 return false;
 
             WirelessMic channel = Microphones[channelIndex];
-            if (channel == null || !channel.MicrophoneEnabled || !channel.MicrophonePresent)
+            if (channel == null || !channel.MicrophonePresent)
                 return false;
 
             foreach (AssignedMicrophone assignment in _assignedMicrophones.Values)
@@ -528,8 +516,6 @@ namespace PepperDash.Essentials.Devices.Common.Microphones
                 for (ushort i = 0; i < 4; i++)
                 {
                     ushort index = i;
-                    Microphones[index].MicrophoneEnabledFeedback
-                        .LinkInputSig(trilist.BooleanInput[joinMap.MicrophoneEnabled.JoinNumber + index]);
                     Microphones[index].MicrophonePresentFeedback
                         .LinkInputSig(trilist.BooleanInput[joinMap.MicrophonePresent.JoinNumber + index]);
                     Microphones[index].PercentChargeFeedback
@@ -573,7 +559,6 @@ namespace PepperDash.Essentials.Devices.Common.Microphones
 
             for (ushort i = 0; i < 4; i++)
             {
-                Microphones[i].MicrophoneEnabledFeedback.FireUpdate();
                 Microphones[i].MicrophonePresentFeedback.FireUpdate();
                 Microphones[i].PercentChargeFeedback.FireUpdate();
                 Microphones[i].PercentHealthFeedback.FireUpdate();

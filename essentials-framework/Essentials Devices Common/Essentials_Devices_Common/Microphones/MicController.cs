@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using Crestron.SimplSharp;
 using Newtonsoft.Json;
 using PepperDash.Core;
 using PepperDash.Essentials.Core;
@@ -9,7 +8,6 @@ namespace PepperDash.Essentials.Devices.Common.Microphones
 {
     public class MicController
     {
-        [JsonProperty("size")] public int Size { get; set; }
         [JsonProperty("mics")] public string[] MicKeys { get; set; }
     }
 
@@ -122,11 +120,9 @@ namespace PepperDash.Essentials.Devices.Common.Microphones
             for (ushort i = 0; i < count; i++)
             {
                 string configuredKey = GetConfiguredMicKey(config, i);
-                string defaultKey = string.Format("{0}-mic{1}", parent.Key, i);
+                string defaultKey = string.Format("{0}-mic{1}", parent.Key, i + 1);
                 string micKey = string.IsNullOrEmpty(configuredKey) ? defaultKey : configuredKey;
                 T microphone = factory(micKey, defaultKey);
-
-                microphone.MicrophoneEnabled = true;
                 microphone.Model = model;
                 microphones[i] = microphone;
 
@@ -146,54 +142,15 @@ namespace PepperDash.Essentials.Devices.Common.Microphones
             return microphones;
         }
 
-        public static void ArmFiveAmDockCheckTimer(CTimer timer)
-        {
-            if (timer == null) return;
-
-            DateTime now = DateTime.Now;
-            DateTime fiveAm = DateTime.Today.AddHours(5);
-            if (now >= fiveAm)
-                fiveAm = fiveAm.AddDays(1);
-
-            double totalMilliseconds = (fiveAm - now).TotalMilliseconds + 10000;
-            int timeout = totalMilliseconds > int.MaxValue ? int.MaxValue : (int)totalMilliseconds;
-            timer.Reset(timeout);
-        }
-
-        public static void SetTransmitterStatus(WirelessMic microphone, string status)
-        {
-            if (microphone == null) return;
-
-            microphone.State = status;
-            microphone.OnDock = !string.IsNullOrEmpty(status) && status.Equals("ON_CHARGER");
-            microphone.MicrophonePresent = IsTransmitterPresent(status);
-        }
-
-        public static bool IsTransmitterPresent(string status)
-        {
-            if (string.IsNullOrEmpty(status)) return false;
-
-            switch (status.ToUpper())
-            {
-                case "UNKNOWN":
-                case "MISSING":
-                case "NO_TX":
-                case "NOT_PRESENT":
-                    return false;
-                default:
-                    return true;
-            }
-        }
-
         public static int GetConfiguredSize(MicController config, int defaultSize, int maxSize)
         {
-            if (config == null || config.Size <= 0)
+            if (config.MicKeys == null)
                 return defaultSize;
 
-            if (config.Size > maxSize)
+            if (config.MicKeys.Length > maxSize)
                 return maxSize;
 
-            return config.Size;
+            return config.MicKeys.Length;
         }
 
         public static string GetConfiguredMicKey(MicController config, int index)

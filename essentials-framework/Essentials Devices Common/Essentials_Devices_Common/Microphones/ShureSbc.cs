@@ -130,11 +130,7 @@ namespace PepperDash.Essentials.Devices.Common.Microphones
             Batteries = MicControllerUtilities.BuildMicrophones(this, 8, config, "Shure Battery", true,
                 (micKey, micName) => new ShureSbcBattery(micKey, micName));
             Microphones = new WirelessMic[8];
-            for (ushort i = 0; i < 8; i++)
-            {
-                Batteries[i].MicrophoneEnabled = i < SbcSize;
-                Microphones[i] = Batteries[i];
-            }
+            for (ushort i = 0; i < 8; i++) Microphones[i] = Batteries[i];
 
             _comms = comms;
             _commsGather = new CommunicationGather(_comms, CommsDelimiter)
@@ -335,8 +331,6 @@ namespace PepperDash.Essentials.Devices.Common.Microphones
                     if (index < 4)
                     {
                         short stateInt = Convert.ToInt16(state);
-                        Batteries[index * 2].BatteryEnabled = stateInt > 0;
-                        Batteries[index * 2 + 1].BatteryEnabled = stateInt > 0;
                     }
 
                     break;
@@ -480,17 +474,6 @@ namespace PepperDash.Essentials.Devices.Common.Microphones
             : base(key, name)
         {
             Model = "Shure Battery";
-        }
-
-        public bool BatteryEnabled
-        {
-            get { return MicrophoneEnabled; }
-            set { MicrophoneEnabled = value; }
-        }
-
-        public BoolFeedback BatteryEnabledFeedback
-        {
-            get { return MicrophoneEnabledFeedback; }
         }
 
         public bool BatteryPresent

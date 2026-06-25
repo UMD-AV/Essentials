@@ -6,10 +6,10 @@ using PepperDash.Essentials.Devices.Common.Microphones;
 
 namespace PepperDash.Essentials.Devices.Common.DynFusion.StaticAssets
 {
-    public class MxwTxStaticAsset : StaticAsset
+    public class CatchboxStaticAsset : StaticAsset
     {
-        public MxwTxStaticAsset(string name, WirelessMic tx, uint assetNumber, FusionRoom symbol) :
-            base(name, name + "-Asset", assetNumber, "Mxw Tx", symbol)
+        public CatchboxStaticAsset(string name, WirelessMic tx, uint assetNumber, FusionRoom symbol) :
+            base(name, name + "-Asset", assetNumber, "Catchbox", symbol)
         {
             _asset.AssetUsage.AddSigToRVIFile = false;
             _asset.PowerOn.AddSigToRVIFile = false;
@@ -19,8 +19,8 @@ namespace PepperDash.Essentials.Devices.Common.DynFusion.StaticAssets
 
             _asset.Connected.InputSig.BoolValue = true;
 
-            _asset.ParamMake.Value = "Shure";
-            _asset.ParamModel.Value = "Mxw Tx";
+            _asset.ParamMake.Value = "Catchbox";
+            _asset.ParamModel.Value = "Cube";
 
             //Battery Present
             _asset.AddSig(eSigType.Bool, 1, "Mic Battery - Present", eSigIoMask.InputSigOnly);
@@ -39,7 +39,8 @@ namespace PepperDash.Essentials.Devices.Common.DynFusion.StaticAssets
         {
             if (args.UserConfigurableAssetDetailIndex != _assetNumber) return;
 
-            Debug.Console(1, this, "Mxw Tx battery static asset state change {0} received EventID {1} Index {2}", Name,
+            Debug.Console(1, this, "Catchbox battery static asset state change {0} received EventID {1} Index {2}",
+                Name,
                 args.EventId, args.UserConfigurableAssetDetailIndex);
             switch (args.EventId)
             {

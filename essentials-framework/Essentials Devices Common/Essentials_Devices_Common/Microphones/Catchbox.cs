@@ -32,16 +32,27 @@ namespace PepperDash.Essentials.Devices.Common.Microphones
             : base(key, name)
         {
             Debug.Console(0, this, "Constructing new {0} instance", name);
-            MonitorStatusFeedback = new IntFeedback(() =>
-            {
-                if (_commsMonitor != null) return (int)_commsMonitor.Status;
-                return 0;
-            });
             DeviceModelFeedback = new StringFeedback(() => DeviceModel);
             DeviceFirmwareVersionFeedback = new StringFeedback(() => DeviceFirmwareVersion);
             CatchboxSize = 4;
-            Microphones = MicControllerUtilities.BuildMicrophones(this, CatchboxSize, config, "Catchbox",
-                true, (micKey, micName) => new WirelessMic(micKey, micName));
+            Microphones = new WirelessMic[config.MicKeys.Length];
+            for (ushort i = 0; i < config.MicKeys.Length; i++)
+            {
+                Microphones[i] = new WirelessMic(config.MicKeys[i], config.MicKeys[i])
+                {
+                    Model = "Catchbox"
+                };
+                try
+                {
+                    DeviceManager.AddDevice(Microphones[i]);
+                }
+                catch (Exception e)
+                {
+                    Debug.ConsoleWithLog(0, this, "Exception adding mic '{0}' to device manager: {1}",
+                        config.MicKeys[i],
+                        e.Message);
+                }
+            }
 
             _comms = (GenericUdpServer)comms;
             if (_comms == null)
@@ -51,6 +62,10 @@ namespace PepperDash.Essentials.Devices.Common.Microphones
             }
 
             _commsMonitor = new ManualCommunicationMonitor(this, 70000, 180000);
+            _commsMonitor.StatusChange += (sender, args) =>
+            {
+                foreach (WirelessMic mic in Microphones) mic.IsOnline = args.Status == MonitorStatus.IsOk;
+            };
             _comms.TextReceived += Handle_TextReceived;
             _comms.UpdateConnectionStatus += socket_ConnectionChange;
             SocketStatusFeedback = new IntFeedback(() => (int)_comms.ClientStatus);
@@ -62,8 +77,6 @@ namespace PepperDash.Essentials.Devices.Common.Microphones
         ///     Reports socket status feedback through the bridge
         /// </summary>
         public IntFeedback SocketStatusFeedback { get; private set; }
-
-        public IntFeedback MonitorStatusFeedback { get; private set; }
 
         public void Dispose()
         {
@@ -77,11 +90,10 @@ namespace PepperDash.Essentials.Devices.Common.Microphones
         /// <returns></returns>
         public override bool CustomActivate()
         {
-            Debug.Console(0, this, "Connecting udp");
+            Debug.Console(1, this, "Connecting udp");
             _comms.Connect();
             _pollTimer = new CTimer(o => Poll(), null, 0, 30000);
             _commsMonitor.Start();
-            MonitorStatusFeedback.FireUpdate();
             return base.CustomActivate();
         }
 
@@ -92,16 +104,15 @@ namespace PepperDash.Essentials.Devices.Common.Microphones
                 SocketStatusFeedback.FireUpdate();
             if (args.Connected)
             {
-                Debug.Console(0, this, "Connected udp, subscribing now");
+                Debug.Console(1, this, "Connected udp, subscribing now");
                 Subscribe();
             }
         }
 
         private void Handle_TextReceived(object sender, GenericCommMethodReceiveTextArgs args)
         {
-            Debug.Console(0, this, "Textreceived: {0}", args.Text);
+            Debug.Console(2, this, "Textreceived: {0}", args.Text);
             _commsMonitor.SetOnlineStatus(true);
-            MonitorStatusFeedback.FireUpdate();
             ProcessResponse(args.Text);
         }
 
@@ -135,10 +146,8 @@ namespace PepperDash.Essentials.Devices.Common.Microphones
                 if (TryGetIntValue(response, "error", out error) && error != 0)
                     Debug.Console(0, this, "Catchbox feedback error {0}: {1}", error, text);
 
-                if (response["subscribe"] != null) Debug.Console(0, this, "Catchbox subscription feedback: {0}", text);
-
-                ProcessRxFeedback(response["rx"] as JObject);
-
+                if (response["subscribe"] != null) Debug.Console(2, this, "Catchbox subscription feedback: {0}", text);
+                if (response["rx"] != null) ProcessRxFeedback(response["rx"] as JObject);
                 for (int i = 1; i <= Microphones.Length; i++)
                     ProcessTxFeedback(i, response[string.Format("tx{0}", i)] as JObject);
             }
@@ -150,37 +159,60 @@ namespace PepperDash.Essentials.Devices.Common.Microphones
 
         private void ProcessRxFeedback(JObject rx)
         {
-            if (rx == null)
-                return;
-
-            JObject device = rx["device"] as JObject;
-            if (device == null)
-                return;
-
-            string firmware = GetStringValue(device, "firmware_info");
-            if (firmware != null)
+            if (rx["device"] != null)
             {
-                DeviceFirmwareVersion = firmware;
-                Debug.Console(2, this, "Catchbox feedback: hub firmware {0}", firmware);
+                JObject device = rx["device"] as JObject;
+                string firmware = GetStringValue(device, "firmware_info");
+                if (firmware != null)
+                {
+                    DeviceFirmwareVersion = firmware;
+                    Debug.Console(1, this, "Catchbox feedback: hub firmware {0}", firmware);
+                }
+
+                string deviceType = GetStringValue(device, "device_type");
+                if (deviceType != null)
+                {
+                    DeviceModel = deviceType;
+                    if (deviceType == "dual") CatchboxSize = 2;
+                    Debug.Console(1, this, "Catchbox feedback: device type {0}", deviceType);
+                }
+
+                for (int i = 1; i <= Microphones.Length; i++)
+                {
+                    int linkState;
+                    if (!TryGetIntValue(device, string.Format("mic{0}_link_state", i), out linkState))
+                        continue;
+
+                    WirelessMic microphone = Microphones[i - 1];
+                    microphone.LinkState = (LinkStates)linkState;
+                    Debug.Console(1, this, "Catchbox feedback: mic {0} link state {1} ({2})", i, linkState,
+                        microphone.State);
+                }
             }
-
-            string deviceType = GetStringValue(device, "device_type");
-            if (deviceType != null)
+            else if (rx["audio"] != null)
             {
-                DeviceModel = deviceType;
-                Debug.Console(2, this, "Catchbox feedback: device type {0}", deviceType);
-            }
+                JObject audio = rx["audio"] as JObject;
+                if (audio == null) return;
 
-            for (int i = 1; i <= Microphones.Length; i++)
-            {
-                int linkState;
-                if (!TryGetIntValue(device, string.Format("mic{0}_link_state", i), out linkState))
-                    continue;
+                JObject input = audio["input"] as JObject;
+                if (input == null)
+                    return;
 
-                WirelessMic microphone = Microphones[i - 1];
-                microphone.LinkState = linkState;
-                Debug.Console(2, this, "Catchbox feedback: mic {0} link state {1} ({2})", i, linkState,
-                    microphone.State);
+                for (int i = 1; i <= Microphones.Length; i++)
+                {
+                    JObject mic = input[string.Format("mic{0}", i)] as JObject;
+
+                    if (mic == null)
+                        continue;
+
+                    int muteState;
+                    if (!TryGetIntValue(mic, "mute", out muteState))
+                        continue;
+
+                    WirelessMic microphone = Microphones[i - 1];
+                    microphone.DeviceAudioMuteState = muteState == 1;
+                    Debug.Console(1, this, "Catchbox feedback: mic {0} mute state {1}", i, muteState);
+                }
             }
         }
 
@@ -199,20 +231,24 @@ namespace PepperDash.Essentials.Devices.Common.Microphones
             if (TryGetIntValue(device, "battery", out battery))
             {
                 microphone.PercentCharge = battery;
-                Debug.Console(2, this, "Catchbox feedback: tx {0} battery {1}%", txNumber, battery);
+                Debug.Console(1, this, "Catchbox feedback: tx {0} battery {1}%", txNumber, battery);
             }
 
             string channelName = GetStringValue(device, "name");
             if (channelName != null)
             {
                 microphone.Name = channelName;
-                microphone.Model = channelName;
-                Debug.Console(2, this, "Catchbox feedback: tx {0} channel name {1}", txNumber, channelName);
+                Debug.Console(1, this, "Catchbox feedback: tx {0} channel name {1}", txNumber, channelName);
             }
 
             int rssi;
             if (TryGetIntValue(device, "rssi", out rssi))
-                Debug.Console(2, this, "Catchbox feedback: tx {0} rssi {1}", txNumber, rssi);
+                Debug.Console(1, this, "Catchbox feedback: tx {0} rssi {1}", txNumber, rssi);
+        }
+
+        private static string GetMicMuteString(int micNumber)
+        {
+            return "{\"input\":{\"mic" + micNumber + "\":{\"mute\":null}}}";
         }
 
         private static bool TryGetIntValue(JToken container, string propertyName, out int value)
@@ -262,7 +298,7 @@ namespace PepperDash.Essentials.Devices.Common.Microphones
 
             if (string.IsNullOrEmpty(text)) return;
 
-            Debug.Console(0, this, "SendText: {0}", text);
+            Debug.Console(1, this, "SendText: {0}", text);
             _comms.SendText(text);
         }
 
@@ -319,6 +355,10 @@ namespace PepperDash.Essentials.Devices.Common.Microphones
                 SendText(CatchboxApi.SubscribeTxRx(tx, "rssi"));
                 CrestronEnvironment.Sleep(100);
 
+                //subscribe to mic mute
+                SendText(CatchboxApi.SubscribeAudio("rx", GetMicMuteString(i)));
+                CrestronEnvironment.Sleep(100);
+
                 //Get battery levels
                 SendText(CatchboxApi.GetTxRxData(tx, "battery"));
                 CrestronEnvironment.Sleep(100);
@@ -333,6 +373,10 @@ namespace PepperDash.Essentials.Devices.Common.Microphones
 
                 //Get mic rssi
                 SendText(CatchboxApi.GetTxRxData(tx, "rssi"));
+                CrestronEnvironment.Sleep(100);
+
+                //Get mic mute
+                SendText(CatchboxApi.GetAudioData("rx", GetMicMuteString(i)));
                 CrestronEnvironment.Sleep(100);
             }
         }
@@ -411,7 +455,6 @@ namespace PepperDash.Essentials.Devices.Common.Microphones
                 // _commsMonitor.IsOnlineFeedback is used to drive IsOnlineFb on the bridge
                 _commsMonitor.IsOnlineFeedback.LinkInputSig(trilist.BooleanInput[joinMap.IsOnline.JoinNumber]);
                 SocketStatusFeedback.LinkInputSig(trilist.UShortInput[joinMap.SocketStatus.JoinNumber]);
-                MonitorStatusFeedback.LinkInputSig(trilist.UShortInput[joinMap.MonitorStatus.JoinNumber]);
 
                 // device information feedback
                 DeviceModelFeedback.LinkInputSig(trilist.StringInput[joinMap.DeviceModel.JoinNumber]);
@@ -436,7 +479,6 @@ namespace PepperDash.Essentials.Devices.Common.Microphones
         private void UpdateFeedbacks()
         {
             SocketStatusFeedback.FireUpdate();
-            MonitorStatusFeedback.FireUpdate();
             DeviceModelFeedback.FireUpdate();
             DeviceFirmwareVersionFeedback.FireUpdate();
             MicControllerUtilities.FireMicrophoneFeedbacks(Microphones);
@@ -481,6 +523,41 @@ namespace PepperDash.Essentials.Devices.Common.Microphones
                     string.Format("{0}", device1), new Dictionary<string, object>
                     {
                         { "device", new Dictionary<string, object> { { device2, null } } }
+                    }
+                }
+            };
+
+            return JsonConvert.SerializeObject(jsonData);
+        }
+
+        public static string SubscribeAudio(string device1, string device2)
+        {
+            var jsonData = new
+            {
+                subscribe = new[]
+                {
+                    new Dictionary<string, object>
+                    {
+                        { "#", new { enable = true, period_ms = 0 } },
+                        {
+                            device1,
+                            new { audio = new Dictionary<string, object> { { device2, null } } }
+                        }
+                    }
+                }
+            };
+
+            return JsonConvert.SerializeObject(jsonData);
+        }
+
+        public static string GetAudioData(string device1, string device2)
+        {
+            Dictionary<string, object> jsonData = new Dictionary<string, object>
+            {
+                {
+                    string.Format("{0}", device1), new Dictionary<string, object>
+                    {
+                        { "audio", new Dictionary<string, object> { { device2, null } } }
                     }
                 }
             };

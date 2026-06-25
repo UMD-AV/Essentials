@@ -7,12 +7,21 @@ using PepperDash.Essentials.Core.Bridges;
 
 namespace PepperDash.Essentials.Devices.Common.Microphones
 {
+    public enum LinkStates : ushort
+    {
+        Disconnected = 0,
+        Connected = 1,
+        Pairing = 2,
+        Charging = 3,
+        Unknown = 4
+    }
+
     public class WirelessMic : EssentialsBridgeableDevice
     {
         public WirelessMic(string key, string name) : base(key, name)
         {
             _name = name;
-            _isOnline = true;
+            _isOnline = false;
             _isWireless = true;
             _runtime = 65535;
 
@@ -20,14 +29,13 @@ namespace PepperDash.Essentials.Devices.Common.Microphones
             DeviceAudioMuteStateFeedback = new BoolFeedback(() => DeviceAudioMuteState);
             IsWirelessFeedback = new BoolFeedback(() => IsWireless);
             OnDockFeedback = new BoolFeedback(() => OnDock);
-            MicrophoneEnabledFeedback = new BoolFeedback(() => MicrophoneEnabled);
             MicrophonePresentFeedback = new BoolFeedback(() => MicrophonePresent);
             PercentChargeFeedback = new IntFeedback(() => PercentCharge);
             PercentHealthFeedback = new IntFeedback(() => PercentHealth);
             TemperatureFFeedback = new IntFeedback(() => TemperatureF);
             BatteryErrorAnalogFeedback = new IntFeedback(() => BatteryErrorAnalog);
             RuntimeFeedback = new IntFeedback(() => Runtime);
-            LinkStateFeedback = new IntFeedback(() => LinkState);
+            LinkStateFeedback = new IntFeedback(() => (ushort)LinkState);
             ModelFeedback = new StringFeedback(() => Model);
             NameFeedback = new StringFeedback(() => Name);
             ErrorStringFeedback = new StringFeedback(() => ErrorString);
@@ -69,21 +77,6 @@ namespace PepperDash.Essentials.Devices.Common.Microphones
         /// </summary>
         public BoolFeedback DeviceAudioMuteStateFeedback { get; private set; }
 
-        public void SetDeviceAudioMute(bool state)
-        {
-            DeviceAudioMuteState = state;
-        }
-
-        public void SetDeviceAudioMuteOn()
-        {
-            SetDeviceAudioMute(true);
-        }
-
-        public void SetDeviceAudioMuteOff()
-        {
-            SetDeviceAudioMute(false);
-        }
-
         private bool _isWireless;
 
         public bool IsWireless
@@ -118,23 +111,6 @@ namespace PepperDash.Essentials.Devices.Common.Microphones
         /// </summary>
         public BoolFeedback OnDockFeedback { get; private set; }
 
-        private bool _microphoneEnabled;
-
-        public bool MicrophoneEnabled
-        {
-            get { return _microphoneEnabled; }
-            set
-            {
-                _microphoneEnabled = value;
-                MicrophoneEnabledFeedback.FireUpdate();
-            }
-        }
-
-        /// <summary>
-        ///     Microphone enabled feedback
-        /// </summary>
-        public BoolFeedback MicrophoneEnabledFeedback { get; private set; }
-
         private bool _microphonePresent;
 
         public bool MicrophonePresent
@@ -152,17 +128,17 @@ namespace PepperDash.Essentials.Devices.Common.Microphones
         /// </summary>
         public BoolFeedback MicrophonePresentFeedback { get; private set; }
 
-        private int _linkState;
+        private LinkStates _linkState;
 
-        public int LinkState
+        public LinkStates LinkState
         {
             get { return _linkState; }
             set
             {
                 _linkState = value;
                 State = GetLinkStateName(value);
-                OnDock = value == 3;
-                MicrophonePresent = value != 0;
+                OnDock = value == LinkStates.Charging;
+                MicrophonePresent = value == LinkStates.Charging || value == LinkStates.Connected;
                 LinkStateFeedback.FireUpdate();
             }
         }
@@ -335,7 +311,6 @@ namespace PepperDash.Essentials.Devices.Common.Microphones
             IsWirelessFeedback.FireUpdate();
             OnDockFeedback.FireUpdate();
             DeviceAudioMuteStateFeedback.FireUpdate();
-            MicrophoneEnabledFeedback.FireUpdate();
             MicrophonePresentFeedback.FireUpdate();
             PercentChargeFeedback.FireUpdate();
             PercentHealthFeedback.FireUpdate();
@@ -374,18 +349,20 @@ namespace PepperDash.Essentials.Devices.Common.Microphones
             FireUpdate();
         }
 
-        private static string GetLinkStateName(int linkState)
+
+        private static string GetLinkStateName(LinkStates linkState)
         {
             switch (linkState)
             {
-                case 0:
+                case LinkStates.Disconnected:
                     return "Disconnected";
-                case 1:
+                case LinkStates.Connected:
                     return "Connected";
-                case 2:
+                case LinkStates.Pairing:
                     return "Pairing";
-                case 3:
+                case LinkStates.Charging:
                     return "Charging";
+                case LinkStates.Unknown:
                 default:
                     return "Unknown";
             }
@@ -409,14 +386,13 @@ namespace PepperDash.Essentials.Devices.Common.Microphones
                 // links to bridge
                 IsOnlineFeedback.LinkInputSig(trilist.BooleanInput[joinMap.IsOnline.JoinNumber]);
 
-                trilist.SetSigTrueAction(joinMap.DeviceAudioMuteOn.JoinNumber, SetDeviceAudioMuteOn);
-                trilist.SetSigTrueAction(joinMap.DeviceAudioMuteOff.JoinNumber, SetDeviceAudioMuteOff);
+                //trilist.SetSigTrueAction(joinMap.DeviceAudioMuteOn.JoinNumber, SetDeviceAudioMuteOn);
+                //trilist.SetSigTrueAction(joinMap.DeviceAudioMuteOff.JoinNumber, SetDeviceAudioMuteOff);
                 DeviceAudioMuteStateFeedback.LinkInputSig(trilist.BooleanInput[joinMap.DeviceAudioMuteOn.JoinNumber]);
                 DeviceAudioMuteStateFeedback.LinkComplementInputSig(
                     trilist.BooleanInput[joinMap.DeviceAudioMuteOff.JoinNumber]);
 
                 IsWirelessFeedback.LinkInputSig(trilist.BooleanInput[joinMap.IsWireless.JoinNumber]);
-                MicrophoneEnabledFeedback.LinkInputSig(trilist.BooleanInput[joinMap.MicrophoneEnabled.JoinNumber]);
                 OnDockFeedback.LinkInputSig(trilist.BooleanInput[joinMap.OnDock.JoinNumber]);
                 MicrophonePresentFeedback.LinkInputSig(trilist.BooleanInput[joinMap.IsPresent.JoinNumber]);
 

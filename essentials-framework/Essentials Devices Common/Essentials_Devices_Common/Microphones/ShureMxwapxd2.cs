@@ -57,6 +57,27 @@ namespace PepperDash.Essentials.Devices.Common.Microphones
         /// </summary>
         public StringFeedback DeviceFirmwareVersionFeedback { get; private set; }
 
+        // device firmware version field
+        private string _deviceModel;
+
+        /// <summary>
+        /// Device model property
+        /// </summary>
+        public string DeviceModel
+        {
+            get { return _deviceModel; }
+            set
+            {
+                _deviceModel = value;
+                DeviceModelFeedback.FireUpdate();
+            }
+        }
+
+        /// <summary>
+        /// Device model feedback
+        /// </summary>
+        public StringFeedback DeviceModelFeedback { get; private set; }
+
 
         /// <summary>
         /// Device constructor
@@ -78,16 +99,36 @@ namespace PepperDash.Essentials.Devices.Common.Microphones
                 return 0;
             });
             DeviceFirmwareVersionFeedback = new StringFeedback(() => DeviceFirmwareVersion);
-
+            DeviceModelFeedback = new StringFeedback(() => DeviceModel);
             Mxwapxd2Size = 2;
-            Microphones = MicControllerUtilities.BuildMicrophones(this, Mxwapxd2Size, config, "Mxw Tx",
-                true, (micKey, micName) => new WirelessMic(micKey, micName));
+            Microphones = new WirelessMic[config.MicKeys.Length];
+            for (ushort i = 0; i < config.MicKeys.Length; i++)
+            {
+                Microphones[i] = new WirelessMic(config.MicKeys[i], config.MicKeys[i])
+                {
+                    Model = "Shure Mxw Tx"
+                };
+                try
+                {
+                    DeviceManager.AddDevice(Microphones[i]);
+                }
+                catch (Exception e)
+                {
+                    Debug.ConsoleWithLog(0, this, "Exception adding mic '{0}' to device manager: {1}",
+                        config.MicKeys[i],
+                        e.Message);
+                }
+            }
 
             _comms = comms;
             _commsGather = new CommunicationGather(_comms, CommsDelimiter)
                 { IncludeDelimiter = true };
             _commsGather.LineReceived += Handle_LineReceived;
             _commsMonitor = new GenericCommunicationMonitor(this, _comms, 30000, 180000, 300000, Poll);
+            _commsMonitor.StatusChange += (sender, args) =>
+            {
+                foreach (WirelessMic mic in Microphones) mic.IsOnline = args.Status == MonitorStatus.IsOk;
+            };
             _commsQueue = new GenericQueue(key + "-queue");
 
             ISocketStatus socket = _comms as ISocketStatus;
@@ -154,7 +195,43 @@ namespace PepperDash.Essentials.Devices.Common.Microphones
                 case "TX_STATUS":
                 {
                     int index = Convert.ToInt16(indexString) - 1;
-                    if (index < Mxwapxd2Size) MicControllerUtilities.SetTransmitterStatus(Microphones[index], state);
+                    if (index < Mxwapxd2Size)
+                    {
+                        WirelessMic mic = Microphones[index];
+                        switch (state.ToUpper())
+                        {
+                            case "ACTIVE":
+                            {
+                                mic.LinkState = LinkStates.Connected;
+                                mic.DeviceAudioMuteState = false;
+                                break;
+                            }
+                            case "MUTED":
+                            {
+                                mic.LinkState = LinkStates.Connected;
+                                mic.DeviceAudioMuteState = true;
+                                break;
+                            }
+                            case "OFF":
+                            {
+                                mic.LinkState = LinkStates.Disconnected;
+                                mic.DeviceAudioMuteState = true;
+                                break;
+                            }
+                            case "ON_CHARGER":
+                            {
+                                mic.LinkState = LinkStates.Charging;
+                                mic.DeviceAudioMuteState = true;
+                                break;
+                            }
+                            case "UNKNOWN":
+                            {
+                                mic.LinkState = LinkStates.Unknown;
+                                mic.DeviceAudioMuteState = true;
+                                break;
+                            }
+                        }
+                    }
 
                     break;
                 }
@@ -193,6 +270,29 @@ namespace PepperDash.Essentials.Devices.Common.Microphones
 
                     break;
                 }
+
+                // Battery run time
+                // TX: < GET x RUN_TIME >
+                // RX: < REP x RUN_TIME 65535 >
+                case "BATT_RUN_TIME":
+                {
+                    int index = Convert.ToInt16(indexString) - 1;
+                    if (index < Mxwapxd2Size)
+                    {
+                        ushort stateInt = Convert.ToUInt16(state);
+                        Microphones[index].Runtime = stateInt;
+                    }
+
+                    break;
+                }
+
+                case "CHAN_NAME":
+                {
+                    int index = Convert.ToInt16(indexString) - 1;
+                    if (index < Mxwapxd2Size) Microphones[index].Name = state;
+
+                    break;
+                }
                 // Firmware Version
                 // TX: "< GET FW_VER >"
                 // RX: "< REP FW_VER {y} >" // y is 18-char firmware version
@@ -200,6 +300,28 @@ namespace PepperDash.Essentials.Devices.Common.Microphones
                 {
                     DeviceFirmwareVersion = state;
                     for (ushort i = 0; i < Mxwapxd2Size; i++) Microphones[i].DeviceFirmwareVersion = state;
+
+                    break;
+                }
+                // Device Model
+                // TX: "< GET DEVICE_MODEL >"
+                // RX: "< REP DEVICE_MODEL {y} >" // y is up to 31 character device name
+                case "DEVICE_MODEL":
+                {
+                    DeviceModel = state;
+                    break;
+                }
+                // Tx Model
+                case "TX_MODEL":
+                {
+                    int index = Convert.ToInt16(indexString) - 1;
+                    if (index < Mxwapxd2Size)
+                    {
+                        Microphones[index].Model = state;
+                        if (state == "MXW1X")
+                            Microphones[index].Name = "MXW Bodypack";
+                        else if (state == "MXW2X") Microphones[index].Name = "MXW Handheld";
+                    }
 
                     break;
                 }
@@ -218,7 +340,7 @@ namespace PepperDash.Essentials.Devices.Common.Microphones
         /// <param name="text">Command to be sent</param>		
         public void SendText(string text)
         {
-            if (_comms.IsConnected == false) return;
+            if (!_comms.IsConnected) return;
 
             if (string.IsNullOrEmpty(text)) return;
 
@@ -238,6 +360,7 @@ namespace PepperDash.Essentials.Devices.Common.Microphones
             SendText("GET 0 TX_STATUS");
             SendText("GET 0 BATT_HEALTH");
             SendText("GET 0 BATT_CHARGE");
+            SendText("GET 0 BATT_RUN_TIME");
         }
 
         #endregion Polls
@@ -266,7 +389,6 @@ namespace PepperDash.Essentials.Devices.Common.Microphones
 
                 // links to bridge
                 trilist.StringInput[joinMap.DeviceName.JoinNumber].StringValue = Name;
-                trilist.StringInput[joinMap.DeviceModel.JoinNumber].StringValue = "Shure MXWAPXD2";
                 trilist.SetSigTrueAction(joinMap.RefreshData.JoinNumber, UpdateStatus);
 
                 // _commsMonitor.IsOnlineFeedback is used to drive IsOnlineFb on the bridge
@@ -277,14 +399,14 @@ namespace PepperDash.Essentials.Devices.Common.Microphones
                 // device information feedback
                 DeviceFirmwareVersionFeedback.LinkInputSig(
                     trilist.StringInput[joinMap.DeviceFirmwareVersion.JoinNumber]);
-
+                DeviceModelFeedback.LinkInputSig(
+                    trilist.StringInput[joinMap.DeviceModel.JoinNumber]);
                 UpdateFeedbacks();
 
                 trilist.OnlineStatusChange += (o, a) =>
                 {
                     if (!a.DeviceOnLine) return;
                     trilist.StringInput[joinMap.DeviceName.JoinNumber].StringValue = Name;
-                    trilist.StringInput[joinMap.DeviceModel.JoinNumber].StringValue = "Shure MXWAPXD2";
                     UpdateFeedbacks();
                 };
             }
@@ -299,6 +421,7 @@ namespace PepperDash.Essentials.Devices.Common.Microphones
             SocketStatusFeedback.FireUpdate();
             MonitorStatusFeedback.FireUpdate();
             DeviceFirmwareVersionFeedback.FireUpdate();
+            DeviceModelFeedback.FireUpdate();
             MicControllerUtilities.FireMicrophoneFeedbacks(Microphones);
         }
 

@@ -186,6 +186,7 @@
         <Compile Include="DSP\Tesira\TesiraExpanderMonitor.cs"/>
         <Compile Include="DSP\Tesira\TesiraExpanderTracker.cs"/>
         <Compile Include="DSP\Tesira\TesiraQueue.cs"/>
+        <Compile Include="DynFusion\StaticAssets\CatchboxStaticAsset.cs"/>
         <Compile Include="DynFusion\StaticAssets\MicStaticAsset.cs"/>
         <Compile Include="DynFusion\StaticAssets\MicBatteryStaticAsset.cs"/>
         <Compile Include="DynFusion\StaticAssets\MxwTxStaticAsset.cs"/>
