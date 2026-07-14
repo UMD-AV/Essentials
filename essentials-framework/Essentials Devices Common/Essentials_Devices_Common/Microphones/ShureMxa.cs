@@ -13,7 +13,7 @@ using PepperDash.Essentials.Core.Queues;
 
 namespace PepperDash.Essentials.Devices.Common.Microphones
 {
-    public class ShureMxaDevice : EssentialsBridgeableDevice
+    public class ShureMxaDevice : EssentialsBridgeableDevice, IHasMuteControlWithFeedback
     {
         private const string CommsDelimiter = ">";
 
@@ -61,7 +61,7 @@ namespace PepperDash.Essentials.Devices.Common.Microphones
 
             // digital feedbacks
             DeviceLedStateFeedback = new BoolFeedback(() => DeviceLedState);
-            DeviceAudioMuteStateFeedback = new BoolFeedback(() => DeviceAudioMuteState);
+            MuteFeedback = new BoolFeedback(() => MuteState);
             DeviceMuteStatusLedStateFeedback = new BoolFeedback(() => DeviceMuteStatusLedState);
             ExternalSwitchStateFeedback = new BoolFeedback(() => ExternalSwitchState);
 
@@ -130,7 +130,7 @@ namespace PepperDash.Essentials.Devices.Common.Microphones
                     Debug.Console(1, this, "Linking {0} to dsp object", Name, _config.DspObjectKey);
                     _dspObject = dspObject;
                     dspObject.MuteFeedback.OutputChange += DspMuteFeedbackChange;
-                    DeviceAudioMuteStateFeedback.OutputChange += DeviceMuteStateChange;
+                    MuteFeedback.OutputChange += DeviceMuteChange;
                 }
             }
 
@@ -154,14 +154,14 @@ namespace PepperDash.Essentials.Devices.Common.Microphones
                         try
                         {
                             _dspObjectLock = false;
-                            if (DeviceAudioMuteState != _dspObject.MuteFeedback.BoolValue)
+                            if (MuteState != _dspObject.MuteFeedback.BoolValue)
                             {
                                 Debug.Console(1, this, "Got dsp feedback. Setting mic state to {0}",
                                     _dspObject.MuteFeedback.BoolValue);
                                 if (_dspObject.MuteFeedback.BoolValue)
-                                    SetDeviceAudioMuteOn();
+                                    MuteOn();
                                 else
-                                    SetDeviceAudioMuteOff();
+                                    MuteOff();
                             }
                         }
                         finally
@@ -183,7 +183,7 @@ namespace PepperDash.Essentials.Devices.Common.Microphones
             _deviceMuteChangeInProgress = false;
         }
 
-        private void DeviceMuteStateChange(object obj, FeedbackEventArgs args)
+        private void DeviceMuteChange(object obj, FeedbackEventArgs args)
         {
             if (!_deviceObjectLock)
             {
@@ -197,11 +197,11 @@ namespace PepperDash.Essentials.Devices.Common.Microphones
                         _deviceObjectLock = false;
                         try
                         {
-                            if (_dspObject.MuteFeedback.BoolValue != DeviceAudioMuteState)
+                            if (_dspObject.MuteFeedback.BoolValue != MuteState)
                             {
                                 Debug.Console(1, this, "Got mic state feedback, Setting dsp state to {0}",
-                                    DeviceAudioMuteState);
-                                if (DeviceAudioMuteState)
+                                    MuteState);
+                                if (MuteState)
                                     _dspObject.MuteOn();
                                 else
                                     _dspObject.MuteOff();
@@ -285,17 +285,17 @@ namespace PepperDash.Essentials.Devices.Common.Microphones
                 // RX: "< REP DEVICE_AUDIO_MUTE {ON|OFF} >"
                 case "DEVICE_AUDIO_MUTE":
                 {
-                    DeviceAudioMuteState = state.Contains("ON");
+                    MuteState = state.Contains("ON");
 
                     if (_config.DspObjectKey != null)
-                        if (_dspObject.MuteFeedback.BoolValue != DeviceAudioMuteState && !_deviceMuteChangeInProgress)
+                        if (_dspObject.MuteFeedback.BoolValue != MuteState && !_deviceMuteChangeInProgress)
                         {
                             Debug.Console(0, this, "Dsp feedback doesn't match. Setting mic state to {0}",
                                 _dspObject.MuteFeedback);
                             if (_dspObject.MuteFeedback.BoolValue)
-                                SetDeviceAudioMuteOn();
+                                MuteOn();
                             else
-                                SetDeviceAudioMuteOff();
+                                MuteOff();
                         }
 
                     break;
@@ -564,30 +564,30 @@ namespace PepperDash.Essentials.Devices.Common.Microphones
         #region Device Audio Mute (DEV_AUDIO_MUTE)
 
         // device audio mute state field
-        private bool _deviceAudioMuteState;
+        private bool _muteState;
 
         /// <summary>
         ///     Device audio mute state property
         /// </summary>
-        public bool DeviceAudioMuteState
+        public bool MuteState
         {
-            get { return _deviceAudioMuteState; }
+            get { return _muteState; }
             set
             {
-                _deviceAudioMuteState = value;
-                DeviceAudioMuteStateFeedback.FireUpdate();
+                _muteState = value;
+                MuteFeedback.FireUpdate();
             }
         }
 
         /// <summary>
         ///     Device audio mute state feedback
         /// </summary>
-        public BoolFeedback DeviceAudioMuteStateFeedback { get; private set; }
+        public BoolFeedback MuteFeedback { get; private set; }
 
         /// <summary>
         ///     Toggles the device audio mute
         /// </summary>
-        public void ToggleDeviceAudioMute()
+        public void MuteToggle()
         {
             DeviceMuteChangeTimerStart();
             SendText("SET DEVICE_AUDIO_MUTE TOGGLE");
@@ -608,7 +608,7 @@ namespace PepperDash.Essentials.Devices.Common.Microphones
         /// <remarks>
         ///     Need this to avoid having to use the action delegate
         /// </remarks>
-        public void SetDeviceAudioMuteOn()
+        public void MuteOn()
         {
             SetDeviceAudioMute(true);
         }
@@ -619,7 +619,7 @@ namespace PepperDash.Essentials.Devices.Common.Microphones
         /// <remarks>
         ///     Need this to avoid having to use the action delegate
         /// </remarks>
-        public void SetDeviceAudioMuteOff()
+        public void MuteOff()
         {
             SetDeviceAudioMute(false);
         }
@@ -1064,10 +1064,10 @@ namespace PepperDash.Essentials.Devices.Common.Microphones
             _commsMonitor.IsOnlineFeedback.LinkInputSig(trilist.BooleanInput[joinMap.IsOnline.JoinNumber]);
 
             // device audio mute (DEVICE_AUDIO_MUTE)
-            trilist.SetSigTrueAction(joinMap.DeviceAudioMuteOn.JoinNumber, SetDeviceAudioMuteOn);
-            trilist.SetSigTrueAction(joinMap.DeviceAudioMuteOff.JoinNumber, SetDeviceAudioMuteOff);
-            DeviceAudioMuteStateFeedback.LinkInputSig(trilist.BooleanInput[joinMap.DeviceAudioMuteOn.JoinNumber]);
-            DeviceAudioMuteStateFeedback.LinkComplementInputSig(
+            trilist.SetSigTrueAction(joinMap.DeviceAudioMuteOn.JoinNumber, MuteOn);
+            trilist.SetSigTrueAction(joinMap.DeviceAudioMuteOff.JoinNumber, MuteOff);
+            MuteFeedback.LinkInputSig(trilist.BooleanInput[joinMap.DeviceAudioMuteOn.JoinNumber]);
+            MuteFeedback.LinkComplementInputSig(
                 trilist.BooleanInput[joinMap.DeviceAudioMuteOff.JoinNumber]);
 
             // device information feedback
@@ -1090,7 +1090,7 @@ namespace PepperDash.Essentials.Devices.Common.Microphones
             MonitorStatusFeedback.FireUpdate();
 
             DeviceLedStateFeedback.FireUpdate();
-            DeviceAudioMuteStateFeedback.FireUpdate();
+            MuteFeedback.FireUpdate();
             DeviceMuteStatusLedStateFeedback.FireUpdate();
             DeviceErrorFeedback.FireUpdate();
             ExternalSwitchStateFeedback.FireUpdate();

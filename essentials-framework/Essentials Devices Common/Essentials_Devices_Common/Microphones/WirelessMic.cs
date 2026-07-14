@@ -16,7 +16,7 @@ namespace PepperDash.Essentials.Devices.Common.Microphones
         Unknown = 4
     }
 
-    public class WirelessMic : EssentialsBridgeableDevice
+    public class WirelessMic : EssentialsBridgeableDevice, IHasMuteControlWithFeedback
     {
         public WirelessMic(string key, string name) : base(key, name)
         {
@@ -26,7 +26,7 @@ namespace PepperDash.Essentials.Devices.Common.Microphones
             _runtime = 65535;
 
             IsOnlineFeedback = new BoolFeedback(() => IsOnline);
-            DeviceAudioMuteStateFeedback = new BoolFeedback(() => DeviceAudioMuteState);
+            MuteFeedback = new BoolFeedback(() => MuteState);
             IsWirelessFeedback = new BoolFeedback(() => IsWireless);
             OnDockFeedback = new BoolFeedback(() => OnDock);
             MicrophonePresentFeedback = new BoolFeedback(() => MicrophonePresent);
@@ -60,22 +60,22 @@ namespace PepperDash.Essentials.Devices.Common.Microphones
         /// </summary>
         public BoolFeedback IsOnlineFeedback { get; private set; }
 
-        private bool _deviceAudioMuteState;
+        private bool _muteState;
 
-        public bool DeviceAudioMuteState
+        public bool MuteState
         {
-            get { return _deviceAudioMuteState; }
+            get { return _muteState; }
             set
             {
-                _deviceAudioMuteState = value;
-                DeviceAudioMuteStateFeedback.FireUpdate();
+                _muteState = value;
+                MuteFeedback.FireUpdate();
             }
         }
 
         /// <summary>
         ///     Device audio mute state feedback
         /// </summary>
-        public BoolFeedback DeviceAudioMuteStateFeedback { get; private set; }
+        public BoolFeedback MuteFeedback { get; private set; }
 
         private bool _isWireless;
 
@@ -310,7 +310,7 @@ namespace PepperDash.Essentials.Devices.Common.Microphones
             IsOnlineFeedback.FireUpdate();
             IsWirelessFeedback.FireUpdate();
             OnDockFeedback.FireUpdate();
-            DeviceAudioMuteStateFeedback.FireUpdate();
+            MuteFeedback.FireUpdate();
             MicrophonePresentFeedback.FireUpdate();
             PercentChargeFeedback.FireUpdate();
             PercentHealthFeedback.FireUpdate();
@@ -330,7 +330,7 @@ namespace PepperDash.Essentials.Devices.Common.Microphones
             if (source == null) return;
 
             IsOnline = source.IsOnline;
-            DeviceAudioMuteState = source.DeviceAudioMuteState;
+            MuteState = source.MuteState;
             IsWireless = source.IsWireless;
             MicrophonePresent = source.MicrophonePresent;
             PercentCharge = source.PercentCharge;
@@ -388,8 +388,8 @@ namespace PepperDash.Essentials.Devices.Common.Microphones
 
                 //trilist.SetSigTrueAction(joinMap.DeviceAudioMuteOn.JoinNumber, SetDeviceAudioMuteOn);
                 //trilist.SetSigTrueAction(joinMap.DeviceAudioMuteOff.JoinNumber, SetDeviceAudioMuteOff);
-                DeviceAudioMuteStateFeedback.LinkInputSig(trilist.BooleanInput[joinMap.DeviceAudioMuteOn.JoinNumber]);
-                DeviceAudioMuteStateFeedback.LinkComplementInputSig(
+                MuteFeedback.LinkInputSig(trilist.BooleanInput[joinMap.DeviceAudioMuteOn.JoinNumber]);
+                MuteFeedback.LinkComplementInputSig(
                     trilist.BooleanInput[joinMap.DeviceAudioMuteOff.JoinNumber]);
 
                 IsWirelessFeedback.LinkInputSig(trilist.BooleanInput[joinMap.IsWireless.JoinNumber]);
@@ -422,6 +422,21 @@ namespace PepperDash.Essentials.Devices.Common.Microphones
             {
                 Debug.ConsoleWithLog(0, "Exception Linking to Bridge Type {0}: {1}", GetType().Name, ex.Message);
             }
+        }
+
+        public void MuteToggle()
+        {
+            //
+        }
+
+        public void MuteOn()
+        {
+            //
+        }
+
+        public void MuteOff()
+        {
+            //
         }
     }
 }

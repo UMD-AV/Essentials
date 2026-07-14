@@ -325,16 +325,6 @@ namespace PepperDash.Essentials.Devices.Common.Microphones
                     for (ushort i = 0; i < 8; i++) Batteries[i].DeviceFirmwareVersion = state;
                     break;
                 }
-                case "BATT_MODULE_TYPE":
-                {
-                    int index = Convert.ToInt16(indexString) - 1;
-                    if (index < 4)
-                    {
-                        short stateInt = Convert.ToInt16(state);
-                    }
-
-                    break;
-                }
                 default:
                 {
                     Debug.Console(1, this, "ProcessLineReceived: Unkown command-'{0}' with state-'{1}'", command,

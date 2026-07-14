@@ -203,31 +203,31 @@ namespace PepperDash.Essentials.Devices.Common.Microphones
                             case "ACTIVE":
                             {
                                 mic.LinkState = LinkStates.Connected;
-                                mic.DeviceAudioMuteState = false;
+                                mic.MuteState = false;
                                 break;
                             }
                             case "MUTED":
                             {
                                 mic.LinkState = LinkStates.Connected;
-                                mic.DeviceAudioMuteState = true;
+                                mic.MuteState = true;
                                 break;
                             }
                             case "OFF":
                             {
                                 mic.LinkState = LinkStates.Disconnected;
-                                mic.DeviceAudioMuteState = true;
+                                mic.MuteState = true;
                                 break;
                             }
                             case "ON_CHARGER":
                             {
                                 mic.LinkState = LinkStates.Charging;
-                                mic.DeviceAudioMuteState = true;
+                                mic.MuteState = true;
                                 break;
                             }
                             case "UNKNOWN":
                             {
                                 mic.LinkState = LinkStates.Unknown;
-                                mic.DeviceAudioMuteState = true;
+                                mic.MuteState = true;
                                 break;
                             }
                         }

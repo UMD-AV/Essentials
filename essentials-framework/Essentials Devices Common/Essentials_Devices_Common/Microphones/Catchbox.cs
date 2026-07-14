@@ -18,6 +18,7 @@ namespace PepperDash.Essentials.Devices.Common.Microphones
         private readonly ManualCommunicationMonitor _commsMonitor;
         public readonly WirelessMic[] Microphones;
         private CTimer _pollTimer;
+        private ushort _pollCount;
 
         /// <summary>
         ///     Device constructor
@@ -210,7 +211,7 @@ namespace PepperDash.Essentials.Devices.Common.Microphones
                         continue;
 
                     WirelessMic microphone = Microphones[i - 1];
-                    microphone.DeviceAudioMuteState = muteState == 1;
+                    microphone.MuteState = muteState == 1;
                     Debug.Console(1, this, "Catchbox feedback: mic {0} mute state {1}", i, muteState);
                 }
             }
@@ -311,9 +312,18 @@ namespace PepperDash.Essentials.Devices.Common.Microphones
         {
             try
             {
+                if (_pollCount >= 10)
+                {
+                    _pollCount = 0;
+                    GetMicData();
+                }
+                else
+                {
+                    _pollCount++;
+                }
+
                 if (_commsMonitor.IsOnlineFeedback.BoolValue)
                     return;
-
                 Subscribe();
             }
             catch (Exception e)
@@ -351,14 +361,22 @@ namespace PepperDash.Essentials.Devices.Common.Microphones
                 SendText(CatchboxApi.SubscribeTxRx(tx, "name"));
                 CrestronEnvironment.Sleep(100);
 
-                //subscribe to mic rssi
-                SendText(CatchboxApi.SubscribeTxRx(tx, "rssi"));
-                CrestronEnvironment.Sleep(100);
-
                 //subscribe to mic mute
                 SendText(CatchboxApi.SubscribeAudio("rx", GetMicMuteString(i)));
                 CrestronEnvironment.Sleep(100);
+            }
 
+            GetMicData();
+        }
+
+        /// <summary>
+        ///     Update status and subscribe
+        /// </summary>
+        private void GetMicData()
+        {
+            for (int i = 1; i <= CatchboxSize; i++)
+            {
+                string tx = string.Format("tx{0}", i);
                 //Get battery levels
                 SendText(CatchboxApi.GetTxRxData(tx, "battery"));
                 CrestronEnvironment.Sleep(100);

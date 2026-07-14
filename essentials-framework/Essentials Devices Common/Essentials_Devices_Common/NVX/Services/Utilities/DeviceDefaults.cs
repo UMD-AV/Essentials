@@ -9,10 +9,7 @@ namespace NvxEpi.Services.Utilities
     {
         public static void SetTxDefaults(this DmNvxBaseClass device, NvxDeviceProperties props)
         {
-            if (!(device is DmNvxE3x))
-            {
-                device.Control.DeviceMode = eDeviceMode.Transmitter;
-            }
+            if (!(device is DmNvxE3x)) device.Control.DeviceMode = eDeviceMode.Transmitter;
 
             device.Control.EnableAutomaticInitiation();
             if (!string.IsNullOrEmpty(props.MulticastVideoAddress))
@@ -28,23 +25,19 @@ namespace NvxEpi.Services.Utilities
         private static void SetDefaultInputsFromConfig(DmNvxBaseClass device, NvxDeviceProperties props)
         {
             if (!string.IsNullOrEmpty(props.DefaultVideoInput))
-            {
                 try
                 {
                     if (!(device is DmNvxD3x || device is DmNvxE3x))
-                    {
                         device.Control.VideoSource =
-                            (eSfpVideoSourceTypes)Enum.Parse(typeof(eSfpVideoSourceTypes), props.DefaultVideoInput, true);
-                    }
+                            (eSfpVideoSourceTypes)Enum.Parse(typeof(eSfpVideoSourceTypes), props.DefaultVideoInput,
+                                true);
                 }
                 catch (Exception ex)
                 {
                     Debug.Console(1, "Cannot set device to video input:{0} | {1}", props.DefaultVideoInput, ex.Message);
                 }
-            }
 
             if (!string.IsNullOrEmpty(props.DefaultAudioInput))
-            {
                 try
                 {
                     device.Control.AudioSource =
@@ -55,15 +48,11 @@ namespace NvxEpi.Services.Utilities
                 {
                     Debug.Console(1, "Cannot set device to audio input:{0} | {1}", props.DefaultVideoInput, ex.Message);
                 }
-            }
         }
 
         public static void SetRxDefaults(this DmNvxBaseClass device, NvxDeviceProperties props)
         {
-            if (!(device is DmNvxD3x))
-            {
-                device.Control.DeviceMode = eDeviceMode.Receiver;
-            }
+            if (!(device is DmNvxD3x)) device.Control.DeviceMode = eDeviceMode.Receiver;
 
             device.Control.EnableAutomaticInitiation();
             SetDefaultInputsFromConfig(device, props);
@@ -83,6 +72,7 @@ namespace NvxEpi.Services.Utilities
                     device.DmNaxRouting.SecondaryAudioMode =
                         DmNvxBaseClass.DmNvx35xSecondaryAudio.eSecondaryAudioMode.Manual;
                     device.DmNaxRouting.DmNaxTransmit.MulticastAddress.StringValue = props.MulticastAudioAddress;
+                    device.DmNaxRouting.DmNaxTransmit.Port.UShortValue = 5004;
                 }
                 else
                 {
@@ -100,6 +90,7 @@ namespace NvxEpi.Services.Utilities
                     device.SecondaryAudio.SecondaryAudioMode =
                         DmNvxBaseClass.DmNvx35xSecondaryAudio.eSecondaryAudioMode.Manual;
                     device.SecondaryAudio.MulticastAddress.StringValue = props.MulticastAudioAddress;
+                    device.SecondaryAudio.TsPort.UShortValue = 5004;
                 }
                 else
                 {
@@ -124,6 +115,7 @@ namespace NvxEpi.Services.Utilities
                     //This is only true if the rx is being used to transmit audio, in which case config MUST define the multicast address
                     //There is no video multicast address on a receiver so no ability to deduct multicast audio address from the video address
                     device.DmNaxRouting.DmNaxTransmit.MulticastAddress.StringValue = props.MulticastAudioAddress;
+                    device.DmNaxRouting.DmNaxTransmit.Port.UShortValue = 5004;
                 }
             }
 
@@ -135,11 +127,9 @@ namespace NvxEpi.Services.Utilities
                 device.SecondaryAudio.SecondaryAudioMode =
                     DmNvxBaseClass.DmNvx35xSecondaryAudio.eSecondaryAudioMode.Manual;
                 if (!string.IsNullOrEmpty(props.MulticastAudioAddress))
-                {
                     //This is only true if the rx is being used to transmit audio, in which case config MUST define the multicast address
                     //There is no video multicast address on a receiver so no ability to deduct multicast audio address from the video address
                     device.SecondaryAudio.MulticastAddress.StringValue = props.MulticastAudioAddress;
-                }
             }
         }
     }
