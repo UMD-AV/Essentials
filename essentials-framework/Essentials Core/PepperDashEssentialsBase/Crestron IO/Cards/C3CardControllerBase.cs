@@ -1,6 +1,6 @@
 ﻿using Crestron.SimplSharpProInternal;
 
-namespace PepperDash.Essentials.Core.CrestronIO.Cards
+namespace UmdEssentials.Core.CrestronIO.Cards
 {
     public class C3CardControllerBase : CrestronGenericBaseDevice
     {

@@ -65,7 +65,7 @@ namespace PepperDash.Essentials
 
                 switch (fi.Name)
                 {
-                    case ("PepperDashEssentials.dll"):
+                    case ("UmdEssentials.dll"):
                         {
                             version = Global.AssemblyVersion;
                             assembly = Assembly.GetExecutingAssembly();

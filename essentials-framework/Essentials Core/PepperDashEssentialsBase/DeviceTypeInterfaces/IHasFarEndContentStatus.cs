@@ -1,4 +1,4 @@
-﻿namespace PepperDash.Essentials.Core.DeviceTypeInterfaces
+﻿namespace UmdEssentials.Core.DeviceTypeInterfaces
 {
     public interface IHasFarEndContentStatus
     {

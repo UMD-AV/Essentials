@@ -2,7 +2,7 @@
 using System.Linq;
 using NvxEpi.Abstractions;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
+using UmdEssentials.Core;
 
 namespace NvxEpi.Services.Utilities
 {
@@ -24,7 +24,7 @@ namespace NvxEpi.Services.Utilities
 
         private static void PrintInfoToConsole(IHasFeedback device)
         {
-            foreach (PepperDash.Essentials.Core.Feedback feedback in device.Feedbacks.Where(x =>
+            foreach (UmdEssentials.Core.Feedback feedback in device.Feedbacks.Where(x =>
                          x != null && !string.IsNullOrEmpty(x.Key)))
             {
                 if (feedback is BoolFeedback)

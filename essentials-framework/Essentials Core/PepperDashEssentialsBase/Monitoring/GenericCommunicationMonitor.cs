@@ -3,7 +3,7 @@ using Crestron.SimplSharp;
 using PepperDash.Core;
 
 
-namespace PepperDash.Essentials.Core
+namespace UmdEssentials.Core
 {
     /// <summary>
     /// Used for monitoring comms that are IBasicCommunication. Will send a poll string and provide an event when
@@ -54,10 +54,7 @@ namespace PepperDash.Essentials.Core
             PollTime = pollTime;
             PollString = pollString;
 
-            if (IsSocket)
-            {
-                ((ISocketStatus)Client).ConnectionChange += (socket_ConnectionChange);
-            }
+            if (IsSocket) ((ISocketStatus)Client).ConnectionChange += socket_ConnectionChange;
         }
 
         public GenericCommunicationMonitor(IKeyed parent, IBasicCommunication client, long pollTime,
@@ -87,10 +84,7 @@ namespace PepperDash.Essentials.Core
             PollTime = pollTime;
             PollAction = pollAction;
 
-            if (IsSocket)
-            {
-                ((ISocketStatus)Client).ConnectionChange += socket_ConnectionChange;
-            }
+            if (IsSocket) ((ISocketStatus)Client).ConnectionChange += socket_ConnectionChange;
         }
 
         public GenericCommunicationMonitor(IKeyed parent, IBasicCommunication client, long pollTime,
@@ -107,10 +101,7 @@ namespace PepperDash.Essentials.Core
             CommunicationMonitorConfig props) :
             this(parent, client, props.PollInterval, props.TimeToWarning, props.TimeToError, props.PollString)
         {
-            if (IsSocket)
-            {
-                ((ISocketStatus)Client).ConnectionChange += socket_ConnectionChange;
-            }
+            if (IsSocket) ((ISocketStatus)Client).ConnectionChange += socket_ConnectionChange;
         }
 
         /// <summary>
@@ -138,13 +129,9 @@ namespace PepperDash.Essentials.Core
             if (PollTimer == null)
             {
                 if (MonitorBytesReceived)
-                {
                     Client.BytesReceived += Client_BytesReceived;
-                }
                 else
-                {
                     Client.TextReceived += Client_TextReceived;
-                }
 
                 Poll();
                 PollTimer = new CTimer(o => Poll(), null, PollTime, PollTime);
@@ -178,13 +165,9 @@ namespace PepperDash.Essentials.Core
         public override void Stop()
         {
             if (MonitorBytesReceived)
-            {
-                Client.BytesReceived -= this.Client_BytesReceived;
-            }
+                Client.BytesReceived -= Client_BytesReceived;
             else
-            {
                 Client.TextReceived -= Client_TextReceived;
-            }
 
             if (PollTimer != null)
             {

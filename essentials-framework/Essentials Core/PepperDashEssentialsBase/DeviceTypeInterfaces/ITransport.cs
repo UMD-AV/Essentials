@@ -1,6 +1,6 @@
 ﻿using Crestron.SimplSharpPro.DeviceSupport;
 
-namespace PepperDash.Essentials.Core
+namespace UmdEssentials.Core
 {
     /// <summary>
     /// 

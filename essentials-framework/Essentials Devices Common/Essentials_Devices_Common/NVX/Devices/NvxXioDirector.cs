@@ -1,7 +1,7 @@
 ﻿using System;
 using Crestron.SimplSharpPro.DM.Streaming;
 using NvxEpi.Abstractions.Hardware;
-using PepperDash.Essentials.Core;
+using UmdEssentials.Core;
 
 namespace NvxEpi.Devices
 {

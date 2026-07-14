@@ -1,7 +1,7 @@
 ﻿using PepperDash.Core;
-using PepperDash.Essentials.Core;
+using UmdEssentials.Core;
 
-namespace PepperDash.Essentials.EpiphanPearl.Utilities
+namespace UmdEssentials.EpiphanPearl.Utilities
 {
     public class EpiphanCommunicationMonitor : StatusMonitorBase
     {

@@ -1,7 +1,7 @@
 ﻿using System;
 using Crestron.SimplSharpPro.DeviceSupport;
 
-namespace PepperDash.Essentials.Core.Presets
+namespace UmdEssentials.Core.Presets
 {
     public class DevicePresetsView
     {
@@ -15,9 +15,7 @@ namespace PepperDash.Essentials.Core.Presets
         public DevicePresetsView(BasicTriListWithSmartObject tl, DevicePresetsModel model)
         {
             if (model == null)
-            {
                 throw new ArgumentNullException("model", "DevicePresetsView Cannot be instantiated with null model");
-            }
 
             ShowIcon = true;
             ShowName = true;

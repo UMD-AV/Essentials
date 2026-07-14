@@ -1,8 +1,8 @@
 ﻿using System;
-using PepperDash.Essentials.Core.Config;
+using UmdEssentials.Core.Config;
 
 
-namespace PepperDash.Essentials.Core.Devices
+namespace UmdEssentials.Core.Devices
 {
     public interface IReconfigurableDevice
     {

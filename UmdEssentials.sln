@@ -1,6 +1,6 @@
-Microsoft Visual Studio Solution File, Format Version 10.00
+﻿Microsoft Visual Studio Solution File, Format Version 10.00
 # Visual Studio 2008
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PepperDashEssentials", "PepperDashEssentials\PepperDashEssentials.csproj", "{1BED5BA9-88C4-4365-9362-6F4B128071D3}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UmdEssentials", "UmdEssentials\UmdEssentials.csproj", "{1BED5BA9-88C4-4365-9362-6F4B128071D3}"
 	ProjectSection(ProjectDependencies) = postProject
 		{892B761C-E479-44CE-BD74-243E9214AF13} = {892B761C-E479-44CE-BD74-243E9214AF13}
 		{87E29B4C-569B-4368-A4ED-984AC1440C96} = {87E29B4C-569B-4368-A4ED-984AC1440C96}

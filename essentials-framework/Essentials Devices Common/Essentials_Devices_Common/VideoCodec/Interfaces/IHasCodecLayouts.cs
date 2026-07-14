@@ -1,8 +1,8 @@
 ﻿using System;
-using PepperDash.Essentials.Core;
 using Newtonsoft.Json;
+using UmdEssentials.Core;
 
-namespace PepperDash.Essentials.Devices.Common.VideoCodec
+namespace UmdEssentials.Devices.Common.VideoCodec
 {
     /// <summary>
     /// Defines the required elements for layout control

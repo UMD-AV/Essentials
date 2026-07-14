@@ -1,6 +1,6 @@
-﻿using PepperDash.Essentials.Core;
+﻿using UmdEssentials.Core;
 
-namespace PepperDash.Essentials.Devices.Common.VideoCodec
+namespace UmdEssentials.Devices.Common.VideoCodec
 {
     /// <summary>
     /// For rooms that have video codec

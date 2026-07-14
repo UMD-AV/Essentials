@@ -2,7 +2,7 @@
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 
-namespace PepperDash.Essentials.Devices.Common.Codec
+namespace UmdEssentials.Devices.Common.Codec
 
 {
     public class CodecActiveCallItem

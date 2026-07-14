@@ -2,7 +2,7 @@
 using System.Linq;
 using NvxEpi.Abstractions;
 using NvxEpi.Features.Routing;
-using PepperDash.Essentials.Core;
+using UmdEssentials.Core;
 
 namespace NvxEpi.Application.Services
 {
@@ -29,9 +29,7 @@ namespace NvxEpi.Application.Services
                                  tieLine.DestinationPort.ParentDevice.Key.Equals(NvxGlobalRouter.Instance
                                      .PrimaryStreamRouter.Key))
                              .Where(tieLine => tieLine.SourcePort.ParentDevice.Key.Equals(tx.Key)))
-                {
                     tieLine.OverrideType = eRoutingSignalType.AudioVideo;
-                }
             }
 
             foreach (KeyValuePair<int, INvxDevice> receiver in _receivers)
@@ -44,9 +42,7 @@ namespace NvxEpi.Application.Services
                                  tieLine.SourcePort.ParentDevice.Key.Equals(NvxGlobalRouter.Instance.PrimaryStreamRouter
                                      .Key))
                              .Where(tieLine => tieLine.DestinationPort.ParentDevice.Key.Equals(rx.Key)))
-                {
                     tieLine.OverrideType = eRoutingSignalType.AudioVideo;
-                }
             }
         }
 
@@ -62,9 +58,7 @@ namespace NvxEpi.Application.Services
                                  tieLine.DestinationPort.ParentDevice.Key.Equals(NvxGlobalRouter.Instance
                                      .PrimaryStreamRouter.Key))
                              .Where(tieLine => tieLine.SourcePort.ParentDevice.Key.Equals(tx.Key)))
-                {
                     tieLine.OverrideType = eRoutingSignalType.Video;
-                }
             }
 
             foreach (KeyValuePair<int, INvxDevice> receiver in _receivers)
@@ -77,9 +71,7 @@ namespace NvxEpi.Application.Services
                                  tieLine.SourcePort.ParentDevice.Key.Equals(NvxGlobalRouter.Instance.PrimaryStreamRouter
                                      .Key))
                              .Where(tieLine => tieLine.DestinationPort.ParentDevice.Key.Equals(rx.Key)))
-                {
                     tieLine.OverrideType = eRoutingSignalType.Video;
-                }
             }
         }
     }

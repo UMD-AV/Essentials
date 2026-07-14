@@ -1,4 +1,4 @@
-﻿namespace PepperDash.Essentials.Core.Routing
+﻿namespace UmdEssentials.Core.Routing
 {
     /// <summary>
     /// These should correspond directly with the portNames var in the config tool.

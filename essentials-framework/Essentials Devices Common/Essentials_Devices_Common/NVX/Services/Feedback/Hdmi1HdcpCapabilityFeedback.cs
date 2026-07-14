@@ -1,5 +1,5 @@
 using Crestron.SimplSharpPro.DM.Streaming;
-using PepperDash.Essentials.Core;
+using UmdEssentials.Core;
 
 namespace NvxEpi.Services.Feedback
 {
@@ -43,10 +43,7 @@ namespace NvxEpi.Services.Feedback
 
         public static StringFeedback GetFeedback(DmNvxBaseClass device)
         {
-            if (device.HdmiIn == null || device.HdmiIn[1] == null)
-            {
-                return new StringFeedback(() => string.Empty);
-            }
+            if (device.HdmiIn == null || device.HdmiIn[1] == null) return new StringFeedback(() => string.Empty);
 
             StringFeedback feedback = new StringFeedback(Key, () =>
             {
@@ -69,10 +66,7 @@ namespace NvxEpi.Services.Feedback
 
         public static IntFeedback GetFeedback(DmNvxBaseClass device)
         {
-            if (device.HdmiIn == null | device.HdmiIn[1] == null)
-            {
-                return new IntFeedback(() => 0);
-            }
+            if ((device.HdmiIn == null) | (device.HdmiIn[1] == null)) return new IntFeedback(() => 0);
 
             IntFeedback feedback = new IntFeedback(Key, () => device.HdmiIn[1].AudioChannelsFeedback.UShortValue);
 
@@ -88,10 +82,7 @@ namespace NvxEpi.Services.Feedback
 
         public static StringFeedback GetFeedback(DmNvxBaseClass device)
         {
-            if (device.HdmiIn == null | device.HdmiIn[1] == null)
-            {
-                return new StringFeedback(() => string.Empty);
-            }
+            if ((device.HdmiIn == null) | (device.HdmiIn[1] == null)) return new StringFeedback(() => string.Empty);
 
             StringFeedback feedback = new StringFeedback(Key, () => device.HdmiIn[1].AudioFormatFeedback.ToString());
 
@@ -107,10 +98,7 @@ namespace NvxEpi.Services.Feedback
 
         public static StringFeedback GetFeedback(DmNvxBaseClass device)
         {
-            if (device.HdmiIn == null | device.HdmiIn[1] == null)
-            {
-                return new StringFeedback(() => string.Empty);
-            }
+            if ((device.HdmiIn == null) | (device.HdmiIn[1] == null)) return new StringFeedback(() => string.Empty);
 
             StringFeedback feedback =
                 new StringFeedback(Key, () => device.HdmiIn[1].VideoAttributes.ColorSpaceFeedback.ToString());
@@ -127,10 +115,7 @@ namespace NvxEpi.Services.Feedback
 
         public static StringFeedback GetFeedback(DmNvxBaseClass device)
         {
-            if (device.HdmiIn == null | device.HdmiIn[1] == null)
-            {
-                return new StringFeedback(() => string.Empty);
-            }
+            if ((device.HdmiIn == null) | (device.HdmiIn[1] == null)) return new StringFeedback(() => string.Empty);
 
             StringFeedback feedback = new StringFeedback(Key, () => device.HdmiIn[1].HdrTypeFeedback.ToString());
 

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace PepperDash.Essentials.Devices.Common.Cameras
+namespace UmdEssentials.Devices.Common.Cameras
 {
     /// <summary>
     /// Describes a camera with preset functionality

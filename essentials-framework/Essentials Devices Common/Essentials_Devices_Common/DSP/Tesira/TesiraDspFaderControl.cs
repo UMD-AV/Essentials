@@ -2,15 +2,15 @@
 using Newtonsoft.Json;
 using Crestron.SimplSharp;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
+using UmdEssentials.Core;
 using System.Text.RegularExpressions;
 using Crestron.SimplSharpPro.DeviceSupport;
-using PepperDash.Essentials.Core.Bridges;
+using UmdEssentials.Core.Bridges;
 using Tesira_DSP_EPI.Bridge.JoinMaps;
 using System.Collections.Generic;
 using Tesira_DSP_EPI.Extensions;
 using Tesira_DSP_EPI.Interfaces;
-using Feedback = PepperDash.Essentials.Core.Feedback;
+using Feedback = UmdEssentials.Core.Feedback;
 
 namespace Tesira_DSP_EPI
 {
@@ -92,10 +92,7 @@ namespace Tesira_DSP_EPI
                 {
                     Debug.Console(2, this, "{0} is {1} and {2}", item.Key, item.Value.Enabled ? "Enabled" : "Disabled",
                         item.Value.Subscribed ? "Subscribed" : "Not Subscribed");
-                    if (item.Value.Enabled && !item.Value.Subscribed)
-                    {
-                        trackingBool = false;
-                    }
+                    if (item.Value.Enabled && !item.Value.Subscribed) trackingBool = false;
                 }
 
                 Debug.Console(1, this, "Item is {0}.", trackingBool ? "subscribed" : "not subscribed");
@@ -129,9 +126,9 @@ namespace Tesira_DSP_EPI
             : base(config.LevelInstanceTag, config.MuteInstanceTag, config.Index1, config.Index2, parent,
                 string.Format(KeyFormatter, parent.Key, key), config.Label, config.BridgeIndex)
         {
-            MuteCustomName = (string.Format("{0}__mute{1}", InstanceTag2, Index1)).Replace(" ", string.Empty);
+            MuteCustomName = string.Format("{0}__mute{1}", InstanceTag2, Index1).Replace(" ", string.Empty);
 
-            LevelCustomName = (string.Format("{0}__level{1}", InstanceTag1, Index1)).Replace(" ", string.Empty);
+            LevelCustomName = string.Format("{0}__level{1}", InstanceTag1, Index1).Replace(" ", string.Empty);
 
             Initialize(config);
         }
@@ -416,15 +413,9 @@ namespace Tesira_DSP_EPI
         /// </summary>
         public override void DoPoll()
         {
-            if (HasLevel)
-            {
-                GetVolume();
-            }
+            if (HasLevel) GetVolume();
 
-            if (HasMute)
-            {
-                GetMute();
-            }
+            if (HasMute) GetMute();
         }
 
         /// <summary>
@@ -523,10 +514,7 @@ namespace Tesira_DSP_EPI
                     SendFullCommand("increment", "level", "2.0", 1);
                     if (!AutomaticUnmuteOnVolumeUp) return;
 
-                    if (_isMuted)
-                    {
-                        MuteOff();
-                    }
+                    if (_isMuted) MuteOff();
                 }
 
                 return;
@@ -556,10 +544,7 @@ namespace Tesira_DSP_EPI
             if (!string.IsNullOrEmpty(joinMapSerialized))
                 joinMap = JsonConvert.DeserializeObject<TesiraFaderJoinMapAdvanceeStandalone>(joinMapSerialized);
 
-            if (bridge != null)
-            {
-                bridge.AddJoinMap(Key, joinMap);
-            }
+            if (bridge != null) bridge.AddJoinMap(Key, joinMap);
 
             Debug.Console(1, this, "Linking to Trilist '{0}'", trilist.ID.ToString("X"));
 
@@ -596,20 +581,14 @@ namespace Tesira_DSP_EPI
 
             trilist.SetUShortSigAction(joinMap.Volume.JoinNumber, u =>
             {
-                if (trilist.BooleanOutput[joinMap.EnableLevelSend.JoinNumber].BoolValue)
-                {
-                    genericChannel.SetVolume(u);
-                }
+                if (trilist.BooleanOutput[joinMap.EnableLevelSend.JoinNumber].BoolValue) genericChannel.SetVolume(u);
             });
 
             trilist.OnlineStatusChange += (d, args) =>
             {
                 if (!args.DeviceOnLine) return;
 
-                foreach (Feedback feedback in Feedbacks)
-                {
-                    feedback.FireUpdate();
-                }
+                foreach (Feedback feedback in Feedbacks) feedback.FireUpdate();
             };
         }
     }

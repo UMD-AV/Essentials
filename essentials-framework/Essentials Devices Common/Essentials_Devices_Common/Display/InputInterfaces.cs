@@ -1,4 +1,4 @@
-﻿namespace PepperDash.Essentials.Devices.Displays
+﻿namespace UmdEssentials.Devices.Displays
 {
     public interface IInputHdmi1
     {

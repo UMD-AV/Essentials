@@ -1,6 +1,6 @@
 ﻿using PepperDash.Core;
 
-namespace PepperDash.Essentials.Core.Interfaces
+namespace UmdEssentials.Core.Interfaces
 {
     public interface ILogStrings : IKeyed
     {

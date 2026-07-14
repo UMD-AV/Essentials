@@ -5,10 +5,10 @@ using Crestron.SimplSharpPro;
 using Crestron.SimplSharpPro.DeviceSupport;
 using Newtonsoft.Json;
 using PepperDash.Core;
-using PepperDash.Essentials.Core.Bridges;
-using PepperDash.Essentials.Core.Config;
+using UmdEssentials.Core.Bridges;
+using UmdEssentials.Core.Config;
 
-namespace PepperDash.Essentials.Core.CrestronIO
+namespace UmdEssentials.Core.CrestronIO
 {
     /// <summary>
     /// Represents a generic device controlled by relays
@@ -41,13 +41,9 @@ namespace PepperDash.Essentials.Core.CrestronIO
         {
             OutputIsOnFeedback = new BoolFeedback(() => RelayOutput != null && RelayOutput.State);
             if (config.RelayHoldTimeSeconds >= 1)
-            {
                 RelayHoldTimeSeconds = config.RelayHoldTimeSeconds;
-            }
             else
-            {
                 RelayHoldTimeSeconds = (ushort)1;
-            }
 
             AddPostActivationAction(() =>
             {
@@ -105,10 +101,7 @@ namespace PepperDash.Essentials.Core.CrestronIO
                 return null;
             }
 
-            if (dc.PortNumber <= relayDevice.NumberOfRelayPorts)
-            {
-                return relayDevice.RelayPorts[dc.PortNumber];
-            }
+            if (dc.PortNumber <= relayDevice.NumberOfRelayPorts) return relayDevice.RelayPorts[dc.PortNumber];
 
             Debug.Console(0, "Device {0} does not contain a port {1}", dc.PortDeviceKey, dc.PortNumber);
             return null;
@@ -190,14 +183,10 @@ namespace PepperDash.Essentials.Core.CrestronIO
                 joinMap = JsonConvert.DeserializeObject<GenericRelayControllerJoinMap>(joinMapSerialized);
 
             if (bridge != null)
-            {
                 bridge.AddJoinMap(Key, joinMap);
-            }
             else
-            {
                 Debug.Console(0, this,
                     "Please update config to use 'eiscapiadvanced' to get all join map features for this device.");
-            }
 
             if (RelayOutput == null)
             {
@@ -231,7 +220,7 @@ namespace PepperDash.Essentials.Core.CrestronIO
         {
             public GenericRelayDeviceFactory()
             {
-                TypeNames = new List<string>() { "relayoutput" };
+                TypeNames = new List<string> { "relayoutput" };
             }
 
             public override EssentialsDevice BuildDevice(DeviceConfig dc)

@@ -1,7 +1,7 @@
 ﻿using System;
 using PepperDash.Core;
 
-namespace PepperDash.Essentials.Core
+namespace UmdEssentials.Core
 {
     public interface IUsageTracking
     {
@@ -42,13 +42,9 @@ namespace PepperDash.Essentials.Core
         private void InUseFeedback_OutputChange(object sender, EventArgs e)
         {
             if (InUseTracker.InUseFeedback.BoolValue)
-            {
                 StartDeviceUsage();
-            }
             else
-            {
                 EndDeviceUsage();
-            }
         }
 
 
@@ -83,7 +79,7 @@ namespace PepperDash.Essentials.Core
                         Debug.Console(1, "Device Usage Ended for: {0} at {1}.  In use for {2} minutes.", Parent.Name,
                             UsageEndTime, timeUsed.Minutes);
                         handler(this,
-                            new DeviceUsageEventArgs() { UsageEndTime = UsageEndTime, MinutesUsed = timeUsed.Minutes });
+                            new DeviceUsageEventArgs { UsageEndTime = UsageEndTime, MinutesUsed = timeUsed.Minutes });
                     }
                 }
             }

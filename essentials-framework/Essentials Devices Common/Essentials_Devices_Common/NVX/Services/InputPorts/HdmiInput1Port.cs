@@ -4,7 +4,7 @@ using Crestron.SimplSharpPro.DeviceSupport;
 using Crestron.SimplSharpPro.DM.Endpoints;
 using NvxEpi.Abstractions.InputSwitching;
 using NvxEpi.Enums;
-using PepperDash.Essentials.Core;
+using UmdEssentials.Core;
 
 namespace NvxEpi.Services.InputPorts
 {
@@ -38,7 +38,7 @@ namespace NvxEpi.Services.InputPorts
 
                 device.InputPorts.Add(port);
 
-                foreach (PepperDash.Essentials.Core.Feedback videoStatusOutput in port.VideoStatus.ToList()
+                foreach (UmdEssentials.Core.Feedback videoStatusOutput in port.VideoStatus.ToList()
                              .Where(x => x != null))
                     device.Feedbacks.Add(videoStatusOutput);
             }
@@ -68,7 +68,7 @@ namespace NvxEpi.Services.InputPorts
 
                 device.InputPorts.Add(port);
 
-                foreach (PepperDash.Essentials.Core.Feedback videoStatusOutput in port.VideoStatus.ToList()
+                foreach (UmdEssentials.Core.Feedback videoStatusOutput in port.VideoStatus.ToList()
                              .Where(x => x != null))
                     device.Feedbacks.Add(videoStatusOutput);
             }

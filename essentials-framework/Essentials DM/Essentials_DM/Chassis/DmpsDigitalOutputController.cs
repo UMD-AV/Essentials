@@ -1,10 +1,10 @@
 ﻿using Crestron.SimplSharpPro.DM;
 using Crestron.SimplSharpPro.DM.Cards;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
+using UmdEssentials.Core;
 
 
-namespace PepperDash.Essentials.DM
+namespace UmdEssentials.DM
 {
     /// <summary>
     /// 
@@ -98,15 +98,9 @@ namespace PepperDash.Essentials.DM
         public void AddToFeedbackList(params Feedback[] newFbs)
         {
             foreach (Feedback f in newFbs)
-            {
                 if (f != null)
-                {
                     if (!Feedbacks.Contains(f))
-                    {
                         Feedbacks.Add(f);
-                    }
-                }
-            }
         }
 
         public virtual void ExecuteNumericSwitch(ushort input, ushort output, eRoutingSignalType type)
@@ -145,15 +139,11 @@ namespace PepperDash.Essentials.DM
             if ((signalType | eRoutingSignalType.Audio) == eRoutingSignalType.Audio)
             {
                 if (OutputCard is Card.Dmps3DmOutputBackend)
-                {
                     (OutputCard as Card.Dmps3DmOutputBackend).AudioOutSourceDevice =
                         (eDmps34KAudioOutSourceDevice)inputSelector;
-                }
                 else if (OutputCard is Card.Dmps3HdmiOutputBackend)
-                {
                     (OutputCard as Card.Dmps3HdmiOutputBackend).AudioOutSourceDevice =
                         (eDmps34KAudioOutSourceDevice)inputSelector;
-                }
             }
         }
 

@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using PepperDash.Core;
-using PepperDash.Essentials.Core.CrestronIO;
+using UmdEssentials.Core.CrestronIO;
 
-namespace PepperDash.Essentials.Core.Devices
+namespace UmdEssentials.Core.Devices
 {
     /// <summary>
     /// This wrapper class is meant to allow interfaces to be applied to any Crestron processor
@@ -31,14 +31,12 @@ namespace PepperDash.Essentials.Core.Devices
             try
             {
                 if (Processor.SupportsRelay)
-                {
                     for (uint i = 1; i <= Processor.NumberOfRelayPorts; i++)
                     {
-                        GenericRelayDevice relay = new GenericRelayDevice(string.Format("{0}-relay-{1}", this.Key, i),
+                        GenericRelayDevice relay = new GenericRelayDevice(string.Format("{0}-relay-{1}", Key, i),
                             Processor.RelayPorts[i]);
                         SwitchedOutputs.Add(i, relay);
                     }
-                }
             }
             catch (Exception e)
             {

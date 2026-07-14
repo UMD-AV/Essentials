@@ -1,10 +1,10 @@
 ﻿using Crestron.SimplSharpPro.DeviceSupport;
 using Crestron.SimplSharpPro.DM.Endpoints;
 using Crestron.SimplSharpPro.DM.Endpoints.Receivers;
-using PepperDash.Essentials.Core;
-using PepperDash.Essentials.Core.Bridges;
+using UmdEssentials.Core;
+using UmdEssentials.Core.Bridges;
 
-namespace PepperDash.Essentials.DM
+namespace UmdEssentials.DM
 {
     [Description("Wrapper Class for DM-RMC-4K-Z-100-C")]
     public class DmRmc4kZ100CController : DmRmcX100CController

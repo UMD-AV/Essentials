@@ -2,7 +2,7 @@
 using Crestron.SimplSharp;
 using PepperDash.Core;
 
-namespace PepperDash.Essentials.Core.Queues
+namespace UmdEssentials.Core.Queues
 {
     public sealed class StringResponseProcessor : IKeyed, IDisposable
     {

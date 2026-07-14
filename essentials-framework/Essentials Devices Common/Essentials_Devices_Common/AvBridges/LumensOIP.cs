@@ -4,13 +4,13 @@ using System.Text;
 using Crestron.SimplSharp;
 using Crestron.SimplSharp.Net.Http;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
-using PepperDash.Essentials.Core.Bridges;
 using Newtonsoft.Json;
-using PepperDash.Essentials.Core.Config;
 using Crestron.SimplSharpPro.DeviceSupport;
+using UmdEssentials.Core;
+using UmdEssentials.Core.Bridges;
+using UmdEssentials.Core.Config;
 
-namespace PepperDash.Essentials.Devices.Common.LumensOip
+namespace UmdEssentials.Devices.Common.LumensOip
 {
     public class LumensOipDevice : EssentialsBridgeableDevice, ITxRoutingWithFeedback, IDisposable
     {
@@ -125,10 +125,7 @@ namespace PepperDash.Essentials.Devices.Common.LumensOip
 
 
                 HttpClientResponse response = _client.Dispatch(req);
-                if (response.Code == 200)
-                {
-                    processFeedback(response.ContentString);
-                }
+                if (response.Code == 200) processFeedback(response.ContentString);
             }
             catch (Exception ex)
             {
@@ -157,10 +154,7 @@ namespace PepperDash.Essentials.Devices.Common.LumensOip
 
 
                     HttpClientResponse response = _client.Dispatch(req);
-                    if (response.Code != 200)
-                    {
-                        UpdateSourceFb(oldInput);
-                    }
+                    if (response.Code != 200) UpdateSourceFb(oldInput);
                 }
                 catch (Exception ex)
                 {
@@ -208,10 +202,7 @@ namespace PepperDash.Essentials.Devices.Common.LumensOip
             RoutingNumericEventArgs e = new RoutingNumericEventArgs(1, input,
                 null, null, eRoutingSignalType.Video);
 
-            if (NumericSwitchChange != null)
-            {
-                NumericSwitchChange(this, e);
-            }
+            if (NumericSwitchChange != null) NumericSwitchChange(this, e);
         }
 
 
@@ -220,10 +211,7 @@ namespace PepperDash.Essentials.Devices.Common.LumensOip
         public override void LinkToApi(BasicTriList trilist, uint joinStart, string joinMapKey, EiscApiAdvanced bridge)
         {
             DmTxControllerJoinMap joinMap = new DmTxControllerJoinMap(joinStart);
-            if (bridge != null)
-            {
-                bridge.AddJoinMap(Key, joinMap);
-            }
+            if (bridge != null) bridge.AddJoinMap(Key, joinMap);
 
             CommunicationMonitor.IsOnlineFeedback.LinkInputSig(trilist.BooleanInput[joinMap.IsOnline.JoinNumber]);
 

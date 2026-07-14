@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using PepperDash.Core;
-using PepperDash.Essentials.Devices.Common.Codec;
+using UmdEssentials.Devices.Common.Codec;
 
-namespace PepperDash.Essentials.Devices.Common.VideoCodec
+namespace UmdEssentials.Devices.Common.VideoCodec
 {
     public class CiscoCodecPhonebook
     {
@@ -236,11 +236,10 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec
                         foreach (ContactMethod m in c.ContactMethod)
                         {
                             Codec.ContactMethod tempContactMethod =
-                                new PepperDash.Essentials.Devices.Common.Codec.ContactMethod();
+                                new Codec.ContactMethod();
 
                             eContactMethodCallType callType = eContactMethodCallType.Unknown;
                             if (!string.IsNullOrEmpty(m.CallType.Value))
-                            {
                                 if (!string.IsNullOrEmpty(m.CallType.Value))
                                 {
                                     if (m.CallType.Value.ToLower() == "audio")
@@ -250,7 +249,6 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec
 
                                     tempContactMethod.CallType = callType;
                                 }
-                            }
 
                             eContactMethodDevice device = eContactMethodDevice.Unknown;
                             if (!string.IsNullOrEmpty(m.Device.Value))
@@ -312,10 +310,7 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec
                         folder.Name = f.Name.Value;
                         folder.FolderId = f.FolderId.Value;
 
-                        if (f.ParentFolderId != null)
-                        {
-                            folder.ParentFolderId = f.ParentFolderId.Value;
-                        }
+                        if (f.ParentFolderId != null) folder.ParentFolderId = f.ParentFolderId.Value;
 
                         folders.Add(folder);
                     }
@@ -336,10 +331,7 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec
                         if (!string.IsNullOrEmpty(c.Title.Value))
                             contact.Title = c.Title.Value;
 
-                        if (c.FolderId != null)
-                        {
-                            contact.FolderId = c.FolderId.Value;
-                        }
+                        if (c.FolderId != null) contact.FolderId = c.FolderId.Value;
 
                         foreach (ContactMethod m in c.ContactMethod)
                         {
@@ -366,7 +358,7 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec
                                     device = eContactMethodDevice.Other;
                             }
 
-                            contact.ContactMethods.Add(new PepperDash.Essentials.Devices.Common.Codec.ContactMethod()
+                            contact.ContactMethods.Add(new Codec.ContactMethod
                             {
                                 Number = m.Number.Value,
                                 ContactMethodId = m.ContactMethodId.Value,

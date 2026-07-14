@@ -3,13 +3,13 @@ using Crestron.SimplSharp;
 using Crestron.SimplSharpPro;
 using Crestron.SimplSharpPro.DeviceSupport;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
-using PepperDash.Essentials.Core.Config;
-using PepperDash.Essentials.Core.Bridges;
-using PepperDash.Essentials.Core.Lighting;
-using LightingBase = PepperDash.Essentials.Core.Lighting.LightingBase;
+using UmdEssentials.Core;
+using UmdEssentials.Core.Bridges;
+using UmdEssentials.Core.Config;
+using UmdEssentials.Core.Lighting;
+using LightingBase = UmdEssentials.Core.Lighting.LightingBase;
 
-namespace PepperDash.Essentials.Devices.Common.Environment
+namespace UmdEssentials.Devices.Common.Environment
 {
     public class RelayControlledLighting : LightingBase
     {
@@ -23,23 +23,18 @@ namespace PepperDash.Essentials.Devices.Common.Environment
             _props = props;
             relayOutputs = new Relay[11];
             sceneMutex = new CMutex();
-            if (props.Scenes != null)
-            {
-                LightingScenes = props.Scenes;
-            }
+            if (props.Scenes != null) LightingScenes = props.Scenes;
         }
 
         public override bool CustomActivate()
         {
             uint count = 0;
             foreach (LightingScene scene in LightingScenes)
-            {
                 if (scene.PortDeviceKey != null)
                 {
                     relayOutputs[count] = GetRelay(scene.PortDeviceKey, scene.PortNumber);
                     count++;
                 }
-            }
 
             return true;
         }
@@ -111,9 +106,7 @@ namespace PepperDash.Essentials.Devices.Common.Environment
         public override void SelectScene(LightingScene scene)
         {
             if (LightingScenes != null && LightingScenes.Exists(o => o.Name == scene.Name))
-            {
                 SelectScene((ushort)LightingScenes.FindIndex(o => o.Name == scene.Name));
-            }
         }
 
         /// <summary>
@@ -129,7 +122,6 @@ namespace PepperDash.Essentials.Devices.Common.Environment
                 {
                     bool test = sceneMutex.WaitForMutex(1000);
                     if (test)
-                    {
                         try
                         {
                             LightingScene scene = LightingScenes[sceneNum];
@@ -145,7 +137,6 @@ namespace PepperDash.Essentials.Devices.Common.Environment
                         {
                             sceneMutex.ReleaseMutex();
                         }
-                    }
                 }
             });
         }
@@ -160,7 +151,7 @@ namespace PepperDash.Essentials.Devices.Common.Environment
     {
         public RelayControlledLightingFactory()
         {
-            TypeNames = new List<string>() { "relaylighting" };
+            TypeNames = new List<string> { "relaylighting" };
         }
 
         public override EssentialsDevice BuildDevice(DeviceConfig dc)

@@ -1,4 +1,4 @@
-﻿namespace PepperDash.Essentials.Core.Devices.DeviceTypeInterfaces
+﻿namespace UmdEssentials.Core.Devices.DeviceTypeInterfaces
 {
     public interface IDisplayBasic
     {

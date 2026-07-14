@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace PepperDash.Essentials.Core
+namespace UmdEssentials.Core
 {
     /// <summary>
     /// Defines minimal volume and mute control methods

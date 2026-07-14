@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Crestron.SimplSharp;
 using Newtonsoft.Json;
 
-namespace PepperDash.Essentials.Core.Config
+namespace UmdEssentials.Core.Config
 {
     /// <summary>
     /// Represents the info section of a Config file

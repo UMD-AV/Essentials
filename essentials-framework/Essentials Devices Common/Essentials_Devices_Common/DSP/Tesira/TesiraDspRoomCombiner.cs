@@ -3,13 +3,13 @@ using Crestron.SimplSharp;
 using Crestron.SimplSharpPro.DeviceSupport;
 using Newtonsoft.Json;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
+using UmdEssentials.Core;
 using System.Text.RegularExpressions;
-using PepperDash.Essentials.Core.Bridges;
+using UmdEssentials.Core.Bridges;
 using Tesira_DSP_EPI.Bridge.JoinMaps;
 using Tesira_DSP_EPI.Extensions;
 using Tesira_DSP_EPI.Interfaces;
-using Feedback = PepperDash.Essentials.Core.Feedback;
+using Feedback = UmdEssentials.Core.Feedback;
 
 
 namespace Tesira_DSP_EPI
@@ -472,12 +472,8 @@ namespace Tesira_DSP_EPI
                     _volumeUpRepeatDelayTimer.Reset(750);
                     SendFullCommand("increment", "levelOut", IncrementAmount, 1);
                     if (AutomaticUnmuteOnVolumeUp)
-                    {
                         if (_outIsMuted)
-                        {
                             MuteOff();
-                        }
-                    }
                 }
             }
 
@@ -507,10 +503,7 @@ namespace Tesira_DSP_EPI
             if (!string.IsNullOrEmpty(joinMapSerialized))
                 joinMap = JsonConvert.DeserializeObject<TesiraRoomCombinerJoinMapAdvancedStandalone>(joinMapSerialized);
 
-            if (bridge != null)
-            {
-                bridge.AddJoinMap(Key, joinMap);
-            }
+            if (bridge != null) bridge.AddJoinMap(Key, joinMap);
 
             Debug.Console(2, "Tesira Room Combiner {0} connect", Key);
 
@@ -539,28 +532,19 @@ namespace Tesira_DSP_EPI
 
             trilist.SetUShortSigAction(joinMap.Volume.JoinNumber, u =>
             {
-                if (u > 0)
-                {
-                    genericChannel.SetVolume(u);
-                }
+                if (u > 0) genericChannel.SetVolume(u);
             });
 
             trilist.SetUShortSigAction(joinMap.Group.JoinNumber, u =>
             {
-                if (u > 0)
-                {
-                    SetRoomGroup(u);
-                }
+                if (u > 0) SetRoomGroup(u);
             });
 
             trilist.OnlineStatusChange += (d, args) =>
             {
                 if (!args.DeviceOnLine) return;
 
-                foreach (Feedback feedback in Feedbacks)
-                {
-                    feedback.FireUpdate();
-                }
+                foreach (Feedback feedback in Feedbacks) feedback.FireUpdate();
             };
         }
     }

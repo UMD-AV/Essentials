@@ -1,10 +1,10 @@
 ﻿using Crestron.SimplSharpPro.DM;
 using Crestron.SimplSharpPro.DM.Cards;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
+using UmdEssentials.Core;
 
 
-namespace PepperDash.Essentials.DM
+namespace UmdEssentials.DM
 {
     /// <summary>
     /// 
@@ -46,7 +46,9 @@ namespace PepperDash.Essentials.DM
                 try
                 {
                     if (InputCard.VideoSourceFeedback != eDmps3InputVideoSource.Auto)
+                    {
                         return InputCard.VideoSourceFeedback;
+                    }
                     else // auto
                     {
                         if (InputCard.HdmiInputPort.SyncDetectedFeedback.BoolValue)
@@ -111,8 +113,8 @@ namespace PepperDash.Essentials.DM
                 VideoStatusFuncsWrapper combinedFuncs = new VideoStatusFuncsWrapper
                 {
                     HdcpActiveFeedbackFunc = () =>
-                        (ActualVideoInput == eDmps3InputVideoSource.Hdmi
-                         && InputCard.HdmiInputPort.VideoAttributes.HdcpActiveFeedback.BoolValue),
+                        ActualVideoInput == eDmps3InputVideoSource.Hdmi
+                        && InputCard.HdmiInputPort.VideoAttributes.HdcpActiveFeedback.BoolValue,
 
                     HdcpStateFeedbackFunc = () =>
                     {
@@ -192,7 +194,7 @@ namespace PepperDash.Essentials.DM
         /// </summary>
         protected void FowardInputStreamChange(RoutingInputPortWithVideoStatuses inputPort, int eventId)
         {
-            if (eventId == Crestron.SimplSharpPro.DM.DMInputEventIds.SourceSyncEventId)
+            if (eventId == DMInputEventIds.SourceSyncEventId)
             {
                 inputPort.VideoStatus.VideoSyncFeedback.FireUpdate();
                 AnyVideoInput.VideoStatus.VideoSyncFeedback.FireUpdate();
@@ -233,15 +235,9 @@ namespace PepperDash.Essentials.DM
         public void AddToFeedbackList(params Feedback[] newFbs)
         {
             foreach (Feedback f in newFbs)
-            {
                 if (f != null)
-                {
                     if (!Feedbacks.Contains(f))
-                    {
                         Feedbacks.Add(f);
-                    }
-                }
-            }
         }
 
         #region ITxRouting Members
@@ -337,8 +333,8 @@ namespace PepperDash.Essentials.DM
             VideoStatusFuncsWrapper combinedFuncs = new VideoStatusFuncsWrapper
             {
                 HdcpActiveFeedbackFunc = () =>
-                    (ActualVideoInput == eDmps3InputVideoSource.Hdmi
-                     && InputCard.HdmiInputPort.VideoAttributes.HdcpActiveFeedback.BoolValue),
+                    ActualVideoInput == eDmps3InputVideoSource.Hdmi
+                    && InputCard.HdmiInputPort.VideoAttributes.HdcpActiveFeedback.BoolValue,
 
                 HdcpStateFeedbackFunc = () =>
                 {

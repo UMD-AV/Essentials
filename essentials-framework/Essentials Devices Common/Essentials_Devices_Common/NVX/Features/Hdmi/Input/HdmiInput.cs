@@ -1,7 +1,7 @@
 ﻿using NvxEpi.Abstractions;
 using NvxEpi.Services.Feedback;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
+using UmdEssentials.Core;
 
 namespace NvxEpi.Features.Hdmi.Input
 {
@@ -12,7 +12,8 @@ namespace NvxEpi.Features.Hdmi.Input
         {
             foreach (uint inputNumber in device.Hardware.HdmiIn.Keys)
             {
-                Debug.Console(0, this, "Adding input number {0}: {1}", inputNumber, device.Hardware.HdmiIn[inputNumber].Name);
+                Debug.Console(0, this, "Adding input number {0}: {1}", inputNumber,
+                    device.Hardware.HdmiIn[inputNumber].Name);
                 IntFeedback capability = HdmiHdcpCapabilityValueFeedback.GetFeedback(device.Hardware, inputNumber);
 
                 _capability.Add(inputNumber, capability);

@@ -4,11 +4,11 @@ using Crestron.SimplSharpPro.DeviceSupport;
 using Crestron.SimplSharpPro.DM;
 using Newtonsoft.Json;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
-using PepperDash.Essentials.Core.Bridges;
-using PepperDash.Essentials.Core.Config;
+using UmdEssentials.Core;
+using UmdEssentials.Core.Bridges;
+using UmdEssentials.Core.Config;
 
-namespace PepperDash.Essentials.DM
+namespace UmdEssentials.DM
 {
     /// <summary>
     /// Represent both a transmitter and receiver pair of the HD-MD-400-C-E / HD-MD-300-C-E / HD-MD-200-C-E kits
@@ -238,14 +238,10 @@ namespace PepperDash.Essentials.DM
                 joinMap = JsonConvert.DeserializeObject<HdMdxxxCEControllerJoinMap>(joinMapSerialized);
 
             if (bridge != null)
-            {
                 bridge.AddJoinMap(Key, joinMap);
-            }
             else
-            {
                 Debug.Console(0, this,
                     "Please update config to use 'eiscapiadvanced' to get all join map features for this device.");
-            }
 
             Debug.Console(1, this, "Linking to Trilist '{0}'", trilist.ID.ToString("X"));
 
@@ -296,7 +292,7 @@ namespace PepperDash.Essentials.DM
     {
         public HdMdxxxCEControllerFactory()
         {
-            TypeNames = new List<string>() { "hdmd400ce", "hdmd300ce", "hdmd200ce", "hdmd200c1ge" };
+            TypeNames = new List<string> { "hdmd400ce", "hdmd300ce", "hdmd200ce", "hdmd200c1ge" };
         }
 
         public override EssentialsDevice BuildDevice(DeviceConfig dc)
@@ -308,19 +304,19 @@ namespace PepperDash.Essentials.DM
             Debug.Console(1, "Factory Attempting to create new HD-MD Device");
 
             HdMdxxxCEPropertiesConfig props = JsonConvert.DeserializeObject
-                <PepperDash.Essentials.DM.HdMdxxxCEPropertiesConfig>(dc.Properties.ToString());
+                <HdMdxxxCEPropertiesConfig>(dc.Properties.ToString());
 
             if (typeName.Equals("hdmd400ce"))
-                return new PepperDash.Essentials.DM.HdMdxxxCEController(key, name,
+                return new HdMdxxxCEController(key, name,
                     new HdMd400CE(props.Control.IpIdInt, props.Control.TcpSshProperties.Address, Global.ControlSystem));
             else if (typeName.Equals("hdmd300ce"))
-                return new PepperDash.Essentials.DM.HdMdxxxCEController(key, name,
+                return new HdMdxxxCEController(key, name,
                     new HdMd300CE(props.Control.IpIdInt, props.Control.TcpSshProperties.Address, Global.ControlSystem));
             else if (typeName.Equals("hdmd200ce"))
-                return new PepperDash.Essentials.DM.HdMdxxxCEController(key, name,
+                return new HdMdxxxCEController(key, name,
                     new HdMd200CE(props.Control.IpIdInt, props.Control.TcpSshProperties.Address, Global.ControlSystem));
             else if (typeName.Equals("hdmd200c1ge"))
-                return new PepperDash.Essentials.DM.HdMdxxxCEController(key, name,
+                return new HdMdxxxCEController(key, name,
                     new HdMd200C1GE(props.Control.IpIdInt, props.Control.TcpSshProperties.Address,
                         Global.ControlSystem));
             else

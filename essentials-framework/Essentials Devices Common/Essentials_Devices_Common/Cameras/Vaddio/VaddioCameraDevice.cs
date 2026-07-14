@@ -4,8 +4,8 @@ using System.Text.RegularExpressions;
 using Crestron.SimplSharp;
 using Crestron.SimplSharpPro.DeviceSupport;
 using Crestron.SimplSharpPro.CrestronThread;
-using PepperDash.Essentials.Core;
-using PepperDash.Essentials.Core.Bridges;
+using UmdEssentials.Core;
+using UmdEssentials.Core.Bridges;
 using PepperDash.Core;
 
 namespace VaddioCameraPlugin
@@ -50,10 +50,7 @@ namespace VaddioCameraPlugin
                 //Change error timeout to longer if power is off
                 CommunicationMonitor.ErrorTime = value ? _errorTimeoutMs : 900000;
                 if (_power == value) return;
-                if (Power == false)
-                {
-                    ActivePreset = 0;
-                }
+                if (Power == false) ActivePreset = 0;
 
                 _power = value;
                 PowerFeedback.FireUpdate();
@@ -143,9 +140,7 @@ namespace VaddioCameraPlugin
                 _activePreset = (int)value;
                 ActivePresetFeedback.FireUpdate();
                 foreach (KeyValuePair<uint, BoolFeedback> feedback in PresetActiveFeedbacks)
-                {
                     feedback.Value.FireUpdate();
-                }
             }
         }
 
@@ -172,7 +167,7 @@ namespace VaddioCameraPlugin
             set
             {
                 if (_panSpeed == value) return;
-                _panSpeed = (value < 1 || value > PanSpeedMax) ? PanSpeedDefault : value;
+                _panSpeed = value < 1 || value > PanSpeedMax ? PanSpeedDefault : value;
             }
         }
 
@@ -189,7 +184,7 @@ namespace VaddioCameraPlugin
             set
             {
                 if (_tiltSpeed == value) return;
-                _tiltSpeed = (value < 1 || value > TiltSpeedMax) ? TiltSpeedDefault : value;
+                _tiltSpeed = value < 1 || value > TiltSpeedMax ? TiltSpeedDefault : value;
             }
         }
 
@@ -206,7 +201,7 @@ namespace VaddioCameraPlugin
             set
             {
                 if (_zoomSpeed == value) return;
-                _zoomSpeed = (value < 1 || value > ZoomSpeedMax) ? ZoomSpeedDefault : value;
+                _zoomSpeed = value < 1 || value > ZoomSpeedMax ? ZoomSpeedDefault : value;
             }
         }
 
@@ -223,7 +218,7 @@ namespace VaddioCameraPlugin
             set
             {
                 if (_focusSpeed == value) return;
-                _focusSpeed = (value < 1 || value > FocusSpeedMax) ? FocusSpeedDefault : value;
+                _focusSpeed = value < 1 || value > FocusSpeedMax ? FocusSpeedDefault : value;
             }
         }
 
@@ -408,16 +403,10 @@ namespace VaddioCameraPlugin
             VaddioCameraBridgeJoinMap joinMap = new VaddioCameraBridgeJoinMap(joinStart);
 
             // This adds the join map to the collection on the bridge
-            if (bridge != null)
-            {
-                bridge.AddJoinMap(Key, joinMap);
-            }
+            if (bridge != null) bridge.AddJoinMap(Key, joinMap);
 
             Dictionary<string, JoinData> customJoins = JoinMapHelper.TryGetJoinMapAdvancedForDevice(joinMapKey);
-            if (customJoins != null)
-            {
-                joinMap.SetCustomJoinData(customJoins);
-            }
+            if (customJoins != null) joinMap.SetCustomJoinData(customJoins);
 
             Debug.Console(1, "Linking to Trilist '{0}'", trilist.ID.ToString("X"));
             Debug.Console(0, "Linking to Bridge Type {0}", GetType().Name);
@@ -462,17 +451,11 @@ namespace VaddioCameraPlugin
             // privacy
             trilist.SetBoolSigAction(joinMap.PrivacyOn.JoinNumber, sig =>
             {
-                if (_privacyOnPreset != null)
-                {
-                    RecallPresetByNumber((uint)_privacyOnPreset);
-                }
+                if (_privacyOnPreset != null) RecallPresetByNumber((uint)_privacyOnPreset);
             });
             trilist.SetBoolSigAction(joinMap.PrivacyOff.JoinNumber, sig =>
             {
-                if (_privacyOffPreset != null)
-                {
-                    RecallPresetByNumber((uint)_privacyOffPreset);
-                }
+                if (_privacyOffPreset != null) RecallPresetByNumber((uint)_privacyOffPreset);
             });
             PrivacyOnFeedback.LinkInputSig(trilist.BooleanInput[joinMap.PrivacyOn.JoinNumber]);
             PrivacyOnFeedback.LinkComplementInputSig(trilist.BooleanInput[joinMap.PrivacyOff.JoinNumber]);
@@ -542,9 +525,7 @@ namespace VaddioCameraPlugin
 
             //Link boolean preset feedback
             foreach (KeyValuePair<uint, BoolFeedback> item in PresetActiveFeedbacks)
-            {
                 item.Value.LinkInputSig(trilist.BooleanInput[item.Key + joinMap.PresetRecall.JoinNumber - 1]);
-            }
 
             // online status 
             trilist.OnlineStatusChange += (o, a) =>
@@ -584,13 +565,10 @@ namespace VaddioCameraPlugin
         private void commandTimeout(object o)
         {
             if (_lastInquiry == eVaddioCameraCommand.PowerInquiry)
-            {
                 //TODO: send ctl 5 to clear buffer?
                 //CTRL 5
-
                 Debug.Console(0, this,
                     "Power inquiry never received response, possible camera issue.");
-            }
 
             _commandReady = true;
             ProcessQueue();
@@ -620,7 +598,7 @@ namespace VaddioCameraPlugin
                             while (!_commandQueue.IsEmpty)
                             {
                                 int count = 0;
-                                while (!_commandReady && (count < 50))
+                                while (!_commandReady && count < 50)
                                 {
                                     Thread.Sleep(100);
                                     count++;
@@ -1027,10 +1005,7 @@ namespace VaddioCameraPlugin
 
         private void PresetSavedFb()
         {
-            if (PresetSaved != null)
-            {
-                PresetSaved(this, null);
-            }
+            if (PresetSaved != null) PresetSaved(this, null);
         }
 
         /// <summary>

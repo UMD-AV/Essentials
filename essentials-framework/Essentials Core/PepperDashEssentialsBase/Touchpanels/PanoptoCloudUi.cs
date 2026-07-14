@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using Crestron.SimplSharp;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
-using PepperDash.Essentials.Core.Recording;
+using UmdEssentials.Core;
+using UmdEssentials.Core.Recording;
 
 namespace PepperDash_Essentials_Core.Touchpanels
 {
@@ -95,10 +95,7 @@ namespace PepperDash_Essentials_Core.Touchpanels
             CurrentUserFeedback.FireUpdate();
             CurrentFolderFeedback.FireUpdate();
             RecordingNameFeedback.FireUpdate();
-            for (int i = 0; i < _userSearchSize; i++)
-            {
-                UserSearchFeedback[i].FireUpdate();
-            }
+            for (int i = 0; i < _userSearchSize; i++) UserSearchFeedback[i].FireUpdate();
 
             UpdateEndTimesFeedback();
         }
@@ -106,16 +103,12 @@ namespace PepperDash_Essentials_Core.Touchpanels
         public void SetRecorderKey(string key)
         {
             if (_recordingController != null)
-            {
                 _recordingController.StartRecordingStatus.OutputChange -= UpdateRecordingStatusFeedback;
-            }
 
             IKeyed device = DeviceManager.GetDeviceForKey(key);
             _recordingController = device as IRecordingController;
             if (_recordingController != null)
-            {
                 _recordingController.StartRecordingStatus.OutputChange += UpdateRecordingStatusFeedback;
-            }
 
             Update();
         }
@@ -129,23 +122,16 @@ namespace PepperDash_Essentials_Core.Touchpanels
 
         public void SearchUser(string name)
         {
-            if (_recordingController == null)
-            {
-                return;
-            }
+            if (_recordingController == null) return;
 
             searchText = name;
 
             CrestronInvoke.BeginInvoke((o) =>
             {
                 if (!searchLock)
-                {
                     searchLock = true;
-                }
                 else
-                {
                     return;
-                }
 
                 searchMutex.WaitForMutex();
                 searchLock = false;
@@ -166,39 +152,26 @@ namespace PepperDash_Essentials_Core.Touchpanels
                             _usernames[0] = new KeyValuePair<string, Guid>("No users found", Guid.Empty);
 
                             for (int i = 1; i < _userSearchSize; i++)
-                            {
                                 _usernames[i] = new KeyValuePair<string, Guid>(string.Empty, Guid.Empty);
-                            }
                         }
                         else if (results.Results.Count > 0)
                         {
                             for (int i = 0; i < _userSearchSize; i++)
-                            {
                                 if (i < results.Results.Count)
-                                {
                                     _usernames[i] =
                                         new KeyValuePair<string, Guid>(results.Results[i].Username,
                                             results.Results[i].Id);
-                                }
                                 else
-                                {
                                     _usernames[i] = new KeyValuePair<string, Guid>(string.Empty, Guid.Empty);
-                                }
-                            }
 
                             if (results.Results.Count == 1 &&
                                 string.Equals(results.Results[0].Username, name,
                                     StringComparison.CurrentCultureIgnoreCase))
-                            {
                                 SelectCurrentUser(0);
-                            }
                         }
 
                         CurrentUserFeedback.FireUpdate();
-                        for (int i = 0; i < _userSearchSize; i++)
-                        {
-                            UserSearchFeedback[i].FireUpdate();
-                        }
+                        for (int i = 0; i < _userSearchSize; i++) UserSearchFeedback[i].FireUpdate();
                     }
                 }
                 catch (Exception ex)
@@ -214,10 +187,7 @@ namespace PepperDash_Essentials_Core.Touchpanels
 
         public void SelectCurrentUser(ushort user)
         {
-            if (_recordingController == null)
-            {
-                return;
-            }
+            if (_recordingController == null) return;
 
             if (user < _usernames.Length && !_usernames[user].Value.Equals(Guid.Empty))
             {
@@ -237,7 +207,6 @@ namespace PepperDash_Essentials_Core.Touchpanels
         {
             _selectIndex = index;
             if (endTimeMutex.WaitForMutex(100))
-            {
                 try
                 {
                     CrestronEnvironment.Sleep(250);
@@ -249,7 +218,6 @@ namespace PepperDash_Essentials_Core.Touchpanels
                 {
                     endTimeMutex.ReleaseMutex();
                 }
-            }
         }
 
         public void SetRecordingName(string value)
@@ -267,10 +235,7 @@ namespace PepperDash_Essentials_Core.Touchpanels
 
         public void StartRecording()
         {
-            if (_recordingController == null)
-            {
-                return;
-            }
+            if (_recordingController == null) return;
 
             _recordingController.StartRecording(_recordingName, _recordingEndTime, _currentFolderGuid);
         }
@@ -297,13 +262,9 @@ namespace PepperDash_Essentials_Core.Touchpanels
             {
                 _refreshEndTimesTimer.Reset(30000);
                 if (_endTimes[0] < DateTime.Now.AddMinutes(2))
-                {
                     GenerateNewEndTimes();
-                }
                 else
-                {
                     UpdateEndTimesFeedback();
-                }
             }
         }
 
@@ -344,15 +305,11 @@ namespace PepperDash_Essentials_Core.Touchpanels
 
             // When meeting end time exists and is more than 5 minutes from now, use the meeting end time.
             if (_currentMeetingEndTime.HasValue && _currentMeetingEndTime.Value.AddMinutes(-5) > DateTime.Now)
-            {
                 endTime = _currentMeetingEndTime.Value;
-            }
 
             // Now check the computed end time vs. the computed max end time
             if (_nextRecordingStartTime.HasValue && endTime > _nextRecordingStartTime.Value.AddMinutes(-5))
-            {
                 endTime = _nextRecordingStartTime.Value.AddMinutes(-5);
-            }
 
             DateTime? validEndTime = GetNearestDateTime(endTime);
 
@@ -366,10 +323,7 @@ namespace PepperDash_Essentials_Core.Touchpanels
             endTimeMutex.WaitForMutex();
             try
             {
-                if (_endTimes == null || !_endTimes.Any())
-                {
-                    return null;
-                }
+                if (_endTimes == null || !_endTimes.Any()) return null;
 
                 // Order the list by the absolute difference between each DateTime and the target,
                 // and return the first (smallest difference)
@@ -384,7 +338,7 @@ namespace PepperDash_Essentials_Core.Touchpanels
         private DateTime RoundDownToPrevious5MinuteInterval(DateTime dateTime)
         {
             // Calculate the minute part rounded down to the previous multiple of 5.
-            int roundedMinutes = dateTime.Minute - (dateTime.Minute % 5);
+            int roundedMinutes = dateTime.Minute - dateTime.Minute % 5;
 
             // Return a new DateTime with seconds and smaller units reset to 0.
             return new DateTime(
@@ -421,10 +375,7 @@ namespace PepperDash_Essentials_Core.Touchpanels
             endTimeMutex.WaitForMutex();
             try
             {
-                for (int i = 0; i < _endTimeSize; i++)
-                {
-                    EndTimesFeedback[i].FireUpdate();
-                }
+                for (int i = 0; i < _endTimeSize; i++) EndTimesFeedback[i].FireUpdate();
             }
             finally
             {
@@ -434,22 +385,16 @@ namespace PepperDash_Essentials_Core.Touchpanels
 
         private void UpdateSelectedTimeFeedback()
         {
-            for (int i = 0; i < _endTimeSize; i++)
-            {
-                EndTimeSelectedFeedback[i].FireUpdate();
-            }
+            for (int i = 0; i < _endTimeSize; i++) EndTimeSelectedFeedback[i].FireUpdate();
         }
 
         public void SetCurrentMeetingEndTime(string time)
         {
             DateTime? temp;
             if (string.IsNullOrEmpty(time))
-            {
                 temp = null;
-            }
 
             else
-            {
                 try
                 {
                     temp = DateTime.Parse(time);
@@ -458,25 +403,18 @@ namespace PepperDash_Essentials_Core.Touchpanels
                 {
                     temp = null;
                 }
-            }
 
             _currentMeetingEndTime = temp;
 
-            if (_subpageActive == false)
-            {
-                DefaultEndTime();
-            }
+            if (_subpageActive == false) DefaultEndTime();
         }
 
         public void SetNextRecordingStartTime(string time)
         {
             DateTime? temp;
             if (string.IsNullOrEmpty(time))
-            {
                 temp = null;
-            }
             else
-            {
                 try
                 {
                     temp = RoundDownToPrevious5MinuteInterval(DateTime.Parse(time));
@@ -485,12 +423,8 @@ namespace PepperDash_Essentials_Core.Touchpanels
                 {
                     temp = null;
                 }
-            }
 
-            if (_subpageActive == false)
-            {
-                DefaultEndTime();
-            }
+            if (_subpageActive == false) DefaultEndTime();
 
             if (_nextRecordingStartTime != temp)
             {
@@ -501,10 +435,7 @@ namespace PepperDash_Essentials_Core.Touchpanels
 
         public void CancelAdHoc()
         {
-            if (_recordingController != null)
-            {
-                _recordingController.CancelRecord();
-            }
+            if (_recordingController != null) _recordingController.CancelRecord();
         }
 
         private void ResetUsernameSearchList()

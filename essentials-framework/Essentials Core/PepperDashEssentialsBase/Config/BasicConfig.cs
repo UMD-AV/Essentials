@@ -2,7 +2,7 @@
 using System.Linq;
 using Newtonsoft.Json;
 
-namespace PepperDash.Essentials.Core.Config
+namespace UmdEssentials.Core.Config
 {
     /// <summary>
     ///  Override this and splice on specific room type behavior, as well as other properties

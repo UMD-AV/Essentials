@@ -1,10 +1,10 @@
 using System.Collections.Generic;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
-using PepperDash.Essentials.Core.Config;
-using PepperDash.Essentials.Core.Routing;
+using UmdEssentials.Core;
+using UmdEssentials.Core.Config;
+using UmdEssentials.Core.Routing;
 
-namespace PepperDash.Essentials.Devices.Common
+namespace UmdEssentials.Devices.Common
 {
     public class Amplifier : EssentialsDevice, IRoutingSink
     {
@@ -19,7 +19,7 @@ namespace PepperDash.Essentials.Devices.Common
             {
                 if (value == _CurrentSourceInfo) return;
 
-                var handler = CurrentSourceChange;
+                SourceInfoChangeHandler handler = CurrentSourceChange;
 
                 if (handler != null)
                     handler(_CurrentSourceInfo, ChangeType.WillChange);
@@ -31,7 +31,7 @@ namespace PepperDash.Essentials.Devices.Common
             }
         }
 
-        SourceListItem _CurrentSourceInfo;
+        private SourceListItem _CurrentSourceInfo;
 
         public RoutingInputPort AudioIn { get; private set; }
 
@@ -54,7 +54,7 @@ namespace PepperDash.Essentials.Devices.Common
     {
         public AmplifierFactory()
         {
-            TypeNames = new List<string>() { "amplifier" };
+            TypeNames = new List<string> { "amplifier" };
         }
 
         public override EssentialsDevice BuildDevice(DeviceConfig dc)

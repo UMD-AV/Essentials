@@ -1,4 +1,4 @@
-﻿namespace PepperDash.Essentials.Core.CrestronIO
+﻿namespace UmdEssentials.Core.CrestronIO
 {
     /// <summary>
     /// Represents a device that provides digital input

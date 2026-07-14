@@ -2,12 +2,12 @@
 using System.Text.RegularExpressions;
 using Newtonsoft.Json;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
+using UmdEssentials.Core;
 using Crestron.SimplSharpPro.DeviceSupport;
-using PepperDash.Essentials.Core.DeviceInfo;
+using UmdEssentials.Core.DeviceInfo;
 using Tesira_DSP_EPI.Bridge.JoinMaps;
-using PepperDash.Essentials.Core.Bridges;
-using Feedback = PepperDash.Essentials.Core.Feedback;
+using UmdEssentials.Core.Bridges;
+using Feedback = UmdEssentials.Core.Feedback;
 
 namespace Tesira_DSP_EPI
 {
@@ -161,7 +161,7 @@ namespace Tesira_DSP_EPI
 
             switch (attributeCode)
             {
-                case ("networkStatus"):
+                case "networkStatus":
                 {
                     Hostname = matches[0].Value.Trim('"');
                     MacAddress = matches[3].Value.Trim('"');
@@ -176,7 +176,7 @@ namespace Tesira_DSP_EPI
                     UpdateDeviceInfo();
                     break;
                 }
-                case ("serialNumber"):
+                case "serialNumber":
                 {
                     SerialNumber = matches[0].Value.Trim('"');
 
@@ -187,7 +187,7 @@ namespace Tesira_DSP_EPI
                     UpdateDeviceInfo();
                     break;
                 }
-                case ("version"):
+                case "version":
                     Firmware = matches[0].Value.Trim('"');
 
                     DeviceInfo.FirmwareVersion = string.IsNullOrEmpty(DeviceInfo.FirmwareVersion)
@@ -209,10 +209,7 @@ namespace Tesira_DSP_EPI
                 joinMap = JsonConvert.DeserializeObject<TesiraDspDeviceJoinMapAdvancedStandalone>(joinMapSerialized);
 
 
-            if (bridge != null)
-            {
-                bridge.AddJoinMap(Key, joinMap);
-            }
+            if (bridge != null) bridge.AddJoinMap(Key, joinMap);
 
             Debug.Console(1, this, "Linking to Trilist '{0}'", trilist.ID.ToString("X"));
 
@@ -237,10 +234,7 @@ namespace Tesira_DSP_EPI
             {
                 if (!args.DeviceOnLine) return;
 
-                foreach (Feedback feedback in Feedbacks)
-                {
-                    feedback.FireUpdate();
-                }
+                foreach (Feedback feedback in Feedbacks) feedback.FireUpdate();
             };
         }
 
@@ -253,10 +247,7 @@ namespace Tesira_DSP_EPI
 
             DeviceInfoChangeHandler raiseEvent = DeviceInfoChanged;
 
-            if (raiseEvent != null)
-            {
-                raiseEvent(Parent, args);
-            }
+            if (raiseEvent != null) raiseEvent(Parent, args);
         }
 
         #endregion

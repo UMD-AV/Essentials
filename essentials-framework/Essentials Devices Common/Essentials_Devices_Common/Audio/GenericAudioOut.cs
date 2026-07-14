@@ -1,10 +1,10 @@
 ﻿using System.Collections.Generic;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
-using PepperDash.Essentials.Core.Config;
-using PepperDash.Essentials.Core.Routing;
+using UmdEssentials.Core;
+using UmdEssentials.Core.Config;
+using UmdEssentials.Core.Routing;
 
-namespace PepperDash.Essentials.Devices.Common
+namespace UmdEssentials.Devices.Common
 {
     /// <summary>
     /// Represents and audio endpoint
@@ -96,7 +96,7 @@ namespace PepperDash.Essentials.Devices.Common
     {
         public GenericAudioOutWithVolumeFactory()
         {
-            TypeNames = new List<string>() { "genericaudiooutwithvolume" };
+            TypeNames = new List<string> { "genericaudiooutwithvolume" };
         }
 
         public override EssentialsDevice BuildDevice(DeviceConfig dc)

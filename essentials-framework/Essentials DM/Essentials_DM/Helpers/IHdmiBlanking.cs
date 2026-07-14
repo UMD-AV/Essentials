@@ -1,6 +1,6 @@
-using PepperDash.Essentials.Core;
+using UmdEssentials.Core;
 
-namespace PepperDash.Essentials.DM
+namespace UmdEssentials.DM
 {
     public interface IHdmiBlanking
     {

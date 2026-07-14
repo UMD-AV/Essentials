@@ -10,7 +10,7 @@ using NvxEpi.Extensions;
 using NvxEpi.Services.InputSwitching;
 using NvxEpi.Services.Utilities;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
+using UmdEssentials.Core;
 
 namespace NvxEpi.Features.Routing
 {
@@ -36,10 +36,7 @@ namespace NvxEpi.Features.Routing
                 if (rx == null)
                 {
                     rx = outputSelector as NvxMockDevice;
-                    if (rx == null)
-                    {
-                        throw new ArgumentNullException("rx");
-                    }
+                    if (rx == null) throw new ArgumentNullException("rx");
                 }
 
                 IStream tx = inputSelector as IStream;

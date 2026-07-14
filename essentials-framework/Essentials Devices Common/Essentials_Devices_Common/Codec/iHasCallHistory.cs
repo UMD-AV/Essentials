@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using PepperDash.Essentials.Devices.Common.VideoCodec;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
+using UmdEssentials.Devices.Common.VideoCodec;
 
-namespace PepperDash.Essentials.Devices.Common.Codec
+namespace UmdEssentials.Devices.Common.Codec
 {
     public interface IHasCallHistory
     {
@@ -18,7 +18,7 @@ namespace PepperDash.Essentials.Devices.Common.Codec
         Unknown = 0,
         Placed = 1,
         Received = 2,
-        NoAnswer = 3,
+        NoAnswer = 3
     }
 
     /// <summary>
@@ -37,7 +37,7 @@ namespace PepperDash.Essentials.Devices.Common.Codec
 
         public CodecCallHistory()
         {
-            ListEmptyEntry = new CallHistoryEntry() { Name = "No Recent Calls" };
+            ListEmptyEntry = new CallHistoryEntry { Name = "No Recent Calls" };
 
             RecentCalls = new List<CallHistoryEntry>();
 
@@ -47,10 +47,7 @@ namespace PepperDash.Essentials.Devices.Common.Codec
         private void OnRecentCallsListChange()
         {
             EventHandler<EventArgs> handler = RecentCallsListHasChanged;
-            if (handler != null)
-            {
-                handler(this, new EventArgs());
-            }
+            if (handler != null) handler(this, new EventArgs());
         }
 
         public void RemoveEntry(CallHistoryEntry entry)
@@ -85,8 +82,7 @@ namespace PepperDash.Essentials.Devices.Common.Codec
             List<CallHistoryEntry> genericEntries = new List<CallHistoryEntry>();
 
             foreach (CiscoCallHistory.Entry entry in entries)
-            {
-                genericEntries.Add(new CallHistoryEntry()
+                genericEntries.Add(new CallHistoryEntry
                 {
                     Name = entry.DisplayName.Value,
                     Number = entry.CallbackNumber.Value,
@@ -94,7 +90,6 @@ namespace PepperDash.Essentials.Devices.Common.Codec
                     OccurrenceHistoryId = entry.LastOccurrenceHistoryId.Value,
                     OccurrenceType = ConvertToOccurenceTypeEnum(entry.OccurrenceType.Value)
                 });
-            }
 
             // Check if list is empty and if so, add an item to display No Recent Calls
             if (genericEntries.Count == 0)

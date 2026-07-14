@@ -2,7 +2,7 @@
 using Crestron.SimplSharpPro.DeviceSupport;
 
 
-namespace PepperDash.Essentials.Core
+namespace UmdEssentials.Core
 {
     /// <summary>
     /// Defines the ability to power a device on and off
@@ -46,10 +46,7 @@ namespace PepperDash.Essentials.Core
             triList.SetSigFalseAction(103, dev.PowerToggle);
 
             IHasPowerControlWithFeedback fbdev = dev as IHasPowerControlWithFeedback;
-            if (fbdev != null)
-            {
-                fbdev.PowerIsOnFeedback.LinkInputSig(triList.BooleanInput[101]);
-            }
+            if (fbdev != null) fbdev.PowerIsOnFeedback.LinkInputSig(triList.BooleanInput[101]);
         }
 
         public static void UnlinkButtons(this IHasPowerControl dev, BasicTriList triList)
@@ -59,10 +56,7 @@ namespace PepperDash.Essentials.Core
             triList.ClearBoolSigAction(103);
 
             IHasPowerControlWithFeedback fbdev = dev as IHasPowerControlWithFeedback;
-            if (fbdev != null)
-            {
-                fbdev.PowerIsOnFeedback.UnlinkInputSig(triList.BooleanInput[101]);
-            }
+            if (fbdev != null) fbdev.PowerIsOnFeedback.UnlinkInputSig(triList.BooleanInput[101]);
         }
     }
 }

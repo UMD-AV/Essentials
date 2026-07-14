@@ -4,14 +4,14 @@ using Crestron.SimplSharp;
 using Crestron.SimplSharpPro.DeviceSupport;
 using Crestron.SimplSharpPro.CrestronThread;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
-using PepperDash.Essentials.Core.Config;
-using PepperDash.Essentials.Core.Bridges;
-using PepperDash.Essentials.Core.Lighting;
-using LightingBase = PepperDash.Essentials.Core.Lighting.LightingBase;
+using LightingBase = UmdEssentials.Core.Lighting.LightingBase;
 using Newtonsoft.Json;
+using UmdEssentials.Core;
+using UmdEssentials.Core.Bridges;
+using UmdEssentials.Core.Config;
+using UmdEssentials.Core.Lighting;
 
-namespace PepperDash.Essentials.Devices.Common.Environment.Generic
+namespace UmdEssentials.Devices.Common.Environment.Generic
 {
     public class SerialControlledLighting : LightingBase, ICommunicationMonitor
     {
@@ -30,10 +30,7 @@ namespace PepperDash.Essentials.Devices.Common.Environment.Generic
         {
             Communication = comm;
             Communication.TextReceived += Communication_TextReceived;
-            if (props.Scenes != null)
-            {
-                LightingScenes = props.Scenes;
-            }
+            if (props.Scenes != null) LightingScenes = props.Scenes;
 
             if (props.PollString != null)
             {
@@ -105,7 +102,7 @@ namespace PepperDash.Essentials.Devices.Common.Environment.Generic
                             while (!_commandQueue.IsEmpty)
                             {
                                 int count = 0;
-                                while (!_commandReady && (count < 50))
+                                while (!_commandReady && count < 50)
                                 {
                                     Thread.Sleep(200);
                                     count++;
@@ -159,9 +156,7 @@ namespace PepperDash.Essentials.Devices.Common.Environment.Generic
         public override void SelectScene(LightingScene scene)
         {
             if (LightingScenes != null && LightingScenes.Exists(o => o.ID == scene.ID))
-            {
                 SelectScene((ushort)LightingScenes.FindIndex(o => o.ID == scene.ID));
-            }
         }
 
         /// <summary>
@@ -186,21 +181,13 @@ namespace PepperDash.Essentials.Devices.Common.Environment.Generic
         public void SelectScene(ushort scene)
         {
             if (LightingScenes != null && LightingScenes[scene] != null && LightingScenes[scene].ID != null)
-            {
                 if (scene <= 10)
                 {
                     Debug.Console(1, this, "Selecting Scene: '{0}'", LightingScenes[scene].ID);
-                    if (LightingScenes[scene].Command != null)
-                    {
-                        QueueCommand(LightingScenes[scene].Command);
-                    }
+                    if (LightingScenes[scene].Command != null) QueueCommand(LightingScenes[scene].Command);
 
-                    if (LightingScenes[scene].Command2 != null)
-                    {
-                        QueueCommand(LightingScenes[scene].Command2);
-                    }
+                    if (LightingScenes[scene].Command2 != null) QueueCommand(LightingScenes[scene].Command2);
                 }
-            }
         }
 
         public void Poll()
@@ -224,7 +211,7 @@ namespace PepperDash.Essentials.Devices.Common.Environment.Generic
     {
         public SerialControlledLightingFactory()
         {
-            TypeNames = new List<string>() { "seriallighting" };
+            TypeNames = new List<string> { "seriallighting" };
         }
 
         public override EssentialsDevice BuildDevice(DeviceConfig dc)

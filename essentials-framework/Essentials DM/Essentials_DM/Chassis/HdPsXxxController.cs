@@ -6,12 +6,12 @@ using Crestron.SimplSharpPro.DeviceSupport;
 using Crestron.SimplSharpPro.DM;
 using Newtonsoft.Json;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
-using PepperDash.Essentials.Core.Bridges;
-using PepperDash.Essentials.Core.Config;
+using UmdEssentials.Core;
+using UmdEssentials.Core.Bridges;
+using UmdEssentials.Core.Config;
 using PepperDash_Essentials_DM.Config;
 using PepperDash_Essentials_Core.Bridges;
-using Feedback = PepperDash.Essentials.Core.Feedback;
+using Feedback = UmdEssentials.Core.Feedback;
 
 namespace PepperDash_Essentials_DM.Chassis
 {
@@ -77,35 +77,17 @@ namespace PepperDash_Essentials_DM.Chassis
             Chassis.DMInputChange += _chassis_InputChange;
             Chassis.DMOutputChange += _chassis_OutputChange;
 
-            foreach (KeyValuePair<uint, StringFeedback> f in InputNameFeedbacks)
-            {
-                Feedbacks.Add(f.Value);
-            }
+            foreach (KeyValuePair<uint, StringFeedback> f in InputNameFeedbacks) Feedbacks.Add(f.Value);
 
-            foreach (KeyValuePair<uint, BoolFeedback> f in VideoInputSyncFeedbacks)
-            {
-                Feedbacks.Add(f.Value);
-            }
+            foreach (KeyValuePair<uint, BoolFeedback> f in VideoInputSyncFeedbacks) Feedbacks.Add(f.Value);
 
-            foreach (KeyValuePair<uint, StringFeedback> f in OutputNameFeedbacks)
-            {
-                Feedbacks.Add(f.Value);
-            }
+            foreach (KeyValuePair<uint, StringFeedback> f in OutputNameFeedbacks) Feedbacks.Add(f.Value);
 
-            foreach (KeyValuePair<uint, StringFeedback> f in OutputRouteNameFeedback)
-            {
-                Feedbacks.Add(f.Value);
-            }
+            foreach (KeyValuePair<uint, StringFeedback> f in OutputRouteNameFeedback) Feedbacks.Add(f.Value);
 
-            foreach (KeyValuePair<uint, IntFeedback> f in VideoOutputRouteFeedbacks)
-            {
-                Feedbacks.Add(f.Value);
-            }
+            foreach (KeyValuePair<uint, IntFeedback> f in VideoOutputRouteFeedbacks) Feedbacks.Add(f.Value);
 
-            foreach (KeyValuePair<uint, BoolFeedback> f in OutputEndpointOnlineFeedbacks)
-            {
-                Feedbacks.Add(f.Value);
-            }
+            foreach (KeyValuePair<uint, BoolFeedback> f in OutputEndpointOnlineFeedbacks) Feedbacks.Add(f.Value);
         }
 
         // input setup
@@ -225,10 +207,7 @@ namespace PepperDash_Essentials_DM.Chassis
         {
             if (InputNames.ContainsKey(index))
             {
-                if (string.IsNullOrEmpty(InputNames[index]))
-                {
-                    InputNames[index] = string.Format("Input{0}", index);
-                }
+                if (string.IsNullOrEmpty(InputNames[index])) InputNames[index] = string.Format("Input{0}", index);
             }
             else
             {
@@ -240,10 +219,7 @@ namespace PepperDash_Essentials_DM.Chassis
         {
             if (OutputNames.ContainsKey(index))
             {
-                if (string.IsNullOrEmpty(OutputNames[index]))
-                {
-                    OutputNames[index] = string.Format("Output{0}", index);
-                }
+                if (string.IsNullOrEmpty(OutputNames[index])) OutputNames[index] = string.Format("Output{0}", index);
             }
             else
             {
@@ -256,17 +232,13 @@ namespace PepperDash_Essentials_DM.Chassis
             try
             {
                 foreach (RoutingInputPort port in InputPorts)
-                {
                     Debug.Console(0, this, @"Input Port Key: {0} Port: {1} Type: {2} ConnectionType: {3} Selector: {4}",
                         port.Key, port.Port, port.Type, port.ConnectionType, port.Selector);
-                }
 
                 foreach (RoutingOutputPort port in OutputPorts)
-                {
                     Debug.Console(0, this,
                         @"Output Port Key: {0} Port: {1} Type: {2} ConnectionType: {3} Selector: {4}", port.Key,
                         port.Port, port.Type, port.ConnectionType, port.Selector);
-                }
             }
             catch (Exception ex)
             {
@@ -291,14 +263,10 @@ namespace PepperDash_Essentials_DM.Chassis
             HdPsXxxControllerJoinMap joinMap = new HdPsXxxControllerJoinMap(joinStart);
 
             if (bridge != null)
-            {
                 bridge.AddJoinMap(Key, joinMap);
-            }
             else
-            {
                 Debug.Console(0, this,
                     "Please update config to use 'eiscApiAdvanced' to get all join map features for this device");
-            }
 
             IsOnline.LinkInputSig(trilist.BooleanInput[joinMap.IsOnline.JoinNumber]);
             trilist.StringInput[joinMap.Name.JoinNumber].StringValue = Name;
@@ -403,10 +371,7 @@ namespace PepperDash_Essentials_DM.Chassis
 
             if (!args.DeviceOnLine) return;
 
-            foreach (Feedback feedback in Feedbacks)
-            {
-                feedback.FireUpdate();
-            }
+            foreach (Feedback feedback in Feedbacks) feedback.FireUpdate();
 
             Chassis.EnableFrontPanelLock();
             Chassis.FollowOutputOff();
@@ -474,10 +439,7 @@ namespace PepperDash_Essentials_DM.Chassis
                 case DMInputEventIds.SourceSyncEventId:
                 {
                     Debug.Console(1, this, "Event ID {0}: Updating VideoInputSyncFeedbacks", args.EventId);
-                    foreach (KeyValuePair<uint, BoolFeedback> item in VideoInputSyncFeedbacks)
-                    {
-                        item.Value.FireUpdate();
-                    }
+                    foreach (KeyValuePair<uint, BoolFeedback> item in VideoInputSyncFeedbacks) item.Value.FireUpdate();
 
                     break;
                 }
@@ -526,7 +488,7 @@ namespace PepperDash_Essentials_DM.Chassis
         {
             public HdSp401ControllerFactory()
             {
-                TypeNames = new List<string>() { "hdps401", "hdps402", "hdps621", "hdps622" };
+                TypeNames = new List<string> { "hdps401", "hdps402", "hdps621", "hdps622" };
             }
 
             public override EssentialsDevice BuildDevice(DeviceConfig dc)
@@ -549,22 +511,22 @@ namespace PepperDash_Essentials_DM.Chassis
 
                 switch (type)
                 {
-                    case ("hdps401"):
+                    case "hdps401":
                     {
                         return new HdPsXxxController(key, name, new HdPs401DmEssentials(ipid, Global.ControlSystem),
                             props);
                     }
-                    case ("hdps402"):
+                    case "hdps402":
                     {
                         return new HdPsXxxController(key, name, new HdPs402DmEssentials(ipid, Global.ControlSystem),
                             props);
                     }
-                    case ("hdps621"):
+                    case "hdps621":
                     {
                         return new HdPsXxxController(key, name, new HdPs621DmEssentials(ipid, Global.ControlSystem),
                             props);
                     }
-                    case ("hdps622"):
+                    case "hdps622":
                     {
                         return new HdPsXxxController(key, name, new HdPs622DmEssentials(ipid, Global.ControlSystem),
                             props);

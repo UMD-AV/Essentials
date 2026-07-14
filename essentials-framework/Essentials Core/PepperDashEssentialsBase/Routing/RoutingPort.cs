@@ -2,7 +2,7 @@
 using PepperDash.Core;
 
 
-namespace PepperDash.Essentials.Core
+namespace UmdEssentials.Core
 {
     /// <summary>
     /// Base class for RoutingInput and Output ports

@@ -1,10 +1,10 @@
 ﻿using System.Collections.Generic;
 using Crestron.SimplSharpPro;
 using Crestron.SimplSharpPro.GeneralIO;
-using PepperDash.Essentials.Core.Config;
 using PepperDash.Core;
+using UmdEssentials.Core.Config;
 
-namespace PepperDash.Essentials.Core
+namespace UmdEssentials.Core
 {
     /// <summary>
     /// Wrapper class for CEN-IO-DIGIN-104 digital input module
@@ -39,7 +39,7 @@ namespace PepperDash.Essentials.Core
     {
         public CenIoDigIn104ControllerFactory()
         {
-            TypeNames = new List<string>() { "ceniodigin104" };
+            TypeNames = new List<string> { "ceniodigin104" };
         }
 
         public override EssentialsDevice BuildDevice(DeviceConfig dc)

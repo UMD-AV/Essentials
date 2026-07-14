@@ -4,13 +4,13 @@ using Crestron.SimplSharp;
 using Newtonsoft.Json;
 using System.Linq;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
+using UmdEssentials.Core;
 using Crestron.SimplSharpPro.DeviceSupport;
-using PepperDash.Essentials.Core.DeviceInfo;
+using UmdEssentials.Core.DeviceInfo;
 using Tesira_DSP_EPI.Bridge.JoinMaps;
-using PepperDash.Essentials.Core.Bridges;
+using UmdEssentials.Core.Bridges;
 using System.Text.RegularExpressions;
-using Feedback = PepperDash.Essentials.Core.Feedback;
+using Feedback = UmdEssentials.Core.Feedback;
 
 namespace Tesira_DSP_EPI
 {
@@ -64,36 +64,19 @@ namespace Tesira_DSP_EPI
             Debug.Console(2, this, "There are {0} configured expanders", Expanders.Count);
 
 
-            foreach (StringFeedback f in Hostnames.Select(feedback => feedback.Value))
-            {
-                Feedbacks.Add(f);
-            }
+            foreach (StringFeedback f in Hostnames.Select(feedback => feedback.Value)) Feedbacks.Add(f);
 
-            foreach (StringFeedback f in SerialNumbers.Select(feedback => feedback.Value))
-            {
-                Feedbacks.Add(f);
-            }
+            foreach (StringFeedback f in SerialNumbers.Select(feedback => feedback.Value)) Feedbacks.Add(f);
 
-            foreach (StringFeedback f in Firmwares.Select(feedback => feedback.Value))
-            {
-                Feedbacks.Add(f);
-            }
+            foreach (StringFeedback f in Firmwares.Select(feedback => feedback.Value)) Feedbacks.Add(f);
 
-            foreach (StringFeedback f in MacAddresses.Select(feedback => feedback.Value))
-            {
-                Feedbacks.Add(f);
-            }
+            foreach (StringFeedback f in MacAddresses.Select(feedback => feedback.Value)) Feedbacks.Add(f);
 
-            foreach (BoolFeedback f in OnlineStatuses.Select(feedback => feedback.Value))
-            {
-                Feedbacks.Add(f);
-            }
+            foreach (BoolFeedback f in OnlineStatuses.Select(feedback => feedback.Value)) Feedbacks.Add(f);
 
             if (Debug.Level != 2) return;
             foreach (TesiraExpanderData item in Expanders)
-            {
                 Debug.Console(2, this, "Expander Index = {0} ; Expander Hostname = {1}", item.Index, item.Hostname);
-            }
         }
 
         public override void Initialize()
@@ -213,15 +196,10 @@ namespace Tesira_DSP_EPI
             string expanderJoinMapSerialized = JoinMapHelper.GetSerializedJoinMapForDevice(joinMapKey);
 
             if (!string.IsNullOrEmpty(expanderJoinMapSerialized))
-            {
                 expanderJoinMap =
                     JsonConvert.DeserializeObject<TesiraExpanderJoinMap>(expanderJoinMapSerialized);
-            }
 
-            if (bridge != null)
-            {
-                bridge.AddJoinMap(Key, expanderJoinMap);
-            }
+            if (bridge != null) bridge.AddJoinMap(Key, expanderJoinMap);
 
             Debug.Console(1, this, "Linking to Trilist '{0}'", trilist.ID.ToString("X"));
 
@@ -231,7 +209,7 @@ namespace Tesira_DSP_EPI
 
                 TesiraExpanderData expander = item;
                 int index = expander.Index;
-                int offset = (5 * (index - 1));
+                int offset = 5 * (index - 1);
 
 
                 Hostnames[index]
@@ -250,10 +228,7 @@ namespace Tesira_DSP_EPI
             {
                 if (!args.DeviceOnLine) return;
 
-                foreach (Feedback feedback in Feedbacks)
-                {
-                    feedback.FireUpdate();
-                }
+                foreach (Feedback feedback in Feedbacks) feedback.FireUpdate();
             };
         }
 
@@ -337,7 +312,7 @@ namespace Tesira_DSP_EPI
         {
             string newData = data.Replace("[", "").Replace("]", "");
             string[] macGroup = newData.Split(' ');
-            string mac = macGroup.Aggregate("", (current, oct) => current + (int.Parse(oct).ToString("X2") + ":"))
+            string mac = macGroup.Aggregate("", (current, oct) => current + int.Parse(oct).ToString("X2") + ":")
                 .Trim(':');
             MacAddress = mac;
             DeviceInfo.MacAddress = MacAddress;

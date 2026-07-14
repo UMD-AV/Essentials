@@ -8,7 +8,7 @@ using Newtonsoft.Json;
 using PepperDash.Core;
 
 
-namespace PepperDash.Essentials.Core
+namespace UmdEssentials.Core
 {
     public class DeviceJsonApi
     {
@@ -54,10 +54,8 @@ namespace PepperDash.Essentials.Core
             }
 
             if (action.Params == null)
-            {
                 //no params, so setting action.Params to empty array
                 action.Params = new object[0];
-            }
 
             CType t = obj.GetType();
             try
@@ -96,17 +94,13 @@ namespace PepperDash.Essentials.Core
         private static object ConvertType(object value, Type conversionType)
         {
             if (!conversionType.IsEnum)
-            {
                 return Convert.ChangeType(value, conversionType, System.Globalization.CultureInfo.InvariantCulture);
-            }
 
             string stringValue = Convert.ToString(value);
 
             if (string.IsNullOrEmpty(stringValue))
-            {
                 throw new InvalidCastException(
                     string.Format("{0} cannot be converted to a string prior to conversion to enum"));
-            }
 
             return Enum.Parse(conversionType, stringValue, true);
         }
@@ -206,7 +200,6 @@ namespace PepperDash.Essentials.Core
             // loop through any dotted properties
             object obj = dev;
             if (path.Length > 1)
-            {
                 for (int i = 1; i < path.Length; i++)
                 {
                     string objName = path[i];
@@ -259,7 +252,7 @@ namespace PepperDash.Essentials.Core
                                 obj = indexedPropInfo.GetValue(collection, new object[] { properParam });
                             }
                             // if the index is bad, catch it here.
-                            catch (Crestron.SimplSharp.Reflection.TargetInvocationException e)
+                            catch (TargetInvocationException e)
                             {
                                 if (e.InnerException is ArgumentOutOfRangeException)
                                     Debug.Console(0, "  Index Out of range");
@@ -270,9 +263,10 @@ namespace PepperDash.Essentials.Core
                         }
                     }
                     else
+                    {
                         obj = prop.GetValue(obj, null);
+                    }
                 }
-            }
 
             return obj;
         }
@@ -327,7 +321,6 @@ namespace PepperDash.Essentials.Core
             get
             {
                 if (PropInfo.CanRead)
-                {
                     try
                     {
                         return PropInfo.GetValue(Parent, null).ToString();
@@ -336,7 +329,6 @@ namespace PepperDash.Essentials.Core
                     {
                         return null;
                     }
-                }
                 else
                     return null;
             }

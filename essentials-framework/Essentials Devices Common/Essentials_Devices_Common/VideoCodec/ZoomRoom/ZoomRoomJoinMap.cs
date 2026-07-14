@@ -1,8 +1,8 @@
 ﻿using System;
-using PepperDash.Essentials.Core;
-using PepperDash.Essentials.Core.Bridges.JoinMaps;
+using UmdEssentials.Core;
+using UmdEssentials.Core.Bridges.JoinMaps;
 
-namespace PepperDash.Essentials.Devices.Common.VideoCodec.ZoomRoom
+namespace UmdEssentials.Devices.Common.VideoCodec.ZoomRoom
 {
     public class ZoomRoomJoinMap : VideoCodecControllerJoinMap
     {

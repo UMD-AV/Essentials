@@ -5,7 +5,7 @@ using Crestron.SimplSharpPro;
 using PepperDash.Core;
 
 
-namespace PepperDash.Essentials.Core
+namespace UmdEssentials.Core
 {
     public class ComPortController : Device, IBasicCommunicationWithStreamDebugging
     {
@@ -161,12 +161,10 @@ namespace PepperDash.Essentials.Core
             string[] split = Regex.Split(s, @"(\\[Xx][0-9a-fA-F][0-9a-fA-F])");
             StringBuilder b = new StringBuilder();
             foreach (string t in split)
-            {
                 if (t.StartsWith(@"\") && t.Length == 4)
-                    b.Append((char)(Convert.ToByte(t.Substring(2, 2), 16)));
+                    b.Append((char)Convert.ToByte(t.Substring(2, 2), 16));
                 else
                     b.Append(t);
-            }
 
             OnDataReceived(b.ToString());
         }

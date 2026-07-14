@@ -1,5 +1,5 @@
-﻿using PepperDash.Essentials.Core;
-using PepperDash.Essentials.Core.Config;
+﻿using UmdEssentials.Core;
+using UmdEssentials.Core.Config;
 using PepperDash.Core;
 using System.Collections.Generic;
 

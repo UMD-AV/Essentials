@@ -2,11 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using PepperDash.Core;
-using PepperDash.Essentials.Core.Config;
-using PepperDash.Essentials.Core.CrestronIO;
+using UmdEssentials.Core.Config;
+using UmdEssentials.Core.CrestronIO;
 
 
-namespace PepperDash.Essentials.Core.Privacy
+namespace UmdEssentials.Core.Privacy
 {
     /// <summary>
     /// Used for applications where one or more microphones with momentary contact closure outputs are used to
@@ -33,7 +33,9 @@ namespace PepperDash.Essentials.Core.Privacy
                         SetLedStates();
                     }
                     else
+                    {
                         TurnOffAllLeds();
+                    }
                 }
             }
         }
@@ -194,9 +196,7 @@ namespace PepperDash.Essentials.Core.Privacy
         private void SetLedStates()
         {
             if (_enableLeds)
-            {
                 SetRelayStates();
-            }
             else
                 TurnOffAllLeds();
         }
@@ -236,17 +236,17 @@ namespace PepperDash.Essentials.Core.Privacy
     {
         public MicrophonePrivacyControllerFactory()
         {
-            TypeNames = new List<string>() { "microphoneprivacycontroller" };
+            TypeNames = new List<string> { "microphoneprivacycontroller" };
         }
 
         public override EssentialsDevice BuildDevice(DeviceConfig dc)
         {
             Debug.Console(1, "Factory Attempting to create new MIcrophonePrivacyController Device");
             MicrophonePrivacyControllerConfig props =
-                Newtonsoft.Json.JsonConvert.DeserializeObject<Core.Privacy.MicrophonePrivacyControllerConfig>(
+                Newtonsoft.Json.JsonConvert.DeserializeObject<MicrophonePrivacyControllerConfig>(
                     dc.Properties.ToString());
 
-            return new Core.Privacy.MicrophonePrivacyController(dc.Key, props);
+            return new MicrophonePrivacyController(dc.Key, props);
         }
     }
 }

@@ -3,10 +3,10 @@ using Crestron.SimplSharpPro.DeviceSupport;
 using Crestron.SimplSharpPro.DM;
 using Crestron.SimplSharpPro.DM.Endpoints;
 using Crestron.SimplSharpPro.DM.Endpoints.Receivers;
-using PepperDash.Essentials.Core;
-using PepperDash.Essentials.Core.Bridges;
+using UmdEssentials.Core;
+using UmdEssentials.Core.Bridges;
 
-namespace PepperDash.Essentials.DM
+namespace UmdEssentials.DM
 {
     /// <summary>
     /// Builds a controller for basic DM-RMCs with Com and IR ports and no control functions
@@ -63,9 +63,7 @@ namespace PepperDash.Essentials.DM
             if (args.EventId == EndpointOutputStreamEventIds.HorizontalResolutionFeedbackEventId ||
                 args.EventId == EndpointOutputStreamEventIds.VerticalResolutionFeedbackEventId ||
                 args.EventId == EndpointOutputStreamEventIds.FramesPerSecondFeedbackEventId)
-            {
                 VideoOutputResolutionFeedback.FireUpdate();
-            }
         }
 
         private void ConnectedDevice_DeviceInformationChange(ConnectedDeviceInformation connectedDevice,

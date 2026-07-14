@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace PepperDash.Essentials.Core.DeviceTypeInterfaces
+namespace UmdEssentials.Core.DeviceTypeInterfaces
 {
     public interface ILanguageProvider
     {

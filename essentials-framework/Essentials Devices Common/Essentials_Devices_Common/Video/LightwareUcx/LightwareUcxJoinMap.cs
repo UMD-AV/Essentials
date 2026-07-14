@@ -1,7 +1,7 @@
 using System;
-using PepperDash.Essentials.Core;
+using UmdEssentials.Core;
 
-namespace PepperDash.Essentials.Devices.Common.Video.LightwareUcx
+namespace UmdEssentials.Devices.Common.Video.LightwareUcx
 {
     public class LightwareUcxJoinMap : JoinMapBaseAdvanced
     {

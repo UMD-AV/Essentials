@@ -4,7 +4,7 @@ using Crestron.SimplSharp;
 using PepperDash.Core;
 using Newtonsoft.Json;
 
-namespace PepperDash.Essentials.Devices.Common.Codec
+namespace UmdEssentials.Devices.Common.Codec
 {
     [Flags]
     public enum eMeetingEventChangeType
@@ -54,10 +54,7 @@ namespace PepperDash.Essentials.Devices.Common.Codec
                 _meetings = value;
 
                 EventHandler<EventArgs> handler = MeetingsListHasChanged;
-                if (handler != null)
-                {
-                    handler(this, new EventArgs());
-                }
+                if (handler != null) handler(this, new EventArgs());
             }
         }
 
@@ -92,10 +89,7 @@ namespace PepperDash.Essentials.Devices.Common.Codec
                 meeting.NotifiedChangeTypes |= changeType;
 
                 EventHandler<MeetingEventArgs> handler = MeetingEventChange;
-                if (handler != null)
-                {
-                    handler(this, new MeetingEventArgs() { ChangeType = changeType, Meeting = meeting });
-                }
+                if (handler != null) handler(this, new MeetingEventArgs { ChangeType = changeType, Meeting = meeting });
             }
             else
             {
@@ -150,10 +144,7 @@ namespace PepperDash.Essentials.Devices.Common.Codec
                     changeType = eMeetingEventChangeType.MeetingEnd;
                 }
 
-                if (changeType != eMeetingEventChangeType.Unknown)
-                {
-                    OnMeetingChange(changeType, m);
-                }
+                if (changeType != eMeetingEventChangeType.Unknown) OnMeetingChange(changeType, m);
             }
         }
     }

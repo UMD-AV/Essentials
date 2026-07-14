@@ -5,16 +5,16 @@ using Crestron.SimplSharp;
 using Crestron.SimplSharp.WebScripting;
 using Crestron.SimplSharpPro.DeviceSupport;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
-using PepperDash.Essentials.Core.Bridges;
-using PepperDash.Essentials.Core.Config;
-using PepperDash.Essentials.Core.Devices;
-using PepperDash.Essentials.Core.Recording;
-using PepperDash.Essentials.EpiphanPearl.JoinMaps;
-using PepperDash.Essentials.EpiphanPearl.Models;
-using PepperDash.Essentials.EpiphanPearl.Utilities;
+using UmdEssentials.Core;
+using UmdEssentials.Core.Bridges;
+using UmdEssentials.Core.Config;
+using UmdEssentials.Core.Devices;
+using UmdEssentials.Core.Recording;
+using UmdEssentials.EpiphanPearl.JoinMaps;
+using UmdEssentials.EpiphanPearl.Models;
+using UmdEssentials.EpiphanPearl.Utilities;
 
-namespace PepperDash.Essentials.EpiphanPearl
+namespace UmdEssentials.EpiphanPearl
 {
     public class EpiphanPearlController : ReconfigurableBridgableDevice, ICommunicationMonitor, IDisposable
     {
@@ -135,7 +135,7 @@ namespace PepperDash.Essentials.EpiphanPearl
             CrestronEnvironment.ProgramStatusEventHandler += CrestronEnvironment_ProgramStatusEventHandler;
             _client = new EpiphanPearlSecureClient(Key, _devProperties.Host, _devProperties.Username,
                 _devProperties.Password);
-            
+
             _previewApi = new HttpCwsServer("/preview");
 
             _panoptoKey = _devProperties.PanoptoKey ?? "";
@@ -154,7 +154,7 @@ namespace PepperDash.Essentials.EpiphanPearl
             _camera2Preview = SetupPreview(_camera2Channel, "camera2Preview", out _camera2Url, out _camera2UrlRtsp);
 
             _previewApi.Register();
-            
+
             _monitor.StatusChange += (sender, args) =>
             {
                 if (args.Status == MonitorStatus.InError)
@@ -176,12 +176,15 @@ namespace PepperDash.Essentials.EpiphanPearl
                 return null;
             }
 
-            VideoPreview preview = new VideoPreview(_client, name, string.Format("/channels/{0}/preview?resolution=480", channel), _previewApi);
+            VideoPreview preview = new VideoPreview(_client, name,
+                string.Format("/channels/{0}/preview?resolution=480", channel), _previewApi);
 
             url = string.Format("https://{0}.av.umd.edu/cws/preview/{1}.jpg", EthernetHelper.LanHelper.Hostname, name);
-            urlRtsp = string.Format("rtsp://{0}.av.umd.edu:{1}/stream.sdp", EthernetHelper.LanHelper.Hostname, 553 + int.Parse(channel));
+            urlRtsp = string.Format("rtsp://{0}.av.umd.edu:{1}/stream.sdp", EthernetHelper.LanHelper.Hostname,
+                553 + int.Parse(channel));
             return preview;
         }
+
         public override bool CustomActivate()
         {
             if (_panoptoKey != "")
@@ -195,10 +198,8 @@ namespace PepperDash.Essentials.EpiphanPearl
                     _runningEventRunningFeedback.OutputChange += (o, args) =>
                     {
                         if (args.BoolValue)
-                        {
                             //Reset recording start status on panopto controller once recording starts
                             _recordingController.ResetStartRecordingStatus();
-                        }
                     };
                 }
             }
@@ -211,7 +212,6 @@ namespace PepperDash.Essentials.EpiphanPearl
             try
             {
                 if (feedbackEventArgs.StringValue.Contains("requested"))
-                {
                     CrestronInvoke.BeginInvoke((o) =>
                     {
                         Debug.Console(1, this, "Getting scheduled events due to ad hoc start");
@@ -222,19 +222,16 @@ namespace PepperDash.Essentials.EpiphanPearl
                             GetEvents();
 
                             if (_scheduledRecordings.Count > 0 && !_runningEventRunningFeedback.BoolValue)
-                            {
                                 if (_scheduledRecordings[0].Start.ToLocalTime() < DateTime.Now.AddMinutes(5))
                                 {
                                     Debug.Console(1, this, "Forcing ad hoc event start");
                                     StartEvent();
                                 }
-                            }
 
                             CrestronEnvironment.Sleep(1000);
                             count++;
                         }
                     });
-                }
             }
             catch (Exception e)
             {
@@ -277,10 +274,7 @@ namespace PepperDash.Essentials.EpiphanPearl
             _runningEventIdFeedback = new StringFeedback(() => _runningEvent != null ? _runningEvent.Id : string.Empty);
             _runningEventLengthFeedback = new StringFeedback(() =>
             {
-                if (_runningEvent == null)
-                {
-                    return string.Empty;
-                }
+                if (_runningEvent == null) return string.Empty;
 
                 TimeSpan length = _runningEvent.Finish - _runningEvent.Start;
 
@@ -288,10 +282,7 @@ namespace PepperDash.Essentials.EpiphanPearl
             });
             _runningEventTimeRemainingFeedback = new StringFeedback(() =>
             {
-                if (_runningEvent == null)
-                {
-                    return string.Empty;
-                }
+                if (_runningEvent == null) return string.Empty;
 
                 DateTime currentTime = DateTime.UtcNow;
                 TimeSpan timeRemaining = _runningEvent.Finish.Subtract(currentTime);
@@ -364,10 +355,7 @@ namespace PepperDash.Essentials.EpiphanPearl
         {
             EpiphanPearlJoinMap joinMap = new EpiphanPearlJoinMap(joinStart);
 
-            if (bridge != null)
-            {
-                bridge.AddJoinMap(Key, joinMap);
-            }
+            if (bridge != null) bridge.AddJoinMap(Key, joinMap);
 
             trilist.StringInput[joinMap.Name.JoinNumber].StringValue = Name;
             trilist.StringInput[joinMap.PanoptoKey.JoinNumber].StringValue = _panoptoKey;
@@ -533,22 +521,15 @@ namespace PepperDash.Essentials.EpiphanPearl
             }
 
             if (!response.Status.Equals("ok", StringComparison.InvariantCultureIgnoreCase))
-            {
                 Debug.Console(1, this, "Error stopping event: {0}", response.Message);
-            }
             else
-            {
                 ClearRunningEvent();
-            }
         }
 
         public void StartEvent()
         {
             string id = string.Empty;
-            if (_scheduledRecordings.Count > 0)
-            {
-                id = _scheduledRecordings[0].Id;
-            }
+            if (_scheduledRecordings.Count > 0) id = _scheduledRecordings[0].Id;
 
             if (string.IsNullOrEmpty(id))
             {
@@ -602,9 +583,7 @@ namespace PepperDash.Essentials.EpiphanPearl
             }
 
             if (!response.Status.Equals("ok", StringComparison.InvariantCultureIgnoreCase))
-            {
                 Debug.Console(1, this, "Error extending event: {0}", response.Message);
-            }
 
             _runningEvent.Finish += new TimeSpan(0, 0, time, 0);
             _extend5EnabledFeedback.FireUpdate();
@@ -652,9 +631,7 @@ namespace PepperDash.Essentials.EpiphanPearl
             }
 
             if (!response.Status.Equals("ok", StringComparison.InvariantCultureIgnoreCase))
-            {
                 Debug.ConsoleWithLog(0, this, "Error changing HDMI output event: {0}", response.Message);
-            }
 
             GetHdmiOutputSetting();
         }
@@ -681,13 +658,9 @@ namespace PepperDash.Essentials.EpiphanPearl
             }
 
             if (!response.Status.Equals("ok", StringComparison.InvariantCultureIgnoreCase))
-            {
                 Debug.ConsoleWithLog(0, this, "Error changing channel layout event: {0}", response.Message);
-            }
             else
-            {
                 GetLayouts();
-            }
         }
 
         private void GetLayouts()
@@ -757,7 +730,6 @@ namespace PepperDash.Essentials.EpiphanPearl
                 _monitor.SetOnlineStatus(true);
                 int scheduleCounter = 0;
                 foreach (Event responseEvent in response.Result)
-                {
                     switch (responseEvent.Status)
                     {
                         case "scheduled":
@@ -793,21 +765,14 @@ namespace PepperDash.Essentials.EpiphanPearl
 
                             break;
                     }
-                }
 
                 if (_scheduledRecordings.Count != scheduleCounter)
-                {
                     _scheduledRecordings.RemoveAll(r =>
                         !response.Result.Exists(e => e.Id == r.Id && e.Status == "scheduled"));
-                }
 
                 if (_scheduledRecordings.Count > 0)
-                {
                     if (DateTime.UtcNow.AddMinutes(5) > _scheduledRecordings[0].Start)
-                    {
                         StartQuickCheckTimer();
-                    }
-                }
 
                 UpdateScheduledEventsFeedbacks();
             }
@@ -828,7 +793,6 @@ namespace PepperDash.Essentials.EpiphanPearl
                 BaseResponse<List<Event>> response =
                     _client.Get<BaseResponse<List<Event>>>("/schedule/events/?status=running");
                 if (response != null && response.Status.Equals("ok", StringComparison.InvariantCultureIgnoreCase))
-                {
                     if (response.Result.Count > 0 && _runningEvent == null)
                     {
                         _runningEvent = response.Result[0];
@@ -836,7 +800,6 @@ namespace PepperDash.Essentials.EpiphanPearl
                         StartEventStatusTimer();
                         GetEvents();
                     }
-                }
             }
             else
             {
@@ -922,13 +885,11 @@ namespace PepperDash.Essentials.EpiphanPearl
                 BaseResponse<List<VUMeterResponse>> response =
                     _client.Get<BaseResponse<List<VUMeterResponse>>>("/sources/status?ids=D2P0.analog-a");
                 if (response != null && response.Status.Equals("ok", StringComparison.InvariantCultureIgnoreCase))
-                {
                     if (response.Result != null && response.Result.Count > 0)
                     {
                         _vuMeterLevel = ScaleToUInt16(response.Result[0].Status.Audio.Levels.Rms[0]);
                         VuMeterFeedback.FireUpdate();
                     }
-                }
             }
             catch (Exception e)
             {
@@ -936,10 +897,7 @@ namespace PepperDash.Essentials.EpiphanPearl
             }
             finally
             {
-                if (_enableVuMeterFeedback)
-                {
-                    _vuMeterPollTimer.Reset(200);
-                }
+                if (_enableVuMeterFeedback) _vuMeterPollTimer.Reset(200);
             }
         }
 
@@ -1023,20 +981,11 @@ namespace PepperDash.Essentials.EpiphanPearl
                 _vuMeterPollTimer.Dispose();
             }
 
-            if (_contentPreview != null)
-            {
-                _contentPreview.Dispose();
-            }
+            if (_contentPreview != null) _contentPreview.Dispose();
 
-            if (_camera1Preview != null)
-            {
-                _camera1Preview.Dispose();
-            }
+            if (_camera1Preview != null) _camera1Preview.Dispose();
 
-            if (_camera2Preview != null)
-            {
-                _camera2Preview.Dispose();
-            }
+            if (_camera2Preview != null) _camera2Preview.Dispose();
 
             if (_statusTimer != null)
             {
@@ -1091,10 +1040,7 @@ namespace PepperDash.Essentials.EpiphanPearl
         {
             get
             {
-                if (End > Start)
-                {
-                    return string.Format("{0}", End - Start);
-                }
+                if (End > Start) return string.Format("{0}", End - Start);
 
                 return string.Empty;
             }

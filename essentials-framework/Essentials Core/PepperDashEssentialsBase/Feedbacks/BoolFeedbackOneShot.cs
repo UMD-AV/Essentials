@@ -1,6 +1,6 @@
 ﻿using Crestron.SimplSharp;
 
-namespace PepperDash.Essentials.Core
+namespace UmdEssentials.Core
 {
     public class BoolFeedbackPulse
     {
@@ -51,7 +51,9 @@ namespace PepperDash.Essentials.Core
             }
             // Timer is running, if retrigger is set, reset it.
             else if (CanRetrigger)
+            {
                 Timer.Reset(TimeoutMs);
+            }
         }
 
         public void Cancel()

@@ -3,7 +3,7 @@ using System.Text;
 using Crestron.SimplSharp;
 using Crestron.SimplSharp.Net.Https;
 
-namespace PepperDash.Essentials.PanoptoCloud
+namespace UmdEssentials.PanoptoCloud
 {
     public static class Utils
     {

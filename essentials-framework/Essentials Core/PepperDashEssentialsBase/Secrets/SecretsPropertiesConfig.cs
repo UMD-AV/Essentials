@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace PepperDash.Essentials.Core
+namespace UmdEssentials.Core
 {
     /// <summary>
     /// Provide a way to easily deserialize into a secret object from config

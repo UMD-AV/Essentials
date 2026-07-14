@@ -6,9 +6,9 @@ using Crestron.SimplSharpPro.DeviceSupport;
 using Crestron.SimplSharpPro.AudioDistribution;
 using Newtonsoft.Json;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
-using PepperDash.Essentials.Core.Bridges;
-using PepperDash.Essentials.Core.Config;
+using UmdEssentials.Core;
+using UmdEssentials.Core.Bridges;
+using UmdEssentials.Core.Config;
 
 namespace CrestronNaxAmp
 {
@@ -56,12 +56,8 @@ namespace CrestronNaxAmp
             {
                 NaxFader newFader = new NaxFader(faderConfig);
                 foreach (uint zone in faderConfig.Zones)
-                {
                     if (_amp.Zones[zone] != null)
-                    {
                         newFader.AddNaxZone(_amp.Zones[zone]);
-                    }
-                }
 
                 _faders.Add(newFader);
             }
@@ -116,9 +112,7 @@ namespace CrestronNaxAmp
                 trilist.SetUShortSigAction(joinMap.ChannelVolume.JoinNumber + i, u =>
                 {
                     if (trilist.BooleanOutput[joinMap.EnableLevelSend.JoinNumber + zone].BoolValue)
-                    {
                         faderLocal.SetVolume(u);
-                    }
                 });
                 i++;
             }
@@ -128,14 +122,12 @@ namespace CrestronNaxAmp
         {
             bool check = false;
             for (uint i = 0; i < _amp.Zones.Count; i++)
-            {
                 if (_dcOffsetFault[i] || _overCurrentFault[i] || _overTemperatureFault[i] ||
                     _overOrUnderVoltageFault[i])
                 {
                     check = true;
                     break;
                 }
-            }
 
             _ampFaultState = check;
             AmpFaultFeedback.FireUpdate();
@@ -144,7 +136,6 @@ namespace CrestronNaxAmp
         public void SetDefaultVolume()
         {
             for (ushort i = 1; i <= _amp.Zones.Count; i++)
-            {
                 if (_amp.Zones[i] != null && _amp.Zones[i].StartupVolumeFeedback != null)
                 {
                     Debug.ConsoleWithLog(1, this, "Setting Default Volume for Zone {0} to {1}", i,
@@ -152,7 +143,6 @@ namespace CrestronNaxAmp
                     _amp.Zones[i].Volume.UShortValue = _amp.Zones[i].StartupVolumeFeedback.UShortValue;
                     _amp.Zones[i].MuteOff();
                 }
-            }
         }
 
         private void IsOnlineFeedback_OutputChange(object dev, OnlineOfflineEventArgs args)
@@ -163,43 +153,30 @@ namespace CrestronNaxAmp
         private void OnZoneChange(object dev, ZoneEventArgs args)
         {
             Debug.Console(2, this, "OnZoneChange Index:{0}, EventId:{1}", args.Zone.Number, args.EventId);
-            if (args.Index > _amp.Zones.Count)
-            {
-                return;
-            }
+            if (args.Index > _amp.Zones.Count) return;
 
             switch (args.EventId)
             {
                 case ZoneEventIds.VolumeFeedbackEventId:
                 {
                     foreach (NaxFader fader in _faders)
-                    {
                         if (fader.Zones.Contains(args.Zone.Number))
-                        {
                             fader.VolumeFeedback.FireUpdate();
-                        }
-                    }
 
                     break;
                 }
 
                 case ZoneEventIds.MuteOnFeedbackEventId:
                     foreach (NaxFader fader in _faders)
-                    {
                         if (fader.Zones.Contains(args.Zone.Number))
-                        {
                             fader.MuteFeedback.FireUpdate();
-                        }
-                    }
 
                     break;
                 case ZoneEventIds.DcOffsetFaultEventId:
                     _dcOffsetFault[args.Zone.Number - 1] =
                         _amp.Zones[args.Zone.Number - 1].DcOffsetFaultFeedback.BoolValue;
                     if (_dcOffsetFault[args.Zone.Number - 1])
-                    {
                         Debug.ConsoleWithLog(0, this, "DC Offset Fault Detected in Zone {0}", args.Zone.Number);
-                    }
 
                     UpdateAmpFaultStatus();
                     break;
@@ -207,9 +184,7 @@ namespace CrestronNaxAmp
                     _overCurrentFault[args.Zone.Number - 1] =
                         _amp.Zones[args.Zone.Number - 1].OverCurrentFaultFeedback.BoolValue;
                     if (_overCurrentFault[args.Zone.Number - 1])
-                    {
                         Debug.ConsoleWithLog(0, this, "Over Current Fault Detected in Zone {0}", args.Zone.Number);
-                    }
 
                     UpdateAmpFaultStatus();
                     break;
@@ -217,9 +192,7 @@ namespace CrestronNaxAmp
                     _overTemperatureFault[args.Zone.Number - 1] =
                         _amp.Zones[args.Zone.Number - 1].OverTemperatureFaultFeedback.BoolValue;
                     if (_overTemperatureFault[args.Zone.Number - 1])
-                    {
                         Debug.ConsoleWithLog(0, this, "Over Temperature Fault Detected in Zone {0}", args.Zone.Number);
-                    }
 
                     UpdateAmpFaultStatus();
                     break;
@@ -227,10 +200,8 @@ namespace CrestronNaxAmp
                     _overOrUnderVoltageFault[args.Zone.Number - 1] =
                         _amp.Zones[args.Zone.Number - 1].OverCurrentFaultFeedback.BoolValue;
                     if (_overOrUnderVoltageFault[args.Zone.Number - 1])
-                    {
                         Debug.ConsoleWithLog(0, this, "Over or Under Voltage Fault Detected in Zone {0}",
                             args.Zone.Number);
-                    }
 
                     UpdateAmpFaultStatus();
                     break;
@@ -271,44 +242,27 @@ namespace CrestronNaxAmp
 
         public void MuteOff()
         {
-            foreach (DmNaxXZone z in _zones)
-            {
-                z.MuteOff();
-            }
+            foreach (DmNaxXZone z in _zones) z.MuteOff();
         }
 
         public void MuteOn()
         {
-            foreach (DmNaxXZone z in _zones)
-            {
-                z.MuteOn();
-            }
+            foreach (DmNaxXZone z in _zones) z.MuteOn();
         }
 
         public void MuteToggle()
         {
             if (MuteFeedback.BoolValue)
-            {
                 foreach (DmNaxXZone z in _zones)
-                {
                     z.MuteOff();
-                }
-            }
             else
-            {
                 foreach (DmNaxXZone z in _zones)
-                {
                     z.MuteOn();
-                }
-            }
         }
 
         public void SetVolume(ushort value)
         {
-            foreach (DmNaxXZone z in _zones)
-            {
-                z.Volume.UShortValue = value;
-            }
+            foreach (DmNaxXZone z in _zones) z.Volume.UShortValue = value;
         }
     }
 
@@ -318,7 +272,7 @@ namespace CrestronNaxAmp
     {
         public CrestronNaxAmpFactory()
         {
-            TypeNames = new List<string>() { "x300residential", "x300commercial" };
+            TypeNames = new List<string> { "x300residential", "x300commercial" };
         }
 
         public override EssentialsDevice BuildDevice(DeviceConfig dc)
@@ -334,10 +288,10 @@ namespace CrestronNaxAmp
 
             switch (type)
             {
-                case ("x300residential"):
+                case "x300residential":
                     return new CrestronNaxAmp(dc.Key, dc.Name, new DmNaxAmpX300Residential(ipid, Global.ControlSystem),
                         props);
-                case ("x300commercial"):
+                case "x300commercial":
                     return new CrestronNaxAmp(dc.Key, dc.Name, new DmNaxAmpX300Commercial(ipid, Global.ControlSystem),
                         props);
                 default:

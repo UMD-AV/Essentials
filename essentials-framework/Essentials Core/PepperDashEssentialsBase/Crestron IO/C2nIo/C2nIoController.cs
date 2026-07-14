@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using Crestron.SimplSharpPro;
 using Crestron.SimplSharpPro.GeneralIO;
 using PepperDash.Core;
-using PepperDash.Essentials.Core.Config;
+using UmdEssentials.Core.Config;
 
-namespace PepperDash.Essentials.Core.CrestronIO
+namespace UmdEssentials.Core.CrestronIO
 {
     public class C2NIoController : CrestronGenericBaseDevice, IComPorts, IIROutputPorts, IRelayPorts
     {
@@ -69,7 +69,7 @@ namespace PepperDash.Essentials.Core.CrestronIO
     {
         public C2NIoControllerFactory()
         {
-            TypeNames = new List<string>() { "c2nio" };
+            TypeNames = new List<string> { "c2nio" };
         }
 
         public override EssentialsDevice BuildDevice(DeviceConfig dc)

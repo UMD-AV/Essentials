@@ -1,7 +1,7 @@
 ﻿using Crestron.SimplSharpPro.DeviceSupport;
 using Crestron.SimplSharpPro.Fusion;
 using Newtonsoft.Json;
-using PepperDash.Essentials.Core;
+using UmdEssentials.Core;
 using PepperDash.Core;
 
 namespace DynFusion.Assets
@@ -26,34 +26,28 @@ namespace DynFusion.Assets
             Debug.Console(2, this, "OccupancySensor {0} received Message {1}", _assetNumber, message);
 
             if (message.StartsWith("<")) //For XML string from Fusion SSI module
+            {
                 ((FusionOccupancySensor)_fusionSymbol.UserConfigurableAssetDetails[_assetNumber].Asset)
                     .RoomOccupancyInfo.InputSig.StringValue = message;
+            }
 
             else if (message.StartsWith("{")) //For JSON string from custom module (legacy)
             {
                 messageObject = JsonConvert.DeserializeObject<DynFusionAssetsOccupancySensorMessage>(message);
                 if (message.Contains("OccSensorEnabled"))
-                {
                     ((FusionOccupancySensor)_fusionSymbol.UserConfigurableAssetDetails[_assetNumber].Asset)
                         .EnableOccupancySensor.InputSig.BoolValue = messageObject.OccSensorEnabled;
-                }
 
                 if (message.Contains("RoomOccupied"))
-                {
                     ((FusionOccupancySensor)_fusionSymbol.UserConfigurableAssetDetails[_assetNumber].Asset).RoomOccupied
                         .InputSig.BoolValue = messageObject.RoomOccupied;
-                }
                 else
-                {
                     ((FusionOccupancySensor)_fusionSymbol.UserConfigurableAssetDetails[_assetNumber].Asset).RoomOccupied
                         .InputSig.BoolValue = false;
-                }
 
                 if (message.Contains("OccSensorTimeout"))
-                {
                     ((FusionOccupancySensor)_fusionSymbol.UserConfigurableAssetDetails[_assetNumber].Asset)
                         .OccupancySensorTimeout.InputSig.UShortValue = messageObject.OccSensorTimeout;
-                }
             }
         }
 

@@ -6,17 +6,18 @@ using Crestron.SimplSharpPro.DM;
 using Crestron.SimplSharpPro.DM.Endpoints.Receivers;
 using Newtonsoft.Json;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
-using PepperDash.Essentials.Core.Bridges;
-using PepperDash.Essentials.Core.DeviceInfo;
-using PepperDash.Essentials.DM.Config;
-using PepperDash.Essentials.Core.Config;
 using Crestron.SimplSharpPro.DM.Endpoints;
 using PepperDash_Essentials_DM.Chassis;
-using Feedback = PepperDash.Essentials.Core.Feedback;
+using UmdEssentials.Core;
+using UmdEssentials.Core.Bridges;
+using UmdEssentials.Core.Config;
+using UmdEssentials.Core.DeviceInfo;
+using UmdEssentials.DM.Config;
+using Core_Feedback = UmdEssentials.Core.Feedback;
+using Feedback = UmdEssentials.Core.Feedback;
 
 
-namespace PepperDash.Essentials.DM
+namespace UmdEssentials.DM
 {
     [Description("Wrapper class for all DM-RMC variants")]
     public abstract class DmRmcControllerBase : CrestronGenericBridgeableBaseDevice, IDeviceInfoProvider, IHdmiBlanking
@@ -55,7 +56,7 @@ namespace PepperDash.Essentials.DM
                 if (args.BoolValue) UpdateDeviceInfo();
             };
 
-            DmRmcScalerC scaler = (_rmc as DmRmcScalerC);
+            DmRmcScalerC scaler = _rmc as DmRmcScalerC;
             if (scaler != null)
             {
                 HdmiOutputBlankedFeedback = new BoolFeedback(() => scaler.HdmiOutput.BlankEnabledFeedback.BoolValue);
@@ -67,25 +68,17 @@ namespace PepperDash.Essentials.DM
             EndpointOutputStreamEventArgs args)
         {
             if (args.EventId == EndpointOutputStreamEventIds.BlankEnabledFeedbackEventId)
-            {
                 HdmiOutputBlankedFeedback.FireUpdate();
-            }
         }
 
         public void BlankOutput()
         {
-            if (_rmc is DmRmcScalerC)
-            {
-                ((DmRmcScalerC)_rmc).HdmiOutput.BlankEnabled();
-            }
+            if (_rmc is DmRmcScalerC) ((DmRmcScalerC)_rmc).HdmiOutput.BlankEnabled();
         }
 
         public void UnblankOutput()
         {
-            if (_rmc is DmRmcScalerC)
-            {
-                ((DmRmcScalerC)_rmc).HdmiOutput.BlankDisabled();
-            }
+            if (_rmc is DmRmcScalerC) ((DmRmcScalerC)_rmc).HdmiOutput.BlankDisabled();
         }
 
         protected void LinkDmRmcToApi(DmRmcControllerBase rmc, BasicTriList trilist, uint joinStart, string joinMapKey,
@@ -99,14 +92,10 @@ namespace PepperDash.Essentials.DM
                 joinMap = JsonConvert.DeserializeObject<DmRmcControllerJoinMap>(joinMapSerialized);
 
             if (bridge != null)
-            {
                 bridge.AddJoinMap(Key, joinMap);
-            }
             else
-            {
                 Debug.Console(0, this,
                     "Please update config to use 'eiscapiadvanced' to get all join map features for this device.");
-            }
 
             Debug.Console(1, rmc, "Linking to Trilist '{0}'", trilist.ID.ToString("X"));
 
@@ -139,10 +128,7 @@ namespace PepperDash.Essentials.DM
             //If the device is an DM-RMC-4K-Z-SCALER-C
             IRmcRouting routing = rmc as IRmcRouting;
 
-            if (routing == null)
-            {
-                return;
-            }
+            if (routing == null) return;
 
             if (routing.AudioVideoSourceNumericFeedback != null)
                 routing.AudioVideoSourceNumericFeedback.LinkInputSig(
@@ -170,9 +156,7 @@ namespace PepperDash.Essentials.DM
             DeviceInfo.IpAddress = _rmc.ConnectedIpList[0].DeviceIpAddress;
 
             foreach (ConnectedIpInformation ip in _rmc.ConnectedIpList)
-            {
                 Debug.Console(0, this, "Connected IP Address: {0}", ip.DeviceIpAddress);
-            }
 
             GetFirmwareAndSerialInfo();
 
@@ -184,7 +168,7 @@ namespace PepperDash.Essentials.DM
             GenericTcpIpClient tcpClient = new GenericTcpIpClient(string.Format("{0}-devInfoSocket", Key),
                 _rmc.ConnectedIpList[0].DeviceIpAddress, CtpPort, 1024)
             {
-                AutoReconnect = false,
+                AutoReconnect = false
             };
 
             CommunicationGather gather = new CommunicationGather(tcpClient, "\r\n\r\n");
@@ -203,10 +187,7 @@ namespace PepperDash.Essentials.DM
             gather.LineReceived += (sender, args) =>
             {
                 //ignore console prompt
-                if (args.Text.ToLower().Contains(">"))
-                {
-                    return;
-                }
+                if (args.Text.ToLower().Contains(">")) return;
 
 
                 if (args.Text.ToLower().Contains("host"))
@@ -227,10 +208,7 @@ namespace PepperDash.Essentials.DM
                     return;
                 }
 
-                if (!args.Text.ToLower().Contains("rmc"))
-                {
-                    return;
-                }
+                if (!args.Text.ToLower().Contains("rmc")) return;
 
                 DeviceInfo.SerialNumber = args.Text.Split('[')[1].Split(' ')[4].Replace("#", "");
                 DeviceInfo.FirmwareVersion = args.Text.Split('[')[1].Split(' ')[1];
@@ -404,7 +382,7 @@ namespace PepperDash.Essentials.DM
                     {
                         "hdbasetrx",
                         (k, n, s, d) => new HDBaseTRxController(k, n, new HDBaseTReceiverDmEssentials(d, s))
-                    },
+                    }
                 };
         }
 
@@ -486,11 +464,9 @@ namespace PepperDash.Essentials.DM
                     rx.IsOnline.SetValueFunc(() => dmps.OutputEndpointOnlineFeedbacks[num].BoolValue);
                     dmps.OutputEndpointOnlineFeedbacks[num].OutputChange += (o, a) =>
                     {
-                        foreach (Feedback feedback in rx.Feedbacks)
-                        {
+                        foreach (Core_Feedback feedback in rx.Feedbacks)
                             if (feedback != null)
                                 feedback.FireUpdate();
-                        }
                     };
                 }
 
@@ -543,11 +519,9 @@ namespace PepperDash.Essentials.DM
                         rx.IsOnline.SetValueFunc(() => controller.OutputEndpointOnlineFeedbacks[num].BoolValue);
                         controller.OutputEndpointOnlineFeedbacks[num].OutputChange += (o, a) =>
                         {
-                            foreach (Feedback feedback in rx.Feedbacks)
-                            {
+                            foreach (Core_Feedback feedback in rx.Feedbacks)
                                 if (feedback != null)
                                     feedback.FireUpdate();
-                            }
                         };
                     }
 
@@ -584,11 +558,9 @@ namespace PepperDash.Essentials.DM
                     rx.IsOnline.SetValueFunc(() => controller.OutputEndpointOnlineFeedbacks[num].BoolValue);
                     controller.OutputEndpointOnlineFeedbacks[num].OutputChange += (o, a) =>
                     {
-                        foreach (Feedback feedback in rx.Feedbacks)
-                        {
+                        foreach (Core_Feedback feedback in rx.Feedbacks)
                             if (feedback != null)
                                 feedback.FireUpdate();
-                        }
                     };
 
                     return rx;
@@ -611,9 +583,7 @@ namespace PepperDash.Essentials.DM
         {
             Func<string, string, uint, DMOutput, CrestronGenericBaseDevice> handler;
             if (ChassisDict.TryGetValue(typeName.ToLower(), out handler))
-            {
                 return handler(key, name, ipid, chassis.Outputs[num]);
-            }
 
             Debug.Console(0, "Cannot create DM-RMC of type '{0}' with parent device {1}", typeName, parentDev.Key);
             return null;
@@ -625,9 +595,7 @@ namespace PepperDash.Essentials.DM
         {
             Func<string, string, DMOutput, CrestronGenericBaseDevice> cpu3Handler;
             if (ChassisCpu3Dict.TryGetValue(typeName.ToLower(), out cpu3Handler))
-            {
                 return cpu3Handler(key, name, chassis.Outputs[num]);
-            }
 
             Debug.Console(0, "Cannot create DM-RMC of type '{0}' with parent device {1}", typeName, parentDev.Key);
             return null;
@@ -641,10 +609,7 @@ namespace PepperDash.Essentials.DM
             {
                 DMOutput output = controller.Dmps.SwitcherOutputs[num] as DMOutput;
 
-                if (output != null)
-                {
-                    return dmpsHandler(key, name, ipid, output);
-                }
+                if (output != null) return dmpsHandler(key, name, ipid, output);
 
                 Debug.Console(0, Debug.ErrorLogLevel.Error,
                     "Cannot attach DM-RMC of type '{0}' to output {1} on DMPS chassis. Output is not a DM Output.",
@@ -665,10 +630,7 @@ namespace PepperDash.Essentials.DM
             {
                 DMOutput output = controller.Dmps.SwitcherOutputs[num] as DMOutput;
 
-                if (output != null)
-                {
-                    return dmps4kHandler(key, name, output);
-                }
+                if (output != null) return dmps4kHandler(key, name, output);
 
                 Debug.Console(0, Debug.ErrorLogLevel.Error,
                     "Cannot attach DM-RMC of type '{0}' to output {1} on DMPS-4K chassis. Output is not a DM Output.",
@@ -689,10 +651,7 @@ namespace PepperDash.Essentials.DM
             {
                 HdPsXxxDmEssentialsOutput output = controller.Chassis.HdmiDmEssentialsOutputs[num].DmEssentialsOutput;
 
-                if (output != null)
-                {
-                    return hdpsHandler(key, name, controller.Chassis, output);
-                }
+                if (output != null) return hdpsHandler(key, name, controller.Chassis, output);
 
                 Debug.Console(0, Debug.ErrorLogLevel.Error,
                     "Cannot attach DM-RMC of type '{0}' to output {1} on HDPS chassis. Output is not a DM Output.",
@@ -712,10 +671,7 @@ namespace PepperDash.Essentials.DM
             {
                 Func<string, string, uint, CrestronGenericBaseDevice> handler;
 
-                if (ProcessorFactoryDict.TryGetValue(typeName.ToLower(), out handler))
-                {
-                    return handler(key, name, ipid);
-                }
+                if (ProcessorFactoryDict.TryGetValue(typeName.ToLower(), out handler)) return handler(key, name, ipid);
 
                 Debug.Console(0, "Cannot create DM-RMC of type: '{0}'", typeName);
 

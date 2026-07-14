@@ -1,8 +1,8 @@
 ﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using PepperDash.Essentials.Core;
+using UmdEssentials.Core;
 
-namespace PepperDash.Essentials.Devices.Common.VideoCodec.ZoomRoom
+namespace UmdEssentials.Devices.Common.VideoCodec.ZoomRoom
 {
     public class ZoomRoomPropertiesConfig
     {

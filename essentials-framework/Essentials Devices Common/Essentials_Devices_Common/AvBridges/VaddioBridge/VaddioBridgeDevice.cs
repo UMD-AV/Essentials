@@ -3,8 +3,8 @@ using System.Text;
 using System.Linq;
 using System.Collections.Generic;
 using Crestron.SimplSharpPro.DeviceSupport;
-using PepperDash.Essentials.Core;
-using PepperDash.Essentials.Core.Bridges;
+using UmdEssentials.Core;
+using UmdEssentials.Core.Bridges;
 using PepperDash.Core;
 using Crestron.SimplSharp;
 
@@ -246,10 +246,7 @@ namespace VaddioBridgePlugin
             _commsMonitor =
                 new GenericCommunicationMonitor(this, _comms, _pollTimeMs, _warningTimeoutMs, _errorTimeoutMs, Poll);
 
-            if (config.Control.Method.ToString() == "ssh")
-            {
-                _loggedIn = true;
-            }
+            if (config.Control.Method.ToString() == "ssh") _loggedIn = true;
 
             ISocketStatus socket = _comms as ISocketStatus;
             if (socket != null)
@@ -305,16 +302,10 @@ namespace VaddioBridgePlugin
             VaddioBridgeJoinMap joinMap = new VaddioBridgeJoinMap(joinStart);
 
             // This adds the join map to the collection on the bridge
-            if (bridge != null)
-            {
-                bridge.AddJoinMap(Key, joinMap);
-            }
+            if (bridge != null) bridge.AddJoinMap(Key, joinMap);
 
             Dictionary<string, JoinData> customJoins = JoinMapHelper.TryGetJoinMapAdvancedForDevice(joinMapKey);
-            if (customJoins != null)
-            {
-                joinMap.SetCustomJoinData(customJoins);
-            }
+            if (customJoins != null) joinMap.SetCustomJoinData(customJoins);
 
             Debug.Console(1, "Linking to Trilist '{0}'", trilist.ID.ToString("X"));
             Debug.Console(0, "Linking to Bridge Type {0}", GetType().Name);
@@ -419,10 +410,8 @@ namespace VaddioBridgePlugin
             Debug.Console(1, this, "Sending text: {0}", text);
 
             if (!_commsIsSerial)
-            {
                 if (!_comms.IsConnected)
                     _comms.Connect();
-            }
 
             _comms.SendText(text);
         }
@@ -433,7 +422,6 @@ namespace VaddioBridgePlugin
             {
                 bool gotMutex = _bufferMutex.WaitForMutex();
                 if (gotMutex)
-                {
                     try
                     {
                         if (args == null || args.Bytes == null)
@@ -452,7 +440,6 @@ namespace VaddioBridgePlugin
                         int position = 0;
 
                         for (int i = 0; i < byteBuffer.Length; i++)
-                        {
                             if (byteBuffer[i] == 0x0A)
                             {
                                 //Found new line                      
@@ -473,7 +460,6 @@ namespace VaddioBridgePlugin
                                 // Found ">"
                                 position = i + 1;
                             }
-                        }
 
                         // save a partial message here
                         _commsByteBuffer = byteBuffer.Skip(position).ToArray();
@@ -486,7 +472,6 @@ namespace VaddioBridgePlugin
                     {
                         _bufferMutex.ReleaseMutex();
                     }
-                }
             });
         }
 
@@ -509,20 +494,14 @@ namespace VaddioBridgePlugin
                 CrestronInvoke.BeginInvoke((o) =>
                 {
                     CrestronEnvironment.Sleep(3000);
-                    if (_usernameSent == false)
-                    {
-                        SendLogin();
-                    }
+                    if (_usernameSent == false) SendLogin();
                 });
             }
             else if (temp.Contains(usernameSearch))
             {
                 Debug.Console(1, this, "Vaddio Bridge feedback: login");
                 _loggedIn = false;
-                if (_usernameSent == false)
-                {
-                    SendLogin();
-                }
+                if (_usernameSent == false) SendLogin();
             }
             else if (temp.StartsWith(pipSearch))
             {
@@ -618,10 +597,7 @@ namespace VaddioBridgePlugin
             {
                 _usernameSent = true;
                 string username = _config.Username ?? "admin";
-                if (!_commsIsSerial && !_comms.IsConnected)
-                {
-                    _comms.Connect();
-                }
+                if (!_commsIsSerial && !_comms.IsConnected) _comms.Connect();
 
                 _comms.SendText(username + "\r");
                 _loginTimeout.Reset(5000);
@@ -637,13 +613,9 @@ namespace VaddioBridgePlugin
         public void Poll()
         {
             if (!_loggedIn)
-            {
                 SendLogin();
-            }
             else
-            {
                 SendText("system standby get");
-            }
         }
 
         /// <summary>

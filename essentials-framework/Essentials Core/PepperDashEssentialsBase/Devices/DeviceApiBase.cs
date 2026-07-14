@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace PepperDash.Essentials.Core.Devices
+namespace UmdEssentials.Core.Devices
 {
     /// <summary>
     /// Base class for all Device APIs

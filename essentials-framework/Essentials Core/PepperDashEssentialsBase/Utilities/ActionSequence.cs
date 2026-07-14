@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using Crestron.SimplSharp;
 using Crestron.SimplSharpPro.CrestronThread;
 using PepperDash.Core;
-using PepperDash.Essentials.Core.Config;
 using Newtonsoft.Json;
+using UmdEssentials.Core.Config;
 
-namespace PepperDash.Essentials.Core.Utilities
+namespace UmdEssentials.Core.Utilities
 {
     /// <summary>
     /// A device that executes a sequence of actions with optional delays between actions
@@ -29,13 +29,9 @@ namespace PepperDash.Essentials.Core.Utilities
             _propertiesConfig = props;
 
             if (_propertiesConfig != null)
-            {
                 if (_propertiesConfig.ActionSequence.Count > 0)
-                {
                     _actionQueue =
                         new CrestronQueue<SequencedDeviceActionWrapper>(_propertiesConfig.ActionSequence.Count);
-                }
-            }
         }
 
         /// <summary>
@@ -73,9 +69,7 @@ namespace PepperDash.Essentials.Core.Utilities
             Debug.Console(1, this, "Adding {0} actions to queue", _propertiesConfig.ActionSequence.Count);
 
             for (int i = 0; i < _propertiesConfig.ActionSequence.Count; i++)
-            {
                 _actionQueue.Enqueue(_propertiesConfig.ActionSequence[i]);
-            }
         }
 
         private object ProcessActions(object obj)
@@ -139,7 +133,7 @@ namespace PepperDash.Essentials.Core.Utilities
     {
         public ActionSequenceFactory()
         {
-            TypeNames = new List<string>() { "actionsequence" };
+            TypeNames = new List<string> { "actionsequence" };
         }
 
         public override EssentialsDevice BuildDevice(DeviceConfig dc)

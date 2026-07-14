@@ -1,12 +1,12 @@
 ﻿using System.Collections.Generic;
 using Crestron.SimplSharp;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
-using PepperDash.Essentials.Core.Bridges;
-using PepperDash.Essentials.Core.Config;
 using Crestron.SimplSharpPro.DeviceSupport;
+using UmdEssentials.Core;
+using UmdEssentials.Core.Bridges;
+using UmdEssentials.Core.Config;
 
-namespace PepperDash.Essentials.Devices.Common.Lumens
+namespace UmdEssentials.Devices.Common.Lumens
 {
     public class LumensDocumentCameraDevice : EssentialsBridgeableDevice
     {
@@ -44,7 +44,6 @@ namespace PepperDash.Essentials.Devices.Common.Lumens
             uint? stxPos = null;
             uint? etxPos = null;
             for (uint i = 0; i < e.Bytes.Length; i++)
-            {
                 if (stxPos == null)
                 {
                     if (e.Bytes[i] == 0xA0)
@@ -65,16 +64,11 @@ namespace PepperDash.Essentials.Devices.Common.Lumens
                         response[responsePos] = e.Bytes[i];
                     }
                 }
-            }
 
-            if (stxPos != null && etxPos != null && (etxPos - stxPos == 5))
-            {
+            if (stxPos != null && etxPos != null && etxPos - stxPos == 5)
                 processResponse(response);
-            }
             else
-            {
                 Debug.Console(0, this, "Unable to find stx and etx in response");
-            }
         }
 
         private void processResponse(byte[] response)
@@ -83,18 +77,12 @@ namespace PepperDash.Essentials.Devices.Common.Lumens
             {
                 //NAK response
                 if (response[3] == 0x01)
-                {
                     Debug.Console(0, this, "Command not executed");
-                }
                 //Unknown command response
                 else if (response[3] == 0x02)
-                {
                     Debug.Console(0, this, "Unknown command");
-                }
                 else
-                {
                     Debug.Console(0, this, "Unknown error in command");
-                }
 
                 return;
             }
@@ -103,39 +91,24 @@ namespace PepperDash.Essentials.Devices.Common.Lumens
             if (response[0] == 0xB7)
             {
                 if (response[2] == 0x00)
-                {
                     PowerIsOn = false;
-                }
-                else if (response[2] == 0x01)
-                {
-                    PowerIsOn = true;
-                }
+                else if (response[2] == 0x01) PowerIsOn = true;
             }
 
             //Power response
             else if (response[0] == 0xB1)
             {
                 if (response[1] == 0x00)
-                {
                     PowerIsOn = false;
-                }
-                else if (response[1] == 0x01)
-                {
-                    PowerIsOn = true;
-                }
+                else if (response[1] == 0x01) PowerIsOn = true;
             }
 
             //Lamp response
             else if (response[0] == 0xC1)
             {
                 if (response[1] == 0x00)
-                {
                     LampIsOn = false;
-                }
-                else if (response[1] == 0x01 || response[1] == 0x02 || response[1] == 0x03)
-                {
-                    LampIsOn = true;
-                }
+                else if (response[1] == 0x01 || response[1] == 0x02 || response[1] == 0x03) LampIsOn = true;
             }
         }
 
@@ -144,10 +117,7 @@ namespace PepperDash.Essentials.Devices.Common.Lumens
         public override void LinkToApi(BasicTriList trilist, uint joinStart, string joinMapKey, EiscApiAdvanced bridge)
         {
             LumensDocumentCameraJoinMap joinMap = new LumensDocumentCameraJoinMap(joinStart);
-            if (bridge != null)
-            {
-                bridge.AddJoinMap(Key, joinMap);
-            }
+            if (bridge != null) bridge.AddJoinMap(Key, joinMap);
 
             CommunicationMonitor.IsOnlineFeedback.LinkInputSig(trilist.BooleanInput[joinMap.IsOnline.JoinNumber]);
 
@@ -190,13 +160,9 @@ namespace PepperDash.Essentials.Devices.Common.Lumens
         public void PowerToggle()
         {
             if (_PowerIsOn)
-            {
                 PowerOn();
-            }
             else
-            {
                 PowerOff();
-            }
         }
 
         public BoolFeedback PowerIsOnFeedback { get; set; }
@@ -235,13 +201,9 @@ namespace PepperDash.Essentials.Devices.Common.Lumens
         public void LampToggle()
         {
             if (_LampIsOn)
-            {
                 LampOn();
-            }
             else
-            {
                 LampOff();
-            }
         }
 
         public BoolFeedback LampIsOnFeedback { get; set; }
@@ -281,7 +243,7 @@ namespace PepperDash.Essentials.Devices.Common.Lumens
     public class LumensDocumentCameraJoinMap : JoinMapBaseAdvanced
     {
         [JoinName("IsOnline")] public JoinDataComplete IsOnline = new JoinDataComplete(
-            new JoinData()
+            new JoinData
             {
                 JoinNumber = 49,
                 JoinSpan = 1

@@ -1,7 +1,7 @@
 ﻿using System;
 using Crestron.SimplSharp;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
+using UmdEssentials.Core;
 
 namespace ExtronDmp
 {
@@ -101,15 +101,9 @@ namespace ExtronDmp
             _volumeDownLock = new CMutex();
             _volumeUpRepeatTimer = new CTimer(VolumeUpRepeat, Timeout.Infinite);
             _volumeDownRepeatTimer = new CTimer(VolumeDownRepeat, Timeout.Infinite);
-            if (config.Min != null)
-            {
-                minLevel = (int)config.Min;
-            }
+            if (config.Min != null) minLevel = (int)config.Min;
 
-            if (config.Max != null)
-            {
-                maxLevel = (int)config.Max;
-            }
+            if (config.Max != null) maxLevel = (int)config.Max;
         }
 
         /// <summary>
@@ -149,13 +143,8 @@ namespace ExtronDmp
                 if (group == MuteGroup)
                 {
                     if (value == 1)
-                    {
                         _isMuted = true;
-                    }
-                    else if (value == 0)
-                    {
-                        _isMuted = false;
-                    }
+                    else if (value == 0) _isMuted = false;
 
                     MuteFeedback.FireUpdate();
                     return;
@@ -168,7 +157,7 @@ namespace ExtronDmp
                     else if (vol <= minLevel)
                         _volumeLevel = ushort.MinValue;
                     else
-                        _volumeLevel = (ushort)(((vol - minLevel) * ushort.MaxValue) / (maxLevel - minLevel));
+                        _volumeLevel = (ushort)((vol - minLevel) * ushort.MaxValue / (maxLevel - minLevel));
                     Debug.Console(1, this, "Level {0} VolumeLevel: '{1}'", LevelCustomName, _volumeLevel);
 
                     VolumeLevelFeedback.FireUpdate();
@@ -190,20 +179,16 @@ namespace ExtronDmp
                 //Use Sis type Volume for trim/gain controls, unless it is a DMP Plus model. All other cases use dB*10
                 float vol;
                 if (_useSisVolume)
-                {
                     vol = (int.Parse(value) - 2048) / 10;
-                }
                 else
-                {
                     vol = int.Parse(value) / 10;
-                }
 
                 if (vol >= maxLevel)
                     _volumeLevel = ushort.MaxValue;
                 else if (vol <= minLevel)
                     _volumeLevel = ushort.MinValue;
                 else
-                    _volumeLevel = (ushort)(((vol - minLevel) * ushort.MaxValue) / (maxLevel - minLevel));
+                    _volumeLevel = (ushort)((vol - minLevel) * ushort.MaxValue / (maxLevel - minLevel));
                 Debug.Console(1, this, "Level {0} VolumeLevel: '{1}'", LevelCustomName, _volumeLevel);
 
                 VolumeLevelFeedback.FireUpdate();
@@ -215,13 +200,8 @@ namespace ExtronDmp
                 string value = response.Substring(starPos + 1, 1);
 
                 if (value == "1")
-                {
                     _isMuted = true;
-                }
-                else if (value == "0")
-                {
-                    _isMuted = false;
-                }
+                else if (value == "0") _isMuted = false;
 
                 MuteFeedback.FireUpdate();
                 return;
@@ -282,21 +262,14 @@ namespace ExtronDmp
         public void SetVolume(ushort level)
         {
             Debug.Console(1, this, "Set Volume: {0}", level);
-            if (_isMuted)
-            {
-                MuteOff();
-            }
+            if (_isMuted) MuteOff();
 
             double tempLevel;
 
             if (_useSisVolume)
-            {
                 tempLevel = ScaleSisFull(level);
-            }
             else
-            {
                 tempLevel = ScaleFull(level);
-            }
 
             Debug.Console(1, this, "Set Scaled Volume: {0}", tempLevel);
             SendFullCommand(_levelPrefix, tempLevel, _commandSuffix);
@@ -308,13 +281,9 @@ namespace ExtronDmp
         public void MuteToggle()
         {
             if (MuteFeedback.BoolValue)
-            {
                 MuteOff();
-            }
             else
-            {
                 MuteOn();
-            }
         }
 
         /// <summary>
@@ -351,20 +320,13 @@ namespace ExtronDmp
                 }
                 else if (press)
                 {
-                    if (_isMuted)
-                    {
-                        MuteOff();
-                    }
+                    if (_isMuted) MuteOff();
 
                     _volumeDownCount++;
                     if (_useSisVolume)
-                    {
                         SendFullCommand(_levelPrefix, ScaleSisFull(_volumeLevel) - 20, _commandSuffix);
-                    }
                     else
-                    {
                         SendFullCommand(_levelPrefix, "20-", _commandSuffix);
-                    }
 
                     _volumeDownRepeatTimer.Reset(100);
                 }
@@ -400,20 +362,13 @@ namespace ExtronDmp
                 }
                 else if (press)
                 {
-                    if (_isMuted)
-                    {
-                        MuteOff();
-                    }
+                    if (_isMuted) MuteOff();
 
                     _volumeUpCount++;
                     if (_useSisVolume)
-                    {
                         SendFullCommand(_levelPrefix, ScaleSisFull(_volumeLevel) + 20, _commandSuffix);
-                    }
                     else
-                    {
                         SendFullCommand(_levelPrefix, "20+", _commandSuffix);
-                    }
 
                     _volumeUpRepeatTimer.Reset(100);
                 }
@@ -441,7 +396,7 @@ namespace ExtronDmp
         /// <returns></returns>
         private double ScaleFull(ushort input)
         {
-            double scaled = 10 * ((input * (maxLevel - minLevel) / ushort.MaxValue) + minLevel);
+            double scaled = 10 * (input * (maxLevel - minLevel) / ushort.MaxValue + minLevel);
             return Math.Round(scaled);
         }
 

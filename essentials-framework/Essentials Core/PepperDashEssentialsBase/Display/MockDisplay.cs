@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using Crestron.SimplSharp;
 using Crestron.SimplSharpPro.DeviceSupport;
 using PepperDash.Core;
-using PepperDash.Essentials.Core.Bridges;
-using PepperDash.Essentials.Core.Routing;
-using PepperDash.Essentials.Core.Config;
+using UmdEssentials.Core.Bridges;
+using UmdEssentials.Core.Config;
+using UmdEssentials.Core.Routing;
 
-namespace PepperDash.Essentials.Core
+namespace UmdEssentials.Core
 {
     /// <summary>
     /// 
@@ -148,10 +148,7 @@ namespace PepperDash.Essentials.Core
         {
             Debug.Console(2, this, "ExecuteSwitch: {0}", selector);
 
-            if (!_PowerIsOn)
-            {
-                PowerOn();
-            }
+            if (!_PowerIsOn) PowerOn();
         }
 
 
@@ -229,7 +226,7 @@ namespace PepperDash.Essentials.Core
     {
         public MockDisplayFactory()
         {
-            TypeNames = new List<string>() { "mockdisplay" };
+            TypeNames = new List<string> { "mockdisplay" };
         }
 
         public override EssentialsDevice BuildDevice(DeviceConfig dc)

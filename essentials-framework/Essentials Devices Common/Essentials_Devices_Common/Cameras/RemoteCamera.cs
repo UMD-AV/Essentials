@@ -5,9 +5,9 @@ using Crestron.SimplSharpPro;
 using Crestron.SimplSharpPro.DeviceSupport;
 using Crestron.SimplSharpPro.EthernetCommunication;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
-using PepperDash.Essentials.Core.Config;
-using PepperDash.Essentials.Core.Bridges;
+using UmdEssentials.Core;
+using UmdEssentials.Core.Config;
+using UmdEssentials.Core.Bridges;
 using Newtonsoft.Json;
 using ViscaCameraPlugin;
 
@@ -78,13 +78,9 @@ namespace RemoteCameraPlugin
         private bool GetOnlineState()
         {
             if (localCameraKey.Length > 0)
-            {
                 return CameraEisc.IsOnline && CameraEisc.BooleanOutput[51].BoolValue;
-            }
             else
-            {
                 return CameraEisc.IsOnline;
-            }
         }
 
         private void CameraEisc_SigChange(BasicTriList currentDevice, SigEventArgs args)
@@ -129,61 +125,37 @@ namespace RemoteCameraPlugin
                         }
                         else if (args.Sig.Number == remoteCameraJoinMap.Home.JoinNumber)
                         {
-                            if (args.Sig.BoolValue)
-                            {
-                                localCamera.RecallHomePosition();
-                            }
+                            if (args.Sig.BoolValue) localCamera.RecallHomePosition();
                         }
                         else if (args.Sig.Number == remoteCameraJoinMap.AutoTrackingOn.JoinNumber)
                         {
-                            if (args.Sig.BoolValue)
-                            {
-                                localCamera.SetAutoTrackingOn();
-                            }
+                            if (args.Sig.BoolValue) localCamera.SetAutoTrackingOn();
                         }
                         else if (args.Sig.Number == remoteCameraJoinMap.AutoTrackingOff.JoinNumber)
                         {
-                            if (args.Sig.BoolValue)
-                            {
-                                localCamera.SetAutoTrackingOff();
-                            }
+                            if (args.Sig.BoolValue) localCamera.SetAutoTrackingOff();
                         }
                         else if (args.Sig.Number == remoteCameraJoinMap.AutoFocusOn.JoinNumber)
                         {
-                            if (args.Sig.BoolValue)
-                            {
-                                localCamera.AutoFocusSet(true);
-                            }
+                            if (args.Sig.BoolValue) localCamera.AutoFocusSet(true);
                         }
                         else if (args.Sig.Number == remoteCameraJoinMap.AutoFocusOff.JoinNumber)
                         {
-                            if (args.Sig.BoolValue)
-                            {
-                                localCamera.AutoFocusSet(false);
-                            }
+                            if (args.Sig.BoolValue) localCamera.AutoFocusSet(false);
                         }
                         else if (args.Sig.Number >= remoteCameraJoinMap.PresetRecall.JoinNumber
                                  && args.Sig.Number < remoteCameraJoinMap.PresetRecall.JoinNumber +
                                  remoteCameraJoinMap.PresetRecall.JoinSpan)
                         {
-                            if (args.Sig.BoolValue)
-                            {
-                                localCamera.RecallPresetByNumber(args.Sig.Number - 10);
-                            }
+                            if (args.Sig.BoolValue) localCamera.RecallPresetByNumber(args.Sig.Number - 10);
                         }
                         else if (args.Sig.Number == remoteCameraJoinMap.PowerOn.JoinNumber)
                         {
-                            if (args.Sig.BoolValue)
-                            {
-                                localCamera.SetPowerOn();
-                            }
+                            if (args.Sig.BoolValue) localCamera.SetPowerOn();
                         }
                         else if (args.Sig.Number == remoteCameraJoinMap.PowerOff.JoinNumber)
                         {
-                            if (args.Sig.BoolValue)
-                            {
-                                localCamera.SetPowerOff();
-                            }
+                            if (args.Sig.BoolValue) localCamera.SetPowerOff();
                         }
                     }
 
@@ -191,15 +163,11 @@ namespace RemoteCameraPlugin
                     if (args.Sig.Number > 50 && args.Sig.Number <= 100 && InternalEisc != null)
                     {
                         if (args.Sig.Number == 51)
-                        {
                             //Special case for online feedback updating
                             CameraOnline.FireUpdate();
-                        }
                         else
-                        {
                             InternalEisc.BooleanInput[args.Sig.Number + internalJoinOffset - 50].BoolValue =
                                 args.Sig.BoolValue;
-                        }
                     }
 
                     break;
@@ -208,19 +176,13 @@ namespace RemoteCameraPlugin
                 {
                     //Remote camera command
                     if (args.Sig.Number > 0 && args.Sig.Number <= 50 && localCamera != null)
-                    {
                         if (args.Sig.Number == remoteCameraJoinMap.PresetRecallByNumber.JoinNumber)
-                        {
                             localCamera.RecallPresetByNumber(args.Sig.UShortValue);
-                        }
-                    }
 
                     //Remote camera feedback - shift to offset joins on bridge
                     if (args.Sig.Number > 50 && args.Sig.Number <= 100 && InternalEisc != null)
-                    {
                         InternalEisc.UShortInput[args.Sig.Number + internalJoinOffset - 50].UShortValue =
                             args.Sig.UShortValue;
-                    }
 
                     break;
                 }
@@ -304,9 +266,7 @@ namespace RemoteCameraPlugin
 
             //Link boolean preset feedback
             foreach (KeyValuePair<uint, BoolFeedback> item in localCamera.PresetActiveFeedbacks)
-            {
                 item.Value.LinkInputSig(trilist.BooleanInput[item.Key + joinMapFeedback.PresetRecall.JoinNumber - 1]);
-            }
         }
 
         private void InternalEisc_SigChange(BasicTriList currentDevice, SigEventArgs args)
@@ -321,9 +281,7 @@ namespace RemoteCameraPlugin
                     //For sending commands to remote camera - shift to joins 1-50 on remote EISC
                     if (args.Sig.Number > internalJoinOffset && args.Sig.Number <= endInternalJoin &&
                         CameraEisc != null)
-                    {
                         CameraEisc.BooleanInput[args.Sig.Number - internalJoinOffset].BoolValue = args.Sig.BoolValue;
-                    }
 
                     break;
                 }
@@ -332,9 +290,7 @@ namespace RemoteCameraPlugin
                     //For sending commands to remote camera - shift to joins 1-50 on remote EISC
                     if (args.Sig.Number > internalJoinOffset && args.Sig.Number <= endInternalJoin &&
                         CameraEisc != null)
-                    {
                         CameraEisc.UShortInput[args.Sig.Number - internalJoinOffset].UShortValue = args.Sig.UShortValue;
-                    }
 
                     break;
                 }
@@ -343,9 +299,7 @@ namespace RemoteCameraPlugin
                     //For sending commands to remote camera - shift to joins 1-50 on remote EISC
                     if (args.Sig.Number > internalJoinOffset && args.Sig.Number <= endInternalJoin &&
                         CameraEisc != null)
-                    {
                         CameraEisc.StringInput[args.Sig.Number - internalJoinOffset].StringValue = args.Sig.StringValue;
-                    }
 
                     break;
                 }
@@ -355,7 +309,6 @@ namespace RemoteCameraPlugin
         private void PushCameraOutputData()
         {
             if (CameraEisc != null)
-            {
                 for (uint x = 1; x <= 50; x++)
                 {
                     CameraEisc.BooleanInput[x].BoolValue = InternalEisc.BooleanOutput[x + internalJoinOffset].BoolValue;
@@ -364,22 +317,15 @@ namespace RemoteCameraPlugin
                     CameraEisc.StringInput[x].StringValue =
                         InternalEisc.StringOutput[x + internalJoinOffset].StringValue;
                 }
-            }
 
             localCamera.ActivePresetFeedback.FireUpdate();
             localCamera.AutoFocusFeedback.FireUpdate();
             localCamera.AutoTrackingOnFeedback.FireUpdate();
             localCamera.OnlineFeedback.FireUpdate();
             localCamera.PowerFeedback.FireUpdate();
-            foreach (KeyValuePair<uint, BoolFeedback> p in localCamera.PresetActiveFeedbacks)
-            {
-                p.Value.FireUpdate();
-            }
+            foreach (KeyValuePair<uint, BoolFeedback> p in localCamera.PresetActiveFeedbacks) p.Value.FireUpdate();
 
-            foreach (KeyValuePair<uint, StringFeedback> p in localCamera.PresetNameFeedbacks)
-            {
-                p.Value.FireUpdate();
-            }
+            foreach (KeyValuePair<uint, StringFeedback> p in localCamera.PresetNameFeedbacks) p.Value.FireUpdate();
 
             localCamera.PresetCountFeedback.FireUpdate();
             localCamera.PrivacyOnFeedback.FireUpdate();
@@ -388,7 +334,6 @@ namespace RemoteCameraPlugin
         private void PushInternalOutputData()
         {
             if (InternalEisc != null)
-            {
                 for (uint x = 1; x <= 50; x++)
                 {
                     InternalEisc.BooleanInput[x + internalJoinOffset].BoolValue =
@@ -398,28 +343,19 @@ namespace RemoteCameraPlugin
 
                     //skip join 1 & 2 which is used for camera name and camera device to SIMPL
                     if (x != 1 && x != 2)
-                    {
                         InternalEisc.StringInput[x + internalJoinOffset].StringValue =
                             CameraEisc.StringOutput[x + 50].StringValue;
-                    }
                 }
-            }
         }
 
         private void ClearCameraOutputData()
         {
-            for (uint x = 1; x <= 100; x++)
-            {
-                CameraEisc.BooleanInput[x].BoolValue = false;
-            }
+            for (uint x = 1; x <= 100; x++) CameraEisc.BooleanInput[x].BoolValue = false;
         }
 
         private void ClearInternalOutputData()
         {
-            for (uint x = 1; x <= 50; x++)
-            {
-                InternalEisc.BooleanInput[x + internalJoinOffset].BoolValue = false;
-            }
+            for (uint x = 1; x <= 50; x++) InternalEisc.BooleanInput[x + internalJoinOffset].BoolValue = false;
         }
 
         private void CameraEisc_OnlineStatusChange(GenericBase currentDevice, OnlineOfflineEventArgs args)
@@ -477,7 +413,7 @@ namespace RemoteCameraPlugin
     {
         public RemoteCameraFactory()
         {
-            TypeNames = new List<string>() { "remotecamera" };
+            TypeNames = new List<string> { "remotecamera" };
         }
 
         public override EssentialsDevice BuildDevice(DeviceConfig dc)

@@ -3,7 +3,7 @@ using Crestron.SimplSharp;
 using Crestron.SimplSharpPro;
 using Crestron.SimplSharpPro.DeviceSupport;
 
-namespace PepperDash.Essentials.Core
+namespace UmdEssentials.Core
 {
     /// <summary>
     /// Extensions used for more-clear attachment of Actions to user objects on sigs
@@ -216,20 +216,11 @@ namespace PepperDash.Essentials.Core
         /// </summary>
         public static void ClearAllSigActions(this BasicTriList t1)
         {
-            foreach (BoolOutputSig sig in t1.BooleanOutput)
-            {
-                ClearSigAction(sig);
-            }
+            foreach (BoolOutputSig sig in t1.BooleanOutput) ClearSigAction(sig);
 
-            foreach (UShortOutputSig sig in t1.UShortOutput)
-            {
-                ClearSigAction(sig);
-            }
+            foreach (UShortOutputSig sig in t1.UShortOutput) ClearSigAction(sig);
 
-            foreach (StringOutputSig sig in t1.StringOutput)
-            {
-                ClearSigAction(sig);
-            }
+            foreach (StringOutputSig sig in t1.StringOutput) ClearSigAction(sig);
         }
 
         /// <summary>

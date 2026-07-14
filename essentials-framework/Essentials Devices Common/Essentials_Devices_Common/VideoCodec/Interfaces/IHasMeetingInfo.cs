@@ -1,7 +1,7 @@
 ﻿using System;
 using Newtonsoft.Json;
 
-namespace PepperDash.Essentials.Devices.Common.VideoCodec.Interfaces
+namespace UmdEssentials.Devices.Common.VideoCodec.Interfaces
 {
     /// <summary>
     /// Describes a device that provides meeting information (like a ZoomRoom)

@@ -7,8 +7,8 @@ using NvxEpi.Application.Config;
 using NvxEpi.Features.Routing;
 using NvxEpi.Features.Streams.Video;
 using NvxEpi.Services.InputSwitching;
-using PepperDash.Essentials.Core;
-using PepperDash.Essentials.Core.Routing;
+using UmdEssentials.Core;
+using UmdEssentials.Core.Routing;
 
 
 namespace NvxEpi.Application.Entities

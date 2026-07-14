@@ -5,12 +5,12 @@ using Crestron.SimplSharpPro;
 using Crestron.SimplSharpPro.DeviceSupport;
 using Crestron.SimplSharpPro.EthernetCommunication;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
-using PepperDash.Essentials.Core.Config;
-using PepperDash.Essentials.Core.Bridges;
 using Newtonsoft.Json;
+using UmdEssentials.Core;
+using UmdEssentials.Core.Bridges;
+using UmdEssentials.Core.Config;
 
-namespace PepperDash.Essentials.Devices.Common.Environment.CrestronLighting
+namespace UmdEssentials.Devices.Common.Environment.CrestronLighting
 {
     public class CrestronLighting : EssentialsBridgeableDevice, IDisposable
     {
@@ -73,39 +73,30 @@ namespace PepperDash.Essentials.Devices.Common.Environment.CrestronLighting
             Debug.Console(2, this, "Lighting Eisc change IPID: {0} Type:{1} Number:{2}", currentDevice.ID,
                 args.Sig.Type, args.Sig.Number);
 
-            if (InternalEisc == null)
-            {
-                return;
-            }
+            if (InternalEisc == null) return;
 
             switch (args.Sig.Type)
             {
                 case eSigType.Bool:
                 {
                     if (args.Sig.Number >= startJoin && args.Sig.Number <= endJoin)
-                    {
                         InternalEisc.BooleanInput[args.Sig.Number + internalJoinOffset].BoolValue = args.Sig.BoolValue;
-                    }
 
                     break;
                 }
                 case eSigType.UShort:
                 {
                     if (args.Sig.Number >= startJoin && args.Sig.Number <= endJoin)
-                    {
                         InternalEisc.UShortInput[args.Sig.Number + internalJoinOffset].UShortValue =
                             args.Sig.UShortValue;
-                    }
 
                     break;
                 }
                 case eSigType.String:
                 {
                     if (args.Sig.Number >= startJoin && args.Sig.Number <= endJoin)
-                    {
                         InternalEisc.StringInput[args.Sig.Number + internalJoinOffset].StringValue =
                             args.Sig.StringValue;
-                    }
 
                     break;
                 }
@@ -117,10 +108,7 @@ namespace PepperDash.Essentials.Devices.Common.Environment.CrestronLighting
             Debug.Console(2, this, "Internal Eisc change IPID: {0} Type:{1} Number:{2}", currentDevice.ID,
                 args.Sig.Type, args.Sig.Number);
 
-            if (LightingEisc == null)
-            {
-                return;
-            }
+            if (LightingEisc == null) return;
 
             switch (args.Sig.Type)
             {
@@ -128,9 +116,7 @@ namespace PepperDash.Essentials.Devices.Common.Environment.CrestronLighting
                 {
                     if (args.Sig.Number >= internalStartJoin && args.Sig.Number <= internalEndJoin &&
                         LightingEisc != null)
-                    {
                         LightingEisc.BooleanInput[args.Sig.Number - internalJoinOffset].BoolValue = args.Sig.BoolValue;
-                    }
 
                     break;
                 }
@@ -138,10 +124,8 @@ namespace PepperDash.Essentials.Devices.Common.Environment.CrestronLighting
                 {
                     if (args.Sig.Number >= internalStartJoin && args.Sig.Number <= internalEndJoin &&
                         LightingEisc != null)
-                    {
                         LightingEisc.UShortInput[args.Sig.Number - internalJoinOffset].UShortValue =
                             args.Sig.UShortValue;
-                    }
 
                     break;
                 }
@@ -149,10 +133,8 @@ namespace PepperDash.Essentials.Devices.Common.Environment.CrestronLighting
                 {
                     if (args.Sig.Number >= internalStartJoin && args.Sig.Number <= internalEndJoin &&
                         LightingEisc != null)
-                    {
                         LightingEisc.StringInput[args.Sig.Number - internalJoinOffset].StringValue =
                             args.Sig.StringValue;
-                    }
 
                     break;
                 }
@@ -162,7 +144,6 @@ namespace PepperDash.Essentials.Devices.Common.Environment.CrestronLighting
         private void PushLightingOutputData()
         {
             if (LightingEisc != null && InternalEisc != null)
-            {
                 for (uint x = startJoin; x <= endJoin; x++)
                 {
                     LightingEisc.BooleanInput[x].BoolValue =
@@ -172,13 +153,11 @@ namespace PepperDash.Essentials.Devices.Common.Environment.CrestronLighting
                     LightingEisc.StringInput[x].StringValue =
                         InternalEisc.StringOutput[x + internalJoinOffset].StringValue;
                 }
-            }
         }
 
         private void PushInternalOutputData()
         {
             if (LightingEisc != null && InternalEisc != null)
-            {
                 for (uint x = startJoin; x <= endJoin; x++)
                 {
                     InternalEisc.BooleanInput[x + internalJoinOffset].BoolValue =
@@ -188,23 +167,17 @@ namespace PepperDash.Essentials.Devices.Common.Environment.CrestronLighting
                     InternalEisc.StringInput[x + internalJoinOffset].StringValue =
                         LightingEisc.StringOutput[x].StringValue;
                 }
-            }
         }
 
         private void ClearLightingOutputData()
         {
-            for (uint x = startJoin; x <= endJoin; x++)
-            {
-                LightingEisc.BooleanInput[x].BoolValue = false;
-            }
+            for (uint x = startJoin; x <= endJoin; x++) LightingEisc.BooleanInput[x].BoolValue = false;
         }
 
         private void ClearInternalOutputData()
         {
             for (uint x = startJoin; x <= endJoin; x++)
-            {
                 InternalEisc.BooleanInput[x + internalJoinOffset].BoolValue = false;
-            }
         }
 
         private void LightingEisc_OnlineStatusChange(GenericBase currentDevice, OnlineOfflineEventArgs args)
@@ -259,7 +232,7 @@ namespace PepperDash.Essentials.Devices.Common.Environment.CrestronLighting
     {
         public CrestronLightingFactory()
         {
-            TypeNames = new List<string>() { "crestronlighting" };
+            TypeNames = new List<string> { "crestronlighting" };
         }
 
         public override EssentialsDevice BuildDevice(DeviceConfig dc)

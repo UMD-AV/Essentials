@@ -5,7 +5,7 @@ using Crestron.SimplSharp.CrestronIO;
 using Newtonsoft.Json;
 using PepperDash.Core;
 
-namespace PepperDash.Essentials.Core.Config
+namespace UmdEssentials.Core.Config
 {
     /// <summary>
     /// Loads the ConfigObject from the file

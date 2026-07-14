@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using PepperDash.Core;
 
-namespace PepperDash.Essentials.Core.Recording
+namespace UmdEssentials.Core.Recording
 {
     public interface IRecordingController
     {

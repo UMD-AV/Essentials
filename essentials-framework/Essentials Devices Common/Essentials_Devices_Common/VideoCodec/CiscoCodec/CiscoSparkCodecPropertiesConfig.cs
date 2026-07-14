@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
-using PepperDash.Essentials.Core;
 using Newtonsoft.Json;
+using UmdEssentials.Core;
 
-namespace PepperDash.Essentials.Devices.Common.Codec
+namespace UmdEssentials.Devices.Common.Codec
 {
     public class CiscoSparkCodecPropertiesConfig
     {

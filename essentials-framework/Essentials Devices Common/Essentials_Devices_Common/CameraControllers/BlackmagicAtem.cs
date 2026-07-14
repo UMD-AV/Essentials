@@ -2,11 +2,11 @@
 using System.Collections.Generic;
 using Crestron.SimplSharpPro.DeviceSupport;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
-using PepperDash.Essentials.Core.Config;
-using PepperDash.Essentials.Core.Bridges;
+using UmdEssentials.Core;
+using UmdEssentials.Core.Bridges;
+using UmdEssentials.Core.Config;
 
-namespace PepperDash.Essentials.Devices.Common.ImageProcessors
+namespace UmdEssentials.Devices.Common.ImageProcessors
 {
     public class BlackmagicAtem : EssentialsBridgeableDevice, IBridgeAdvanced, ICommunicationMonitor,
         IRoutingNumericWithFeedback
@@ -73,10 +73,7 @@ namespace PepperDash.Essentials.Devices.Common.ImageProcessors
 
                 OutputRouteNameFeedbacks[tempX] = new StringFeedback(() =>
                 {
-                    if (inputNames[routeFeedback[tempX]] != null)
-                    {
-                        return inputNames[routeFeedback[tempX]];
-                    }
+                    if (inputNames[routeFeedback[tempX]] != null) return inputNames[routeFeedback[tempX]];
 
                     return "None";
                 });
@@ -95,14 +92,10 @@ namespace PepperDash.Essentials.Devices.Common.ImageProcessors
             BlackmagicAtemJoinMap joinMap = new BlackmagicAtemJoinMap(joinStart);
 
             if (bridge != null)
-            {
                 bridge.AddJoinMap(Key, joinMap);
-            }
             else
-            {
                 Debug.Console(0, this,
                     "Please update config to use 'eiscapiadvanced' to get all join map features for this device.");
-            }
 
             //Events from SIMPL
             for (ushort x = 0; x < numberOutputs; x++)
@@ -136,10 +129,8 @@ namespace PepperDash.Essentials.Devices.Common.ImageProcessors
         {
             Debug.Console(1, this, "Executing switch input:{0} output:{1}", input, output);
             if (input <= numberInputs && output > 0 && output <= numberOutputs)
-            {
                 //Shift output indexing from 1 to 0 for ATEM
                 Communication.SendText(string.Format("VIDEO OUTPUT ROUTING:\n{0} {1}\n\n", output - 1, input));
-            }
         }
 
         private void Poll()
@@ -156,10 +147,7 @@ namespace PepperDash.Essentials.Devices.Common.ImageProcessors
         {
             Debug.Console(2, this, "Processing feedback:{0}", e.Text);
 
-            if (e.Text.Length < 1)
-            {
-                processMode = "";
-            }
+            if (e.Text.Length < 1) processMode = "";
 
             switch (processMode)
             {
@@ -202,7 +190,6 @@ namespace PepperDash.Essentials.Devices.Common.ImageProcessors
                 case "outputRouting":
                     string[] route = e.Text.Split(' ');
                     if (route.Length == 2)
-                    {
                         try
                         {
                             uint output = (uint)(Convert.ToUInt16(route[0]) + 1); //Shift output indexing from 0 to 1
@@ -216,27 +203,17 @@ namespace PepperDash.Essentials.Devices.Common.ImageProcessors
                         {
                             Debug.Console(0, this, "Error processing route feedback:{0}", e.Text);
                         }
-                    }
 
                     break;
             }
 
             if (e.Text.StartsWith("INPUT LABELS:"))
-            {
                 processMode = "inputLabels";
-            }
             else if (e.Text.StartsWith("OUTPUT LABELS:"))
-            {
                 processMode = "outputLabels";
-            }
             else if (e.Text.StartsWith("VIDEO OUTPUT ROUTING:"))
-            {
                 processMode = "outputRouting";
-            }
-            else if (e.Text.Contains(":"))
-            {
-                processMode = "";
-            }
+            else if (e.Text.Contains(":")) processMode = "";
         }
 
         public RoutingPortCollection<RoutingInputPort> InputPorts { get; private set; }
@@ -253,7 +230,7 @@ namespace PepperDash.Essentials.Devices.Common.ImageProcessors
     {
         public BlackmagicAtemFactory()
         {
-            TypeNames = new List<string>() { "blackmagicatem" };
+            TypeNames = new List<string> { "blackmagicatem" };
         }
 
         public override EssentialsDevice BuildDevice(DeviceConfig dc)
@@ -269,12 +246,12 @@ namespace PepperDash.Essentials.Devices.Common.ImageProcessors
         #region Digital
 
         [JoinName("IsOnline")] public JoinDataComplete IsOnline = new JoinDataComplete(
-            new JoinData()
+            new JoinData
             {
                 JoinNumber = 11,
                 JoinSpan = 1
             },
-            new JoinMetadata()
+            new JoinMetadata
             {
                 Description = "Is Online Fb",
                 JoinCapabilities = eJoinCapabilities.ToSIMPL,
@@ -300,12 +277,12 @@ namespace PepperDash.Essentials.Devices.Common.ImageProcessors
         #region Serial
 
         [JoinName("DeviceName")] public JoinDataComplete DeviceName = new JoinDataComplete(
-            new JoinData()
+            new JoinData
             {
                 JoinNumber = 1,
                 JoinSpan = 1
             },
-            new JoinMetadata()
+            new JoinMetadata
             {
                 Description = "Name",
                 JoinCapabilities = eJoinCapabilities.ToSIMPL,

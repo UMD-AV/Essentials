@@ -6,10 +6,10 @@ using Crestron.SimplSharpPro.Remotes;
 using Crestron.SimplSharpPro.DeviceSupport;
 using Newtonsoft.Json;
 using PepperDash.Core;
-using PepperDash.Essentials.Core.Config;
-using PepperDash.Essentials.Core.Bridges;
+using UmdEssentials.Core.Bridges;
+using UmdEssentials.Core.Config;
 
-namespace PepperDash.Essentials.Core
+namespace UmdEssentials.Core
 {
     [Description("Wrapper class for all HR-Series remotes")]
     public class Hrxx0WirelessRemoteController : EssentialsBridgeableDevice, IHasFeedback, IHR52Button
@@ -40,23 +40,19 @@ namespace PepperDash.Essentials.Core
 
             if (props.GatewayDeviceKey == "processor")
             {
+                AddPreActivationAction(() =>
                 {
-                    AddPreActivationAction(() =>
-                    {
-                        _remote = preActivationFunc(config);
-                        RegisterEvents();
-                    });
+                    _remote = preActivationFunc(config);
+                    RegisterEvents();
+                });
 
-                    return;
-                }
+                return;
             }
 
 
             CenRfgwController gatewayDev = DeviceManager.GetDeviceForKey(props.GatewayDeviceKey) as CenRfgwController;
             if (gatewayDev == null)
-            {
                 Debug.Console(0, "GetHr1x0WirelessRemote: Device '{0}' is not a valid device", props.GatewayDeviceKey);
-            }
 
             if (gatewayDev != null)
             {
@@ -69,14 +65,12 @@ namespace PepperDash.Essentials.Core
 
             _gateway.IsReadyEvent += _gateway_IsReadyEvent;
             if (_gateway.IsReady)
-            {
                 AddPreActivationAction(() =>
                 {
                     _remote = preActivationFunc(config);
 
                     RegisterEvents();
                 });
-            }
         }
 
         private void _gateway_IsReadyEvent(object sender, IsReadyEventArgs e)
@@ -119,21 +113,13 @@ namespace PepperDash.Essentials.Core
                 Debug.Console(1, this, "Executing Action: {0}", handler.ToString());
 
                 if (handler is Action<bool>)
-                {
                     (handler as Action<bool>)(args.Button.State == eButtonState.Pressed ? true : false);
-                }
 
                 ButtonEventHandler newHandler = ButtonStateChange;
-                if (ButtonStateChange != null)
-                {
-                    newHandler(device, args);
-                }
+                if (ButtonStateChange != null) newHandler(device, args);
 
                 EssentialsButtonEventHandler newerHandler = EssentialsButtonStateChange;
-                if (EssentialsButtonStateChange != null)
-                {
-                    newerHandler(this, args);
-                }
+                if (EssentialsButtonStateChange != null) newerHandler(this, args);
             }
             catch (Exception e)
             {
@@ -182,13 +168,13 @@ namespace PepperDash.Essentials.Core
             Hr1x0WirelessRemoteBase remoteBase;
             switch (type)
             {
-                case ("hr100"):
+                case "hr100":
                     remoteBase = new Hr100(rfId, gateway);
                     break;
-                case ("hr150"):
+                case "hr150":
                     remoteBase = new Hr150(rfId, gateway);
                     break;
-                case ("hr310"):
+                case "hr310":
                     remoteBase = new Hr310(rfId, gateway);
                     break;
                 default:
@@ -196,10 +182,7 @@ namespace PepperDash.Essentials.Core
             }
 
             // register the device when using an internal RF gateway
-            if (props.GatewayDeviceKey == "processor")
-            {
-                remoteBase.RegisterWithLogging(config.Key);
-            }
+            if (props.GatewayDeviceKey == "processor") remoteBase.RegisterWithLogging(config.Key);
 
             return remoteBase;
         }
@@ -212,7 +195,7 @@ namespace PepperDash.Essentials.Core
         {
             public Hrxx0WirelessRemoteControllerFactory()
             {
-                TypeNames = new List<string>() { "hr100", "hr150", "hr310" };
+                TypeNames = new List<string> { "hr100", "hr150", "hr310" };
             }
 
             public override EssentialsDevice BuildDevice(DeviceConfig dc)
@@ -235,14 +218,10 @@ namespace PepperDash.Essentials.Core
                 joinMap = JsonConvert.DeserializeObject<Hrxxx0WirelessRemoteControllerJoinMap>(joinMapSerialized);
 
             if (bridge != null)
-            {
                 bridge.AddJoinMap(Key, joinMap);
-            }
             else
-            {
                 Debug.Console(0, this,
                     "Please update config to use 'eiscapiadvanced' to get all join map features for this device.");
-            }
 
             //List<string> ExcludedKeys = new List<string>();
             foreach (Feedback feedback in Feedbacks)
@@ -250,11 +229,10 @@ namespace PepperDash.Essentials.Core
                 Feedback myFeedback = feedback;
 
                 KeyValuePair<string, JoinDataComplete> joinData =
-                    joinMap.Joins.FirstOrDefault(
-                        x =>
-                            x.Key.Equals(myFeedback.Key, StringComparison.InvariantCultureIgnoreCase));
+                    joinMap.Joins.FirstOrDefault(x =>
+                        x.Key.Equals(myFeedback.Key, StringComparison.InvariantCultureIgnoreCase));
 
-                if (string.IsNullOrEmpty((joinData.Key))) continue;
+                if (string.IsNullOrEmpty(joinData.Key)) continue;
 
                 string name = joinData.Key;
                 JoinDataComplete join = joinData.Value;
@@ -295,31 +273,25 @@ namespace PepperDash.Essentials.Core
                 Debug.Console(2, this, "Attempting to link join index {0}", i);
                 uint index = i;
                 KeyValuePair<string, JoinDataComplete> joinData =
-                    joinMap.Joins.FirstOrDefault(
-                        o =>
-                            o.Key.Equals(_remote.Button[index].Name.ToString(),
-                                StringComparison.InvariantCultureIgnoreCase));
+                    joinMap.Joins.FirstOrDefault(o =>
+                        o.Key.Equals(_remote.Button[index].Name.ToString(),
+                            StringComparison.InvariantCultureIgnoreCase));
 
-                if (string.IsNullOrEmpty((joinData.Key))) continue;
+                if (string.IsNullOrEmpty(joinData.Key)) continue;
 
                 JoinDataComplete join = joinData.Value;
                 string name = joinData.Key;
 
                 Debug.Console(2, this, "Setting User Object for '{0}'", name);
                 if (join.Metadata.JoinType == eJoinType.Digital)
-                {
                     _remote.Button[i].SetButtonAction((b) => trilist.BooleanInput[join.JoinNumber].BoolValue = b);
-                }
             }
 
             trilist.OnlineStatusChange += (d, args) =>
             {
                 if (!args.DeviceOnLine) return;
 
-                foreach (Feedback feedback in Feedbacks)
-                {
-                    feedback.FireUpdate();
-                }
+                foreach (Feedback feedback in Feedbacks) feedback.FireUpdate();
             };
         }
 

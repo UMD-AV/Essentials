@@ -2,7 +2,7 @@
 using Newtonsoft.Json;
 using PepperDash.Core;
 
-namespace PepperDash.Essentials.DM.Config
+namespace UmdEssentials.DM.Config
 {
     /// <summary>
     /// Defines the properties section of HdMdNxM boxes

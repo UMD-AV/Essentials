@@ -8,19 +8,20 @@ using Crestron.SimplSharp;
 using PepperDash.Core;
 using PepperDash.Core.XSigUtility;
 using PepperDash.Core.XSigUtility.Tokens;
-using PepperDash.Essentials.Core;
-using PepperDash.Essentials.Core.Bridges;
-using PepperDash.Essentials.Core.Config;
-using PepperDash.Essentials.Core.Devices;
-using PepperDash.Essentials.Core.DeviceTypeInterfaces;
-using PepperDash.Essentials.Core.Routing;
-using PepperDash.Essentials.Devices.Common.Cameras;
-using PepperDash.Essentials.Devices.Common.Codec;
-using PepperDash.Essentials.Devices.Common.VideoCodec.Interfaces;
-using PepperDash.Essentials.Core.Bridges.JoinMaps;
-using Feedback = PepperDash.Essentials.Core.Feedback;
+using UmdEssentials.Core;
+using UmdEssentials.Core.Bridges;
+using UmdEssentials.Core.Bridges.JoinMaps;
+using UmdEssentials.Core.Config;
+using UmdEssentials.Core.Devices;
+using UmdEssentials.Core.DeviceTypeInterfaces;
+using UmdEssentials.Core.Routing;
+using UmdEssentials.Devices.Common.Cameras;
+using UmdEssentials.Devices.Common.Codec;
+using UmdEssentials.Devices.Common.VideoCodec.Interfaces;
+using Core_Feedback = UmdEssentials.Core.Feedback;
+using Feedback = UmdEssentials.Core.Feedback;
 
-namespace PepperDash.Essentials.Devices.Common.VideoCodec
+namespace UmdEssentials.Devices.Common.VideoCodec
 {
     public abstract class VideoCodecBase : ReconfigurableDevice, IRoutingInputsOutputs,
         IUsageTracking, IHasDialer, IHasContentSharing, ICodecAudio, iVideoCodecInfo, IBridgeAdvanced, IHasStandbyMode
@@ -74,11 +75,11 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec
 
         public bool IsReady { get; protected set; }
 
-        public virtual List<Feedback> Feedbacks
+        public virtual List<Core_Feedback> Feedbacks
         {
             get
             {
-                return new List<Feedback>
+                return new List<Core_Feedback>
                 {
                     PrivacyModeIsOnFeedback,
                     SharingSourceFeedback
@@ -212,28 +213,17 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec
         protected virtual void OnCallStatusChange(CodecActiveCallItem item)
         {
             EventHandler<CodecCallStatusItemChangeEventArgs> handler = CallStatusChange;
-            if (handler != null)
-            {
-                handler(this, new CodecCallStatusItemChangeEventArgs(item));
-            }
+            if (handler != null) handler(this, new CodecCallStatusItemChangeEventArgs(item));
 
             PrivacyModeIsOnFeedback.FireUpdate();
 
-            if (AutoShareContentWhileInCall)
-            {
-                StartSharing();
-            }
+            if (AutoShareContentWhileInCall) StartSharing();
 
             if (UsageTracker != null)
             {
                 if (IsInCall && !UsageTracker.UsageTrackingStarted)
-                {
                     UsageTracker.StartDeviceUsage();
-                }
-                else if (UsageTracker.UsageTrackingStarted && !IsInCall)
-                {
-                    UsageTracker.EndDeviceUsage();
-                }
+                else if (UsageTracker.UsageTrackingStarted && !IsInCall) UsageTracker.EndDeviceUsage();
             }
         }
 
@@ -248,10 +238,7 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec
                 {
                     IsReady = true;
                     EventHandler<EventArgs> h = IsReadyChange;
-                    if (h != null)
-                    {
-                        h(this, new EventArgs());
-                    }
+                    if (h != null) h(this, new EventArgs());
                 }
                 catch (Exception e)
                 {
@@ -270,10 +257,8 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec
 
             StringBuilder sb = new StringBuilder();
             foreach (CodecActiveCallItem c in ActiveCalls)
-            {
                 sb.AppendFormat("id: {0} number: {1} -- name: {2} status: {3} onHold: {4}\r\n", c.Id, c.Number, c.Name,
                     c.Status, c.IsOnHold);
-            }
 
             Debug.Console(1, this, "\n{0}\n", sb.ToString());
         }
@@ -302,15 +287,9 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec
 
             Dictionary<string, JoinData> customJoins = JoinMapHelper.TryGetJoinMapAdvancedForDevice(joinMapKey);
 
-            if (customJoins != null)
-            {
-                joinMap.SetCustomJoinData(customJoins);
-            }
+            if (customJoins != null) joinMap.SetCustomJoinData(customJoins);
 
-            if (bridge != null)
-            {
-                bridge.AddJoinMap(Key, joinMap);
-            }
+            if (bridge != null) bridge.AddJoinMap(Key, joinMap);
 
             LinkVideoCodecToApi(codec, trilist, joinMap);
 
@@ -346,22 +325,14 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec
             // Register for this event to link any functions that require the codec to be ready first
             codec.IsReadyChange += (o, a) =>
             {
-                if (codec is IHasCodecCameras)
-                {
-                    LinkVideoCodecCameraToApi(codec as IHasCodecCameras, trilist, joinMap);
-                }
+                if (codec is IHasCodecCameras) LinkVideoCodecCameraToApi(codec as IHasCodecCameras, trilist, joinMap);
             };
 
             if (codec is ICommunicationMonitor)
-            {
                 LinkVideoCodecCommMonitorToApi(codec as ICommunicationMonitor, trilist, joinMap);
-            }
 
 
-            if (codec is IHasCodecSelfView)
-            {
-                LinkVideoCodecSelfviewToApi(codec as IHasCodecSelfView, trilist, joinMap);
-            }
+            if (codec is IHasCodecSelfView) LinkVideoCodecSelfviewToApi(codec as IHasCodecSelfView, trilist, joinMap);
 
             if (codec is IHasCameraAutoMode)
             {
@@ -376,65 +347,37 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec
             }
 
             if (codec is IHasCodecLayouts)
-            {
                 LinkVideoCodecCameraLayoutsToApi(codec as IHasCodecLayouts, trilist, joinMap);
-            }
 
 
             if (codec is IHasSelfviewPosition)
-            {
                 LinkVideoCodecSelfviewPositionToApi(codec as IHasSelfviewPosition, trilist, joinMap);
-            }
 
-            if (codec is IHasDirectory)
-            {
-                LinkVideoCodecDirectoryToApi(codec as IHasDirectory, trilist, joinMap);
-            }
+            if (codec is IHasDirectory) LinkVideoCodecDirectoryToApi(codec as IHasDirectory, trilist, joinMap);
 
             if (codec is IHasScheduleAwareness)
-            {
                 LinkVideoCodecScheduleToApi(codec as IHasScheduleAwareness, trilist, joinMap);
-            }
 
-            if (codec is IHasParticipants)
-            {
-                LinkVideoCodecParticipantsToApi(codec as IHasParticipants, trilist, joinMap);
-            }
+            if (codec is IHasParticipants) LinkVideoCodecParticipantsToApi(codec as IHasParticipants, trilist, joinMap);
 
             if (codec is IHasFarEndContentStatus)
-            {
                 (codec as IHasFarEndContentStatus).ReceivingContent.LinkInputSig(
                     trilist.BooleanInput[joinMap.RecievingContent.JoinNumber]);
-            }
 
-            if (codec is IHasPhoneDialing)
-            {
-                LinkVideoCodecPhoneToApi(codec as IHasPhoneDialing, trilist, joinMap);
-            }
+            if (codec is IHasPhoneDialing) LinkVideoCodecPhoneToApi(codec as IHasPhoneDialing, trilist, joinMap);
 
-            if (codec is IHasCallHistory)
-            {
-                LinkVideoCodecCallHistoryToApi(codec as IHasCallHistory, trilist, joinMap);
-            }
+            if (codec is IHasCallHistory) LinkVideoCodecCallHistoryToApi(codec as IHasCallHistory, trilist, joinMap);
 
             trilist.OnlineStatusChange += (device, args) =>
             {
                 if (!args.DeviceOnLine) return;
 
-                if (codec is IHasDirectory)
-                {
-                    (codec as IHasDirectory).SetCurrentDirectoryToRoot();
-                }
+                if (codec is IHasDirectory) (codec as IHasDirectory).SetCurrentDirectoryToRoot();
 
-                if (codec is IHasScheduleAwareness)
-                {
-                    (codec as IHasScheduleAwareness).GetSchedule();
-                }
+                if (codec is IHasScheduleAwareness) (codec as IHasScheduleAwareness).GetSchedule();
 
                 if (codec is IHasParticipants)
-                {
                     UpdateParticipantsXSig((codec as IHasParticipants).Participants.CurrentParticipants);
-                }
 
                 if (codec is IHasCameraAutoMode)
                 {
@@ -443,30 +386,15 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec
                     (codec as IHasCameraAutoMode).CameraAutoModeIsOnFeedback.FireUpdate();
                 }
 
-                if (codec is IHasCodecSelfView)
-                {
-                    (codec as IHasCodecSelfView).SelfviewIsOnFeedback.FireUpdate();
-                }
+                if (codec is IHasCodecSelfView) (codec as IHasCodecSelfView).SelfviewIsOnFeedback.FireUpdate();
 
-                if (codec is IHasCameraAutoMode)
-                {
-                    (codec as IHasCameraAutoMode).CameraAutoModeIsOnFeedback.FireUpdate();
-                }
+                if (codec is IHasCameraAutoMode) (codec as IHasCameraAutoMode).CameraAutoModeIsOnFeedback.FireUpdate();
 
-                if (codec is IHasCameraOff)
-                {
-                    (codec as IHasCameraOff).CameraIsOffFeedback.FireUpdate();
-                }
+                if (codec is IHasCameraOff) (codec as IHasCameraOff).CameraIsOffFeedback.FireUpdate();
 
-                if (codec is IHasPhoneDialing)
-                {
-                    (codec as IHasPhoneDialing).PhoneOffHookFeedback.FireUpdate();
-                }
+                if (codec is IHasPhoneDialing) (codec as IHasPhoneDialing).PhoneOffHookFeedback.FireUpdate();
 
-                if (codec is IHasCallHistory)
-                {
-                    UpdateCallHistory((codec as IHasCallHistory), trilist, joinMap);
-                }
+                if (codec is IHasCallHistory) UpdateCallHistory(codec as IHasCallHistory, trilist, joinMap);
 
                 SharingContentIsOnFeedback.FireUpdate();
 
@@ -601,10 +529,7 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec
             // make sure to update the values when the EISC comes online
             trilist.OnlineStatusChange += (sender, args) =>
             {
-                if (sender.IsOnline)
-                {
-                    UpdateParticipantsXSig(codec, trilist, joinMap);
-                }
+                if (sender.IsOnline) UpdateParticipantsXSig(codec, trilist, joinMap);
             };
 
             SetParticipantActions(trilist, joinMap);
@@ -643,10 +568,7 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec
         private void RefreshXSigs(VideoCodecBase codec, BasicTriList trilist, VideoCodecControllerJoinMap joinMap)
         {
             trilist.SetString(joinMap.CurrentCallData.JoinNumber, UpdateCallStatusXSig());
-            if (codec is IHasParticipants)
-            {
-                UpdateParticipantsXSig(codec as IHasParticipants, trilist, joinMap);
-            }
+            if (codec is IHasParticipants) UpdateParticipantsXSig(codec as IHasParticipants, trilist, joinMap);
         }
 
         private void UpdateParticipantXSig(int index, Participant participant, BasicTriList trilist,
@@ -692,28 +614,20 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec
             {
                 ushort index = i;
                 if (audioMuteCodec != null)
-                {
                     trilist.SetSigTrueAction(joinMap.ParticipantAudioMuteToggleStart.JoinNumber + index,
                         () => audioMuteCodec.ToggleAudioForParticipantIndex(index));
-                }
 
                 if (videoMuteCodec != null)
-                {
                     trilist.SetSigTrueAction(joinMap.ParticipantVideoMuteToggleStart.JoinNumber + index,
                         () => audioMuteCodec.ToggleVideoForParticipantIndex(index));
-                }
 
                 if (pinCodec != null)
-                {
                     trilist.SetSigTrueAction(joinMap.ParticipantPinToggleStart.JoinNumber + index,
                         () => pinCodec.ToggleParticipantPinStateIndex(index, pinCodec.ScreenIndexToPinUserTo));
-                }
 
                 if (waitingRoomCodec != null)
-                {
                     trilist.SetSigTrueAction(joinMap.AdmitParticipantFromWaitingRoomStart.JoinNumber + index,
                         () => waitingRoomCodec.AdmitParticipantFromWaitingRoomIndex(index));
-                }
             }
         }
 
@@ -876,9 +790,7 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec
             codec.CodecSchedule.MeetingEventChange += (sender, args) =>
             {
                 if (args.ChangeType == eMeetingEventChangeType.MeetingStartWarning)
-                {
                     UpdateMeetingsList(codec, trilist, joinMap);
-                }
             };
 
             trilist.SetUShortSigAction(joinMap.MeetingsToDisplay.JoinNumber, m => MeetingsToDisplay = m);
@@ -1128,9 +1040,7 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec
             DirectoryContact selectedContact = _selectedDirectoryItem as DirectoryContact;
 
             if (selectedContact != null && selectedContact.ContactMethods.Count >= 1)
-            {
                 trilist.SetBool(joinMap.DirectoryEntryIsContact.JoinNumber, true);
-            }
 
             trilist.SetString(joinMap.DirectoryEntrySelectedName.JoinNumber,
                 selectedContact != null ? selectedContact.Name : string.Empty);
@@ -1306,13 +1216,9 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec
 
                     CodecActiveCallItem call = ActiveCalls[callIndex];
                     if (call != null)
-                    {
                         EndCall(call);
-                    }
                     else
-                    {
                         Debug.Console(0, this, "[End Call] Unable to find call at index '{0}'", i);
-                    }
                 });
             }
 
@@ -1354,20 +1260,14 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec
                 trilist.SetSigFalseAction(joinMap.JoinAllCalls.JoinNumber, () => joinCodec.JoinAllCalls());
 
                 for (int i = 0; i < joinMap.JoinCallStart.JoinSpan; i++)
-                {
                     trilist.SetSigFalseAction((uint)(joinMap.JoinCallStart.JoinNumber + i), () =>
                     {
                         CodecActiveCallItem call = ActiveCalls[i];
                         if (call != null)
-                        {
                             joinCodec.JoinCall(call);
-                        }
                         else
-                        {
                             Debug.Console(0, this, "[Join Call] Unable to find call at index '{0}'", i);
-                        }
                     });
-                }
             }
 
             IHasCallHold holdCodec = this as IHasCallHold;
@@ -1375,10 +1275,7 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec
             {
                 trilist.SetSigFalseAction(joinMap.HoldAllCalls.JoinNumber, () =>
                 {
-                    foreach (CodecActiveCallItem call in ActiveCalls)
-                    {
-                        holdCodec.HoldCall(call);
-                    }
+                    foreach (CodecActiveCallItem call in ActiveCalls) holdCodec.HoldCall(call);
                 });
 
                 for (int i = 0; i < joinMap.HoldCallsStart.JoinSpan; i++)
@@ -1391,13 +1288,9 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec
 
                         CodecActiveCallItem call = ActiveCalls[index];
                         if (call != null)
-                        {
                             holdCodec.HoldCall(call);
-                        }
                         else
-                        {
                             Debug.Console(0, this, "[Hold Call] Unable to find call at index '{0}'", i);
-                        }
                     });
 
                     trilist.SetSigFalseAction((uint)(joinMap.ResumeCallsStart.JoinNumber + index), () =>
@@ -1406,13 +1299,9 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec
 
                         CodecActiveCallItem call = ActiveCalls[index];
                         if (call != null)
-                        {
                             holdCodec.ResumeCall(call);
-                        }
                         else
-                        {
                             Debug.Console(0, this, "[Resume Call] Unable to find call at index '{0}'", i);
-                        }
                     });
                 }
             }
@@ -1530,13 +1419,9 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec
                 {
                     CodecActiveCallItem call = ActiveCalls[callIndex - 1];
                     if (call != null && call.IsActiveCall)
-                    {
                         SendDtmf(s, call);
-                    }
                     else
-                    {
                         Debug.Console(0, this, "Warning: No call found at index {0} or call is not active.", callIndex);
-                    }
                 }
                 else
                 {
@@ -1721,37 +1606,25 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec
 
             // Camera names
             for (uint i = 0; i < joinMap.CameraNamesFb.JoinSpan; i++)
-            {
                 //Check the count first
                 if (i < codec.Cameras.Count && codec.Cameras[(int)i] != null)
-                {
                     trilist.SetString(joinMap.CameraNamesFb.JoinNumber + i, codec.Cameras[(int)i].Name);
-                }
                 else
-                {
                     trilist.SetString(joinMap.CameraNamesFb.JoinNumber + i, "");
-                }
-            }
 
             //Camera Select
             trilist.SetUShortSigAction(joinMap.CameraNumberSelect.JoinNumber, (i) =>
             {
                 if (i > 0 && i <= codec.Cameras.Count)
-                {
                     codec.SelectCamera(codec.Cameras[i - 1].Key);
-                }
                 else
-                {
                     Debug.Console(0, this, "Unable to select.  No camera found at index {0}", i);
-                }
             });
 
             // Set initial selected camera feedback
             if (codec.SelectedCamera != null)
-            {
                 trilist.SetUshort(joinMap.CameraNumberSelect.JoinNumber,
                     (ushort)codec.Cameras.FindIndex((c) => c.Key == codec.SelectedCamera.Key));
-            }
 
             codec.CameraSelected += (sender, args) =>
             {
@@ -1759,15 +1632,9 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec
 
                 trilist.SetUshort(joinMap.CameraNumberSelect.JoinNumber, (ushort)(i + 1));
 
-                if (codec is IHasCodecRoomPresets)
-                {
-                    return;
-                }
+                if (codec is IHasCodecRoomPresets) return;
 
-                if (!(args.SelectedCamera is IHasCameraPresets))
-                {
-                    return;
-                }
+                if (!(args.SelectedCamera is IHasCameraPresets)) return;
 
                 IHasCameraPresets cam = args.SelectedCamera as IHasCameraPresets;
                 SetCameraPresetNames(cam.Presets);
@@ -1986,10 +1853,7 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec
                 if (value)
                 {
                     EventHandler<EventArgs> handler = InitialSyncCompleted;
-                    if (handler != null)
-                    {
-                        handler(this, new EventArgs());
-                    }
+                    if (handler != null) handler(this, new EventArgs());
                 }
 
                 _InitialSyncComplete = value;

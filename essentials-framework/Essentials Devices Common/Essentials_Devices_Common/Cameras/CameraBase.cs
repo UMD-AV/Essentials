@@ -3,14 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using Crestron.SimplSharpPro.DeviceSupport;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
-using PepperDash.Essentials.Core.Devices;
-using PepperDash.Essentials.Core.Config;
-using PepperDash.Essentials.Core.Bridges;
-using PepperDash.Essentials.Core.Presets;
 using Newtonsoft.Json;
+using UmdEssentials.Core;
+using UmdEssentials.Core.Bridges;
+using UmdEssentials.Core.Config;
+using UmdEssentials.Core.Devices;
+using UmdEssentials.Core.Presets;
 
-namespace PepperDash.Essentials.Devices.Common.Cameras
+namespace UmdEssentials.Devices.Common.Cameras
 {
     public enum eCameraCapabilities
     {
@@ -77,21 +77,14 @@ namespace PepperDash.Essentials.Devices.Common.Cameras
             CameraControllerJoinMap joinMap = new CameraControllerJoinMap(joinStart);
 
             if (bridge != null)
-            {
                 bridge.AddJoinMap(Key, joinMap);
-            }
             else
-            {
                 Debug.Console(0, this,
                     "Please update config to use 'eiscapiadvanced' to get all join map features for this device.");
-            }
 
             Dictionary<string, JoinData> customJoins = JoinMapHelper.TryGetJoinMapAdvancedForDevice(joinMapKey);
 
-            if (customJoins != null)
-            {
-                joinMap.SetCustomJoinData(customJoins);
-            }
+            if (customJoins != null) joinMap.SetCustomJoinData(customJoins);
 
             Debug.Console(1, "Linking to Trilist '{0}'", trilist.ID.ToString("X"));
             Debug.Console(0, "Linking to Bridge Type {0}", cameraDevice.GetType().Name.ToString());
@@ -107,71 +100,47 @@ namespace PepperDash.Essentials.Devices.Common.Cameras
                 trilist.SetBoolSigAction(joinMap.PanLeft.JoinNumber, (b) =>
                 {
                     if (b)
-                    {
                         ptzCamera.PanLeft();
-                    }
                     else
-                    {
                         ptzCamera.PanStop();
-                    }
                 });
                 trilist.SetBoolSigAction(joinMap.PanRight.JoinNumber, (b) =>
                 {
                     if (b)
-                    {
                         ptzCamera.PanRight();
-                    }
                     else
-                    {
                         ptzCamera.PanStop();
-                    }
                 });
 
                 trilist.SetBoolSigAction(joinMap.TiltUp.JoinNumber, (b) =>
                 {
                     if (b)
-                    {
                         ptzCamera.TiltUp();
-                    }
                     else
-                    {
                         ptzCamera.TiltStop();
-                    }
                 });
                 trilist.SetBoolSigAction(joinMap.TiltDown.JoinNumber, (b) =>
                 {
                     if (b)
-                    {
                         ptzCamera.TiltDown();
-                    }
                     else
-                    {
                         ptzCamera.TiltStop();
-                    }
                 });
 
                 trilist.SetBoolSigAction(joinMap.ZoomIn.JoinNumber, (b) =>
                 {
                     if (b)
-                    {
                         ptzCamera.ZoomIn();
-                    }
                     else
-                    {
                         ptzCamera.ZoomStop();
-                    }
                 });
 
                 trilist.SetBoolSigAction(joinMap.ZoomOut.JoinNumber, (b) =>
                 {
                     if (b)
-                    {
                         ptzCamera.ZoomOut();
-                    }
                     else
-                    {
                         ptzCamera.ZoomStop();
-                    }
                 });
             }
 
@@ -224,10 +193,7 @@ namespace PepperDash.Essentials.Devices.Common.Cameras
 
                 trilist.OnlineStatusChange += (sender, args) =>
                 {
-                    if (!args.DeviceOnLine)
-                    {
-                        return;
-                    }
+                    if (!args.DeviceOnLine) return;
 
                     SendCameraPresetNamesToApi(presetsCamera, joinMap, trilist);
                 };

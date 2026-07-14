@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
+using UmdEssentials.Core;
 
 namespace DynFusion
 {
@@ -92,13 +92,9 @@ namespace DynFusion
         {
             string key = string.Format("DEV:{0}", device);
             if (action)
-            {
                 StartDevice(key);
-            }
             else
-            {
                 StopDevice(key);
-            }
         }
 
         public void changeSource(ushort disp, ushort source)
@@ -141,18 +137,14 @@ namespace DynFusion
                     {
                         bool onlySource = true;
                         foreach (KeyValuePair<string, UsageInfo> entry in usageInfoDict)
-                        {
                             //Debug.Console(1,this, "DynFusionDeviceUsage Change Source dictEntry: {0}", entry.Key);
                             if (entry.Key.Contains("DISP"))
-                            {
                                 //Debug.Console(1,this, "DynFusionDeviceUsage Change Source dictEntry Display - Source #: {0}", entry.Value.sourceNumber);
                                 if (entry.Value.sourceNumber == lastSourceNumber)
                                 {
                                     onlySource = false;
                                     break;
                                 }
-                            }
-                        }
 
                         if (onlySource)
                         {
@@ -171,13 +163,9 @@ namespace DynFusion
         public void StartDevice(string key)
         {
             if (usageInfoDict.ContainsKey(key))
-            {
                 usageInfoDict[key].startTime = DateTime.Now;
-            }
             else
-            {
                 Debug.Console(1, this, "DynFusionDeviceUsage no device number {0}", key);
-            }
         }
 
         public void StopDevice(string key)
@@ -215,13 +203,9 @@ namespace DynFusion
         public void NameDevice(ushort deviceNumber, string name)
         {
             if (deviceUsageInfo.ContainsKey(deviceNumber))
-            {
                 deviceUsageInfo[deviceNumber].name = name;
-            }
             else
-            {
                 Debug.Console(1, this, "DynFusionDeviceUsage no device number {0}", deviceNumber);
-            }
         }
 
         public class UsageInfo

@@ -1,10 +1,10 @@
 ﻿using System.Collections.Generic;
 using Crestron.SimplSharp;
 using PepperDash.Core;
-using PepperDash.Essentials.Core.Config;
+using UmdEssentials.Core.Config;
 
 
-namespace PepperDash.Essentials.Core
+namespace UmdEssentials.Core
 {
     public class ConsoleCommMockDevice : EssentialsDevice, ICommunicationMonitor
     {
@@ -72,7 +72,7 @@ namespace PepperDash.Essentials.Core
     {
         public ConsoleCommMockDeviceFactory()
         {
-            TypeNames = new List<string>() { "commmock" };
+            TypeNames = new List<string> { "commmock" };
         }
 
         public override EssentialsDevice BuildDevice(DeviceConfig dc)

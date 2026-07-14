@@ -1,8 +1,8 @@
 ﻿using System;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
+using UmdEssentials.Core;
 using Crestron.SimplSharpPro;
-using PepperDash.Essentials.Core.Queues;
+using UmdEssentials.Core.Queues;
 
 namespace NvxEpi.Services.Messages
 {

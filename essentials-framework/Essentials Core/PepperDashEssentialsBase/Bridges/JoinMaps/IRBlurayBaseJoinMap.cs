@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace PepperDash.Essentials.Core.Bridges
+namespace UmdEssentials.Core.Bridges
 {
     /// <summary>
     /// Join map for IRBlurayBase devices

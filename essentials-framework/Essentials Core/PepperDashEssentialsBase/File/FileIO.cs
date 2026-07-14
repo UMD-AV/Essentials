@@ -5,7 +5,7 @@ using Crestron.SimplSharp.CrestronIO;
 using PepperDash.Core;
 using Crestron.SimplSharpPro.CrestronThread;
 
-namespace PepperDash.Essentials.Core
+namespace UmdEssentials.Core
 {
     public static class FileIO
     {
@@ -26,13 +26,9 @@ namespace PepperDash.Essentials.Core
             FileInfo[] files = dirInfo.GetFiles(Path.GetFileName(fileName));
             Debug.Console(0, "FileIO found: {0}, {1}", files.Count(), fileName);
             if (files.Any())
-            {
                 return files;
-            }
             else
-            {
                 return null;
-            }
         }
 
         public static FileInfo GetFile(string fileName)
@@ -41,13 +37,9 @@ namespace PepperDash.Essentials.Core
             FileInfo[] files = dirInfo.GetFiles(Path.GetFileName(fileName));
             Debug.Console(0, "FileIO found: {0}, {1}", files.Count(), fileName);
             if (files.Any())
-            {
                 return files.FirstOrDefault();
-            }
             else
-            {
                 return null;
-            }
         }
 
 
@@ -203,17 +195,13 @@ namespace PepperDash.Essentials.Core
             try
             {
                 if (fileLock.TryEnter())
-                {
                     using (StreamWriter sw = new StreamWriter(filePath))
                     {
                         sw.Write(data);
                         sw.Flush();
                     }
-                }
                 else
-                {
                     Debug.Console(0, Debug.ErrorLogLevel.Error, "FileIO Unable to enter FileLock");
-                }
             }
             catch (Exception e)
             {
@@ -235,21 +223,17 @@ namespace PepperDash.Essentials.Core
         public static bool FileIoUnitTest()
         {
             string testData = "Testing FileIO";
-            FileIO.WriteDataToFile(testData, "\\user\\FileIOTest.pdt");
+            WriteDataToFile(testData, "\\user\\FileIOTest.pdt");
 
-            FileInfo file = FileIO.GetFile("\\user\\*FileIOTest*");
+            FileInfo file = GetFile("\\user\\*FileIOTest*");
 
-            string readData = FileIO.ReadDataFromFile(file);
+            string readData = ReadDataFromFile(file);
             Debug.Console(0, "Returned {0}", readData);
             File.Delete(file.FullName);
             if (testData == readData)
-            {
                 return true;
-            }
             else
-            {
                 return false;
-            }
         }
     }
 

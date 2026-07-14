@@ -5,13 +5,13 @@ using Crestron.SimplSharp;
 using Crestron.SimplSharpPro.CrestronThread;
 using Crestron.SimplSharpPro.DeviceSupport;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
-using PepperDash.Essentials.Core.Bridges;
-using PepperDash.Essentials.Core.Config;
 using Newtonsoft.Json;
-using PepperDash.Essentials.DM;
+using UmdEssentials.Core;
+using UmdEssentials.Core.Bridges;
+using UmdEssentials.Core.Config;
+using UmdEssentials.DM;
 
-namespace PepperDash.Essentials.Devices.Displays
+namespace UmdEssentials.Devices.Displays
 {
     /// <summary>
     /// 

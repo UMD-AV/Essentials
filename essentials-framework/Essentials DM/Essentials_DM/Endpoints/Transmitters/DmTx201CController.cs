@@ -6,10 +6,10 @@ using Crestron.SimplSharpPro.DM.Endpoints;
 using Crestron.SimplSharpPro.DM.Endpoints.Transmitters;
 using System.Linq;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
-using PepperDash.Essentials.Core.Bridges;
+using UmdEssentials.Core;
+using UmdEssentials.Core.Bridges;
 
-namespace PepperDash.Essentials.DM
+namespace UmdEssentials.DM
 {
     /// <summary>
     /// Controller class for all DM-TX-201C/S/F transmitters
@@ -60,7 +60,9 @@ namespace PepperDash.Essentials.DM
                 if (Tx.VideoSourceFeedback == DmTx200Base.eSourceSelection.Digital ||
                     Tx.VideoSourceFeedback == DmTx200Base.eSourceSelection.Analog ||
                     Tx.VideoSourceFeedback == DmTx200Base.eSourceSelection.Disable)
+                {
                     return Tx.VideoSourceFeedback;
+                }
                 else // auto
                 {
                     if (Tx.HdmiInput.SyncDetectedFeedback.BoolValue)
@@ -131,7 +133,7 @@ namespace PepperDash.Essentials.DM
             AudioSourceNumericFeedback = new IntFeedback(() => (int)Tx.AudioSourceFeedback);
 
             HdmiInHdcpCapabilityFeedback = new IntFeedback("HdmiInHdcpCapability", () =>
-                (tx.HdmiInput.HdcpSupportOnFeedback.BoolValue ? 1 : 0));
+                tx.HdmiInput.HdcpSupportOnFeedback.BoolValue ? 1 : 0);
 
             HdcpStateFeedback = HdmiInHdcpCapabilityFeedback;
 
@@ -152,8 +154,8 @@ namespace PepperDash.Essentials.DM
             VideoStatusFuncsWrapper combinedFuncs = new VideoStatusFuncsWrapper
             {
                 HdcpActiveFeedbackFunc = () =>
-                    (ActualActiveVideoInput == DmTx200Base.eSourceSelection.Digital
-                     && tx.HdmiInput.VideoAttributes.HdcpActiveFeedback.BoolValue),
+                    ActualActiveVideoInput == DmTx200Base.eSourceSelection.Digital
+                    && tx.HdmiInput.VideoAttributes.HdcpActiveFeedback.BoolValue,
 
                 HdcpStateFeedbackFunc = () =>
                     ActualActiveVideoInput == DmTx200Base.eSourceSelection.Digital
@@ -202,7 +204,7 @@ namespace PepperDash.Essentials.DM
         }
 
         private void VideoControls_ControlChange(object sender,
-            Crestron.SimplSharpPro.DeviceSupport.GenericEventArgs args)
+            GenericEventArgs args)
         {
             int id = args.EventId;
             Debug.Console(2, this, "EventId {0}", args.EventId);
@@ -265,14 +267,10 @@ namespace PepperDash.Essentials.DM
             DmTxControllerJoinMap joinMap = GetDmTxJoinMap(joinStart, joinMapKey);
 
             if (HdmiVideoSyncFeedback != null)
-            {
                 HdmiVideoSyncFeedback.LinkInputSig(trilist.BooleanInput[joinMap.Input1VideoSyncStatus.JoinNumber]);
-            }
 
             if (VgaVideoSyncFeedback != null)
-            {
                 VgaVideoSyncFeedback.LinkInputSig(trilist.BooleanInput[joinMap.Input2VideoSyncStatus.JoinNumber]);
-            }
 
             LinkDmTxToApi(this, trilist, joinMap, bridge);
         }
@@ -398,10 +396,7 @@ namespace PepperDash.Essentials.DM
         /// </summary>
         private void FowardInputStreamChange(RoutingInputPortWithVideoStatuses inputPort, int eventId)
         {
-            if (eventId != EndpointInputStreamEventIds.SyncDetectedFeedbackEventId)
-            {
-                return;
-            }
+            if (eventId != EndpointInputStreamEventIds.SyncDetectedFeedbackEventId) return;
 
             inputPort.VideoStatus.VideoSyncFeedback.FireUpdate();
             AnyVideoInput.VideoStatus.VideoSyncFeedback.FireUpdate();

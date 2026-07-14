@@ -2,7 +2,7 @@
 using PepperDash.Core;
 
 
-namespace PepperDash.Essentials.Core
+namespace UmdEssentials.Core
 {
     /// <summary>
     /// The handler type for a Room's SourceInfoChange

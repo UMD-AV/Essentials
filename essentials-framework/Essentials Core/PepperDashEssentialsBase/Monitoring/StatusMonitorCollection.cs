@@ -5,7 +5,7 @@ using System.Text;
 using PepperDash.Core;
 
 
-namespace PepperDash.Essentials.Core
+namespace UmdEssentials.Core
 {
     /// <summary>
     /// 
@@ -59,9 +59,13 @@ namespace PepperDash.Essentials.Core
                 prefix = "2:";
             }
             else if (IsOk.Count() > 0)
+            {
                 initialStatus = MonitorStatus.IsOk;
+            }
             else
+            {
                 initialStatus = MonitorStatus.StatusUnknown;
+            }
 
             // Build the error message string
             if (InError.Count() > 0 || InWarning.Count() > 0)

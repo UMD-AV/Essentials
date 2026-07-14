@@ -7,7 +7,7 @@ using NvxEpi.Abstractions.Stream;
 using NvxEpi.Devices;
 using NvxEpi.Features.Routing;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
+using UmdEssentials.Core;
 
 namespace NvxEpi.Features.Streams.Video
 {
@@ -63,14 +63,10 @@ namespace NvxEpi.Features.Streams.Video
                     _current = GetCurrentStream();
 
                     if (_current == null)
-                    {
                         Debug.Console(2, this, "Current stream address: {0} device ID: {1}", "0.0.0.0", 0, 0);
-                    }
                     else
-                    {
                         Debug.Console(2, this, "Current stream address: {0} device ID: {1}", _current.MulticastAddress,
                             _current.DeviceId);
-                    }
 
                     CurrentStreamId.FireUpdate();
                     CurrentStreamName.FireUpdate();
@@ -83,9 +79,7 @@ namespace NvxEpi.Features.Streams.Video
                                  .OfType<NvxBaseDevice>()
                                  .Where(t => !t.IsTransmitter && t.IsOnline.BoolValue)
                                  .Where(x => x.CurrentStreamId.IntValue == 0))
-                    {
                         rx.UpdateCurrentRoute();
-                    }
                 }
             }
             catch (Exception ex)
@@ -113,10 +107,7 @@ namespace NvxEpi.Features.Streams.Video
                 .FirstOrDefault(x =>
                     x.StreamUrl.StringValue.Equals(StreamUrl.StringValue, StringComparison.OrdinalIgnoreCase));
 
-            if (result != null)
-            {
-                return result;
-            }
+            if (result != null) return result;
 
             result = DeviceManager
                 .AllDevices
@@ -126,10 +117,7 @@ namespace NvxEpi.Features.Streams.Video
                 .FirstOrDefault(tx =>
                     tx.StreamUrl.StringValue.Equals(StreamUrl.StringValue, StringComparison.OrdinalIgnoreCase));
 
-            if (result != null)
-            {
-                _transmitters.Add(result);
-            }
+            if (result != null) _transmitters.Add(result);
 
             return result;
         }

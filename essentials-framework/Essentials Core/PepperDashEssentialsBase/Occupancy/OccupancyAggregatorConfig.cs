@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using Newtonsoft.Json;
 
-namespace PepperDash.Essentials.Core
+namespace UmdEssentials.Core
 {
     public class OccupancyAggregatorConfig
     {

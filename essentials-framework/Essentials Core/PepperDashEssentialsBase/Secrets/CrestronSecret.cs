@@ -1,4 +1,4 @@
-﻿namespace PepperDash.Essentials.Core
+﻿namespace UmdEssentials.Core
 {
     /// <summary>
     /// Special container class for CrestronSecret provider

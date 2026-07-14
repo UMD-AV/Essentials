@@ -1,4 +1,4 @@
-﻿namespace PepperDash.Essentials.Devices.Common.Codec
+﻿namespace UmdEssentials.Devices.Common.Codec
 
 {
     public enum eCodecCallDirection

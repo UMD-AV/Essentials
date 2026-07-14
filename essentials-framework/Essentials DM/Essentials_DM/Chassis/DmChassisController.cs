@@ -9,12 +9,12 @@ using Crestron.SimplSharpPro.DM.Cards;
 using Crestron.SimplSharpPro.DM.Endpoints;
 using Newtonsoft.Json;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
-using PepperDash.Essentials.Core.Bridges;
-using PepperDash.Essentials.DM.Config;
-using PepperDash.Essentials.Core.Config;
+using UmdEssentials.Core;
+using UmdEssentials.Core.Bridges;
+using UmdEssentials.Core.Config;
+using UmdEssentials.DM.Config;
 
-namespace PepperDash.Essentials.DM
+namespace UmdEssentials.DM
 {
     /// <summary>
     /// Builds a controller for basic DM-RMCs with Com and IR ports and no control functions
@@ -90,14 +90,10 @@ namespace PepperDash.Essentials.DM
                 uint ipid = properties.Control.IpIdInt;
 
                 if (properties.VolumeControls == null)
-                {
                     properties.VolumeControls = new Dictionary<uint, DmCardAudioPropertiesConfig>();
-                }
 
                 if (properties.InputSlotSupportsHdcp2 == null)
-                {
                     properties.InputSlotSupportsHdcp2 = new Dictionary<uint, bool>();
-                }
 
                 DmMDMnxn chassis = null;
                 switch (type)
@@ -526,10 +522,7 @@ namespace PepperDash.Essentials.DM
         private void RegisterForInputResolutionFeedback(IVideoAttributesBasic input, uint number,
             RoutingInputPortWithVideoStatuses inputPort)
         {
-            if (input == null)
-            {
-                return;
-            }
+            if (input == null) return;
 
             Debug.Console(1, this, "Registering for resolution feedback for input {0} using Routing Port {1}", number,
                 inputPort.Key);
@@ -1035,9 +1028,7 @@ namespace PepperDash.Essentials.DM
             RoutingOutputPort outputPort = new RoutingOutputPort(portKey, sigType, portType, selector, this);
 
             if (portName.IndexOf("Loop", StringComparison.InvariantCultureIgnoreCase) < 0)
-            {
                 outputPort.FeedbackMatchObject = selector;
-            }
 
             if (cecPort != null)
                 outputPort.Port = cecPort;
@@ -1167,9 +1158,7 @@ namespace PepperDash.Essentials.DM
                     {
                         Debug.Console(2, this, "DM Input {0} Stream Status EventId", args.Number);
                         if (InputStreamCardStateFeedbacks[args.Number] != null)
-                        {
                             InputStreamCardStateFeedbacks[args.Number].FireUpdate();
-                        }
                         else
                             Debug.Console(2, this, "No index of {0} found in InputStreamCardStateFeedbacks");
 
@@ -1228,10 +1217,7 @@ namespace PepperDash.Essentials.DM
             {
                 case DMOutputEventIds.VolumeEventId:
                 {
-                    if (VolumeControls.ContainsKey(output))
-                    {
-                        VolumeControls[args.Number].VolumeEventFromChassis();
-                    }
+                    if (VolumeControls.ContainsKey(output)) VolumeControls[args.Number].VolumeEventFromChassis();
 
                     break;
                 }
@@ -1333,9 +1319,7 @@ namespace PepperDash.Essentials.DM
                 {
                     Debug.Console(2, this, "DM Output {0} Stream Status EventId", args.Number);
                     if (OutputStreamCardStateFeedbacks[args.Number] != null)
-                    {
                         OutputStreamCardStateFeedbacks[args.Number].FireUpdate();
-                    }
                     else
                         Debug.Console(2, this, "No index of {0} found in OutputStreamCardStateFeedbacks");
 
@@ -1374,34 +1358,18 @@ namespace PepperDash.Essentials.DM
                 EnableUsbBreakawayFeedback.FireUpdate();
 
                 if (InputNames != null)
-                {
                     for (uint i = 1; i <= Chassis.NumberOfInputs; i++)
-                    {
                         if (InputNames.ContainsKey(i) && InputNames[i] != null && InputNames[i].Length > 0)
-                        {
                             Chassis.Inputs[i].Name.StringValue = InputNames[i];
-                        }
                         else
-                        {
                             Chassis.Inputs[i].Name.StringValue = "-";
-                        }
-                    }
-                }
 
                 if (OutputNames != null)
-                {
                     for (uint i = 1; i <= Chassis.NumberOfOutputs; i++)
-                    {
                         if (OutputNames.ContainsKey(i) && OutputNames[i] != null && OutputNames[i].Length > 0)
-                        {
                             Chassis.Outputs[i].Name.StringValue = OutputNames[i];
-                        }
                         else
-                        {
                             Chassis.Outputs[i].Name.StringValue = "-";
-                        }
-                    }
-                }
             }
         }
 
@@ -1450,24 +1418,15 @@ namespace PepperDash.Essentials.DM
             if ((sigType & eRoutingSignalType.Video) == eRoutingSignalType.Video)
             {
                 Chassis.VideoEnter.BoolValue = true;
-                if (output != null)
-                {
-                    output.VideoOut = input; //Chassis.Outputs[output].VideoOut = inCard;
-                }
+                if (output != null) output.VideoOut = input; //Chassis.Outputs[output].VideoOut = inCard;
             }
 
             if ((sigType & eRoutingSignalType.Audio) == eRoutingSignalType.Audio)
             {
                 DmMDMnxn dmMdMnxn = Chassis as DmMDMnxn;
-                if (dmMdMnxn != null)
-                {
-                    dmMdMnxn.AudioEnter.BoolValue = true;
-                }
+                if (dmMdMnxn != null) dmMdMnxn.AudioEnter.BoolValue = true;
 
-                if (output != null)
-                {
-                    output.AudioOut = input;
-                }
+                if (output != null) output.AudioOut = input;
             }
 
             if ((sigType & eRoutingSignalType.UsbOutput) == eRoutingSignalType.UsbOutput)
@@ -1486,25 +1445,16 @@ namespace PepperDash.Essentials.DM
                     //input selector is DMOutput...we're doing a out to out route
                     DMOutput tempInput = inputSelector as DMOutput;
 
-                    if (tempInput == null || output == null)
-                    {
-                        return;
-                    }
+                    if (tempInput == null || output == null) return;
 
                     output.USBRoutedTo = tempInput;
                     return;
                 }
 
-                if (input != null & output != null)
-                {
-                    output.USBRoutedTo = input;
-                }
+                if ((input != null) & (output != null)) output.USBRoutedTo = input;
             }
 
-            if ((sigType & eRoutingSignalType.UsbInput) != eRoutingSignalType.UsbInput)
-            {
-                return;
-            }
+            if ((sigType & eRoutingSignalType.UsbInput) != eRoutingSignalType.UsbInput) return;
 
             Chassis.USBEnter.BoolValue = true;
             if (output != null)
@@ -1550,13 +1500,9 @@ namespace PepperDash.Essentials.DM
                     uint outputIndex;
 
                     if (chassisSize == 8)
-                    {
                         outputIndex = (uint)inputSelector - 16;
-                    }
                     else
-                    {
                         outputIndex = inputSelector - chassisSize;
-                    }
 
                     dmCard = Chassis.Outputs[outputIndex];
                 }
@@ -1585,13 +1531,9 @@ namespace PepperDash.Essentials.DM
                     uint outputIndex;
 
                     if (chassisSize == 8)
-                    {
                         outputIndex = (uint)inputSelector - 16;
-                    }
                     else
-                    {
                         outputIndex = inputSelector - chassisSize;
-                    }
 
                     dmCard = Chassis.Outputs[outputIndex];
                 }
@@ -1623,7 +1565,7 @@ namespace PepperDash.Essentials.DM
 
             LinkChassisToApi(trilist, joinMap);
 
-            trilist.StringInput[joinMap.Name.JoinNumber].StringValue = this.Name;
+            trilist.StringInput[joinMap.Name.JoinNumber].StringValue = Name;
 
             // Link up inputs & outputs
             for (uint i = 1; i <= Chassis.NumberOfOutputs; i++)
@@ -1644,9 +1586,7 @@ namespace PepperDash.Essentials.DM
                 }
 
                 if (RxDictionary.ContainsKey(ioSlot))
-                {
                     LinkRxToApi(trilist, ioSlot, joinMap, ioSlotJoin);
-                }
                 else
                     LinkStreamOutputToApi(trilist, ioSlot, joinMap, ioSlotJoin);
             }
@@ -1659,18 +1599,12 @@ namespace PepperDash.Essentials.DM
                 .LinkInputSig(trilist.BooleanInput[joinMap.VideoSyncStatus.JoinNumber + ioSlotJoin]);
 
             RoutingInputPort inputPort = InputPorts[string.Format("inputCard{0}--hdmiIn", ioSlot)];
-            if (inputPort == null)
-            {
-                return;
-            }
+            if (inputPort == null) return;
 
             Debug.Console(1, "Port value for input card {0} is set", ioSlot);
             object port = inputPort.Port;
 
-            if (port == null)
-            {
-                return;
-            }
+            if (port == null) return;
 
             if (!(port is HdmiInputWithCEC))
             {
@@ -1693,21 +1627,14 @@ namespace PepperDash.Essentials.DM
                 trilist.UShortInput[joinMap.HdcpSupportState.JoinNumber + ioSlotJoin]);
 
             if (InputCardHdcpCapabilityTypes.ContainsKey(ioSlot))
-            {
                 trilist.UShortInput[joinMap.HdcpSupportCapability.JoinNumber + ioSlotJoin].UShortValue =
                     (ushort)InputCardHdcpCapabilityTypes[ioSlot];
-            }
             else
-            {
                 trilist.UShortInput[joinMap.HdcpSupportCapability.JoinNumber + ioSlotJoin].UShortValue = 1;
-            }
 
             RoutingInputPortWithVideoStatuses videoStatus = inputPort as RoutingInputPortWithVideoStatuses;
 
-            if (videoStatus == null)
-            {
-                return;
-            }
+            if (videoStatus == null) return;
 
             Debug.Console(1, this, "Linking {0} to join {1} for resolution feedback.", videoStatus.Key,
                 joinMap.InputCurrentResolution.JoinNumber + ioSlotJoin);
@@ -1719,10 +1646,7 @@ namespace PepperDash.Essentials.DM
             uint ioSlotJoin)
         {
             RoutingInputPort inputPort = InputPorts[string.Format("inputCard{0}--streamIn", ioSlot)];
-            if (inputPort == null)
-            {
-                return;
-            }
+            if (inputPort == null) return;
 
             DmcStr streamCard = Chassis.Inputs[ioSlot].Card as DmcStr;
             uint join = joinMap.InputStreamCardState.JoinNumber + ioSlotJoin;
@@ -1759,20 +1683,15 @@ namespace PepperDash.Essentials.DM
             RoutingInputPortWithVideoStatuses videoStatus = inputPort as RoutingInputPortWithVideoStatuses;
 
             if (videoStatus != null)
-            {
                 videoStatus.VideoStatus.VideoResolutionFeedback.LinkInputSig(
                     trilist.StringInput[joinMap.InputCurrentResolution.JoinNumber + ioSlotJoin]);
-            }
         }
 
         private void LinkStreamOutputToApi(BasicTriList trilist, uint ioSlot, DmChassisControllerJoinMap joinMap,
             uint ioSlotJoin)
         {
             RoutingOutputPort outputPort = OutputPorts[string.Format("outputCard{0}--streamOut", ioSlot)];
-            if (outputPort == null)
-            {
-                return;
-            }
+            if (outputPort == null) return;
 
             DmcStroAV streamCard = Chassis.Outputs[ioSlot].Card as DmcStroAV;
             uint join = joinMap.OutputStreamCardState.JoinNumber + ioSlotJoin;
@@ -1817,15 +1736,11 @@ namespace PepperDash.Essentials.DM
                                        || Chassis is DmMd16x16Cpu3 || Chassis is DmMd16x16Cpu3rps
                                        || Chassis is DmMd32x32Cpu3 || Chassis is DmMd32x32Cpu3rps ||
                                        hdBaseTDevice != null)
-            {
                 OutputEndpointOnlineFeedbacks[ioSlot].LinkInputSig(
                     trilist.BooleanInput[joinMap.OutputEndpointOnline.JoinNumber + ioSlotJoin]);
-            }
             else if (rxDevice != null)
-            {
                 rxDevice.IsOnline.LinkInputSig(
                     trilist.BooleanInput[joinMap.OutputEndpointOnline.JoinNumber + ioSlotJoin]);
-            }
         }
 
         private void LinkTxToApi(BasicTriList trilist, uint ioSlot, DmChassisControllerJoinMap joinMap, uint ioSlotJoin)
@@ -1838,10 +1753,7 @@ namespace PepperDash.Essentials.DM
             string txKey = TxDictionary[ioSlot];
             BasicDmTxControllerBase txDevice = DeviceManager.GetDeviceForKey(txKey) as BasicDmTxControllerBase;
 
-            if (txDevice == null)
-            {
-                return;
-            }
+            if (txDevice == null) return;
 
             LinkTxOnlineFeedbackToApi(trilist, ioSlot, joinMap, ioSlotJoin, txDevice);
 
@@ -1855,17 +1767,11 @@ namespace PepperDash.Essentials.DM
         {
             DmTxControllerBase advTx = basicTransmitter as DmTxControllerBase;
 
-            if (advTx != null)
-            {
-                return;
-            }
+            if (advTx != null) return;
 
             RoutingInputPort inputPort = InputPorts[string.Format("inputCard{0}--dmIn", ioSlot)];
 
-            if (inputPort == null)
-            {
-                return;
-            }
+            if (inputPort == null) return;
 
             object port = inputPort.Port;
 
@@ -1884,9 +1790,7 @@ namespace PepperDash.Essentials.DM
             //added in case the InputSlotSupportsHdcp2 section isn't included in the config, or this slot is left out.
             //if the key isn't in the dictionary, supportsHdcp2 will be false            
             if (PropertiesConfig.InputSlotSupportsHdcp2.ContainsKey(ioSlot))
-            {
                 supportsHdcp2 = PropertiesConfig.InputSlotSupportsHdcp2[ioSlot];
-            }
 
             SetHdcpStateAction(supportsHdcp2, dmInPortWCec,
                 joinMap.HdcpSupportState.JoinNumber + ioSlotJoin, trilist);
@@ -1895,21 +1799,14 @@ namespace PepperDash.Essentials.DM
                 trilist.UShortInput[joinMap.HdcpSupportState.JoinNumber + ioSlotJoin]);
 
             if (InputCardHdcpCapabilityTypes.ContainsKey(ioSlot))
-            {
                 trilist.UShortInput[joinMap.HdcpSupportCapability.JoinNumber + ioSlotJoin].UShortValue =
                     (ushort)InputCardHdcpCapabilityTypes[ioSlot];
-            }
             else
-            {
                 trilist.UShortInput[joinMap.HdcpSupportCapability.JoinNumber + ioSlotJoin].UShortValue = 1;
-            }
 
             RoutingInputPortWithVideoStatuses videoStatus = inputPort as RoutingInputPortWithVideoStatuses;
 
-            if (videoStatus == null)
-            {
-                return;
-            }
+            if (videoStatus == null) return;
 
             Debug.Console(1, this, "Linking {0} to join {1} for resolution feedback.", videoStatus.Key,
                 joinMap.InputCurrentResolution.JoinNumber + ioSlotJoin);
@@ -1945,9 +1842,7 @@ namespace PepperDash.Essentials.DM
             bool supportsHdcp2 = true;
 
             if (PropertiesConfig.InputSlotSupportsHdcp2.ContainsKey(ioSlot))
-            {
                 supportsHdcp2 = PropertiesConfig.InputSlotSupportsHdcp2[ioSlot];
-            }
 
             SetHdcpStateAction(supportsHdcp2, inputPorts, joinMap.HdcpSupportState.JoinNumber + ioSlotJoin, trilist);
 
@@ -1970,10 +1865,7 @@ namespace PepperDash.Essentials.DM
             RoutingInputPortWithVideoStatuses videoStatus =
                 InputPorts[string.Format("inputCard{0}--dmIn", ioSlot)] as RoutingInputPortWithVideoStatuses;
 
-            if (videoStatus == null)
-            {
-                return;
-            }
+            if (videoStatus == null) return;
 
             Debug.Console(1, this, "Linking {0} to join {1} for resolution feedback.", videoStatus.Key,
                 joinMap.InputCurrentResolution.JoinNumber + ioSlotJoin);
@@ -1986,10 +1878,10 @@ namespace PepperDash.Essentials.DM
         {
             DmTxControllerBase advancedTxDevice = txDevice as DmTxControllerBase;
 
-            if ((Chassis is DmMd8x8Cpu3 || Chassis is DmMd8x8Cpu3rps
-                                        || Chassis is DmMd16x16Cpu3 || Chassis is DmMd16x16Cpu3rps
-                                        || Chassis is DmMd32x32Cpu3 || Chassis is DmMd32x32Cpu3rps) ||
-                advancedTxDevice == null)
+            if (Chassis is DmMd8x8Cpu3 || Chassis is DmMd8x8Cpu3rps
+                                       || Chassis is DmMd16x16Cpu3 || Chassis is DmMd16x16Cpu3rps
+                                       || Chassis is DmMd32x32Cpu3 || Chassis is DmMd32x32Cpu3rps ||
+                                       advancedTxDevice == null)
             {
                 Debug.Console(2, "Linking Tx Online Feedback from Input Card {0}", ioSlot);
                 InputEndpointOnlineFeedbacks[ioSlot].LinkInputSig(
@@ -2043,18 +1935,12 @@ namespace PepperDash.Essentials.DM
 
             trilist.SetUShortSigAction(joinMap.SystemId.JoinNumber, o =>
             {
-                if (chassis != null)
-                {
-                    chassis.SystemId.UShortValue = o;
-                }
+                if (chassis != null) chassis.SystemId.UShortValue = o;
             });
 
             trilist.SetSigTrueAction(joinMap.SystemId.JoinNumber, () =>
             {
-                if (chassis != null)
-                {
-                    chassis.ApplySystemId();
-                }
+                if (chassis != null) chassis.ApplySystemId();
             });
 
             SystemIdFeebdack.LinkInputSig(trilist.UShortInput[joinMap.SystemId.JoinNumber]);
@@ -2067,10 +1953,7 @@ namespace PepperDash.Essentials.DM
 
             trilist.OnlineStatusChange += (o, a) =>
             {
-                if (!a.DeviceOnLine)
-                {
-                    return;
-                }
+                if (!a.DeviceOnLine) return;
 
                 EnableAudioBreakawayFeedback.FireUpdate();
                 EnableUsbBreakawayFeedback.FireUpdate();
@@ -2088,19 +1971,13 @@ namespace PepperDash.Essentials.DM
             string joinMapSerialized = JoinMapHelper.GetSerializedJoinMapForDevice(joinMapKey);
 
             if (!string.IsNullOrEmpty(joinMapSerialized))
-            {
                 joinMap = JsonConvert.DeserializeObject<DmChassisControllerJoinMap>(joinMapSerialized);
-            }
 
             if (bridge != null)
-            {
                 bridge.AddJoinMap(Key, joinMap);
-            }
             else
-            {
                 Debug.Console(0, this,
                     "Please update config to use 'eiscapiadvanced' to get all join map features for this device.");
-            }
 
             return joinMap;
         }
@@ -2108,7 +1985,6 @@ namespace PepperDash.Essentials.DM
         private void SetHdcpStateAction(bool supportsHdcp2, HdmiInputWithCEC port, uint join, BasicTriList trilist)
         {
             if (!supportsHdcp2)
-            {
                 trilist.SetUShortSigAction(join,
                     s =>
                     {
@@ -2123,9 +1999,7 @@ namespace PepperDash.Essentials.DM
                             port.HdcpSupportOn();
                         }
                     });
-            }
             else
-            {
                 trilist.SetUShortSigAction(join,
                     u =>
                     {
@@ -2133,13 +2007,11 @@ namespace PepperDash.Essentials.DM
                             (eHdcpCapabilityType)u);
                         port.HdcpReceiveCapability = (eHdcpCapabilityType)u;
                     });
-            }
         }
 
         private void SetHdcpStateAction(bool supportsHdcp2, EndpointHdmiInput port, uint join, BasicTriList trilist)
         {
             if (!supportsHdcp2)
-            {
                 trilist.SetUShortSigAction(join,
                     s =>
                     {
@@ -2154,9 +2026,7 @@ namespace PepperDash.Essentials.DM
                             port.HdcpSupportOn();
                         }
                     });
-            }
             else
-            {
                 trilist.SetUShortSigAction(join,
                     u =>
                     {
@@ -2164,63 +2034,40 @@ namespace PepperDash.Essentials.DM
                             (eHdcpCapabilityType)u);
                         port.HdcpCapability = (eHdcpCapabilityType)u;
                     });
-            }
         }
 
         private void SetHdcpStateAction(bool supportsHdcp2, List<RoutingInputPort> ports, uint join,
             BasicTriList triList)
         {
             if (!supportsHdcp2)
-            {
                 triList.SetUShortSigAction(join, a =>
                 {
                     foreach (EndpointHdmiInput tempPort in ports.Select(port => port.Port).OfType<EndpointHdmiInput>())
-                    {
                         if (a == 0)
-                        {
                             tempPort.HdcpSupportOff();
-                        }
-                        else if (a > 0)
-                        {
-                            tempPort.HdcpSupportOn();
-                        }
-                    }
+                        else if (a > 0) tempPort.HdcpSupportOn();
                 });
-            }
             else
-            {
                 triList.SetUShortSigAction(join, a =>
                 {
                     foreach (EndpointHdmiInput tempPort in ports.Select(port => port.Port).OfType<EndpointHdmiInput>())
-                    {
                         tempPort.HdcpCapability = (eHdcpCapabilityType)a;
-                    }
                 });
-            }
         }
 
         private void SetHdcpStateAction(bool supportsHdcp2, DMInputPortWithCec port, uint join, BasicTriList trilist)
         {
             if (!supportsHdcp2)
-            {
                 trilist.SetUShortSigAction(join,
                     s =>
                     {
                         if (s == 0)
-                        {
                             port.HdcpSupportOff();
-                        }
-                        else if (s > 0)
-                        {
-                            port.HdcpSupportOn();
-                        }
+                        else if (s > 0) port.HdcpSupportOn();
                     });
-            }
             else
-            {
                 trilist.SetUShortSigAction(join,
                     u => { port.HdcpReceiveCapability = (eHdcpCapabilityType)u; });
-            }
         }
 
         private void CrestronEnvironment_ProgramStatusEventHandler(eProgramStatusEventType programEventType)
@@ -2248,13 +2095,8 @@ namespace PepperDash.Essentials.DM
             Type = type;
 
             if (Selector is DMOutput)
-            {
                 Number = (selector as DMOutput).Number;
-            }
-            else if (Selector is uint)
-            {
-                Number = (uint)selector;
-            }
+            else if (Selector is uint) Number = (uint)selector;
         }
     }
 
@@ -2262,7 +2104,7 @@ namespace PepperDash.Essentials.DM
     {
         public DmChassisControllerFactory()
         {
-            TypeNames = new List<string>()
+            TypeNames = new List<string>
             {
                 "dmmd8x8", "dmmd8x8rps", "dmmd8x8cpu3", "dmmd8x8cpu3rps",
                 "dmmd16x16", "dmmd16x16rps", "dmmd16x16cpu3", "dmmd16x16cpu3rps",

@@ -1,182 +1,17 @@
 using System;
-using System.Collections.Generic;
 using Newtonsoft.Json;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
+using UmdEssentials.Core;
 
-namespace PepperDash.Essentials.Devices.Common.Microphones
+namespace UmdEssentials.Devices.Common.Microphones
 {
     public class MicController
     {
         [JsonProperty("mics")] public string[] MicKeys { get; set; }
     }
 
-    public interface IWirelessMicReceiver
-    {
-        bool TryAssignMicrophone(string micKey, WirelessMic microphone);
-        void ReleaseMicrophone(string micKey);
-    }
-
-    public static class WirelessMicAssignmentManager
-    {
-        private static readonly object SyncRoot = new object();
-        private static readonly List<IWirelessMicReceiver> Receivers = new List<IWirelessMicReceiver>();
-
-        private static readonly Dictionary<string, WirelessMic> PendingMicrophones =
-            new Dictionary<string, WirelessMic>(StringComparer.OrdinalIgnoreCase);
-
-        public static void RegisterReceiver(IWirelessMicReceiver receiver)
-        {
-            if (receiver == null) return;
-
-            lock (SyncRoot)
-            {
-                if (!Receivers.Contains(receiver))
-                    Receivers.Add(receiver);
-            }
-
-            RetryPendingAssignments();
-        }
-
-        public static void UnregisterReceiver(IWirelessMicReceiver receiver)
-        {
-            if (receiver == null) return;
-
-            lock (SyncRoot)
-            {
-                Receivers.Remove(receiver);
-            }
-        }
-
-        public static bool AssignFirstAvailable(string micKey, WirelessMic microphone)
-        {
-            if (string.IsNullOrEmpty(micKey) || microphone == null) return false;
-
-            List<IWirelessMicReceiver> receivers;
-            lock (SyncRoot)
-            {
-                PendingMicrophones[micKey] = microphone;
-                receivers = new List<IWirelessMicReceiver>(Receivers);
-            }
-
-            foreach (IWirelessMicReceiver receiver in receivers)
-            {
-                if (!receiver.TryAssignMicrophone(micKey, microphone)) continue;
-
-                lock (SyncRoot)
-                {
-                    PendingMicrophones.Remove(micKey);
-                }
-
-                return true;
-            }
-
-            microphone.MicrophonePresent = false;
-            microphone.ErrorString = "No available wireless microphone receiver channel";
-            return false;
-        }
-
-        public static void Release(string micKey)
-        {
-            if (string.IsNullOrEmpty(micKey)) return;
-
-            List<IWirelessMicReceiver> receivers;
-            lock (SyncRoot)
-            {
-                PendingMicrophones.Remove(micKey);
-                receivers = new List<IWirelessMicReceiver>(Receivers);
-            }
-
-            foreach (IWirelessMicReceiver receiver in receivers)
-                receiver.ReleaseMicrophone(micKey);
-        }
-
-        public static void RetryPendingAssignments()
-        {
-            List<KeyValuePair<string, WirelessMic>> pending;
-            lock (SyncRoot)
-            {
-                pending = new List<KeyValuePair<string, WirelessMic>>(PendingMicrophones);
-            }
-
-            foreach (KeyValuePair<string, WirelessMic> item in pending)
-                AssignFirstAvailable(item.Key, item.Value);
-        }
-    }
-
     public static class MicControllerUtilities
     {
-        public static T[] BuildMicrophones<T>(EssentialsBridgeableDevice parent, int count, MicController config,
-            string model, bool addConfiguredMicsToDeviceManager, Func<string, string, T> factory)
-            where T : WirelessMic
-        {
-            if (parent == null) throw new ArgumentNullException("parent");
-            if (factory == null) throw new ArgumentNullException("factory");
-            if (count < 0) count = 0;
-
-            config = config ?? new MicController();
-            T[] microphones = new T[count];
-
-            for (ushort i = 0; i < count; i++)
-            {
-                string configuredKey = GetConfiguredMicKey(config, i);
-                string defaultKey = string.Format("{0}-mic{1}", parent.Key, i + 1);
-                string micKey = string.IsNullOrEmpty(configuredKey) ? defaultKey : configuredKey;
-                T microphone = factory(micKey, defaultKey);
-                microphone.Model = model;
-                microphones[i] = microphone;
-
-                if (!addConfiguredMicsToDeviceManager || string.IsNullOrEmpty(configuredKey)) continue;
-
-                try
-                {
-                    DeviceManager.AddDevice(microphone);
-                }
-                catch (Exception e)
-                {
-                    Debug.ConsoleWithLog(0, parent, "Exception adding mic '{0}' to device manager: {1}", micKey,
-                        e.Message);
-                }
-            }
-
-            return microphones;
-        }
-
-        public static int GetConfiguredSize(MicController config, int defaultSize, int maxSize)
-        {
-            if (config.MicKeys == null)
-                return defaultSize;
-
-            if (config.MicKeys.Length > maxSize)
-                return maxSize;
-
-            return config.MicKeys.Length;
-        }
-
-        public static string GetConfiguredMicKey(MicController config, int index)
-        {
-            if (config == null || config.MicKeys == null || index < 0 || index >= config.MicKeys.Length)
-                return null;
-
-            return config.MicKeys[index];
-        }
-
-        public static bool MicKeyAllowed(MicController config, string micKey)
-        {
-            if (string.IsNullOrEmpty(micKey) || config == null || config.MicKeys == null ||
-                config.MicKeys.Length == 0)
-                return true;
-
-            foreach (string configuredKey in config.MicKeys)
-            {
-                if (string.IsNullOrEmpty(configuredKey)) continue;
-                if (configuredKey.Equals(micKey, StringComparison.OrdinalIgnoreCase))
-                    return true;
-            }
-
-            return false;
-        }
-
         public static void FireMicrophoneFeedbacks(WirelessMic[] microphones)
         {
             if (microphones == null) return;
@@ -256,7 +91,7 @@ namespace PepperDash.Essentials.Devices.Common.Microphones
         /// <summary>
         ///     Get device monitor status join map
         /// </summary>
-        /// <see cref="PepperDash.Essentials.Core.MonitorStatus" />
+        /// <see cref="Core.MonitorStatus" />
         [JoinName("MonitorStatus")] public JoinDataComplete MonitorStatus = new JoinDataComplete(
             new JoinData
             {

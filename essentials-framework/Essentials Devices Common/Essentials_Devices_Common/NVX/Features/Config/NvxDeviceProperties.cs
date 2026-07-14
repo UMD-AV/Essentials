@@ -1,6 +1,6 @@
 ﻿using System;
 using PepperDash.Core;
-using PepperDash.Essentials.Core.Config;
+using UmdEssentials.Core.Config;
 
 namespace NvxEpi.Features.Config
 {

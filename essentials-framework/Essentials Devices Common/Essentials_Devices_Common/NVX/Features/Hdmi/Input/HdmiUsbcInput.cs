@@ -3,7 +3,7 @@ using Crestron.SimplSharpPro.DM.Streaming;
 using NvxEpi.Abstractions;
 using NvxEpi.Services.Feedback;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
+using UmdEssentials.Core;
 
 namespace NvxEpi.Features.Hdmi.Input
 {
@@ -83,7 +83,7 @@ namespace NvxEpi.Features.Hdmi.Input
                     HdmiCurrentResolutionFeedback.GetFeedback(hardware, inputNumber);
 
                 _currentResolution.Add(inputIndex, inputResolution);
-                
+
                 Feedbacks.Add(capability);
                 Feedbacks.Add(sync);
                 Feedbacks.Add(inputResolution);

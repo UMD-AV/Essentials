@@ -1,8 +1,8 @@
 ﻿using Crestron.SimplSharpPro.DeviceSupport;
-using PepperDash.Essentials.Core.Bridges;
-using PepperDash.Essentials.Devices.Common.Cameras;
+using UmdEssentials.Core.Bridges;
+using UmdEssentials.Devices.Common.Cameras;
 
-namespace PepperDash.Essentials.Devices.Common.VideoCodec.Cisco
+namespace UmdEssentials.Devices.Common.VideoCodec.Cisco
 {
     public class CiscoFarEndCamera : CameraBase, IHasCameraPtzControl, IAmFarEndCamera, IBridgeAdvanced
     {

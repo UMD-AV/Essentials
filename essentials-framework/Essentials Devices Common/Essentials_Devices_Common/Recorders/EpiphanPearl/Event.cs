@@ -3,7 +3,7 @@ using System.Globalization;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 
-namespace PepperDash.Essentials.EpiphanPearl.Models
+namespace UmdEssentials.EpiphanPearl.Models
 {
     public class Event
     {
@@ -45,10 +45,7 @@ namespace PepperDash.Essentials.EpiphanPearl.Models
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue,
             JsonSerializer serializer)
         {
-            if (reader.Value == null)
-            {
-                return null;
-            }
+            if (reader.Value == null) return null;
 
             try
             {

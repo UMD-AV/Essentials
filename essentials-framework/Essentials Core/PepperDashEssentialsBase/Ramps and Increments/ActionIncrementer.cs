@@ -1,7 +1,7 @@
 ﻿using System;
 using Crestron.SimplSharp;
 
-namespace PepperDash.Essentials.Core
+namespace UmdEssentials.Core
 {
     /// <summary>
     /// An incrementer that can use the values of some other object/primitive value to do its thing.
@@ -121,9 +121,7 @@ namespace PepperDash.Essentials.Core
             try
             {
                 if (Timer == null) // Only enter the timer if it's not already running
-                {
                     Timer = new CTimer(o => { Go(change); }, null, RepeatDelay, RepeatTime);
-                }
             }
             finally
             {
@@ -152,7 +150,9 @@ namespace PepperDash.Essentials.Core
                 isAtLimit = true;
             }
             else
+            {
                 levelOut = levelIn;
+            }
 
             return isAtLimit;
         }

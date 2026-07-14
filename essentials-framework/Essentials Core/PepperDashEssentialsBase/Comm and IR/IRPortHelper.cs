@@ -2,9 +2,9 @@
 using Crestron.SimplSharpPro;
 using Newtonsoft.Json.Linq;
 using PepperDash.Core;
-using PepperDash.Essentials.Core.Config;
+using UmdEssentials.Core.Config;
 
-namespace PepperDash.Essentials.Core
+namespace UmdEssentials.Core
 {
     /// <summary>
     /// 
@@ -137,10 +137,7 @@ namespace PepperDash.Essentials.Core
         {
             Debug.Console(1, "Attempting to create new Ir Port Controller");
 
-            if (config == null)
-            {
-                return null;
-            }
+            if (config == null) return null;
 
             Func<DeviceConfig, IROutputPort> postActivationFunc = new Func<DeviceConfig, IROutputPort>(GetIrOutputPort);
             IrOutputPortController irDevice =

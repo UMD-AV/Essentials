@@ -1,11 +1,11 @@
 ﻿using System;
 using Crestron.SimplSharp;
 using Crestron.SimplSharpPro.DeviceSupport;
-using PepperDash.Essentials.Core.Bridges;
-using PepperDash.Essentials.Devices.Common.Cameras;
 using Newtonsoft.Json;
+using UmdEssentials.Core.Bridges;
+using UmdEssentials.Devices.Common.Cameras;
 
-namespace PepperDash.Essentials.Devices.Common.VideoCodec.ZoomRoom
+namespace UmdEssentials.Devices.Common.VideoCodec.ZoomRoom
 {
     public enum eZoomRoomCameraState
     {
@@ -87,10 +87,7 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.ZoomRoom
 
         private void StopContinueTimer()
         {
-            if (ContinueTimer == null)
-            {
-                return;
-            }
+            if (ContinueTimer == null) return;
 
             ContinueTimer.Stop();
             ContinueTimer.Dispose();
@@ -110,10 +107,7 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.ZoomRoom
 
         public void PanLeft()
         {
-            if (isMoving)
-            {
-                return;
-            }
+            if (isMoving) return;
 
             SendCommand(eZoomRoomCameraState.Start, eZoomRoomCameraAction.Left);
             StartContinueTimer();
@@ -122,10 +116,7 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.ZoomRoom
 
         public void PanRight()
         {
-            if (isMoving)
-            {
-                return;
-            }
+            if (isMoving) return;
 
             SendCommand(eZoomRoomCameraState.Start, eZoomRoomCameraAction.Right);
             StartContinueTimer();

@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using PepperDash.Core;
 
-namespace PepperDash.Essentials.Core
+namespace UmdEssentials.Core
 {
     /// <summary>
     /// Describes the functionality of a device that senses and provides partition state

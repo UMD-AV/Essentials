@@ -1,5 +1,5 @@
 ﻿using Crestron.SimplSharpPro.DM.Streaming;
-using PepperDash.Essentials.Core;
+using UmdEssentials.Core;
 
 namespace NvxEpi.Services.Feedback
 {
@@ -9,10 +9,7 @@ namespace NvxEpi.Services.Feedback
 
         public static StringFeedback GetFeedback(DmNvxBaseClass device)
         {
-            if (device.HdmiOut == null)
-            {
-                return new StringFeedback(Key, () => string.Empty);
-            }
+            if (device.HdmiOut == null) return new StringFeedback(Key, () => string.Empty);
 
             StringFeedback feedback = new StringFeedback(Key, () => string.Format("{0}x{1}@{2}",
                 device.HdmiOut.VideoAttributes.HorizontalResolutionFeedback.UShortValue,

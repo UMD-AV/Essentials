@@ -3,7 +3,7 @@ using System.Linq;
 using System.Collections.Generic;
 using Crestron.SimplSharp.Reflection;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
+using UmdEssentials.Core;
 
 namespace NvxEpi.Factories
 {
@@ -15,13 +15,12 @@ namespace NvxEpi.Factories
         public DeviceFactory()
         {
             Assembly assembly = Assembly.GetExecutingAssembly();
-            PepperDash.Essentials.PluginLoader.SetEssentialsAssembly(assembly.GetName().Name, assembly);
+            UmdEssentials.PluginLoader.SetEssentialsAssembly(assembly.GetName().Name, assembly);
 
             IEnumerable<CType> types = assembly.GetTypes().Where(ct =>
                 typeof(IDeviceFactory).IsAssignableFrom(ct) && !ct.IsInterface && !ct.IsAbstract);
 
             foreach (CType type in types)
-            {
                 try
                 {
                     IDeviceFactory factory =
@@ -33,7 +32,6 @@ namespace NvxEpi.Factories
                     Debug.Console(0, Debug.ErrorLogLevel.Error, "Unable to load type: '{1}' DeviceFactory: {0}", e,
                         type.Name);
                 }
-            }
         }
     }
 }

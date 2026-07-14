@@ -7,13 +7,13 @@ using Crestron.SimplSharpPro.DeviceSupport;
 using System.Text.RegularExpressions;
 using Crestron.SimplSharp.Net.Https;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
-using PepperDash.Essentials.Core.Config;
-using PepperDash.Essentials.Core.Bridges;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using UmdEssentials.Core;
+using UmdEssentials.Core.Bridges;
+using UmdEssentials.Core.Config;
 
-namespace PepperDash.Essentials.Devices.Common.Scheduling
+namespace UmdEssentials.Devices.Common.Scheduling
 {
     public class CollegeNet : EssentialsDevice, IBridgeAdvanced, IDisposable
     {
@@ -44,10 +44,7 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
             private set
             {
                 _currentMeeting = value;
-                if (CurrentMeetingUpdated != null)
-                {
-                    CurrentMeetingUpdated(this, EventArgs.Empty);
-                }
+                if (CurrentMeetingUpdated != null) CurrentMeetingUpdated(this, EventArgs.Empty);
             }
         }
 
@@ -59,10 +56,7 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
             private set
             {
                 _nextMeeting = value;
-                if (NextMeetingUpdated != null)
-                {
-                    NextMeetingUpdated(this, EventArgs.Empty);
-                }
+                if (NextMeetingUpdated != null) NextMeetingUpdated(this, EventArgs.Empty);
             }
         }
 
@@ -77,17 +71,11 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
         public CollegeNet(string key, string name, CollegeNetPropertiesConfig props) :
             base(key, name)
         {
-            if (props.SpaceId > 0)
-            {
-                _spaceId = props.SpaceId;
-            }
+            if (props.SpaceId > 0) _spaceId = props.SpaceId;
 
             _username = props.Username;
             _password = props.Password;
-            if (!string.IsNullOrEmpty(props.Url))
-            {
-                _baseUrl = props.Url;
-            }
+            if (!string.IsNullOrEmpty(props.Url)) _baseUrl = props.Url;
 
             _meetingMutex = new CMutex();
             _randomGenerator = new Random();
@@ -115,14 +103,10 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
             CollegeNetJoinMap joinMap = new CollegeNetJoinMap(joinStart);
 
             if (bridge != null)
-            {
                 bridge.AddJoinMap(Key, joinMap);
-            }
             else
-            {
                 Debug.Console(0, this,
                     "Please update config to use 'eiscapiadvanced' to get all join map features for this device.");
-            }
 
             //Events from SIMPL
             trilist.SetSigTrueAction(joinMap.RefreshReservations.JoinNumber, ManualGetTodaysReservations);
@@ -135,7 +119,6 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
                 trilist.BooleanInput[joinMap.ScheduleOnline.JoinNumber].BoolValue = ScheduleOnline;
                 uint count = 0;
                 if (Meetings != null)
-                {
                     foreach (Meeting meeting in Meetings)
                     {
                         trilist.BooleanInput[joinMap.MeetingActive.JoinNumber + count].BoolValue =
@@ -149,7 +132,6 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
                         if (count > 50)
                             break;
                     }
-                }
 
                 for (uint i = count; i < 50; i++)
                 {
@@ -200,7 +182,6 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
                 //Update active meeting feedback on list
                 uint count = 0;
                 if (Meetings != null)
-                {
                     foreach (Meeting meeting in Meetings)
                     {
                         trilist.BooleanInput[joinMap.MeetingActive.JoinNumber + count].BoolValue =
@@ -209,12 +190,9 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
                         if (count > 50)
                             break;
                     }
-                }
 
                 for (uint i = count; i < 50; i++)
-                {
                     trilist.BooleanInput[joinMap.MeetingActive.JoinNumber + i].BoolValue = false;
-                }
             };
 
             NextMeetingUpdated += (o, a) =>
@@ -248,30 +226,21 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
                 trilist.StringInput[joinMap.SpaceName.JoinNumber].StringValue = SpaceName;
                 trilist.StringInput[joinMap.SpaceInstructions.JoinNumber].StringValue = Instructions;
                 if (SpaceFeatures != null)
-                {
                     foreach (Feature feature in SpaceFeatures)
                     {
                         if (feature.Quantity > 1)
-                        {
                             trilist.StringInput[joinMap.Features.JoinNumber + count].StringValue =
                                 string.Format("{0} (x{1})", feature.Name, feature.Quantity);
-                        }
                         else
-                        {
                             trilist.StringInput[joinMap.Features.JoinNumber + count].StringValue = feature.Name;
-                        }
 
                         count++;
                         if (count > 50)
                             break;
                     }
-                }
 
                 trilist.UShortInput[joinMap.FeatureCount.JoinNumber].UShortValue = (ushort)count;
-                for (uint i = count; i < 50; i++)
-                {
-                    trilist.StringInput[joinMap.Features.JoinNumber + i].StringValue = "";
-                }
+                for (uint i = count; i < 50; i++) trilist.StringInput[joinMap.Features.JoinNumber + i].StringValue = "";
             };
         }
 
@@ -279,14 +248,14 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
         {
             try
             {
-                _secureClient = new HttpsClient()
+                _secureClient = new HttpsClient
                 {
                     UserAgent = "crestron",
                     KeepAlive = false,
                     Accept = "application/json",
                     AllowAutoRedirect = true,
                     PeerVerification = false,
-                    HostVerification = false,
+                    HostVerification = false
                 };
             }
             catch
@@ -341,33 +310,25 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
         {
             Debug.Console(0, this, "Manually getting reservations for spaceId {0}", _spaceId);
             if (_spaceId != 0)
-            {
                 GetData(string.Format("reservations.json?space_id={0}", _spaceId), "Reservations");
-            }
             else
-            {
                 GetSpaceId();
-            }
         }
 
         public void GetSpaceInfo()
         {
             Debug.Console(1, this, "Getting space info for spaceId {0}", _spaceId);
             if (_spaceId != 0)
-            {
                 GetData(string.Format("space.json?space_id={0}", _spaceId), "Space");
-            }
             else
-            {
                 GetSpaceId();
-            }
         }
 
         public void SetRoomName(string roomName)
         {
-            if (roomName != this._roomName && roomName.Length > 3)
+            if (roomName != _roomName && roomName.Length > 3)
             {
-                this._roomName = roomName;
+                _roomName = roomName;
                 GetSpaceId();
             }
         }
@@ -399,10 +360,7 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
             {
                 Debug.ConsoleWithLog(0, this, "CollegeNet Schedule Timeout");
                 ScheduleOnline = false;
-                if (MeetingsUpdated != null)
-                {
-                    MeetingsUpdated(this, null);
-                }
+                if (MeetingsUpdated != null) MeetingsUpdated(this, null);
 
                 UpdateCurrentMeetingCallback(null);
             }
@@ -413,10 +371,7 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
             DateTime now = DateTime.Now;
             DateTime oneAm = DateTime.Today.AddHours(1);
 
-            if (now >= oneAm)
-            {
-                oneAm = oneAm.AddDays(1);
-            }
+            if (now >= oneAm) oneAm = oneAm.AddDays(1);
 
             int timeUntilOneAm = (int)(oneAm - now).TotalMilliseconds;
             int randomOffset = _randomGenerator.Next(0, 3600000); //Choose random offset within one hour
@@ -487,17 +442,14 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
                 if (CurrentMeeting != null)
                     CurrentMeeting = null;
             }
-            else if (CurrentMeeting == null || (currentMeetingTemp.Id != CurrentMeeting.Id))
+            else if (CurrentMeeting == null || currentMeetingTemp.Id != CurrentMeeting.Id)
             {
                 CurrentMeeting = new CurrentMeeting(currentMeetingTemp);
                 GetEvent(CurrentMeeting.Id);
             }
             else
             {
-                if (CurrentMeetingUpdated != null)
-                {
-                    CurrentMeetingUpdated(this, EventArgs.Empty);
-                }
+                if (CurrentMeetingUpdated != null) CurrentMeetingUpdated(this, EventArgs.Empty);
             }
 
             if (nextMeetingTemp == null)
@@ -505,7 +457,7 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
                 if (NextMeeting != null)
                     NextMeeting = null;
             }
-            else if (NextMeeting == null || (nextMeetingTemp.Id != NextMeeting.Id))
+            else if (NextMeeting == null || nextMeetingTemp.Id != NextMeeting.Id)
             {
                 NextMeeting = nextMeetingTemp;
             }
@@ -532,13 +484,9 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
 
                 Debug.Console(1, this, "Https client response code:{0}", response.Code.ToString());
                 if (response.Code < 200 || response.Code >= 300)
-                {
                     Debug.ConsoleWithLog(0, this, "Https client callback code error: {0}", response.Code);
-                }
                 else
-                {
                     ProcessFeedback((string)requestName, response.ContentString);
-                }
             }
             catch (Exception ex)
             {
@@ -564,22 +512,18 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
                         ScheduleOnline = true;
                         _scheduleFailCount = 0;
                         if (response.Reservations != null && response.Reservations.Reservation != null)
-                        {
                             foreach (Reservation reservation in response.Reservations.Reservation)
-                            {
                                 try
                                 {
                                     bool matchExists = false;
                                     List<Meeting> matchesStart =
                                         Meetings.FindAll(m => m.Start == reservation.ReservationStartDt);
                                     if (matchesStart.Count > 0)
-                                    {
                                         matchExists = matchesStart.Exists(m => m.End == reservation.ReservationEndDt);
-                                    }
 
                                     if (!matchExists)
                                     {
-                                        Meetings.Add(new Meeting()
+                                        Meetings.Add(new Meeting
                                         {
                                             Id = reservation.EventId,
                                             Name = reservation.EventName != null
@@ -599,28 +543,22 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
                                         Debug.Console(0, this,
                                             "New overlapping meeting: {0}, newName: {1}, length: {2}",
                                             meeting.Name, newName, meeting.Name.Length + newName.Length);
-                                        if ((meeting.Name.Length + newName.Length < 50) &&
+                                        if (meeting.Name.Length + newName.Length < 50 &&
                                             !meeting.Name.Contains(newName))
-                                        {
                                             meeting.Name = meeting.Name + "/" + newName;
-                                        }
                                     }
                                 }
                                 catch (Exception ex)
                                 {
                                     Debug.ConsoleWithLog(0, this, "Reservations processing exception: {0}", ex.Message);
                                 }
-                            }
-                        }
 
                         if (SpaceFeatures == null || SpaceFeatures.Count == 0)
-                        {
                             CrestronInvoke.BeginInvoke((o) =>
                             {
                                 CrestronEnvironment.Sleep(10000);
                                 GetSpaceInfo();
                             });
-                        }
                     }
                     catch (Exception ex)
                     {
@@ -631,10 +569,7 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
                         _meetingMutex.ReleaseMutex();
                     }
 
-                    if (MeetingsUpdated != null)
-                    {
-                        MeetingsUpdated(this, null);
-                    }
+                    if (MeetingsUpdated != null) MeetingsUpdated(this, null);
 
                     UpdateCurrentMeetingCallback(null);
                     break;
@@ -648,7 +583,6 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
                         {
                             Contact c = null;
                             foreach (Role role in response.Events.Event.Role)
-                            {
                                 if (role.RoleName == "INSTRUCTOR")
                                 {
                                     c = role.Contact;
@@ -658,16 +592,12 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
                                 {
                                     c = role.Contact;
                                 }
-                            }
 
                             if (c != null)
                             {
                                 CurrentMeeting.OrganizerName = c.ContactFirstName + " " + c.ContactLastName;
                                 CurrentMeeting.OrganizerEmail = c.Email.Replace("@g.umd.edu", "@umd.edu");
-                                if (CurrentMeetingUpdated != null)
-                                {
-                                    CurrentMeetingUpdated(this, EventArgs.Empty);
-                                }
+                                if (CurrentMeetingUpdated != null) CurrentMeetingUpdated(this, EventArgs.Empty);
                             }
                         }
                     }
@@ -688,10 +618,7 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
                         SpaceFeatures = response.Spaces.Space[0].Features;
                         SpaceName = response.Spaces.Space[0].SpaceName;
                         Instructions = response.Spaces.Space[0].Instructions;
-                        if (SpaceInfoUpdated != null)
-                        {
-                            SpaceInfoUpdated(this, EventArgs.Empty);
-                        }
+                        if (SpaceInfoUpdated != null) SpaceInfoUpdated(this, EventArgs.Empty);
                     }
                     catch (Exception ex)
                     {
@@ -760,7 +687,7 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
     {
         public CollegeNetFactory()
         {
-            TypeNames = new List<string>() { "collegenet" };
+            TypeNames = new List<string> { "collegenet" };
         }
 
         public override EssentialsDevice BuildDevice(DeviceConfig dc)
@@ -776,17 +703,14 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
     {
         public override bool CanConvert(Type objecType)
         {
-            return (objecType == typeof(List<T>));
+            return objecType == typeof(List<T>);
         }
 
         public override object ReadJson(JsonReader reader, Type objecType, object existingValue,
             JsonSerializer serializer)
         {
             JToken token = JToken.Load(reader);
-            if (token.Type == JTokenType.Array)
-            {
-                return token.ToObject<List<T>>();
-            }
+            if (token.Type == JTokenType.Array) return token.ToObject<List<T>>();
 
             return new List<T> { token.ToObject<T>() };
         }
@@ -893,17 +817,11 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
             set
             {
                 if (value == "LEC")
-                {
                     _type = "Lecture";
-                }
                 else if (value == "DIS")
-                {
                     _type = "Discussion";
-                }
                 else
-                {
                     _type = value;
-                }
             }
         }
 
@@ -970,13 +888,8 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
                 int hours = TimeRemainingInMin / 60;
                 int minutes = TimeRemainingInMin % 60;
                 if (hours > 1)
-                {
                     hourTag = "Hours";
-                }
-                else if (hours == 1)
-                {
-                    hourTag = "Hour";
-                }
+                else if (hours == 1) hourTag = "Hour";
 
                 string minTag = minutes == 1 ? "Minute" : "Minutes";
 
@@ -1030,12 +943,12 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
         #region Digital
 
         [JoinName("Refresh Reservations")] public JoinDataComplete RefreshReservations = new JoinDataComplete(
-            new JoinData()
+            new JoinData
             {
                 JoinNumber = 1,
                 JoinSpan = 1
             },
-            new JoinMetadata()
+            new JoinMetadata
             {
                 Description = "Refresh Reservations for Today",
                 JoinCapabilities = eJoinCapabilities.FromSIMPL,
@@ -1043,12 +956,12 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
             });
 
         [JoinName("Refresh Space Info")] public JoinDataComplete RefreshSpaceInfo = new JoinDataComplete(
-            new JoinData()
+            new JoinData
             {
                 JoinNumber = 2,
                 JoinSpan = 1
             },
-            new JoinMetadata()
+            new JoinMetadata
             {
                 Description = "Refresh Space Information",
                 JoinCapabilities = eJoinCapabilities.FromSIMPL,
@@ -1056,12 +969,12 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
             });
 
         [JoinName("CurrentMeetingActive")] public JoinDataComplete CurrentMeetingActive = new JoinDataComplete(
-            new JoinData()
+            new JoinData
             {
                 JoinNumber = 1,
                 JoinSpan = 1
             },
-            new JoinMetadata()
+            new JoinMetadata
             {
                 Description = "Current Meeting Active",
                 JoinCapabilities = eJoinCapabilities.ToSIMPL,
@@ -1069,12 +982,12 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
             });
 
         [JoinName("ScheduleOnline")] public JoinDataComplete ScheduleOnline = new JoinDataComplete(
-            new JoinData()
+            new JoinData
             {
                 JoinNumber = 2,
                 JoinSpan = 1
             },
-            new JoinMetadata()
+            new JoinMetadata
             {
                 Description = "Schedule Online",
                 JoinCapabilities = eJoinCapabilities.ToSIMPL,
@@ -1082,12 +995,12 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
             });
 
         [JoinName("MeetingActive")] public JoinDataComplete MeetingActive = new JoinDataComplete(
-            new JoinData()
+            new JoinData
             {
                 JoinNumber = 51,
                 JoinSpan = 50
             },
-            new JoinMetadata()
+            new JoinMetadata
             {
                 Description = "Meeting Active",
                 JoinCapabilities = eJoinCapabilities.ToSIMPL,
@@ -1101,12 +1014,12 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
 
         [JoinName("CurrentMeetingTimeRemaining")]
         public JoinDataComplete CurrentMeetingTimeRemaining = new JoinDataComplete(
-            new JoinData()
+            new JoinData
             {
                 JoinNumber = 1,
                 JoinSpan = 1
             },
-            new JoinMetadata()
+            new JoinMetadata
             {
                 Description = "Current Meeting Time Remaining in Minutes",
                 JoinCapabilities = eJoinCapabilities.ToSIMPL,
@@ -1114,12 +1027,12 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
             });
 
         [JoinName("FeatureCount")] public JoinDataComplete FeatureCount = new JoinDataComplete(
-            new JoinData()
+            new JoinData
             {
                 JoinNumber = 2,
                 JoinSpan = 1
             },
-            new JoinMetadata()
+            new JoinMetadata
             {
                 Description = "Feature Count",
                 JoinCapabilities = eJoinCapabilities.ToSIMPL,
@@ -1140,12 +1053,12 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
         #region Serial
 
         [JoinName("CurrentMeetingName")] public JoinDataComplete CurrentMeetingName = new JoinDataComplete(
-            new JoinData()
+            new JoinData
             {
                 JoinNumber = 1,
                 JoinSpan = 1
             },
-            new JoinMetadata()
+            new JoinMetadata
             {
                 Description = "Current Meeting Name",
                 JoinCapabilities = eJoinCapabilities.ToSIMPL,
@@ -1153,12 +1066,12 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
             });
 
         [JoinName("SetRoomName")] public JoinDataComplete SetRoomName = new JoinDataComplete(
-            new JoinData()
+            new JoinData
             {
                 JoinNumber = 1,
                 JoinSpan = 1
             },
-            new JoinMetadata()
+            new JoinMetadata
             {
                 Description = "Set room name for linking to CollegeNet ID",
                 JoinCapabilities = eJoinCapabilities.FromSIMPL,
@@ -1166,12 +1079,12 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
             });
 
         [JoinName("CurrentMeetingTitle")] public JoinDataComplete CurrentMeetingTitle = new JoinDataComplete(
-            new JoinData()
+            new JoinData
             {
                 JoinNumber = 2,
                 JoinSpan = 1
             },
-            new JoinMetadata()
+            new JoinMetadata
             {
                 Description = "Current Meeting Title",
                 JoinCapabilities = eJoinCapabilities.ToSIMPL,
@@ -1179,12 +1092,12 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
             });
 
         [JoinName("CurrentMeetingOrganizer")] public JoinDataComplete CurrentMeetingOrganizer = new JoinDataComplete(
-            new JoinData()
+            new JoinData
             {
                 JoinNumber = 3,
                 JoinSpan = 1
             },
-            new JoinMetadata()
+            new JoinMetadata
             {
                 Description = "Current Meeting Organizer",
                 JoinCapabilities = eJoinCapabilities.ToSIMPL,
@@ -1193,12 +1106,12 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
 
         [JoinName("CurrentMeetingOrganizerEmail")]
         public JoinDataComplete CurrentMeetingOrganizerEmail = new JoinDataComplete(
-            new JoinData()
+            new JoinData
             {
                 JoinNumber = 4,
                 JoinSpan = 1
             },
-            new JoinMetadata()
+            new JoinMetadata
             {
                 Description = "Current Meeting Organizer Email",
                 JoinCapabilities = eJoinCapabilities.ToSIMPL,
@@ -1206,12 +1119,12 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
             });
 
         [JoinName("CurrentMeetingType")] public JoinDataComplete CurrentMeetingType = new JoinDataComplete(
-            new JoinData()
+            new JoinData
             {
                 JoinNumber = 5,
                 JoinSpan = 1
             },
-            new JoinMetadata()
+            new JoinMetadata
             {
                 Description = "Current Meeting Type",
                 JoinCapabilities = eJoinCapabilities.ToSIMPL,
@@ -1219,12 +1132,12 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
             });
 
         [JoinName("CurrentMeetingStartTime")] public JoinDataComplete CurrentMeetingStartTime = new JoinDataComplete(
-            new JoinData()
+            new JoinData
             {
                 JoinNumber = 6,
                 JoinSpan = 1
             },
-            new JoinMetadata()
+            new JoinMetadata
             {
                 Description = "Current Meeting Start Time",
                 JoinCapabilities = eJoinCapabilities.ToSIMPL,
@@ -1232,12 +1145,12 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
             });
 
         [JoinName("CurrentMeetingEndTime")] public JoinDataComplete CurrentMeetingEndTime = new JoinDataComplete(
-            new JoinData()
+            new JoinData
             {
                 JoinNumber = 7,
                 JoinSpan = 1
             },
-            new JoinMetadata()
+            new JoinMetadata
             {
                 Description = "Current Meeting End Time",
                 JoinCapabilities = eJoinCapabilities.ToSIMPL,
@@ -1246,12 +1159,12 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
 
         [JoinName("CurrentMeetingTimeRemainingString")]
         public JoinDataComplete CurrentMeetingTimeRemainingString = new JoinDataComplete(
-            new JoinData()
+            new JoinData
             {
                 JoinNumber = 8,
                 JoinSpan = 1
             },
-            new JoinMetadata()
+            new JoinMetadata
             {
                 Description = "Current Meeting Time Remaining String",
                 JoinCapabilities = eJoinCapabilities.ToSIMPL,
@@ -1259,12 +1172,12 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
             });
 
         [JoinName("NextMeetingName")] public JoinDataComplete NextMeetingName = new JoinDataComplete(
-            new JoinData()
+            new JoinData
             {
                 JoinNumber = 11,
                 JoinSpan = 1
             },
-            new JoinMetadata()
+            new JoinMetadata
             {
                 Description = "Next Meeting Name",
                 JoinCapabilities = eJoinCapabilities.ToSIMPL,
@@ -1272,12 +1185,12 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
             });
 
         [JoinName("NextMeetingTitle")] public JoinDataComplete NextMeetingTitle = new JoinDataComplete(
-            new JoinData()
+            new JoinData
             {
                 JoinNumber = 12,
                 JoinSpan = 1
             },
-            new JoinMetadata()
+            new JoinMetadata
             {
                 Description = "Next Meeting Title",
                 JoinCapabilities = eJoinCapabilities.ToSIMPL,
@@ -1285,12 +1198,12 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
             });
 
         [JoinName("NextMeetingType")] public JoinDataComplete NextMeetingType = new JoinDataComplete(
-            new JoinData()
+            new JoinData
             {
                 JoinNumber = 13,
                 JoinSpan = 1
             },
-            new JoinMetadata()
+            new JoinMetadata
             {
                 Description = "Next Meeting Type",
                 JoinCapabilities = eJoinCapabilities.ToSIMPL,
@@ -1298,12 +1211,12 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
             });
 
         [JoinName("NextMeetingStartTime")] public JoinDataComplete NextMeetingStartTime = new JoinDataComplete(
-            new JoinData()
+            new JoinData
             {
                 JoinNumber = 14,
                 JoinSpan = 1
             },
-            new JoinMetadata()
+            new JoinMetadata
             {
                 Description = "Next Meeting Start Time",
                 JoinCapabilities = eJoinCapabilities.ToSIMPL,
@@ -1311,12 +1224,12 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
             });
 
         [JoinName("NextMeetingEndTime")] public JoinDataComplete NextMeetingEndTime = new JoinDataComplete(
-            new JoinData()
+            new JoinData
             {
                 JoinNumber = 15,
                 JoinSpan = 1
             },
-            new JoinMetadata()
+            new JoinMetadata
             {
                 Description = "Next Meeting End Time",
                 JoinCapabilities = eJoinCapabilities.ToSIMPL,
@@ -1324,12 +1237,12 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
             });
 
         [JoinName("SpaceName")] public JoinDataComplete SpaceName = new JoinDataComplete(
-            new JoinData()
+            new JoinData
             {
                 JoinNumber = 21,
                 JoinSpan = 1
             },
-            new JoinMetadata()
+            new JoinMetadata
             {
                 Description = "Space Name",
                 JoinCapabilities = eJoinCapabilities.ToSIMPL,
@@ -1337,12 +1250,12 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
             });
 
         [JoinName("SpaceInstructions")] public JoinDataComplete SpaceInstructions = new JoinDataComplete(
-            new JoinData()
+            new JoinData
             {
                 JoinNumber = 22,
                 JoinSpan = 1
             },
-            new JoinMetadata()
+            new JoinMetadata
             {
                 Description = "Space Instructions",
                 JoinCapabilities = eJoinCapabilities.ToSIMPL,
@@ -1350,12 +1263,12 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
             });
 
         [JoinName("MeetingName")] public JoinDataComplete MeetingName = new JoinDataComplete(
-            new JoinData()
+            new JoinData
             {
                 JoinNumber = 51,
                 JoinSpan = 50
             },
-            new JoinMetadata()
+            new JoinMetadata
             {
                 Description = "Meeting Name",
                 JoinCapabilities = eJoinCapabilities.ToSIMPL,
@@ -1363,12 +1276,12 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
             });
 
         [JoinName("MeetingTitle")] public JoinDataComplete MeetingTitle = new JoinDataComplete(
-            new JoinData()
+            new JoinData
             {
                 JoinNumber = 101,
                 JoinSpan = 50
             },
-            new JoinMetadata()
+            new JoinMetadata
             {
                 Description = "Meeting Title",
                 JoinCapabilities = eJoinCapabilities.ToSIMPL,
@@ -1376,12 +1289,12 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
             });
 
         [JoinName("MeetingType")] public JoinDataComplete MeetingType = new JoinDataComplete(
-            new JoinData()
+            new JoinData
             {
                 JoinNumber = 151,
                 JoinSpan = 50
             },
-            new JoinMetadata()
+            new JoinMetadata
             {
                 Description = "Meeting Type",
                 JoinCapabilities = eJoinCapabilities.ToSIMPL,
@@ -1389,12 +1302,12 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
             });
 
         [JoinName("MeetingTime")] public JoinDataComplete MeetingTime = new JoinDataComplete(
-            new JoinData()
+            new JoinData
             {
                 JoinNumber = 201,
                 JoinSpan = 50
             },
-            new JoinMetadata()
+            new JoinMetadata
             {
                 Description = "Meeting Time",
                 JoinCapabilities = eJoinCapabilities.ToSIMPL,
@@ -1402,12 +1315,12 @@ namespace PepperDash.Essentials.Devices.Common.Scheduling
             });
 
         [JoinName("Features")] public JoinDataComplete Features = new JoinDataComplete(
-            new JoinData()
+            new JoinData
             {
                 JoinNumber = 251,
                 JoinSpan = 50
             },
-            new JoinMetadata()
+            new JoinMetadata
             {
                 Description = "Room Features",
                 JoinCapabilities = eJoinCapabilities.ToSIMPL,

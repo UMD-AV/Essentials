@@ -2,7 +2,7 @@
 using PepperDash.Core;
 
 
-namespace PepperDash.Essentials.Core.Devices
+namespace UmdEssentials.Core.Devices
 {
     public class GenericCommunicationMonitoredDevice : Device, ICommunicationMonitor
     {

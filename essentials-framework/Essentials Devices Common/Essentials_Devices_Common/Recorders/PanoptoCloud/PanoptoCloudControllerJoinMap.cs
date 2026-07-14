@@ -1,6 +1,6 @@
-﻿using PepperDash.Essentials.Core;
+﻿using UmdEssentials.Core;
 
-namespace PepperDash.Essentials.PanoptoCloud
+namespace UmdEssentials.PanoptoCloud
 {
     public class PanoptoCloudControllerJoinMap : JoinMapBaseAdvanced
     {

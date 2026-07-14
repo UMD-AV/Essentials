@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using PepperDash.Core;
 using Newtonsoft.Json;
-using PepperDash.Essentials.Core;
-using PepperDash.Essentials.Core.Config;
+using UmdEssentials.Core;
+using UmdEssentials.Core.Config;
 
 namespace ExtronMlsDsp
 {
@@ -11,7 +11,7 @@ namespace ExtronMlsDsp
         public ExtronMlsDspFactory()
         {
             // In the constructor we initialize the list with the typenames that will build an instance of this device
-            TypeNames = new List<string>() { "extronmls" };
+            TypeNames = new List<string> { "extronmls" };
         }
 
         /// <summary>
@@ -32,10 +32,7 @@ namespace ExtronMlsDsp
 
             ExtronMlsDspPropertiesConfig config = dc.Properties.ToObject<ExtronMlsDspPropertiesConfig>();
 
-            if (config != null)
-            {
-                return new ExtronMlsDsp(dc.Key, dc.Name, config, comms);
-            }
+            if (config != null) return new ExtronMlsDsp(dc.Key, dc.Name, config, comms);
 
             Debug.Console(0, Debug.ErrorLogLevel.Error, "Unable to deserialize config for device {0}", dc.Key);
             return null;

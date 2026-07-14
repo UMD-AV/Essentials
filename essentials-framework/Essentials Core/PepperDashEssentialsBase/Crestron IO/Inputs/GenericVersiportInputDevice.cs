@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using Crestron.SimplSharpPro;
 using Crestron.SimplSharpPro.DeviceSupport;
 using PepperDash.Core;
-using PepperDash.Essentials.Core.Config;
-using PepperDash.Essentials.Core.Bridges;
 using Newtonsoft.Json;
+using UmdEssentials.Core.Bridges;
+using UmdEssentials.Core.Config;
 
-namespace PepperDash.Essentials.Core.CrestronIO
+namespace UmdEssentials.Core.CrestronIO
 {
     /// <summary>
     /// Represents a generic digital input deviced tied to a versiport
@@ -64,14 +64,10 @@ namespace PepperDash.Essentials.Core.CrestronIO
                 joinMap = JsonConvert.DeserializeObject<IDigitalInputJoinMap>(joinMapSerialized);
 
             if (bridge != null)
-            {
                 bridge.AddJoinMap(Key, joinMap);
-            }
             else
-            {
                 Debug.Console(0, this,
                     "Please update config to use 'eiscapiadvanced' to get all join map features for this device.");
-            }
 
             try
             {
@@ -124,10 +120,8 @@ namespace PepperDash.Essentials.Core.CrestronIO
             }
 
             if (dc.PortNumber > ioPortDevice.NumberOfVersiPorts)
-            {
                 Debug.Console(0, "GetVersiportDigitalInput: Device {0} does not contain a port {1}", dc.PortDeviceKey,
                     dc.PortNumber);
-            }
 
             return ioPortDevice.VersiPorts[dc.PortNumber];
         }
@@ -137,7 +131,7 @@ namespace PepperDash.Essentials.Core.CrestronIO
     {
         public GenericVersiportDigitalInputDeviceFactory()
         {
-            TypeNames = new List<string>() { "versiportinput" };
+            TypeNames = new List<string> { "versiportinput" };
         }
 
         public override EssentialsDevice BuildDevice(DeviceConfig dc)

@@ -1,7 +1,7 @@
 using System;
-using PepperDash.Essentials.Core;
+using UmdEssentials.Core;
 
-namespace PepperDash.Essentials.Core.Bridges.JoinMaps
+namespace UmdEssentials.Core.Bridges.JoinMaps
 {
     public class VideoCodecControllerJoinMap : JoinMapBaseAdvanced
     {
@@ -1541,7 +1541,7 @@ namespace PepperDash.Essentials.Core.Bridges.JoinMaps
                 JoinNumber = 151,
                 JoinSpan = 1
             },
-            new JoinMetadata()
+            new JoinMetadata
             {
                 Description = "Current Participants XSig",
                 JoinCapabilities = eJoinCapabilities.ToSIMPL,
@@ -2924,7 +2924,7 @@ namespace PepperDash_Essentials_Core.Bridges.JoinMaps
                 JoinNumber = 151,
                 JoinSpan = 1
             },
-            new JoinMetadata()
+            new JoinMetadata
             {
                 Description = "Current Participants XSig",
                 JoinCapabilities = eJoinCapabilities.ToSIMPL,

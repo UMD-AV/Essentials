@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace PepperDash.Essentials.Devices.Common.AudioCodec
+namespace UmdEssentials.Devices.Common.AudioCodec
 {
     public class MockAcPropertiesConfig
     {

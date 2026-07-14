@@ -3,9 +3,9 @@ using Crestron.SimplSharpPro;
 using Crestron.SimplSharpPro.DM;
 using Newtonsoft.Json;
 using PepperDash.Core;
-using PepperDash.Essentials.Core.Config;
+using UmdEssentials.Core.Config;
 
-namespace PepperDash.Essentials.Core
+namespace UmdEssentials.Core
 {
     /// <summary>
     /// 
@@ -54,10 +54,7 @@ namespace PepperDash.Essentials.Core
                         break;
                     case eControlMethod.Ssh:
                     {
-                        if (c.Address.Contains("{roomname}"))
-                        {
-                            c.Address = c.Address.Replace("{roomname}", "");
-                        }
+                        if (c.Address.Contains("{roomname}")) c.Address = c.Address.Replace("{roomname}", "");
 
                         GenericSshClient ssh =
                             new GenericSshClient(deviceConfig.Key + "-ssh", c.Address, c.Port, c.Username, c.Password)
@@ -141,10 +138,8 @@ namespace PepperDash.Essentials.Core
                     RoutingInputPort inputPort = (dev as IRoutingInputsOutputs).InputPorts[config.ControlPortName];
 
                     if (inputPort != null)
-                    {
                         if (inputPort.Port is ICec)
                             return inputPort.Port as ICec;
-                    }
 
                     RoutingOutputPort outputPort = (dev as IRoutingInputsOutputs).OutputPorts[config.ControlPortName];
 
@@ -155,8 +150,10 @@ namespace PepperDash.Essentials.Core
                     }
 
                     else
+                    {
                         Debug.Console(0, "GetCecPort: Device '{0}' does not have a CEC port called: '{1}'",
                             config.ControlPortDevKey, config.ControlPortName);
+                    }
                 }
                 else
                 {
@@ -177,10 +174,12 @@ namespace PepperDash.Essentials.Core
         /// <returns>IComPorts device or null if the device is not found or does not implement IComPorts</returns>
         public static IComPorts GetIComPortsDeviceFromManagedDevice(string ComPortDevKey)
         {
-            if ((ComPortDevKey.Equals("controlSystem", System.StringComparison.OrdinalIgnoreCase)
-                 || ComPortDevKey.Equals("processor", System.StringComparison.OrdinalIgnoreCase))
+            if ((ComPortDevKey.Equals("controlSystem", StringComparison.OrdinalIgnoreCase)
+                 || ComPortDevKey.Equals("processor", StringComparison.OrdinalIgnoreCase))
                 && Global.ControlSystem is IComPorts)
+            {
                 return Global.ControlSystem;
+            }
             else
             {
                 IComPorts dev = DeviceManager.GetDeviceForKey(ComPortDevKey) as IComPorts;
@@ -195,7 +194,7 @@ namespace PepperDash.Essentials.Core
     /// 
     /// </summary>
     public class EssentialsControlPropertiesConfig :
-        PepperDash.Core.ControlPropertiesConfig
+        ControlPropertiesConfig
     {
         [JsonConverter(typeof(ComSpecJsonConverter))]
         public ComPort.ComPortSpec ComParams { get; set; }

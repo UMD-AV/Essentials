@@ -6,8 +6,8 @@ using NvxEpi.Extensions;
 using NvxEpi.JoinMaps;
 using NvxEpi.Services.Feedback;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
-using PepperDash.Essentials.Core.Bridges;
+using UmdEssentials.Core;
+using UmdEssentials.Core.Bridges;
 using NvxEpi.Abstractions.Stream;
 
 namespace NvxEpi.Services.Bridge
@@ -22,9 +22,9 @@ namespace NvxEpi.Services.Bridge
         }
 
         private static void BuildFeedbackList(BasicTriList trilist,
-            IEnumerable<PepperDash.Essentials.Core.Feedback> feedbacks, NvxDeviceJoinMap joinMap)
+            IEnumerable<UmdEssentials.Core.Feedback> feedbacks, NvxDeviceJoinMap joinMap)
         {
-            foreach (PepperDash.Essentials.Core.Feedback feedback in feedbacks)
+            foreach (UmdEssentials.Core.Feedback feedback in feedbacks)
             {
                 uint joinNumber = 0;
 

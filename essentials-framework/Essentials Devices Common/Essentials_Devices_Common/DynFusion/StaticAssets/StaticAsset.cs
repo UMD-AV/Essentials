@@ -1,5 +1,5 @@
 ﻿using Crestron.SimplSharpPro.Fusion;
-using PepperDash.Essentials.Core;
+using UmdEssentials.Core;
 using PepperDash.Core;
 
 namespace DynFusion.Assets
@@ -15,7 +15,7 @@ namespace DynFusion.Assets
             Debug.Console(0, this, "Creating static asset {0} at number {1} of type {2}", Name, assetNumber, type);
             _assetNumber = assetNumber;
             symbol.AddAsset(eAssetType.StaticAsset, assetNumber, friendlyName, type, FusionUuid.GenerateUuid(key));
-            _asset = ((FusionStaticAsset)symbol.UserConfigurableAssetDetails[_assetNumber].Asset);
+            _asset = (FusionStaticAsset)symbol.UserConfigurableAssetDetails[_assetNumber].Asset;
         }
 
         public virtual void FusionAssetStateChange(FusionAssetStateEventArgs args)

@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
-using PepperDash.Essentials.Core;
-using PepperDash.Essentials.Core.Config;
+using UmdEssentials.Core;
+using UmdEssentials.Core.Config;
 
-namespace PepperDash.Essentials.PanoptoCloud
+namespace UmdEssentials.PanoptoCloud
 {
     public class PanoptoCloudControllerFactory : EssentialsDeviceFactory<PanoptoCloudController>
     {

@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using PepperDash.Essentials.Core;
-using PepperDash.Essentials.Devices.Common.Codec;
+using UmdEssentials.Core;
+using UmdEssentials.Devices.Common.Codec;
 
-namespace PepperDash.Essentials.Devices.Common.AudioCodec
+namespace UmdEssentials.Devices.Common.AudioCodec
 {
     public abstract class AudioCodecBase : EssentialsDevice, IHasDialer, IUsageTracking, IAudioCodecInfo
     {

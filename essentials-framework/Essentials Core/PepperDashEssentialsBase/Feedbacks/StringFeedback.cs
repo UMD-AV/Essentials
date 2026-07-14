@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Crestron.SimplSharp;
 using Crestron.SimplSharpPro;
 
-namespace PepperDash.Essentials.Core
+namespace UmdEssentials.Core
 {
     public class StringFeedback : Feedback
     {

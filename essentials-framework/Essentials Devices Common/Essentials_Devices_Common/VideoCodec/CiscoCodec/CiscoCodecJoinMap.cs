@@ -1,9 +1,9 @@
 ﻿using System;
-using PepperDash.Essentials.Core;
-using PepperDash.Essentials.Core.Bridges.JoinMaps;
+using UmdEssentials.Core;
+using UmdEssentials.Core.Bridges.JoinMaps;
 
 
-namespace PepperDash.Essentials.Devices.Common.VideoCodec.Cisco
+namespace UmdEssentials.Devices.Common.VideoCodec.Cisco
 {
     public class CiscoCodecJoinMap : VideoCodecControllerJoinMap
     {

@@ -1,4 +1,4 @@
-﻿namespace PepperDash.Essentials.Devices.Common.AudioCodec
+﻿namespace UmdEssentials.Devices.Common.AudioCodec
 {
     /// <summary>
     /// Implements a common set of data about a codec

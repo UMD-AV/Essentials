@@ -4,7 +4,7 @@ using PepperDash.Core;
 using Newtonsoft.Json;
 
 
-namespace PepperDash.Essentials.Devices.Common.VideoCodec.Cisco
+namespace UmdEssentials.Devices.Common.VideoCodec.Cisco
 {
     /// <summary>
     /// This class exists to capture serialized data sent back by a Cisco codec in JSON output mode

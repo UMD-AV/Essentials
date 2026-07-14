@@ -4,11 +4,11 @@ using Crestron.SimplSharpPro;
 using Crestron.SimplSharpPro.DeviceSupport;
 using Crestron.SimplSharpPro.Lighting;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
-using PepperDash.Essentials.Core.Config;
-using PepperDash.Essentials.Core.CrestronIO;
+using UmdEssentials.Core;
+using UmdEssentials.Core.Config;
+using UmdEssentials.Core.CrestronIO;
 
-namespace PepperDash.Essentials.Devices.Common.Environment.Lighting
+namespace UmdEssentials.Devices.Common.Environment.Lighting
 {
     public class Din8sw8Controller : EssentialsDevice, ISwitchedOutputCollection
     {
@@ -29,10 +29,8 @@ namespace PepperDash.Essentials.Devices.Common.Environment.Lighting
             SwitchModule = new Din8Sw8(cresnetId, Global.ControlSystem);
 
             if (SwitchModule.Register() != eDeviceRegistrationUnRegistrationResponse.Success)
-            {
                 Debug.Console(2, this, "Error registering Din8sw8. Reason: {0}",
                     SwitchModule.RegistrationFailureReason);
-            }
 
             PopulateDictionary();
         }
@@ -48,9 +46,7 @@ namespace PepperDash.Essentials.Devices.Common.Environment.Lighting
         private void PopulateDictionary()
         {
             foreach (SwitchedLoadWithOverrideParameter item in SwitchModule.SwitchedLoads)
-            {
                 SwitchedOutputs.Add(item.Number, new Din8sw8Output(item));
-            }
         }
     }
 
@@ -85,7 +81,7 @@ namespace PepperDash.Essentials.Devices.Common.Environment.Lighting
     {
         public Din8sw8ControllerFactory()
         {
-            TypeNames = new List<string>() { "din8sw8" };
+            TypeNames = new List<string> { "din8sw8" };
         }
 
         public override EssentialsDevice BuildDevice(DeviceConfig dc)

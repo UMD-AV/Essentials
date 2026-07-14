@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using Crestron.SimplSharpPro.ThreeSeriesCards;
 using Newtonsoft.Json;
 using PepperDash.Core;
-using PepperDash.Essentials.Core.Config;
+using UmdEssentials.Core.Config;
 
-namespace PepperDash.Essentials.Core.CrestronIO.Cards
+namespace UmdEssentials.Core.CrestronIO.Cards
 {
     [ConfigSnippet("\"properties\":{\"cards\":{\"1\":\"c3com3\",\"2\":\"c3ry16\",\"3\":\"c3ry8\"}}")]
     public class CenCi33Controller : CrestronGenericBaseDevice
@@ -56,7 +56,7 @@ namespace PepperDash.Essentials.Core.CrestronIO.Cards
                     (c, s) =>
                         new C3Ry8Controller(string.Format(CardKeyTemplate, key, s),
                             string.Format(CardNameTemplate, key, s, "C3Ry8"), new C3ry8(s, _cardCage))
-                },
+                }
             };
 
             GetCards();

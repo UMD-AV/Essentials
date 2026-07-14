@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json;
 using NvxEpi.Application.Config;
-using PepperDash.Essentials.Core;
-using PepperDash.Essentials.Core.Config;
+using UmdEssentials.Core;
+using UmdEssentials.Core.Config;
 
 namespace NvxEpi.Application.Builder
 {

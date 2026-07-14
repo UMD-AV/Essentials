@@ -4,7 +4,7 @@ using Crestron.SimplSharpPro.DM.Streaming;
 using NvxEpi.Devices;
 using NvxEpi.Features.Config;
 using NvxEpi.Features.Routing;
-using PepperDash.Essentials.Core;
+using UmdEssentials.Core;
 
 namespace NvxEpi.Factories
 {
@@ -33,9 +33,7 @@ namespace NvxEpi.Factories
                 {
                     if (string.IsNullOrEmpty(props.ParentDeviceKey) ||
                         props.ParentDeviceKey.Equals("processor", StringComparison.OrdinalIgnoreCase))
-                    {
                         return () => new DmNvx350(props.Control.IpIdInt, Global.ControlSystem);
-                    }
 
                     return () =>
                     {
@@ -52,9 +50,7 @@ namespace NvxEpi.Factories
                 {
                     if (string.IsNullOrEmpty(props.ParentDeviceKey) ||
                         props.ParentDeviceKey.Equals("processor", StringComparison.OrdinalIgnoreCase))
-                    {
                         return () => new DmNvx350C(props.Control.IpIdInt, Global.ControlSystem);
-                    }
 
                     return () =>
                     {
@@ -71,9 +67,7 @@ namespace NvxEpi.Factories
                 {
                     if (string.IsNullOrEmpty(props.ParentDeviceKey) ||
                         props.ParentDeviceKey.Equals("processor", StringComparison.OrdinalIgnoreCase))
-                    {
                         return () => new DmNvx351(props.Control.IpIdInt, Global.ControlSystem);
-                    }
 
                     return () =>
                     {
@@ -90,9 +84,7 @@ namespace NvxEpi.Factories
                 {
                     if (string.IsNullOrEmpty(props.ParentDeviceKey) ||
                         props.ParentDeviceKey.Equals("processor", StringComparison.OrdinalIgnoreCase))
-                    {
                         return () => new DmNvx351C(props.Control.IpIdInt, Global.ControlSystem);
-                    }
 
                     return () =>
                     {
@@ -109,9 +101,7 @@ namespace NvxEpi.Factories
                 {
                     if (string.IsNullOrEmpty(props.ParentDeviceKey) ||
                         props.ParentDeviceKey.Equals("processor", StringComparison.OrdinalIgnoreCase))
-                    {
                         return () => new DmNvx352(props.Control.IpIdInt, Global.ControlSystem);
-                    }
 
                     return () =>
                     {
@@ -128,9 +118,7 @@ namespace NvxEpi.Factories
                 {
                     if (string.IsNullOrEmpty(props.ParentDeviceKey) ||
                         props.ParentDeviceKey.Equals("processor", StringComparison.OrdinalIgnoreCase))
-                    {
                         return () => new DmNvx352C(props.Control.IpIdInt, Global.ControlSystem);
-                    }
 
                     return () =>
                     {
@@ -147,9 +135,7 @@ namespace NvxEpi.Factories
                 {
                     if (string.IsNullOrEmpty(props.ParentDeviceKey) ||
                         props.ParentDeviceKey.Equals("processor", StringComparison.OrdinalIgnoreCase))
-                    {
                         return () => new DmNvx360(props.Control.IpIdInt, Global.ControlSystem);
-                    }
 
                     return () =>
                     {
@@ -166,9 +152,7 @@ namespace NvxEpi.Factories
                 {
                     if (string.IsNullOrEmpty(props.ParentDeviceKey) ||
                         props.ParentDeviceKey.Equals("processor", StringComparison.OrdinalIgnoreCase))
-                    {
                         return () => new DmNvx360C(props.Control.IpIdInt, Global.ControlSystem);
-                    }
 
                     return () =>
                     {
@@ -185,9 +169,7 @@ namespace NvxEpi.Factories
                 {
                     if (string.IsNullOrEmpty(props.ParentDeviceKey) ||
                         props.ParentDeviceKey.Equals("processor", StringComparison.OrdinalIgnoreCase))
-                    {
                         return () => new DmNvx363(props.Control.IpIdInt, Global.ControlSystem);
-                    }
 
                     return () =>
                     {
@@ -204,9 +186,7 @@ namespace NvxEpi.Factories
                 {
                     if (string.IsNullOrEmpty(props.ParentDeviceKey) ||
                         props.ParentDeviceKey.Equals("processor", StringComparison.OrdinalIgnoreCase))
-                    {
                         return () => new DmNvx363C(props.Control.IpIdInt, Global.ControlSystem);
-                    }
 
                     return () =>
                     {
@@ -223,9 +203,7 @@ namespace NvxEpi.Factories
                 {
                     if (string.IsNullOrEmpty(props.ParentDeviceKey) ||
                         props.ParentDeviceKey.Equals("processor", StringComparison.OrdinalIgnoreCase))
-                    {
                         return () => new DmNvx384(props.Control.IpIdInt, Global.ControlSystem);
-                    }
 
                     return () =>
                     {
@@ -242,9 +220,7 @@ namespace NvxEpi.Factories
                 {
                     if (string.IsNullOrEmpty(props.ParentDeviceKey) ||
                         props.ParentDeviceKey.Equals("processor", StringComparison.OrdinalIgnoreCase))
-                    {
                         return () => new DmNvx384C(props.Control.IpIdInt, Global.ControlSystem);
-                    }
 
                     return () =>
                     {
@@ -261,9 +237,7 @@ namespace NvxEpi.Factories
                 {
                     if (string.IsNullOrEmpty(props.ParentDeviceKey) ||
                         props.ParentDeviceKey.Equals("processor", StringComparison.OrdinalIgnoreCase))
-                    {
                         return () => new DmNvx385(props.Control.IpIdInt, Global.ControlSystem);
-                    }
 
                     return () =>
                     {
@@ -280,9 +254,7 @@ namespace NvxEpi.Factories
                 {
                     if (string.IsNullOrEmpty(props.ParentDeviceKey) ||
                         props.ParentDeviceKey.Equals("processor", StringComparison.OrdinalIgnoreCase))
-                    {
                         return () => new DmNvx385C(props.Control.IpIdInt, Global.ControlSystem);
-                    }
 
                     return () =>
                     {
@@ -299,9 +271,7 @@ namespace NvxEpi.Factories
                 {
                     if (string.IsNullOrEmpty(props.ParentDeviceKey) ||
                         props.ParentDeviceKey.Equals("processor", StringComparison.OrdinalIgnoreCase))
-                    {
                         return () => new DmNvxD30(props.Control.IpIdInt, Global.ControlSystem);
-                    }
 
                     return () =>
                     {
@@ -317,9 +287,7 @@ namespace NvxEpi.Factories
                 {
                     if (string.IsNullOrEmpty(props.ParentDeviceKey) ||
                         props.ParentDeviceKey.Equals("processor", StringComparison.OrdinalIgnoreCase))
-                    {
                         return () => new DmNvxD30C(props.Control.IpIdInt, Global.ControlSystem);
-                    }
 
                     return () =>
                     {
@@ -335,9 +303,7 @@ namespace NvxEpi.Factories
                 {
                     if (string.IsNullOrEmpty(props.ParentDeviceKey) ||
                         props.ParentDeviceKey.Equals("processor", StringComparison.OrdinalIgnoreCase))
-                    {
                         return () => new DmNvxE30(props.Control.IpIdInt, Global.ControlSystem);
-                    }
 
                     return () =>
                     {
@@ -353,9 +319,7 @@ namespace NvxEpi.Factories
                 {
                     if (string.IsNullOrEmpty(props.ParentDeviceKey) ||
                         props.ParentDeviceKey.Equals("processor", StringComparison.OrdinalIgnoreCase))
-                    {
                         return () => new DmNvxE30C(props.Control.IpIdInt, Global.ControlSystem);
-                    }
 
                     return () =>
                     {
@@ -371,9 +335,7 @@ namespace NvxEpi.Factories
                 {
                     if (string.IsNullOrEmpty(props.ParentDeviceKey) ||
                         props.ParentDeviceKey.Equals("processor", StringComparison.OrdinalIgnoreCase))
-                    {
                         return () => new DmNvxE31(props.Control.IpIdInt, Global.ControlSystem);
-                    }
 
                     return () =>
                     {
@@ -389,9 +351,7 @@ namespace NvxEpi.Factories
                 {
                     if (string.IsNullOrEmpty(props.ParentDeviceKey) ||
                         props.ParentDeviceKey.Equals("processor", StringComparison.OrdinalIgnoreCase))
-                    {
                         return () => new DmNvxE31C(props.Control.IpIdInt, Global.ControlSystem);
-                    }
 
                     return () =>
                     {
@@ -407,9 +367,7 @@ namespace NvxEpi.Factories
                 {
                     if (string.IsNullOrEmpty(props.ParentDeviceKey) ||
                         props.ParentDeviceKey.Equals("processor", StringComparison.OrdinalIgnoreCase))
-                    {
                         return () => new DmNvxE760(props.Control.IpIdInt, Global.ControlSystem);
-                    }
 
                     return () =>
                     {
@@ -425,9 +383,7 @@ namespace NvxEpi.Factories
                 {
                     if (string.IsNullOrEmpty(props.ParentDeviceKey) ||
                         props.ParentDeviceKey.Equals("processor", StringComparison.OrdinalIgnoreCase))
-                    {
                         return () => new DmNvxE760C(props.Control.IpIdInt, Global.ControlSystem);
-                    }
 
                     return () =>
                     {

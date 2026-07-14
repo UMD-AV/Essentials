@@ -2,8 +2,8 @@
 using Crestron.SimplSharp;
 using Crestron.SimplSharpPro.DeviceSupport;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
-using PepperDash.Essentials.Core.Bridges;
+using UmdEssentials.Core;
+using UmdEssentials.Core.Bridges;
 
 namespace ExtronMlsDsp
 {
@@ -65,7 +65,7 @@ namespace ExtronMlsDsp
             _volumeUpLock = new CMutex();
             _volumeUpCount = 0;
             _volumeDownCount = 0;
-            _defaultVolume = (config.defaultVolume != null && config.defaultVolume < 100 && config.defaultVolume >= 0)
+            _defaultVolume = config.defaultVolume != null && config.defaultVolume < 100 && config.defaultVolume >= 0
                 ? (ushort)config.defaultVolume
                 : (ushort)50;
 
@@ -133,10 +133,7 @@ namespace ExtronMlsDsp
 
             trilist.SetUShortSigAction(joinMap.ChannelVolume.JoinNumber + 1, u =>
             {
-                if (trilist.BooleanOutput[joinMap.EnableLevelSend.JoinNumber + 1].BoolValue)
-                {
-                    SetVolume(u);
-                }
+                if (trilist.BooleanOutput[joinMap.EnableLevelSend.JoinNumber + 1].BoolValue) SetVolume(u);
             });
         }
 
@@ -228,10 +225,7 @@ namespace ExtronMlsDsp
 
         public void SetVolume(ushort vol)
         {
-            if (_muteFb)
-            {
-                MuteOff();
-            }
+            if (_muteFb) MuteOff();
 
             int scaledVol = vol * 100 / ushort.MaxValue;
             SendText(string.Format("{0}V", scaledVol));
@@ -272,10 +266,7 @@ namespace ExtronMlsDsp
                 }
                 else if (press)
                 {
-                    if (_muteFb)
-                    {
-                        MuteOff();
-                    }
+                    if (_muteFb) MuteOff();
 
                     _volumeDownCount++;
                     SendText("-V");
@@ -313,10 +304,7 @@ namespace ExtronMlsDsp
                 }
                 else if (press)
                 {
-                    if (_muteFb)
-                    {
-                        MuteOff();
-                    }
+                    if (_muteFb) MuteOff();
 
                     _volumeUpCount++;
                     SendText("+V");
@@ -341,13 +329,9 @@ namespace ExtronMlsDsp
         public void MuteToggle()
         {
             if (_muteFb)
-            {
                 MuteOff();
-            }
             else
-            {
                 MuteOn();
-            }
         }
 
         public void MuteOn()

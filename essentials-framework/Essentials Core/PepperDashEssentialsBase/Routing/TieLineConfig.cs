@@ -1,6 +1,6 @@
 ﻿using PepperDash.Core;
 
-namespace PepperDash.Essentials.Core.Config
+namespace UmdEssentials.Core.Config
 {
     public class TieLineConfig
     {

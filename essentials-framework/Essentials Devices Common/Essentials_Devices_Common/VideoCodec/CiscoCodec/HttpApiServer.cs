@@ -5,7 +5,7 @@ using Crestron.SimplSharp.Net.Http;
 using PepperDash.Core;
 
 
-namespace PepperDash.Essentials.Devices.Common.VideoCodec.Cisco
+namespace UmdEssentials.Devices.Common.VideoCodec.Cisco
 {
     public class HttpApiServer
     {
@@ -36,7 +36,7 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.Cisco
                 { ".map", "application/x-navimap" },
                 { ".pdf", "application.pdf" },
                 { ".png", "image/png" },
-                { ".txt", "text/plain" },
+                { ".txt", "text/plain" }
             };
             HtmlRoot = @"\HTML";
         }

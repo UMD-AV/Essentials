@@ -3,7 +3,7 @@ using System.Linq;
 using PepperDash.Core;
 
 
-namespace PepperDash.Essentials.Core
+namespace UmdEssentials.Core
 {
     public class RouteRequest
     {
@@ -147,7 +147,7 @@ namespace PepperDash.Essentials.Core
         {
             RouteDescriptor routeDescr = new RouteDescriptor(source, destination, signalType);
             // if it's a single signal type, find the route
-            if ((signalType & (eRoutingSignalType.Audio & eRoutingSignalType.Video)) ==
+            if ((signalType & eRoutingSignalType.Audio & eRoutingSignalType.Video) ==
                 (eRoutingSignalType.Audio & eRoutingSignalType.Video))
             {
                 Debug.Console(1, destination, "Attempting to build source route from {0}", source.Key);
@@ -203,9 +203,8 @@ namespace PepperDash.Essentials.Core
                                                                    eRoutingSignalType.Video)));
 
             // find a direct tie
-            TieLine directTie = destDevInputTies.FirstOrDefault(
-                t => t.DestinationPort.ParentDevice == destination
-                     && t.SourcePort.ParentDevice == source);
+            TieLine directTie = destDevInputTies.FirstOrDefault(t => t.DestinationPort.ParentDevice == destination
+                                                                     && t.SourcePort.ParentDevice == source);
             if (directTie != null) // Found a tie directly to the source
             {
                 goodInputPort = directTie.DestinationPort;
@@ -258,14 +257,10 @@ namespace PepperDash.Essentials.Core
             {
                 //Debug.Console(2, destination, "adding RouteDescriptor");
                 if (outputPortToUse == null)
-                {
                     // it's a sink device
                     routeTable.Routes.Add(new RouteSwitchDescriptor(goodInputPort));
-                }
                 else if (destination is IRouting)
-                {
                     routeTable.Routes.Add(new RouteSwitchDescriptor(outputPortToUse, goodInputPort));
-                }
                 else // device is merely IRoutingInputOutputs
                     Debug.Console(2, destination, "    No routing. Passthrough device");
 
@@ -395,7 +390,6 @@ namespace PepperDash.Essentials.Core
         public void ReleaseRoutes()
         {
             foreach (RouteSwitchDescriptor route in Routes)
-            {
                 if (route.SwitchingDevice is IRouting)
                 {
                     // Pull the route from the port.  Whatever is watching the output's in use tracker is
@@ -404,7 +398,6 @@ namespace PepperDash.Essentials.Core
                     Debug.Console(2, "Port {0} releasing. Count={1}", route.OutputPort.Key,
                         route.OutputPort.InUseTracker.InUseCountFeedback.UShortValue);
                 }
-            }
         }
 
         public override string ToString()

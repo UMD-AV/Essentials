@@ -1,7 +1,7 @@
 ﻿using System;
 using Crestron.SimplSharpPro;
 
-namespace PepperDash.Essentials.Core
+namespace UmdEssentials.Core
 {
     /// <summary>
     /// Helper class for various Sig events

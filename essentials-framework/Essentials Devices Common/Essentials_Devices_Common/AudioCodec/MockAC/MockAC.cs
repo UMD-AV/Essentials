@@ -1,10 +1,10 @@
 ﻿using System.Collections.Generic;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
-using PepperDash.Essentials.Core.Config;
-using PepperDash.Essentials.Devices.Common.Codec;
+using UmdEssentials.Core;
+using UmdEssentials.Core.Config;
+using UmdEssentials.Devices.Common.Codec;
 
-namespace PepperDash.Essentials.Devices.Common.AudioCodec
+namespace UmdEssentials.Devices.Common.AudioCodec
 {
     public class MockAC : AudioCodecBase
     {
@@ -21,7 +21,7 @@ namespace PepperDash.Essentials.Devices.Common.AudioCodec
             if (!IsInCall)
             {
                 Debug.Console(1, this, "Dial: {0}", number);
-                CodecActiveCallItem call = new CodecActiveCallItem()
+                CodecActiveCallItem call = new CodecActiveCallItem
                 {
                     Name = "Mock Outgoing Call",
                     Number = number,
@@ -84,7 +84,7 @@ namespace PepperDash.Essentials.Devices.Common.AudioCodec
         public void TestIncomingAudioCall(string number)
         {
             Debug.Console(1, this, "TestIncomingAudioCall from {0}", number);
-            CodecActiveCallItem call = new CodecActiveCallItem()
+            CodecActiveCallItem call = new CodecActiveCallItem
             {
                 Name = number, Id = number, Number = number, Type = eCodecCallType.Audio,
                 Direction = eCodecCallDirection.Incoming
@@ -109,7 +109,7 @@ namespace PepperDash.Essentials.Devices.Common.AudioCodec
     {
         public MockACFactory()
         {
-            TypeNames = new List<string>() { "mockac" };
+            TypeNames = new List<string> { "mockac" };
         }
 
         public override EssentialsDevice BuildDevice(DeviceConfig dc)

@@ -1,10 +1,10 @@
 ﻿using System.Collections.Generic;
 using Crestron.SimplSharpPro;
 using Crestron.SimplSharpPro.GeneralIO;
-using PepperDash.Essentials.Core.Config;
 using PepperDash.Core;
+using UmdEssentials.Core.Config;
 
-namespace PepperDash.Essentials.Core
+namespace UmdEssentials.Core
 {
     /// <summary>
     /// Wrapper class for CEN-IO-IR-104 module
@@ -57,7 +57,7 @@ namespace PepperDash.Essentials.Core
         /// </summary>
         public CenIoIr104ControllerFactory()
         {
-            TypeNames = new List<string>() { "cenioir104" };
+            TypeNames = new List<string> { "cenioir104" };
         }
 
         /// <summary>

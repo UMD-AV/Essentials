@@ -1,11 +1,11 @@
 ﻿using System.Collections.Generic;
 using Newtonsoft.Json;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
+using UmdEssentials.Core;
 using Crestron.SimplSharpPro.DeviceSupport;
 using Tesira_DSP_EPI.Bridge.JoinMaps;
-using PepperDash.Essentials.Core.Bridges;
-using Feedback = PepperDash.Essentials.Core.Feedback;
+using UmdEssentials.Core.Bridges;
+using Feedback = UmdEssentials.Core.Feedback;
 
 namespace Tesira_DSP_EPI
 {
@@ -41,15 +41,10 @@ namespace Tesira_DSP_EPI
             string presetJoinMapSerialized = JoinMapHelper.GetSerializedJoinMapForDevice(joinMapKey);
 
             if (!string.IsNullOrEmpty(presetJoinMapSerialized))
-            {
                 presetJoinMap =
                     JsonConvert.DeserializeObject<TesiraPresetJoinMapAdvancedStandalone>(presetJoinMapSerialized);
-            }
 
-            if (bridge != null)
-            {
-                bridge.AddJoinMap(Key, presetJoinMap);
-            }
+            if (bridge != null) bridge.AddJoinMap(Key, presetJoinMap);
 
             Debug.Console(1, this, "Linking to Trilist '{0}'", trilist.ID.ToString("X"));
 
@@ -75,10 +70,7 @@ namespace Tesira_DSP_EPI
             {
                 if (!args.DeviceOnLine) return;
 
-                foreach (Feedback feedback in Feedbacks)
-                {
-                    feedback.FireUpdate();
-                }
+                foreach (Feedback feedback in Feedbacks) feedback.FireUpdate();
             };
         }
 

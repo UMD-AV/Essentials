@@ -2,10 +2,10 @@ using System;
 using System.Linq;
 using Crestron.SimplSharpPro.DeviceSupport;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
-using PepperDash.Essentials.Core.Bridges;
-using PepperDash.Essentials.Core.Config;
-using PepperDash.Essentials.Core.Routing;
+using UmdEssentials.Core;
+using UmdEssentials.Core.Bridges;
+using UmdEssentials.Core.Config;
+using UmdEssentials.Core.Routing;
 
 namespace PepperDash_Essentials_Core.Touchpanels
 {

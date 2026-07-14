@@ -4,11 +4,11 @@ using Crestron.SimplSharpPro.DeviceSupport;
 using Crestron.SimplSharpPro.DM;
 using Crestron.SimplSharpPro.DM.Cards;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
-using PepperDash.Essentials.Core.Bridges;
+using UmdEssentials.Core;
+using UmdEssentials.Core.Bridges;
 
 
-namespace PepperDash.Essentials.DM
+namespace UmdEssentials.DM
 {
     /// <summary>
     /// Exposes the volume levels for Program, Aux1, Aux2, Codec1, Codec2, and Digital outputs on a DMPS3 chassis
@@ -184,10 +184,7 @@ namespace PepperDash.Essentials.DM
                 {
                     Debug.Console(2, this, "MinVolumeFeedBackEventId: {0}", args.Index);
                     DmpsAudioOutputWithMixer level = MasterVolumeLevel as DmpsAudioOutputWithMixer;
-                    if (level != null)
-                    {
-                        level.GetVolumeMin();
-                    }
+                    if (level != null) level.GetVolumeMin();
 
                     break;
                 }
@@ -195,10 +192,7 @@ namespace PepperDash.Essentials.DM
                 {
                     Debug.Console(2, this, "MaxVolumeFeedBackEventId: {0}", args.Index);
                     DmpsAudioOutputWithMixer level = MasterVolumeLevel as DmpsAudioOutputWithMixer;
-                    if (level != null)
-                    {
-                        level.GetVolumeMax();
-                    }
+                    if (level != null) level.GetVolumeMax();
 
                     break;
                 }
@@ -210,14 +204,10 @@ namespace PepperDash.Essentials.DM
             DmpsAudioOutputControllerJoinMap joinMap = new DmpsAudioOutputControllerJoinMap(joinStart);
 
             if (bridge != null)
-            {
                 bridge.AddJoinMap(Key, joinMap);
-            }
             else
-            {
                 Debug.Console(0, this,
                     "Please update config to use 'eiscapiadvanced' to get all join map features for this device.");
-            }
 
             Debug.Console(1, this, "Linking to Trilist '{0}'", trilist.ID.ToString("X"));
 
@@ -225,37 +215,23 @@ namespace PepperDash.Essentials.DM
             {
                 SetUpDmpsAudioOutputJoins(trilist, MasterVolumeLevel, joinMap.MasterVolumeLevel.JoinNumber);
                 DmpsAudioOutputWithMixer mixer = MasterVolumeLevel as DmpsAudioOutputWithMixer;
-                if (mixer != null)
-                {
-                    trilist.SetUShortSigAction(joinMap.MixerPresetRecall.JoinNumber, mixer.RecallPreset);
-                }
+                if (mixer != null) trilist.SetUShortSigAction(joinMap.MixerPresetRecall.JoinNumber, mixer.RecallPreset);
 
                 DmpsAudioOutputWithMixerAndEq eq = MasterVolumeLevel as DmpsAudioOutputWithMixerAndEq;
-                if (eq != null)
-                {
-                    trilist.SetUShortSigAction(joinMap.MixerEqPresetRecall.JoinNumber, eq.RecallEqPreset);
-                }
+                if (eq != null) trilist.SetUShortSigAction(joinMap.MixerEqPresetRecall.JoinNumber, eq.RecallEqPreset);
             }
 
             if (SourceVolumeLevel != null)
-            {
                 SetUpDmpsAudioOutputJoins(trilist, SourceVolumeLevel, joinMap.SourceVolumeLevel.JoinNumber);
-            }
 
             if (MicsMasterVolumeLevel != null)
-            {
                 SetUpDmpsAudioOutputJoins(trilist, MicsMasterVolumeLevel, joinMap.MicsMasterVolumeLevel.JoinNumber);
-            }
 
             if (Codec1VolumeLevel != null)
-            {
                 SetUpDmpsAudioOutputJoins(trilist, Codec1VolumeLevel, joinMap.Codec1VolumeLevel.JoinNumber);
-            }
 
             if (Codec2VolumeLevel != null)
-            {
                 SetUpDmpsAudioOutputJoins(trilist, Codec2VolumeLevel, joinMap.Codec2VolumeLevel.JoinNumber);
-            }
         }
 
         private static void SetUpDmpsAudioOutputJoins(BasicTriList trilist, DmpsAudioOutput output, uint joinStart)
@@ -317,19 +293,13 @@ namespace PepperDash.Essentials.DM
         public void GetVolumeMin()
         {
             MinLevel = (short)Output.MinVolumeFeedback.UShortValue;
-            if (VolumeLevelScaledFeedback != null)
-            {
-                VolumeLevelScaledFeedback.FireUpdate();
-            }
+            if (VolumeLevelScaledFeedback != null) VolumeLevelScaledFeedback.FireUpdate();
         }
 
         public void GetVolumeMax()
         {
             MaxLevel = (short)Output.MaxVolumeFeedback.UShortValue;
-            if (VolumeLevelScaledFeedback != null)
-            {
-                VolumeLevelScaledFeedback.FireUpdate();
-            }
+            if (VolumeLevelScaledFeedback != null) VolumeLevelScaledFeedback.FireUpdate();
         }
 
         public void RecallPreset(ushort preset)
@@ -338,10 +308,8 @@ namespace PepperDash.Essentials.DM
             Output.RecallPreset();
 
             if (!Global.ControlSystemIsDmps4k3xxType)
-            {
                 //Recall startup volume for main volume level as DMPS3(non-4K) presets don't affect the main volume
                 RecallStartupVolume();
-            }
         }
 
         public void RecallStartupVolume()
@@ -500,10 +468,7 @@ namespace PepperDash.Essentials.DM
             if (ushort.MaxValue + MinLevel != 0)
             {
                 VolumeLevelInput = (ushort)(level * (MaxLevel - MinLevel) / ushort.MaxValue + MinLevel);
-                if (EnableVolumeSend == true)
-                {
-                    Level.UShortValue = VolumeLevelInput;
-                }
+                if (EnableVolumeSend == true) Level.UShortValue = VolumeLevelInput;
             }
         }
 
@@ -512,9 +477,7 @@ namespace PepperDash.Essentials.DM
             short signedLevel = (short)level;
 
             if (MaxLevel - MinLevel != 0)
-            {
                 return (ushort)((signedLevel - MinLevel) * ushort.MaxValue / (MaxLevel - MinLevel));
-            }
             else
                 return (ushort)MinLevel;
         }
@@ -522,10 +485,7 @@ namespace PepperDash.Essentials.DM
         public void SendScaledVolume(bool pressRelease)
         {
             EnableVolumeSend = pressRelease;
-            if (pressRelease == false)
-            {
-                SetVolumeScaled(VolumeLevelInput);
-            }
+            if (pressRelease == false) SetVolumeScaled(VolumeLevelInput);
         }
 
         #region IBasicVolumeWithFeedback Members

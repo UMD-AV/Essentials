@@ -1,6 +1,6 @@
 ﻿using NvxEpi.Abstractions.Device;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
+using UmdEssentials.Core;
 
 namespace NvxEpi.Abstractions
 {

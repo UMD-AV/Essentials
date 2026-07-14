@@ -3,7 +3,7 @@ using Crestron.SimplSharpPro;
 using Newtonsoft.Json;
 
 
-namespace PepperDash.Essentials.Core
+namespace UmdEssentials.Core
 {
     /// <summary>
     /// This converter creates a proper ComPort.ComPortSpec struct from more-friendly JSON values.  It uses

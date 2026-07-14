@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using PepperDash.Core;
-using PepperDash.Essentials.Devices.Common.Codec;
+using UmdEssentials.Devices.Common.Codec;
 
-namespace PepperDash.Essentials.Devices.Common.VideoCodec
+namespace UmdEssentials.Devices.Common.VideoCodec
 {
     public class CiscoCodecBookings
     {
@@ -315,10 +315,7 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec
         {
             List<Meeting> meetings = new List<Meeting>();
 
-            if (Debug.Level > 0)
-            {
-                Debug.Console(1, "Meetings List:\n");
-            }
+            if (Debug.Level > 0) Debug.Console(1, "Meetings List:\n");
 
             foreach (Booking b in bookings)
             {
@@ -349,18 +346,14 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec
                         meeting.IsOneButtonToPushMeeting = true;
 
                 if (b.DialInfo.Calls.Call != null)
-                {
                     foreach (Call c in b.DialInfo.Calls.Call)
-                    {
-                        meeting.Calls.Add(new PepperDash.Essentials.Devices.Common.Codec.Call()
+                        meeting.Calls.Add(new Codec.Call
                         {
                             Number = c.Number.Value,
                             Protocol = c.Protocol.Value,
                             CallRate = c.CallRate.Value,
                             CallType = c.CallType.Value
                         });
-                    }
-                }
 
 
                 meetings.Add(meeting);
@@ -385,10 +378,7 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec
         {
             List<Meeting> meetings = new List<Meeting>();
 
-            if (Debug.Level > 0)
-            {
-                Debug.Console(1, "Meetings List:\n");
-            }
+            if (Debug.Level > 0) Debug.Console(1, "Meetings List:\n");
 
             foreach (Booking b in bookings)
             {
@@ -419,18 +409,14 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec
                         meeting.IsOneButtonToPushMeeting = true;
 
                 if (b.DialInfo.Calls.Call != null)
-                {
                     foreach (Call c in b.DialInfo.Calls.Call)
-                    {
-                        meeting.Calls.Add(new PepperDash.Essentials.Devices.Common.Codec.Call()
+                        meeting.Calls.Add(new Codec.Call
                         {
                             Number = c.Number.Value,
                             Protocol = c.Protocol.Value,
                             CallRate = c.CallRate.Value,
                             CallType = c.CallType.Value
                         });
-                    }
-                }
 
 
                 meetings.Add(meeting);

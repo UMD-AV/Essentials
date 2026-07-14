@@ -3,7 +3,7 @@ using Crestron.SimplSharp;
 using Crestron.SimplSharpPro.CrestronThread;
 using PepperDash.Core;
 
-namespace PepperDash.Essentials.Core.Queues
+namespace UmdEssentials.Core.Queues
 {
     /// <summary>
     /// Threadsafe processing of queued items with pacing if required
@@ -126,10 +126,7 @@ namespace PepperDash.Essentials.Core.Queues
         {
             _key = key;
             int cap = 25; // sets default
-            if (capacity > 0)
-            {
-                cap = capacity; // overrides default
-            }
+            if (capacity > 0) cap = capacity; // overrides default
 
             _queue = new CrestronQueue<IQueueMessage>(cap);
             _worker = new Thread(ProcessQueue, null, Thread.eThreadStartOptions.Running)
@@ -174,7 +171,6 @@ namespace PepperDash.Essentials.Core.Queues
                 }
 
                 if (item != null)
-                {
                     try
                     {
                         //Debug.Console(2, this, "Processing queue item: '{0}'", item.ToString());
@@ -189,7 +185,6 @@ namespace PepperDash.Essentials.Core.Queues
                             "Caught an exception in the Queue {0}\r{1}\r{2}", ex.Message, ex.InnerException,
                             ex.StackTrace);
                     }
-                }
                 else _waitHandle.Wait();
             }
 
@@ -384,10 +379,7 @@ namespace PepperDash_Essentials_Core.Queues
         {
             _key = key;
             int cap = 25; // sets default
-            if (capacity > 0)
-            {
-                cap = capacity; // overrides default
-            }
+            if (capacity > 0) cap = capacity; // overrides default
 
             _queue = new CrestronQueue<IQueueMessage>(cap);
             _worker = new Thread(ProcessQueue, null, Thread.eThreadStartOptions.Running)
@@ -431,7 +423,6 @@ namespace PepperDash_Essentials_Core.Queues
                 }
 
                 if (item != null)
-                {
                     try
                     {
                         Debug.Console(2, this, "Processing queue item: '{0}'", item.ToString());
@@ -446,7 +437,6 @@ namespace PepperDash_Essentials_Core.Queues
                             "Caught an exception in the Queue {0}\r{1}\r{2}", ex.Message, ex.InnerException,
                             ex.StackTrace);
                     }
-                }
                 else _waitHandle.Wait();
             }
 

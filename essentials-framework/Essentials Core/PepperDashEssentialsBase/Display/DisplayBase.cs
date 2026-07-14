@@ -5,10 +5,10 @@ using Crestron.SimplSharp;
 using Crestron.SimplSharpPro.DeviceSupport;
 using Newtonsoft.Json;
 using PepperDash.Core;
-using PepperDash.Essentials.Core.Bridges;
+using UmdEssentials.Core.Bridges;
 
 
-namespace PepperDash.Essentials.Core
+namespace UmdEssentials.Core
 {
     /// <summary>
     /// 
@@ -106,14 +106,10 @@ namespace PepperDash.Essentials.Core
                 joinMap = JsonConvert.DeserializeObject<DisplayControllerJoinMap>(joinMapSerialized);
 
             if (bridge != null)
-            {
                 bridge.AddJoinMap(Key, joinMap);
-            }
             else
-            {
                 Debug.Console(0, this,
                     "Please update config to use 'eiscapiadvanced' to get all join map features for this device.");
-            }
 
             LinkDisplayToApi(displayDevice, trilist, joinMap);
         }
@@ -128,10 +124,8 @@ namespace PepperDash.Essentials.Core
 
             ICommunicationMonitor commMonitor = displayDevice as ICommunicationMonitor;
             if (commMonitor != null)
-            {
                 commMonitor.CommunicationMonitor.IsOnlineFeedback.LinkInputSig(
                     trilist.BooleanInput[joinMap.IsOnline.JoinNumber]);
-            }
 
             int inputNumber = 0;
             List<string> inputKeys = new List<string>();
@@ -192,7 +186,6 @@ namespace PepperDash.Essentials.Core
 
 
             for (int i = 0; i < displayDevice.InputPorts.Count; i++)
-            {
                 if (i < joinMap.InputNamesOffset.JoinSpan)
                 {
                     inputKeys.Add(displayDevice.InputPorts[i].Key);
@@ -205,11 +198,12 @@ namespace PepperDash.Essentials.Core
                         displayDevice.InputPorts[i].Key;
                 }
                 else
+                {
                     Debug.Console(0, displayDevice, Debug.ErrorLogLevel.Warning,
                         "Device has {0} inputs.  The Join Map allows up to {1} inputs.  Discarding inputs {2} - {3} from bridge.",
                         displayDevice.InputPorts.Count, joinMap.InputNamesOffset.JoinSpan, i + 1,
                         displayDevice.InputPorts.Count);
-            }
+                }
 
             Debug.Console(2, displayDevice, "Setting Input Select Action on Analog Join {0}", joinMap.InputSelect);
             trilist.SetUShortSigAction(joinMap.InputSelect.JoinNumber, (a) =>
@@ -257,9 +251,7 @@ namespace PepperDash.Essentials.Core
             trilist.SetUShortSigAction(joinMap.VolumeLevel.JoinNumber, u =>
             {
                 if (trilist.BooleanOutput[joinMap.EnableLevelSend.JoinNumber].BoolValue)
-                {
                     volumeDisplayWithFeedback.SetVolume(u);
-                }
             });
 
             volumeDisplayWithFeedback.VolumeLevelFeedback.LinkInputSig(

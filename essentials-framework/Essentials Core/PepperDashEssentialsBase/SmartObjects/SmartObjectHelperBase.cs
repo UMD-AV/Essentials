@@ -2,7 +2,7 @@
 using Crestron.SimplSharpPro;
 using PepperDash.Core;
 
-namespace PepperDash.Essentials.Core.SmartObjects
+namespace UmdEssentials.Core.SmartObjects
 {
     public class SmartObjectHelperBase
     {
@@ -19,14 +19,14 @@ namespace PepperDash.Essentials.Core.SmartObjects
             if (useUserObjectHandler)
             {
                 // Prevent this from double-registering
-                SmartObject.SigChange -= this.SmartObject_SigChange;
-                SmartObject.SigChange += this.SmartObject_SigChange;
+                SmartObject.SigChange -= SmartObject_SigChange;
+                SmartObject.SigChange += SmartObject_SigChange;
             }
         }
 
         ~SmartObjectHelperBase()
         {
-            SmartObject.SigChange -= this.SmartObject_SigChange;
+            SmartObject.SigChange -= SmartObject_SigChange;
         }
 
         /// <summary>
@@ -55,11 +55,9 @@ namespace PepperDash.Essentials.Core.SmartObjects
             if (SmartObject.BooleanOutput.Contains(name))
                 SmartObject.BooleanOutput[name].UserObject = a;
             else
-            {
                 Debug.Console(0,
                     "WARNING: Cannot set action. Smart object {0} on trilist {1:x2} does not contain signal '{2}'",
                     SmartObject.ID, SmartObject.Device.ID, name);
-            }
         }
 
         /// <summary>

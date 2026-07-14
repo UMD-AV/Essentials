@@ -2,7 +2,7 @@
 using Crestron.SimplSharp;
 using PepperDash.Core;
 
-namespace PepperDash.Essentials.Core
+namespace UmdEssentials.Core
 {
     public class SecondsCountdownTimer : IKeyed
     {
@@ -51,9 +51,7 @@ namespace PepperDash.Essentials.Core
 
                 if (Math.Floor(timeSpan.TotalSeconds) < 60 &&
                     Math.Floor(timeSpan.TotalSeconds) >= 0) //ignore milliseconds
-                {
                     return string.Format("{0:00}", timeSpan.Seconds);
-                }
 
                 return Math.Floor(timeSpan.TotalSeconds) < 0
                     ? "00"
@@ -61,11 +59,10 @@ namespace PepperDash.Essentials.Core
             });
 
             PercentFeedback =
-                new IntFeedback(
-                    () =>
-                        (int)
-                        (Math.Floor((FinishTime - DateTime.Now).TotalSeconds) /
-                            Math.Floor((FinishTime - StartTime).TotalSeconds) * 100));
+                new IntFeedback(() =>
+                    (int)
+                    (Math.Floor((FinishTime - DateTime.Now).TotalSeconds) /
+                        Math.Floor((FinishTime - StartTime).TotalSeconds) * 100));
         }
 
         /// <summary>

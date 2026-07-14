@@ -4,14 +4,14 @@ using Crestron.SimplSharpPro.DeviceSupport;
 using Crestron.SimplSharpPro.GeneralIO;
 using Newtonsoft.Json;
 using PepperDash.Core;
-using PepperDash.Essentials.Core.Bridges;
-using PepperDash.Essentials.Core.Bridges.JoinMaps;
 using System;
 using System.Collections.Generic;
-using PepperDash.Essentials.Core.Config;
 using PepperDash_Essentials_Core.PartitionSensor;
+using UmdEssentials.Core.Bridges;
+using UmdEssentials.Core.Bridges.JoinMaps;
+using UmdEssentials.Core.Config;
 
-namespace PepperDash.Essentials.Core
+namespace UmdEssentials.Core
 {
     [Description("Wrapper class for GLS Cresnet Partition Sensor")]
     public class GlsPartitionSensorController : CrestronGenericBridgeableBaseDevice, IPartitionStateProvider
@@ -37,13 +37,9 @@ namespace PepperDash.Essentials.Core
         {
             GlsPartitionSensorPropertiesConfig props = config.Properties.ToObject<GlsPartitionSensorPropertiesConfig>();
             if (props != null)
-            {
                 PropertiesConfig = props;
-            }
             else
-            {
                 Debug.Console(1, this, "props are null.  Unable to deserialize into GlsPartSensorPropertiesConfig");
-            }
 
             AddPreActivationAction(() =>
             {
@@ -60,26 +56,17 @@ namespace PepperDash.Essentials.Core
                 SensitivityFeedback = new IntFeedback(() =>
                     InTestMode ? TestSensitivityFeedback : _partitionSensor.SensitivityFeedback.UShortValue);
 
-                if (_partitionSensor != null)
-                {
-                    _partitionSensor.BaseEvent += PartitionSensor_BaseEvent;
-                }
+                if (_partitionSensor != null) _partitionSensor.BaseEvent += PartitionSensor_BaseEvent;
             });
 
             AddPostActivationAction(() =>
             {
                 _partitionSensor.OnlineStatusChange += (o, a) =>
                 {
-                    if (a.DeviceOnLine)
-                    {
-                        ApplySettingsToSensorFromConfig();
-                    }
+                    if (a.DeviceOnLine) ApplySettingsToSensorFromConfig();
                 };
 
-                if (_partitionSensor.IsOnline)
-                {
-                    ApplySettingsToSensorFromConfig();
-                }
+                if (_partitionSensor.IsOnline) ApplySettingsToSensorFromConfig();
             });
         }
 
@@ -107,26 +94,26 @@ namespace PepperDash.Essentials.Core
 
             switch (args.EventId)
             {
-                case (GlsPartCn.EnableFeedbackEventId):
+                case GlsPartCn.EnableFeedbackEventId:
                 {
                     EnableFeedback.FireUpdate();
                     break;
                 }
-                case (GlsPartCn.PartitionSensedFeedbackEventId):
+                case GlsPartCn.PartitionSensedFeedbackEventId:
                 {
                     Debug.Console(1, this, "Partition Sensed State: {0}",
                         _partitionSensor.PartitionSensedFeedback.BoolValue);
                     PartitionPresentFeedback.FireUpdate();
                     break;
                 }
-                case (GlsPartCn.PartitionNotSensedFeedbackEventId):
+                case GlsPartCn.PartitionNotSensedFeedbackEventId:
                 {
                     Debug.Console(1, this, "Partition Not Sensed State: {0}",
                         _partitionSensor.PartitionNotSensedFeedback.BoolValue);
                     PartitionNotSensedFeedback.FireUpdate();
                     break;
                 }
-                case (GlsPartCn.SensitivityFeedbackEventId):
+                case GlsPartCn.SensitivityFeedbackEventId:
                 {
                     SensitivityFeedback.FireUpdate();
                     break;
@@ -247,9 +234,7 @@ namespace PepperDash.Essentials.Core
                 return;
 
             if (_partitionSensor.Sensitivity.UShortValue != value && value > 0)
-            {
                 _partitionSensor.Sensitivity.UShortValue = value;
-            }
         }
 
         public override void LinkToApi(BasicTriList trilist, uint joinStart, string joinMapKey, EiscApiAdvanced bridge)
@@ -261,14 +246,10 @@ namespace PepperDash.Essentials.Core
                 joinMap = JsonConvert.DeserializeObject<GlsPartitionSensorJoinMap>(joinMapSerialized);
 
             if (bridge != null)
-            {
                 bridge.AddJoinMap(Key, joinMap);
-            }
             else
-            {
                 Debug.Console(0, this,
                     "Please update config to use 'type': 'EiscApiAdvanced' to get all join map features for this device");
-            }
 
             Debug.Console(1, this, "Linking to Trilist '{0}'", trilist.ID.ToString("X"));
             Debug.Console(0, this, "Linking to Bridge Type {0}", GetType().Name);
@@ -293,10 +274,7 @@ namespace PepperDash.Essentials.Core
             // update when device is online
             _partitionSensor.OnlineStatusChange += (o, a) =>
             {
-                if (a.DeviceOnLine)
-                {
-                    FeedbacksFireUpdates();
-                }
+                if (a.DeviceOnLine) FeedbacksFireUpdates();
             };
 
             // update when trilist is online

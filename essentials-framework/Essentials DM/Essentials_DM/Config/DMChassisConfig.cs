@@ -2,7 +2,7 @@
 using Newtonsoft.Json;
 using PepperDash.Core;
 
-namespace PepperDash.Essentials.DM.Config
+namespace UmdEssentials.DM.Config
 {
     /// <summary>
     /// Represents the "properties" property of a DM device config

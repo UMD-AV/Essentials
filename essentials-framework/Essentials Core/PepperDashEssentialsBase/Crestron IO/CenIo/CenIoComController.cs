@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using Crestron.SimplSharpPro;
 using Crestron.SimplSharpPro.GeneralIO;
 using PepperDash.Core;
-using PepperDash.Essentials.Core.Config;
+using UmdEssentials.Core.Config;
 
-namespace PepperDash.Essentials.Core.CrestronIO
+namespace UmdEssentials.Core.CrestronIO
 {
     public class CenIoComController : CrestronGenericBaseDevice, IComPorts
     {
@@ -41,7 +41,7 @@ namespace PepperDash.Essentials.Core.CrestronIO
     {
         public CenIoComControllerFactory()
         {
-            TypeNames = new List<string>() { "ceniocom102", "ceniocom202" };
+            TypeNames = new List<string> { "ceniocom102", "ceniocom202" };
         }
 
         public override EssentialsDevice BuildDevice(DeviceConfig dc)
@@ -57,13 +57,9 @@ namespace PepperDash.Essentials.Core.CrestronIO
             uint ipid = control.IpIdInt;
 
             if (dc.Type.Contains("202"))
-            {
                 return new CenIoCom202(ipid, Global.ControlSystem);
-            }
             else
-            {
                 return new CenIoCom102(ipid, Global.ControlSystem);
-            }
         }
     }
 }

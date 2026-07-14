@@ -1,9 +1,9 @@
 ﻿using Crestron.SimplSharpPro.DeviceSupport;
 using PepperDash.Core;
-using PepperDash.Essentials.Core.Bridges;
-using PepperDash.Essentials.Devices.Common.VideoCodec;
+using UmdEssentials.Core.Bridges;
+using UmdEssentials.Devices.Common.VideoCodec;
 
-namespace PepperDash.Essentials.Devices.Common.Cameras
+namespace UmdEssentials.Devices.Common.Cameras
 {
     public class MockVCCamera : CameraBase, IHasCameraPtzControl, IHasCameraFocusControl, IBridgeAdvanced
     {

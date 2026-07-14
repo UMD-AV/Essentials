@@ -4,11 +4,11 @@ using Crestron.SimplSharp;
 using Crestron.SimplSharpPro.CrestronThread;
 using Crestron.SimplSharpPro.DeviceSupport;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
-using PepperDash.Essentials.Core.Bridges;
-using PepperDash.Essentials.Core.Config;
+using UmdEssentials.Core;
+using UmdEssentials.Core.Bridges;
+using UmdEssentials.Core.Config;
 
-namespace PepperDash.Essentials.Devices.Displays
+namespace UmdEssentials.Devices.Displays
 {
     /// <summary>
     /// 
@@ -95,10 +95,7 @@ namespace PepperDash.Essentials.Devices.Displays
         public override bool CustomActivate()
         {
             Communication.Connect();
-            if (!_tcpComm)
-            {
-                _readyForCommands = true;
-            }
+            if (!_tcpComm) _readyForCommands = true;
 
             CommunicationMonitor.StatusChange += (o, a) =>
                 Debug.Console(1, this, "Communication monitor state: {0}", CommunicationMonitor.Status);
@@ -174,10 +171,7 @@ namespace PepperDash.Essentials.Devices.Displays
 
                     //Clear power check
                     _PowerMutex.WaitForMutex();
-                    if (_RequestedPowerState == 1)
-                    {
-                        _RequestedPowerState = 0;
-                    }
+                    if (_RequestedPowerState == 1) _RequestedPowerState = 0;
 
                     _PowerMutex.ReleaseMutex();
                     break;
@@ -193,10 +187,7 @@ namespace PepperDash.Essentials.Devices.Displays
 
                     //Clear power check
                     _PowerMutex.WaitForMutex();
-                    if (_RequestedPowerState == 2)
-                    {
-                        _RequestedPowerState = 0;
-                    }
+                    if (_RequestedPowerState == 2) _RequestedPowerState = 0;
 
                     _PowerMutex.ReleaseMutex();
                     break;
@@ -210,10 +201,7 @@ namespace PepperDash.Essentials.Devices.Displays
             {
                 int preset = int.Parse(presetFb);
                 _CurrentInputIndex = preset;
-                if (_CurrentInputIndex == _RequestedInputState)
-                {
-                    _RequestedInputState = 0;
-                }
+                if (_CurrentInputIndex == _RequestedInputState) _RequestedInputState = 0;
 
                 Input1Feedback.FireUpdate();
                 Input2Feedback.FireUpdate();
@@ -248,7 +236,6 @@ namespace PepperDash.Essentials.Devices.Displays
 
             //Pace the commands sending out
             while (_cmdQueue.Count > 0)
-            {
                 try
                 {
                     string cmd = _cmdQueue.Dequeue();
@@ -263,7 +250,6 @@ namespace PepperDash.Essentials.Devices.Displays
                     Debug.Console(0, this, "Caught an exception in ProcessQueue {0}\r{1}\r{2}", ex.Message,
                         ex.InnerException, ex.StackTrace);
                 }
-            }
 
             _CommandMutex.ReleaseMutex();
         }
@@ -331,25 +317,16 @@ namespace PepperDash.Essentials.Devices.Displays
         private void ProcessPower()
         {
             if (_RequestedPowerState == 1 && (!_PowerIsOn || !CommunicationMonitor.IsOnline))
-            {
                 PowerOnGo();
-            }
-            else if (_RequestedPowerState == 2 && (_PowerIsOn || !CommunicationMonitor.IsOnline))
-            {
-                PowerOffGo();
-            }
+            else if (_RequestedPowerState == 2 && (_PowerIsOn || !CommunicationMonitor.IsOnline)) PowerOffGo();
         }
 
         public override void PowerToggle()
         {
             if (_PowerIsOn)
-            {
                 PowerOff();
-            }
             else
-            {
                 PowerOn();
-            }
         }
 
         public override void ExecuteSwitch(object selector)
@@ -411,10 +388,7 @@ namespace PepperDash.Essentials.Devices.Displays
                 try
                 {
                     int i = Q.FindIndex(x => x.Equals(command));
-                    if (i == -1)
-                    {
-                        Q.Add(command);
-                    }
+                    if (i == -1) Q.Add(command);
                 }
                 catch (Exception ex)
                 {
@@ -473,7 +447,7 @@ namespace PepperDash.Essentials.Devices.Displays
     {
         public PlanarRpsFactory()
         {
-            TypeNames = new List<string>() { "planarrps" };
+            TypeNames = new List<string> { "planarrps" };
         }
 
         public override EssentialsDevice BuildDevice(DeviceConfig dc)

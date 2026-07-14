@@ -1,13 +1,13 @@
 ﻿using System.Collections.Generic;
 using Crestron.SimplSharpPro.DeviceSupport;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
-using PepperDash.Essentials.Core.Config;
-using PepperDash.Essentials.Core.Bridges;
 using Newtonsoft.Json;
-using PepperDash.Essentials.Core.Shades;
+using UmdEssentials.Core;
+using UmdEssentials.Core.Bridges;
+using UmdEssentials.Core.Config;
+using UmdEssentials.Core.Shades;
 
-namespace PepperDash.Essentials.Devices.Common.Environment.Generic
+namespace UmdEssentials.Devices.Common.Environment.Generic
 {
     public class SerialControlledShade : EssentialsBridgeableDevice, IShadesOpenCloseStop
     {
@@ -81,7 +81,7 @@ namespace PepperDash.Essentials.Devices.Common.Environment.Generic
     {
         public SerialControlledShadeFactory()
         {
-            TypeNames = new List<string>() { "serialshade" };
+            TypeNames = new List<string> { "serialshade" };
         }
 
         public override EssentialsDevice BuildDevice(DeviceConfig dc)

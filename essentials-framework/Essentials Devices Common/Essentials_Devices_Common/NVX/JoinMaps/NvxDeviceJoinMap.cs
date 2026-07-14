@@ -1,4 +1,4 @@
-﻿using PepperDash.Essentials.Core;
+﻿using UmdEssentials.Core;
 
 namespace NvxEpi.JoinMaps
 {
@@ -34,7 +34,7 @@ namespace NvxEpi.JoinMaps
             new JoinData
             {
                 JoinNumber = 2,
-                JoinSpan = 1,
+                JoinSpan = 1
             },
             new JoinMetadata
             {
@@ -99,7 +99,7 @@ namespace NvxEpi.JoinMaps
             new JoinData
             {
                 JoinNumber = 10,
-                JoinSpan = 1,
+                JoinSpan = 1
             },
             new JoinMetadata
             {

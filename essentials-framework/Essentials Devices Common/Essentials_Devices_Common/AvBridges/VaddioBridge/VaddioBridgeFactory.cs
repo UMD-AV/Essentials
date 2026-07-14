@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
-using PepperDash.Essentials.Core.Config;
+using UmdEssentials.Core;
+using UmdEssentials.Core.Config;
 
 namespace VaddioBridgePlugin
 {
@@ -10,7 +10,7 @@ namespace VaddioBridgePlugin
         public VaddioBridgeFactory()
         {
             // In the constructor we initialize the list with the typenames that will build an instance of this device
-            TypeNames = new List<string>() { "vaddiobridge" };
+            TypeNames = new List<string> { "vaddiobridge" };
         }
 
         // Builds and returns an instance of EssentialsPluginDeviceTemplate

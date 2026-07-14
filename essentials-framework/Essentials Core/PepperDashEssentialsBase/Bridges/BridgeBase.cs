@@ -6,11 +6,11 @@ using Crestron.SimplSharpPro.DeviceSupport;
 using Crestron.SimplSharpPro.EthernetCommunication;
 using Newtonsoft.Json;
 using PepperDash.Core;
-using PepperDash.Essentials.Core.Config;
+using UmdEssentials.Core.Config;
 
 //using PepperDash.Essentials.Devices.Common.Cameras;
 
-namespace PepperDash.Essentials.Core.Bridges
+namespace UmdEssentials.Core.Bridges
 {
     /// <summary>
     /// Helper methods for bridges
@@ -151,28 +151,19 @@ namespace PepperDash.Essentials.Core.Bridges
             {
                 IKeyed device = DeviceManager.GetDeviceForKey(d.DeviceKey);
 
-                if (device == null)
-                {
-                    continue;
-                }
+                if (device == null) continue;
 
                 Debug.Console(1, this, "Linking Device: '{0}'", device.Key);
 
 
                 IBridgeAdvanced bridge = device as IBridgeAdvanced;
-                if (bridge != null)
-                {
-                    bridge.LinkToApi(Eisc, d.JoinStart, d.JoinMapKey, this);
-                }
+                if (bridge != null) bridge.LinkToApi(Eisc, d.JoinStart, d.JoinMapKey, this);
             }
         }
 
         private void RegisterEisc()
         {
-            if (Eisc.Registered)
-            {
-                return;
-            }
+            if (Eisc.Registered) return;
 
             eDeviceRegistrationUnRegistrationResponse registerResult = Eisc.Register();
 
@@ -193,14 +184,10 @@ namespace PepperDash.Essentials.Core.Bridges
         public void AddJoinMap(string deviceKey, JoinMapBaseAdvanced joinMap)
         {
             if (!JoinMaps.ContainsKey(deviceKey))
-            {
                 JoinMaps.Add(deviceKey, joinMap);
-            }
             else
-            {
                 Debug.Console(2, this,
                     "Unable to add join map with key '{0}'.  Key already exists in JoinMaps dictionary", deviceKey);
-            }
         }
 
         /// <summary>
@@ -289,7 +276,9 @@ namespace PepperDash.Essentials.Core.Bridges
                             uo(Convert.ToBoolean(state));
                         }
                         else
+                        {
                             Debug.Console(2, this, "User Action is null.  Nothing to Execute");
+                        }
 
                         break;
                     }
@@ -302,7 +291,9 @@ namespace PepperDash.Essentials.Core.Bridges
                             uo(Convert.ToUInt16(state));
                         }
                         else
+                        {
                             Debug.Console(2, this, "User Action is null.  Nothing to Execute");
+                        }
 
                         break;
                     }
@@ -315,7 +306,9 @@ namespace PepperDash.Essentials.Core.Bridges
                             uo(Convert.ToString(state));
                         }
                         else
+                        {
                             Debug.Console(2, this, "User Action is null.  Nothing to Execute");
+                        }
 
                         break;
                     }

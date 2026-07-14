@@ -4,15 +4,15 @@ using System.Linq;
 using Crestron.SimplSharp;
 using Crestron.SimplSharpPro.CrestronThread;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
+using UmdEssentials.Core;
 using System.Text.RegularExpressions;
 using Newtonsoft.Json;
-using PepperDash.Essentials.Core.Config;
+using UmdEssentials.Core.Config;
 using Crestron.SimplSharpPro.DeviceSupport;
 using Tesira_DSP_EPI.Bridge.JoinMaps;
-using PepperDash.Essentials.Core.Bridges;
+using UmdEssentials.Core.Bridges;
 using Tesira_DSP_EPI.Interfaces;
-using Feedback = PepperDash.Essentials.Core.Feedback;
+using Feedback = UmdEssentials.Core.Feedback;
 using IRoutingWithFeedback = Tesira_DSP_EPI.Interfaces.IRoutingWithFeedback;
 
 namespace Tesira_DSP_EPI
@@ -223,12 +223,8 @@ namespace Tesira_DSP_EPI
         {
             Debug.Console(1, this, "Start Subscription Thread");
             if (_subscribeThread != null)
-            {
                 if (_subscribeThread.ThreadState == Thread.eThreadStates.ThreadRunning)
-                {
                     return;
-                }
-            }
 
             _subscribeThread = null;
             _subscribeThread = new Thread(o => HandleAttributeSubscriptions(), null,
@@ -243,10 +239,7 @@ namespace Tesira_DSP_EPI
 
         private void StopSubscriptionThread()
         {
-            if (_subscribeThread.ThreadState == Thread.eThreadStates.ThreadRunning)
-            {
-                _subscribeThread = null;
-            }
+            if (_subscribeThread.ThreadState == Thread.eThreadStates.ThreadRunning) _subscribeThread = null;
         }
 
         private void CrestronEnvironment_ProgramStatusEventHandler(eProgramStatusEventType programEventType)
@@ -260,10 +253,7 @@ namespace Tesira_DSP_EPI
                 _watchDogTimer.Dispose();
             }
 
-            if (CommunicationMonitor != null)
-            {
-                CommunicationMonitor.Stop();
-            }
+            if (CommunicationMonitor != null) CommunicationMonitor.Stop();
 
             Debug.Console(0, "Disposing Tesira DSP");
             Dispose();
@@ -363,10 +353,8 @@ namespace Tesira_DSP_EPI
                     value.LevelInstanceTag,
                     value.MuteInstanceTag);
                 if (block.Value.Enabled)
-                {
                     //Add ControlPoint to the list for the watchdog
                     ControlPointList.Add(Faders[key]);
-                }
 
                 DeviceManager.AddDevice(Faders[key]);
             }
@@ -383,10 +371,7 @@ namespace Tesira_DSP_EPI
                 RoomCombiners.Add(key, new TesiraDspRoomCombiner(key, value, this));
                 Debug.Console(2, this, "Adding Mixer {0} InstanceTag: {1}", key, value.RoomCombinerInstanceTag);
 
-                if (value.Enabled)
-                {
-                    ControlPointList.Add(RoomCombiners[key]);
-                }
+                if (value.Enabled) ControlPointList.Add(RoomCombiners[key]);
 
                 DeviceManager.AddDevice(RoomCombiners[key]);
             }
@@ -402,10 +387,7 @@ namespace Tesira_DSP_EPI
                 CrosspointStates.Add(key, new TesiraDspCrosspointState(key, value, this));
                 Debug.Console(2, this, "Adding CrosspointState {0} InstanceTag: {1}", key, value.MatrixInstanceTag);
 
-                if (value.Enabled)
-                {
-                    ControlPointList.Add(CrosspointStates[key]);
-                }
+                if (value.Enabled) ControlPointList.Add(CrosspointStates[key]);
 
                 DeviceManager.AddDevice(CrosspointStates[key]);
             }
@@ -421,10 +403,7 @@ namespace Tesira_DSP_EPI
                 Meters.Add(key, new TesiraDspMeter(key, value, this));
                 Debug.Console(2, this, "Adding Meter {0} InstanceTag: {1}", key, value.MeterInstanceTag);
 
-                if (value.Enabled)
-                {
-                    ControlPointList.Add(Meters[key]);
-                }
+                if (value.Enabled) ControlPointList.Add(Meters[key]);
 
                 DeviceManager.AddDevice(Meters[key]);
             }
@@ -462,10 +441,7 @@ namespace Tesira_DSP_EPI
                 Debug.Console(2, this, "Added DspDialer {0} ControlStatusTag: {1} DialerTag: {2}", key,
                     value.ControlStatusInstanceTag, value.DialerInstanceTag);
 
-                if (block.Value.Enabled)
-                {
-                    ControlPointList.Add(Dialers[key]);
-                }
+                if (block.Value.Enabled) ControlPointList.Add(Dialers[key]);
 
                 DeviceManager.AddDevice(Dialers[key]);
             }
@@ -488,10 +464,8 @@ namespace Tesira_DSP_EPI
                 if (block.Value.Enabled &&
                     block.Value.Type !=
                     "router") //if you don't do this check, you'll add devices that are unable to be subscribed into the watchdog
-                {
                     //Add ControlPoint to the list for the watchdog
                     ControlPointList.Add(Switchers[key]);
-                }
 
                 DeviceManager.AddDevice(Switchers[key]);
             }
@@ -565,20 +539,13 @@ namespace Tesira_DSP_EPI
         {
             Debug.Console(2, this, "Socket Status Change: {0}", e.Client.ClientStatus.ToString());
 
-            if (e.Client.IsConnected)
-            {
-                SuspendWatchdog(false);
-            }
+            if (e.Client.IsConnected) SuspendWatchdog(false);
 
             if (!e.Client.IsConnected)
-            {
                 SuspendWatchdog(true);
-            }
             else
-            {
                 // Cleanup items from this session
                 CommandQueue.Clear();
-            }
         }
 
         #endregion
@@ -594,13 +561,9 @@ namespace Tesira_DSP_EPI
         private void StartWatchDog()
         {
             if (_watchDogTimer == null)
-            {
                 _watchDogTimer = new CTimer(o => CheckWatchDog(), null, 90000, 90000);
-            }
             else
-            {
                 _watchDogTimer.Reset(90000, 90000);
-            }
         }
 
         private void StopWatchDog()
@@ -623,10 +586,7 @@ namespace Tesira_DSP_EPI
                 }
 
                 Debug.Console(1, this, "The Watchdog is on the hunt!");
-                if (!SubscriptionFinished)
-                {
-                    Resubscribe();
-                }
+                if (!SubscriptionFinished) Resubscribe();
 
                 if (!WatchDogSniffer)
                 {
@@ -713,10 +673,7 @@ namespace Tesira_DSP_EPI
                 {
                     // Indicates a new TTP session
                     // moved to CustomActivate() method
-                    if (!_isSerialComm)
-                    {
-                        CommunicationMonitor.Start();
-                    }
+                    if (!_isSerialComm) CommunicationMonitor.Start();
 
                     CrestronInvoke.BeginInvoke(o => StartSubscriptionThread());
                 }
@@ -947,10 +904,7 @@ namespace Tesira_DSP_EPI
             Debug.Console(1, this, "GetMinLevels Started");
             List<IVolumeComponent> newList = ControlPointList.OfType<IVolumeComponent>().ToList();
 
-            if (newList.Any())
-            {
-                _paceTimer = new CTimer(o => GetMinLevel(newList, 0), null, 250);
-            }
+            if (newList.Any()) _paceTimer = new CTimer(o => GetMinLevel(newList, 0), null, 250);
         }
 
         private void
@@ -959,10 +913,7 @@ namespace Tesira_DSP_EPI
             Debug.Console(1, this, "GetMaxLevels Started");
             List<IVolumeComponent> newList = ControlPointList.OfType<IVolumeComponent>().ToList();
 
-            if (newList.Any())
-            {
-                _paceTimer = new CTimer(o => GetMaxLevel(newList, 0), null, 250);
-            }
+            if (newList.Any()) _paceTimer = new CTimer(o => GetMaxLevel(newList, 0), null, 250);
         }
 
         private void GetMaxLevel(IList<IVolumeComponent> faders, int index)
@@ -1003,13 +954,9 @@ namespace Tesira_DSP_EPI
             Debug.Console(2, this, "Queue Check Delayed Started");
 
             if (_queueCheckTimer == null)
-            {
                 _queueCheckTimer = new CTimer(o => QueueCheckSubscribe(), null, 1000, 1000);
-            }
             else
-            {
                 _queueCheckTimer.Reset(250, 250);
-            }
         }
 
 
@@ -1073,14 +1020,9 @@ namespace Tesira_DSP_EPI
 
             foreach (TesiraDspSwitcher control in Switchers.Select(switcher => switcher.Value)
                          .Where(control => control.SelectorCustomName == string.Empty))
-            {
                 control.DoPoll();
-            }
 
-            foreach (TesiraDspRouter control in Routers.Select(router => router.Value))
-            {
-                control.DoPoll();
-            }
+            foreach (TesiraDspRouter control in Routers.Select(router => router.Value)) control.DoPoll();
 
             SubscriptionFinished = true;
         }
@@ -1213,9 +1155,7 @@ namespace Tesira_DSP_EPI
                 trilist.SetUShortSigAction(faderJoinMap.Volume.JoinNumber + x, u =>
                 {
                     if (trilist.BooleanOutput[faderJoinMap.EnableLevelSend.JoinNumber + x].BoolValue)
-                    {
                         genericChannel.SetVolume(u);
-                    }
                 });
             }
 
@@ -1253,7 +1193,7 @@ namespace Tesira_DSP_EPI
                 uint? data = switcher.BridgeIndex;
                 if (data == null) continue;
                 uint y = (uint)data;
-                ushort x = (ushort)(((y - 1) * 2) + 1);
+                ushort x = (ushort)((y - 1) * 2 + 1);
                 //3 switchers
                 //((1 - 1) * 2) + 1 = 1
                 //((2 - 1) * 2) + 1 = 3
@@ -1285,7 +1225,7 @@ namespace Tesira_DSP_EPI
                 uint? data = switcher.BridgeIndex;
                 if (data == null) continue;
                 uint y = (uint)data;
-                ushort x = (ushort)(((y - 1) * 2) + 1);
+                ushort x = (ushort)((y - 1) * 2 + 1);
                 //3 switchers
                 //((1 - 1) * 2) + 1 = 1
                 //((2 - 1) * 2) + 1 = 3
@@ -1317,7 +1257,7 @@ namespace Tesira_DSP_EPI
                 uint? data = switcher.BridgeIndex;
                 if (data == null) continue;
                 uint y = (uint)data;
-                ushort x = (ushort)(((y - 1) * 2) + 1);
+                ushort x = (ushort)((y - 1) * 2 + 1);
                 //3 switchers
                 //((1 - 1) * 2) + 1 = 1
                 //((2 - 1) * 2) + 1 = 3
@@ -1378,17 +1318,17 @@ namespace Tesira_DSP_EPI
                 for (int i = 0; i < dialerJoinMap.KeyPadNumeric.JoinSpan; i++)
                 {
                     int tempi = i;
-                    trilist.SetSigTrueAction((dialerJoinMap.KeyPadNumeric.JoinNumber + (uint)i + dialerLineOffset),
-                        () => dialer.SendKeypad((TesiraDspDialer.EKeypadKeys)(tempi)));
+                    trilist.SetSigTrueAction(dialerJoinMap.KeyPadNumeric.JoinNumber + (uint)i + dialerLineOffset,
+                        () => dialer.SendKeypad((TesiraDspDialer.EKeypadKeys)tempi));
                 }
 
-                trilist.SetSigTrueAction((dialerJoinMap.KeyPadStar.JoinNumber + dialerLineOffset),
+                trilist.SetSigTrueAction(dialerJoinMap.KeyPadStar.JoinNumber + dialerLineOffset,
                     () => dialer.SendKeypad(TesiraDspDialer.EKeypadKeys.Star));
-                trilist.SetSigTrueAction((dialerJoinMap.KeyPadPound.JoinNumber + dialerLineOffset),
+                trilist.SetSigTrueAction(dialerJoinMap.KeyPadPound.JoinNumber + dialerLineOffset,
                     () => dialer.SendKeypad(TesiraDspDialer.EKeypadKeys.Pound));
-                trilist.SetSigTrueAction((dialerJoinMap.KeyPadClear.JoinNumber + dialerLineOffset),
+                trilist.SetSigTrueAction(dialerJoinMap.KeyPadClear.JoinNumber + dialerLineOffset,
                     () => dialer.SendKeypad(TesiraDspDialer.EKeypadKeys.Clear));
-                trilist.SetSigTrueAction((dialerJoinMap.KeyPadBackspace.JoinNumber + dialerLineOffset),
+                trilist.SetSigTrueAction(dialerJoinMap.KeyPadBackspace.JoinNumber + dialerLineOffset,
                     () => dialer.SendKeypad(TesiraDspDialer.EKeypadKeys.Backspace));
 
                 trilist.SetSigTrueAction(dialerJoinMap.KeyPadDial.JoinNumber + dialerLineOffset, dialer.Dial);
@@ -1487,7 +1427,7 @@ namespace Tesira_DSP_EPI
             foreach (KeyValuePair<string, TesiraDspCrosspointState> item in CrosspointStates)
             {
                 TesiraDspCrosspointState xpointState = item.Value;
-                uint? joinOffset = ((xpointState.BridgeIndex - 1) * 3);
+                uint? joinOffset = (xpointState.BridgeIndex - 1) * 3;
                 if (joinOffset == null) continue;
 
 
@@ -1497,7 +1437,7 @@ namespace Tesira_DSP_EPI
 
 
                 Debug.Console(2, this, "Adding Crosspoint State ControlPoint {0} | JoinStart:{1}", xpointState.Key,
-                    (crosspointStateJoinMap.Toggle.JoinNumber + joinOffset));
+                    crosspointStateJoinMap.Toggle.JoinNumber + joinOffset);
                 xpointState.CrosspointStateFeedback.LinkInputSig(
                     trilist.BooleanInput[(uint)(crosspointStateJoinMap.Toggle.JoinNumber + joinOffset)]);
                 xpointState.CrosspointStateFeedback.LinkInputSig(
@@ -1520,7 +1460,7 @@ namespace Tesira_DSP_EPI
                 if (data == null) continue;
                 uint y = (uint)data;
 
-                uint x = y > 1 ? ((y - 1) * 6) : 0;
+                uint x = y > 1 ? (y - 1) * 6 : 0;
 
                 Debug.Console(2, "Tesira Room Combiner {0} connect", x);
 
@@ -1556,18 +1496,12 @@ namespace Tesira_DSP_EPI
 
                 trilist.SetUShortSigAction(roomCombinerJoinMap.Volume.JoinNumber + x, u =>
                 {
-                    if (u > 0)
-                    {
-                        genericChannel.SetVolume(u);
-                    }
+                    if (u > 0) genericChannel.SetVolume(u);
                 });
 
                 trilist.SetUShortSigAction(roomCombinerJoinMap.Group.JoinNumber + x, u =>
                 {
-                    if (u > 0)
-                    {
-                        roomCombiner.SetRoomGroup(u);
-                    }
+                    if (u > 0) roomCombiner.SetRoomGroup(u);
                 });
             }
 
@@ -1575,10 +1509,7 @@ namespace Tesira_DSP_EPI
             {
                 if (!args.DeviceOnLine) return;
 
-                foreach (Feedback feedback in Feedbacks)
-                {
-                    feedback.FireUpdate();
-                }
+                foreach (Feedback feedback in Feedbacks) feedback.FireUpdate();
             };
         }
 

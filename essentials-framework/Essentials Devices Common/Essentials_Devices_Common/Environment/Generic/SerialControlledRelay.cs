@@ -3,11 +3,11 @@ using Crestron.SimplSharp;
 using Crestron.SimplSharpPro.DeviceSupport;
 using Newtonsoft.Json;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
-using PepperDash.Essentials.Core.Config;
-using PepperDash.Essentials.Core.Bridges;
+using UmdEssentials.Core;
+using UmdEssentials.Core.Bridges;
+using UmdEssentials.Core.Config;
 
-namespace PepperDash.Essentials.Devices.Common.Environment.Generic
+namespace UmdEssentials.Devices.Common.Environment.Generic
 {
     public class SerialControlledRelay : EssentialsBridgeableDevice
     {
@@ -28,13 +28,9 @@ namespace PepperDash.Essentials.Devices.Common.Environment.Generic
             RelayHoldTimer = new CTimer(RelayTimerCallback, Timeout.Infinite);
 
             if (config.RelayHoldTimeSeconds >= 1)
-            {
                 RelayHoldTimeSeconds = config.RelayHoldTimeSeconds;
-            }
             else
-            {
                 RelayHoldTimeSeconds = (ushort)1;
-            }
         }
 
         #region Bridge Linking
@@ -49,14 +45,10 @@ namespace PepperDash.Essentials.Devices.Common.Environment.Generic
                 joinMap = JsonConvert.DeserializeObject<GenericRelayControllerJoinMap>(joinMapSerialized);
 
             if (bridge != null)
-            {
                 bridge.AddJoinMap(Key, joinMap);
-            }
             else
-            {
                 Debug.Console(0, this,
                     "Please update config to use 'eiscapiadvanced' to get all join map features for this device.");
-            }
 
             Debug.Console(1, this, "Linking to Trilist '{0}'", trilist.ID.ToString("X"));
 
@@ -118,7 +110,7 @@ namespace PepperDash.Essentials.Devices.Common.Environment.Generic
     {
         public SerialControlledLiftFactory()
         {
-            TypeNames = new List<string>() { "seriallift" };
+            TypeNames = new List<string> { "seriallift" };
         }
 
         public override EssentialsDevice BuildDevice(DeviceConfig dc)

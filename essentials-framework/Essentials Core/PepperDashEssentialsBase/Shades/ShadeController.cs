@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using PepperDash.Core;
-using PepperDash.Essentials.Core.Config;
+using UmdEssentials.Core.Config;
 
-namespace PepperDash.Essentials.Core.Shades
+namespace UmdEssentials.Core.Shades
 {
     /// <summary>
     /// Class that contains the shades to be controlled in a room
@@ -27,10 +27,7 @@ namespace PepperDash.Essentials.Core.Shades
             {
                 ShadeBase shade = DeviceManager.GetDeviceForKey(shadeConfig.Key) as ShadeBase;
 
-                if (shade != null)
-                {
-                    AddShade(shade);
-                }
+                if (shade != null) AddShade(shade);
             }
 
             return base.CustomActivate();
@@ -57,17 +54,17 @@ namespace PepperDash.Essentials.Core.Shades
     {
         public ShadeControllerFactory()
         {
-            TypeNames = new List<string>() { "shadecontroller" };
+            TypeNames = new List<string> { "shadecontroller" };
         }
 
         public override EssentialsDevice BuildDevice(DeviceConfig dc)
         {
             Debug.Console(1, "Factory Attempting to create new ShadeController Device");
             ShadeControllerConfigProperties props =
-                Newtonsoft.Json.JsonConvert.DeserializeObject<Core.Shades.ShadeControllerConfigProperties>(
+                Newtonsoft.Json.JsonConvert.DeserializeObject<ShadeControllerConfigProperties>(
                     dc.Properties.ToString());
 
-            return new Core.Shades.ShadeController(dc.Key, dc.Name, props);
+            return new ShadeController(dc.Key, dc.Name, props);
         }
     }
 }

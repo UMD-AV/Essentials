@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
-using PepperDash.Essentials.Core;
+using UmdEssentials.Core;
 
-namespace PepperDash.Essentials.EpiphanPearl
+namespace UmdEssentials.EpiphanPearl
 {
     public class EpiphanPearlFactory : EssentialsDeviceFactory<EpiphanPearlController>
     {

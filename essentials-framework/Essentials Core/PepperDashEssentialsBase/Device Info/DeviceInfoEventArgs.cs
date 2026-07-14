@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace PepperDash.Essentials.Core.DeviceInfo
+namespace UmdEssentials.Core.DeviceInfo
 {
     public class DeviceInfoEventArgs : EventArgs
     {

@@ -4,8 +4,8 @@ using System.Linq;
 using Crestron.SimplSharp;
 using Crestron.SimplSharpPro.DeviceSupport;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
-using PepperDash.Essentials.Core.Bridges;
+using UmdEssentials.Core;
+using UmdEssentials.Core.Bridges;
 
 namespace ExtronDmp
 {
@@ -59,10 +59,7 @@ namespace ExtronDmp
             _config = config;
 
             DeviceId = "30";
-            if (!string.IsNullOrEmpty(_config.DeviceId))
-            {
-                DeviceId = _config.DeviceId;
-            }
+            if (!string.IsNullOrEmpty(_config.DeviceId)) DeviceId = _config.DeviceId;
 
             _comm = comm;
 
@@ -98,9 +95,7 @@ namespace ExtronDmp
             PresetList.Clear();
 
             if (_config.LevelControlBlocks != null)
-            {
                 foreach (KeyValuePair<string, ExtronDmpControlBlockConfig> block in _config.LevelControlBlocks)
-                {
                     if (block.Value.Disabled == true)
                     {
                         Debug.Console(2, this, "Skipping disabled LevelControlBlock {0}", block.Key);
@@ -124,25 +119,17 @@ namespace ExtronDmp
                             Debug.Console(2, this, "Added MuteGroup for key {0}", block.Key);
                         }
                     }
-                }
-            }
 
             if (_config.Presets != null)
-            {
                 foreach (KeyValuePair<string, ExtronDmpPreset> preset in _config.Presets)
                 {
                     addPreset(preset.Value);
                     Debug.Console(2, this, "Added Preset {0} {1}", preset.Value.Label, preset.Value.id);
                 }
-            }
 
             if (_config.DialerControlBlocks != null)
-            {
                 foreach (KeyValuePair<string, ExtronDmpDialerConfig> dialerConfig in _config.DialerControlBlocks)
-                {
                     Dialers.Add(dialerConfig.Value.LineNumber, new ExtronDmpDialer(dialerConfig.Value, this));
-                }
-            }
         }
 
         /// <summary>
@@ -191,10 +178,7 @@ namespace ExtronDmp
                 }
             }
 
-            foreach (KeyValuePair<ushort, ExtronDmpDialer> line in Dialers)
-            {
-                line.Value.Init();
-            }
+            foreach (KeyValuePair<ushort, ExtronDmpDialer> line in Dialers) line.Value.Init();
         }
 
         /// <summary>
@@ -205,10 +189,7 @@ namespace ExtronDmp
         private void ResponseReceived(object dev, GenericCommMethodReceiveTextArgs args)
         {
             HeartbeatTracker = 0;
-            if (args.Text.Length <= 1)
-            {
-                return;
-            }
+            if (args.Text.Length <= 1) return;
 
             try
             {
@@ -247,19 +228,13 @@ namespace ExtronDmp
                     int group = int.Parse(args.Text.Substring(5, starPos - 5));
 
                     if (LevelControlPoints.ContainsKey(group))
-                    {
                         //This is for level feedback
                         LevelControlPoints[group].ParseResponse(command, args.Text);
-                    }
                     else
-                    {
                         //This is for mute feedback
                         foreach (KeyValuePair<int, ExtronDmpLevelControl> x in LevelControlPoints.Where(n =>
                                      n.Value.MuteGroup == group))
-                        {
                             x.Value.ParseResponse(command, args.Text);
-                        }
-                    }
                 }
                 else if (args.Text.StartsWith("Ds")) // If trim/gain
                 {
@@ -271,9 +246,7 @@ namespace ExtronDmp
                     int controlId = int.Parse(args.Text.Substring(3, starPos - 3));
 
                     if (LevelControlPoints.ContainsKey(controlId))
-                    {
                         LevelControlPoints[controlId].ParseResponse(command, args.Text);
-                    }
                 }
                 else if (args.Text.ToUpper().Contains("VOIPLS"))
                 {
@@ -281,7 +254,7 @@ namespace ExtronDmp
                     string line = args.Text.ToUpper()[6].ToString();
                     string status = args.Text.ToUpper()[8].ToString();
                     Debug.Console(1, this, "Found a LINESTATUS response line: {0}, status: {1}", line, status);
-                    Dialers[ushort.Parse(line)].SetLineStatus((ExtronDmpDialer.ELineStatus)(ushort.Parse(status)));
+                    Dialers[ushort.Parse(line)].SetLineStatus((ExtronDmpDialer.ELineStatus)ushort.Parse(status));
                 }
             }
             catch (Exception e)
@@ -313,13 +286,9 @@ namespace ExtronDmp
             {
                 ExtronDmpPreset p = PresetList[preset - 1];
                 if (p.isMacro)
-                {
                     SendLine(string.Format("{0}R{1}MCRO", '\x1B', preset));
-                }
                 else
-                {
                     SendLine(string.Format("{0}.", preset));
-                }
             }
         }
 
@@ -399,9 +368,7 @@ namespace ExtronDmp
                 trilist.SetUShortSigAction(joinMap.ChannelVolume.JoinNumber + channelIndex, u =>
                 {
                     if (trilist.BooleanOutput[joinMap.EnableLevelSend.JoinNumber + channelIndex].BoolValue)
-                    {
                         genericChannel.SetVolume(u);
-                    }
                 });
 
                 channelIndex++;
@@ -420,17 +387,17 @@ namespace ExtronDmp
                 for (int i = 0; i < joinMap.KeyPadNumeric.JoinSpan; i++)
                 {
                     int tempi = i;
-                    trilist.SetSigTrueAction((joinMap.KeyPadNumeric.JoinNumber + (uint)i + dialerLineOffset),
-                        () => Dialers[dialer.Key].SendKeypad((ExtronDmpDialer.EKeypadKeys)(tempi)));
+                    trilist.SetSigTrueAction(joinMap.KeyPadNumeric.JoinNumber + (uint)i + dialerLineOffset,
+                        () => Dialers[dialer.Key].SendKeypad((ExtronDmpDialer.EKeypadKeys)tempi));
                 }
 
-                trilist.SetSigTrueAction((joinMap.KeyPadStar.JoinNumber + dialerLineOffset),
+                trilist.SetSigTrueAction(joinMap.KeyPadStar.JoinNumber + dialerLineOffset,
                     () => dialer.Value.SendKeypad(ExtronDmpDialer.EKeypadKeys.Star));
-                trilist.SetSigTrueAction((joinMap.KeyPadPound.JoinNumber + dialerLineOffset),
+                trilist.SetSigTrueAction(joinMap.KeyPadPound.JoinNumber + dialerLineOffset,
                     () => dialer.Value.SendKeypad(ExtronDmpDialer.EKeypadKeys.Pound));
-                trilist.SetSigTrueAction((joinMap.KeyPadClear.JoinNumber + dialerLineOffset),
+                trilist.SetSigTrueAction(joinMap.KeyPadClear.JoinNumber + dialerLineOffset,
                     () => dialer.Value.SendKeypad(ExtronDmpDialer.EKeypadKeys.Clear));
-                trilist.SetSigTrueAction((joinMap.KeyPadBackspace.JoinNumber + dialerLineOffset),
+                trilist.SetSigTrueAction(joinMap.KeyPadBackspace.JoinNumber + dialerLineOffset,
                     () => dialer.Value.SendKeypad(ExtronDmpDialer.EKeypadKeys.Backspace));
                 // from SiMPL > to Plugin
                 trilist.SetSigTrueAction(joinMap.KeyPadDial.JoinNumber + dialerLineOffset, () => dialer.Value.Dial());
@@ -493,10 +460,7 @@ namespace ExtronDmp
             {
                 ushort x = preset.id;
                 ExtronDmpPreset thisPreset = preset as ExtronDmpPreset;
-                if (x > 100)
-                {
-                    break;
-                }
+                if (x > 100) break;
                 // from SiMPL > to Plugin
 
                 trilist.StringInput[joinMap.PresetName.JoinNumber + x].StringValue = preset.Label;

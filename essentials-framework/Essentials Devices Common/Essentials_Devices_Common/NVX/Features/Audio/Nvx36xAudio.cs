@@ -1,7 +1,7 @@
 ﻿using Crestron.SimplSharp;
 using Crestron.SimplSharpPro.DM.Streaming;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
+using UmdEssentials.Core;
 
 namespace NvxEpi.Features.Audio
 {
@@ -58,13 +58,9 @@ namespace NvxEpi.Features.Audio
         public void MuteToggle()
         {
             if (_device.Control.AudioMutedFeedback.BoolValue)
-            {
                 _device.Control.AudioUnmute();
-            }
             else
-            {
                 _device.Control.AudioMute();
-            }
         }
 
         public void SetVolume(ushort level)

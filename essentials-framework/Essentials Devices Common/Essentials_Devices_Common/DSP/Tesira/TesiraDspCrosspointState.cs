@@ -3,11 +3,11 @@ using Crestron.SimplSharp;
 using Crestron.SimplSharpPro.DeviceSupport;
 using Newtonsoft.Json;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
+using UmdEssentials.Core;
 using System.Text.RegularExpressions;
-using PepperDash.Essentials.Core.Bridges;
+using UmdEssentials.Core.Bridges;
 using Tesira_DSP_EPI.Bridge.JoinMaps;
-using Feedback = PepperDash.Essentials.Core.Feedback;
+using Feedback = UmdEssentials.Core.Feedback;
 
 namespace Tesira_DSP_EPI
 {
@@ -59,10 +59,7 @@ namespace Tesira_DSP_EPI
             if (!config.Enabled) return;
             DeviceManager.AddDevice(this);
             _pollEnable = config.PollEnable;
-            if (_pollEnable)
-            {
-                _pollTime = config.PollTimeMs < 10000 ? 10000 : config.PollTimeMs;
-            }
+            if (_pollEnable) _pollTime = config.PollTimeMs < 10000 ? 10000 : config.PollTimeMs;
         }
 
         /// <summary>
@@ -149,10 +146,7 @@ namespace Tesira_DSP_EPI
                     return;
                 }
 
-                if (message.Equals("+OK", StringComparison.OrdinalIgnoreCase))
-                {
-                    return;
-                }
+                if (message.Equals("+OK", StringComparison.OrdinalIgnoreCase)) return;
 
                 if (!attributeCode.Equals(AttributeCode, StringComparison.InvariantCultureIgnoreCase)) return;
                 _state = bool.Parse(value);
@@ -177,10 +171,7 @@ namespace Tesira_DSP_EPI
                 joinMap =
                     JsonConvert.DeserializeObject<TesiraCrosspointStateJoinMapAdvancedStandalone>(joinMapSerialized);
 
-            if (bridge != null)
-            {
-                bridge.AddJoinMap(Key, joinMap);
-            }
+            if (bridge != null) bridge.AddJoinMap(Key, joinMap);
 
             Debug.Console(1, this, "Linking to Trilist '{0}'", trilist.ID.ToString("X"));
 
@@ -201,10 +192,7 @@ namespace Tesira_DSP_EPI
             {
                 if (!args.DeviceOnLine) return;
 
-                foreach (Feedback feedback in Feedbacks)
-                {
-                    feedback.FireUpdate();
-                }
+                foreach (Feedback feedback in Feedbacks) feedback.FireUpdate();
             };
         }
     }

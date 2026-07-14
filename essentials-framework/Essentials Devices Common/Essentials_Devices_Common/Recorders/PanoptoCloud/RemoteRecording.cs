@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using Newtonsoft.Json;
 
-namespace PepperDash.Essentials.PanoptoCloud
+namespace UmdEssentials.PanoptoCloud
 {
     public class RecorderScheduleEntry
     {

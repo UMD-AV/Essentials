@@ -4,10 +4,10 @@ using Crestron.SimplSharp;
 using Crestron.SimplSharpPro.DeviceSupport;
 using Crestron.SimplSharpPro.GeneralIO;
 using PepperDash.Core;
-using PepperDash.Essentials.Core.Config;
-using PepperDash.Essentials.Core.Bridges;
+using UmdEssentials.Core.Bridges;
+using UmdEssentials.Core.Config;
 
-namespace PepperDash.Essentials.Core
+namespace UmdEssentials.Core
 {
     [Description("Wrapper class for Dual Technology GLS Occupancy Sensors")]
     [ConfigSnippet(
@@ -92,14 +92,10 @@ namespace PepperDash.Essentials.Core
 
 
             if (PropertiesConfig.OrWhenVacatedState != null)
-            {
                 SetOrWhenVacatedState((bool)PropertiesConfig.OrWhenVacatedState);
-            }
 
             if (PropertiesConfig.AndWhenVacatedState != null)
-            {
                 SetAndWhenVacatedState((bool)PropertiesConfig.AndWhenVacatedState);
-            }
         }
 
         /// <summary>

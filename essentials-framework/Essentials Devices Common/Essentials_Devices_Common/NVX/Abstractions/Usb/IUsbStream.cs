@@ -1,6 +1,6 @@
 using Crestron.SimplSharp;
 using NvxEpi.Abstractions.Hardware;
-using PepperDash.Essentials.Core;
+using UmdEssentials.Core;
 
 namespace NvxEpi.Abstractions.Usb
 {

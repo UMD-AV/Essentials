@@ -1,6 +1,6 @@
-﻿using PepperDash.Essentials.Core;
+﻿using UmdEssentials.Core;
 
-namespace PepperDash.Essentials.Devices.Common.AudioCodec
+namespace UmdEssentials.Devices.Common.AudioCodec
 {
     /// <summary>
     /// For rooms that have audio codec

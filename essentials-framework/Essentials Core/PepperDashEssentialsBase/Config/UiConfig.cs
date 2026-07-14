@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using Newtonsoft.Json;
 
-namespace PepperDash.Essentials.Core.Config
+namespace UmdEssentials.Core.Config
 {
     public class UiConfig
     {

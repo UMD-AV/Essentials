@@ -1,4 +1,4 @@
-﻿namespace PepperDash.Essentials.Devices.Common.VideoCodec.Interfaces
+﻿namespace UmdEssentials.Devices.Common.VideoCodec.Interfaces
 {
     /// <summary>
     /// Describes the ability to start an ad-hoc meeting

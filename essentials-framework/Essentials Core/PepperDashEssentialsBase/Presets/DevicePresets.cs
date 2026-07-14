@@ -8,7 +8,7 @@ using PepperDash.Core;
 
 //using SSMono.IO;
 
-namespace PepperDash.Essentials.Core.Presets
+namespace UmdEssentials.Core.Presets
 {
     /// <summary>
     /// Class that represents the model behind presets display
@@ -140,10 +140,7 @@ namespace PepperDash.Essentials.Core.Presets
                 PresetsAreLoaded = true;
 
                 EventHandler handler = PresetsLoaded;
-                if (handler != null)
-                {
-                    handler(this, EventArgs.Empty);
-                }
+                if (handler != null) handler(this, EventArgs.Empty);
             }
             finally
             {
@@ -153,18 +150,12 @@ namespace PepperDash.Essentials.Core.Presets
 
         public void Dial(int presetNum)
         {
-            if (presetNum <= PresetsList.Count)
-            {
-                Dial(PresetsList[presetNum - 1].Channel);
-            }
+            if (presetNum <= PresetsList.Count) Dial(PresetsList[presetNum - 1].Channel);
         }
 
         public void Dial(string chanNum)
         {
-            if (_dialIsRunning || !_initSuccess)
-            {
-                return;
-            }
+            if (_dialIsRunning || !_initSuccess) return;
 
             if (_dialFunctions == null)
             {
@@ -177,18 +168,12 @@ namespace PepperDash.Essentials.Core.Presets
             {
                 foreach (char c in chanNum.ToCharArray())
                 {
-                    if (_dialFunctions.ContainsKey(c))
-                    {
-                        Pulse(_dialFunctions[c]);
-                    }
+                    if (_dialFunctions.ContainsKey(c)) Pulse(_dialFunctions[c]);
 
                     CrestronEnvironment.Sleep(DigitSpacingMs);
                 }
 
-                if (_enterFunction != null)
-                {
-                    Pulse(_enterFunction);
-                }
+                if (_enterFunction != null) Pulse(_enterFunction);
 
                 _dialIsRunning = false;
             });
@@ -200,10 +185,7 @@ namespace PepperDash.Essentials.Core.Presets
 
         public void Dial(int presetNum, ISetTopBoxNumericKeypad setTopBox)
         {
-            if (presetNum <= PresetsList.Count)
-            {
-                Dial(PresetsList[presetNum - 1].Channel, setTopBox);
-            }
+            if (presetNum <= PresetsList.Count) Dial(PresetsList[presetNum - 1].Channel, setTopBox);
         }
 
         public void Dial(string chanNum, ISetTopBoxNumericKeypad setTopBox)
@@ -234,20 +216,14 @@ namespace PepperDash.Essentials.Core.Presets
         {
             PresetRecalledCallback handler = PresetRecalled;
 
-            if (handler == null)
-            {
-                return;
-            }
+            if (handler == null) return;
 
             handler(setTopBox, channel);
         }
 
         public void UpdatePreset(int index, PresetChannel preset)
         {
-            if (index >= PresetsList.Count)
-            {
-                return;
-            }
+            if (index >= PresetsList.Count) return;
 
             PresetsList[index] = preset;
 

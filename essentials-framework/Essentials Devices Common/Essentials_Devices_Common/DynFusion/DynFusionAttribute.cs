@@ -1,5 +1,5 @@
 ﻿using System;
-using PepperDash.Essentials.Core;
+using UmdEssentials.Core;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Crestron.SimplSharpPro;
@@ -24,21 +24,17 @@ namespace DynFusion
             Debug.Console(2, "Creating DigitalAttribute {0} {1} {2}", JoinNumber, Name, RwType);
 
             if (deviceKey != null)
-            {
                 if (boolFeedback != null)
-                {
                     try
                     {
                         BoolFeedback fb = DeviceJsonApi.GetPropertyByName(deviceKey, boolFeedback) as BoolFeedback;
-                        fb.OutputChange += ((sender, args) => { BoolValue = args.BoolValue; });
+                        fb.OutputChange += (sender, args) => { BoolValue = args.BoolValue; };
                     }
                     catch (Exception ex)
                     {
                         Debug.Console(0, Debug.ErrorLogLevel.Error,
                             "DynFuison Issue linking Device {0} BoolFB {1}\n{2}", deviceKey, boolFeedback, ex);
                     }
-                }
-            }
         }
 
         public BoolFeedback BoolValueFeedback { get; set; }

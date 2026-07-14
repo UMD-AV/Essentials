@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using Newtonsoft.Json;
 
-namespace PepperDash.Essentials.DM.Config
+namespace UmdEssentials.DM.Config
 {
     /// <summary>
     /// Represents the "properties" property of a DM device config

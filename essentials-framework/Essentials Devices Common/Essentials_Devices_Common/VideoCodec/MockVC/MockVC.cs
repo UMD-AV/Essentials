@@ -4,16 +4,16 @@ using System.Linq;
 using Crestron.SimplSharp;
 using Crestron.SimplSharpPro.DeviceSupport;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
-using PepperDash.Essentials.Core.Bridges;
-using PepperDash.Essentials.Core.Config;
-using PepperDash.Essentials.Core.Routing;
-using PepperDash.Essentials.Devices.Common.Codec;
-using PepperDash.Essentials.Devices.Common.Cameras;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using UmdEssentials.Core;
+using UmdEssentials.Core.Bridges;
+using UmdEssentials.Core.Config;
+using UmdEssentials.Core.Routing;
+using UmdEssentials.Devices.Common.Cameras;
+using UmdEssentials.Devices.Common.Codec;
 
-namespace PepperDash.Essentials.Devices.Common.VideoCodec
+namespace UmdEssentials.Devices.Common.VideoCodec
 {
     public class MockVC : VideoCodecBase, IRoutingSource, IHasCallHistory, IHasScheduleAwareness, IHasCallFavorites,
         IHasDirectory, IHasCodecCameras, IHasCameraAutoMode, IHasCodecRoomPresets
@@ -149,7 +149,7 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec
         public override void Dial(string number)
         {
             Debug.Console(1, this, "Dial: {0}", number);
-            CodecActiveCallItem call = new CodecActiveCallItem()
+            CodecActiveCallItem call = new CodecActiveCallItem
             {
                 Name = number, Number = number, Id = number, Status = eCodecCallStatus.Dialing,
                 Direction = eCodecCallDirection.Outgoing, Type = eCodecCallType.Video
@@ -169,7 +169,7 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec
         public override void Dial(Meeting meeting)
         {
             Debug.Console(1, this, "Dial Meeting: {0}", meeting.Id);
-            CodecActiveCallItem call = new CodecActiveCallItem()
+            CodecActiveCallItem call = new CodecActiveCallItem
             {
                 Name = meeting.Title, Number = meeting.Id, Id = meeting.Id, Status = eCodecCallStatus.Dialing,
                 Direction = eCodecCallDirection.Outgoing, Type = eCodecCallType.Video
@@ -384,7 +384,7 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec
         public void TestIncomingVideoCall(string url)
         {
             Debug.Console(1, this, "TestIncomingVideoCall from {0}", url);
-            CodecActiveCallItem call = new CodecActiveCallItem()
+            CodecActiveCallItem call = new CodecActiveCallItem
             {
                 Name = url, Id = url, Number = url, Type = eCodecCallType.Video,
                 Direction = eCodecCallDirection.Incoming
@@ -402,7 +402,7 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec
         public void TestIncomingAudioCall(string url)
         {
             Debug.Console(1, this, "TestIncomingAudioCall from {0}", url);
-            CodecActiveCallItem call = new CodecActiveCallItem()
+            CodecActiveCallItem call = new CodecActiveCallItem
             {
                 Name = url, Id = url, Number = url, Type = eCodecCallType.Audio,
                 Direction = eCodecCallDirection.Incoming
@@ -457,7 +457,7 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec
                         m.StartTime = DateTime.Now.AddMinutes(5).AddHours(i);
                         m.EndTime = DateTime.Now.AddHours(i).AddMinutes(50);
                         m.Title = "Meeting " + i;
-                        m.Calls.Add(new Call() { Number = i + "meeting@fake.com" });
+                        m.Calls.Add(new Call { Number = i + "meeting@fake.com" });
                         _CodecSchedule.Meetings.Add(m);
                     }
                 }
@@ -590,13 +590,11 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec
 
             EventHandler<DirectoryEventArgs> handler = DirectoryResultReturned;
             if (handler != null)
-            {
-                handler(this, new DirectoryEventArgs()
+                handler(this, new DirectoryEventArgs
                 {
                     Directory = result,
                     DirectoryIsOnRoot = !CurrentDirectoryResultIsNotDirectoryRoot.BoolValue
                 });
-            }
         }
 
         #endregion
@@ -633,17 +631,13 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec
             NearEndPresets = new List<CodecRoomPreset>(15); // Fix the capacity to emulate Cisco
 
             if (PropertiesConfig.Presets != null && PropertiesConfig.Presets.Count > 0)
-            {
                 NearEndPresets = PropertiesConfig.Presets;
-            }
             else
-            {
                 for (int i = 1; i <= NearEndPresets.Capacity; i++)
                 {
                     string label = string.Format("Near End Preset {0}", i);
                     NearEndPresets.Add(new CodecRoomPreset(i, label, true, false));
                 }
-            }
 
             FarEndRoomPresets = new List<CodecRoomPreset>(15); // Fix the capacity to emulate Cisco
 
@@ -679,10 +673,7 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec
                 ControllingFarEndCameraFeedback.FireUpdate();
 
                 EventHandler<CameraSelectedEventArgs> handler = CameraSelected;
-                if (handler != null)
-                {
-                    handler(this, new CameraSelectedEventArgs(SelectedCamera));
-                }
+                if (handler != null) handler(this, new CameraSelectedEventArgs(SelectedCamera));
             }
         }
 
@@ -697,7 +688,9 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec
                 SelectedCamera = camera;
             }
             else
+            {
                 Debug.Console(2, this, "Unable to select camera with key: '{0}'", key);
+            }
         }
 
         #endregion
@@ -751,13 +744,9 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec
         public void CodecRoomPresetSelect(int preset)
         {
             if (SelectedCamera is IAmFarEndCamera)
-            {
                 Debug.Console(1, this, "Selecting Far End Preset: {0}", preset);
-            }
             else
-            {
                 Debug.Console(1, this, "Selecting Near End Preset: {0}", preset);
-            }
         }
 
         public void CodecRoomPresetStore(int preset, string description)
@@ -770,13 +759,12 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec
                 editPreset.Description = description;
             }
             else
+            {
                 NearEndPresets.Add(new CodecRoomPreset(preset, description, true, true));
+            }
 
             EventHandler<EventArgs> handler = CodecRoomPresetsListHasChanged;
-            if (handler != null)
-            {
-                handler(this, new EventArgs());
-            }
+            if (handler != null) handler(this, new EventArgs());
 
             // Update the config
             SetConfig(Config);
@@ -851,7 +839,7 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec
     {
         public MockVCFactory()
         {
-            TypeNames = new List<string>() { "mockvc" };
+            TypeNames = new List<string> { "mockvc" };
         }
 
         public override EssentialsDevice BuildDevice(DeviceConfig dc)

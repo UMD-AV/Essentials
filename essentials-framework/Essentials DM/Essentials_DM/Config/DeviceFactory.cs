@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using Crestron.SimplSharp.Reflection;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
+using UmdEssentials.Core;
 
-namespace PepperDash.Essentials.DM
+namespace UmdEssentials.DM
 {
     /// <summary>
     /// Responsible for loading the type factories for this library
@@ -21,9 +21,7 @@ namespace PepperDash.Essentials.DM
                 typeof(IDeviceFactory).IsAssignableFrom(ct) && !ct.IsInterface && !ct.IsAbstract);
 
             if (types != null)
-            {
                 foreach (CType type in types)
-                {
                     try
                     {
                         IDeviceFactory factory =
@@ -35,8 +33,6 @@ namespace PepperDash.Essentials.DM
                         Debug.Console(0, Debug.ErrorLogLevel.Error, "Unable to load type: '{1}' DeviceFactory: {0}", e,
                             type.Name);
                     }
-                }
-            }
         }
     }
 }

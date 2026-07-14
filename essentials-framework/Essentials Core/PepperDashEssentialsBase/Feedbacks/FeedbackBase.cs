@@ -2,7 +2,7 @@
 using Crestron.SimplSharp;
 using PepperDash.Core;
 
-namespace PepperDash.Essentials.Core
+namespace UmdEssentials.Core
 {
     public abstract class Feedback : IKeyed
     {

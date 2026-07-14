@@ -2,11 +2,11 @@
 using System.Collections.Generic;
 using Crestron.SimplSharp;
 using PepperDash.Core;
-using PepperDash.Essentials.Core.Config;
 using Newtonsoft.Json;
+using UmdEssentials.Core.Config;
 
 
-namespace PepperDash.Essentials.Core.Timers
+namespace UmdEssentials.Core.Timers
 {
     /// <summary>
     /// A device that runs a retriggerable timer and can execute actions specified in config 
@@ -25,18 +25,12 @@ namespace PepperDash.Essentials.Core.Timers
             RetriggerableTimerPropertiesConfig props = config.Properties.ToObject<RetriggerableTimerPropertiesConfig>();
             _propertiesConfig = props;
 
-            if (_propertiesConfig != null)
-            {
-                _timerIntervalMs = _propertiesConfig.TimerIntervalMs;
-            }
+            if (_propertiesConfig != null) _timerIntervalMs = _propertiesConfig.TimerIntervalMs;
         }
 
         public override bool CustomActivate()
         {
-            if (_propertiesConfig.StartTimerOnActivation)
-            {
-                StartTimer();
-            }
+            if (_propertiesConfig.StartTimerOnActivation) StartTimer();
 
             return base.CustomActivate();
         }
@@ -95,9 +89,7 @@ namespace PepperDash.Essentials.Core.Timers
             if (devAction != null)
                 ExecuteAction(devAction);
             else
-            {
                 Debug.Console(2, this, "Unable to cast action as DeviceActionWrapper. Cannot Execute");
-            }
         }
 
         private void ExecuteAction(DeviceActionWrapper action)
@@ -144,7 +136,7 @@ namespace PepperDash.Essentials.Core.Timers
     public enum eRetriggerableTimerEvents
     {
         Elapsed,
-        Stopped,
+        Stopped
     }
 
     /// <summary>
@@ -154,7 +146,7 @@ namespace PepperDash.Essentials.Core.Timers
     {
         public RetriggerableTimerFactory()
         {
-            TypeNames = new List<string>() { "retriggerabletimer" };
+            TypeNames = new List<string> { "retriggerabletimer" };
         }
 
         public override EssentialsDevice BuildDevice(DeviceConfig dc)

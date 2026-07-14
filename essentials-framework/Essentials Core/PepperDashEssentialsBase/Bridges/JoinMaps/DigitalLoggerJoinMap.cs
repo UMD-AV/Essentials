@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace PepperDash.Essentials.Core.Bridges
+namespace UmdEssentials.Core.Bridges
 {
     [Obsolete("This Device will be moved to a plugin in a future update")]
     public class DigitalLoggerJoinMap : JoinMapBase

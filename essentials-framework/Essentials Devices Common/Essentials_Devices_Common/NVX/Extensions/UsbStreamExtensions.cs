@@ -4,7 +4,7 @@ using System.Linq;
 using Crestron.SimplSharpPro;
 using NvxEpi.Abstractions.Usb;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
+using UmdEssentials.Core;
 
 namespace NvxEpi.Extensions
 {
@@ -37,10 +37,9 @@ namespace NvxEpi.Extensions
                     List<IUsbStreamWithHardware> results =
                         DeviceManager.AllDevices.OfType<IUsbStreamWithHardware>()
                             .Where(x => !x.IsRemote)
-                            .Where(
-                                o =>
-                                    o.UsbRemoteIds.Any((x) =>
-                                        x.Value.StringValue.Equals(remote.UsbLocalId.StringValue))).ToList();
+                            .Where(o =>
+                                o.UsbRemoteIds.Any((x) =>
+                                    x.Value.StringValue.Equals(remote.UsbLocalId.StringValue))).ToList();
 
                     Debug.Console(2, "Found {0} Hosts with client {1} connected", results.Count(), remote.UsbLocalId);
                     foreach (IUsbStreamWithHardware usb in results)
@@ -51,12 +50,8 @@ namespace NvxEpi.Extensions
                             localUsb.Hardware.UsbInput.RemovePairing();
                         localUsb.Hardware.UsbInput.RemoteDeviceId.StringValue = ClearUsbValue;
                         foreach (KeyValuePair<uint, StringFeedback> remoteId in localUsb.UsbRemoteIds)
-                        {
                             if (remoteId.Value == remote.UsbLocalId)
-                            {
                                 localUsb.Hardware.UsbInput.RemoteDeviceIds[remoteId.Key].StringValue = ClearUsbValue;
-                            }
-                        }
 
                         if (localUsb.Hardware.UsbInput.AutomaticUsbPairingDisabledFeedback.BoolValue)
                             localUsb.Hardware.UsbInput.RemovePairing();
@@ -77,16 +72,12 @@ namespace NvxEpi.Extensions
                     Debug.Console(2, remote, "There are {0} devices in RemoteIds",
                         remote.Hardware.UsbInput.RemoteDeviceIds.Count);
                     foreach (StringInputSig connection in remote.Hardware.UsbInput.RemoteDeviceIds)
-                    {
                         Debug.Console(2, remote, connection.StringValue);
-                    }
 
                     Debug.Console(2, local, "There are {0} devices in RemoteIds",
                         local.Hardware.UsbInput.RemoteDeviceIds.Count);
                     foreach (StringInputSig connection in local.Hardware.UsbInput.RemoteDeviceIds)
-                    {
                         Debug.Console(2, local, connection.StringValue);
-                    }
 
                     Crestron.SimplSharpPro.CrestronThread.Thread.Sleep(500);
                     if (remote.Hardware.UsbInput.AutomaticUsbPairingDisabledFeedback.BoolValue)
@@ -106,14 +97,10 @@ namespace NvxEpi.Extensions
 
 
                 foreach (StringInputSig remoteId in local.Hardware.UsbInput.RemoteDeviceIds)
-                {
                     remoteId.StringValue = ClearUsbValue;
-                }
 
                 foreach (StringInputSig remoteId in remote.Hardware.UsbInput.RemoteDeviceIds)
-                {
                     remoteId.StringValue = ClearUsbValue;
-                }
 
                 Crestron.SimplSharpPro.CrestronThread.Thread.Sleep(500);
                 /*

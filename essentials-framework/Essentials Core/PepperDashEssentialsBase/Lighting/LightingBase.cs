@@ -4,9 +4,9 @@ using System.Linq;
 using Crestron.SimplSharpPro.DeviceSupport;
 using Newtonsoft.Json;
 using PepperDash.Core;
-using PepperDash.Essentials.Core.Bridges;
+using UmdEssentials.Core.Bridges;
 
-namespace PepperDash.Essentials.Core.Lighting
+namespace UmdEssentials.Core.Lighting
 {
     public abstract class LightingBase : EssentialsBridgeableDevice, ILightingScenes
     {
@@ -69,19 +69,14 @@ namespace PepperDash.Essentials.Core.Lighting
         private void OnLightingSceneChange()
         {
             foreach (LightingScene scene in LightingScenes)
-            {
                 if (scene == CurrentLightingScene)
                     scene.IsActive = true;
 
                 else
                     scene.IsActive = false;
-            }
 
             EventHandler<LightingSceneChangeEventArgs> handler = LightingSceneChange;
-            if (handler != null)
-            {
-                handler(this, new LightingSceneChangeEventArgs(CurrentLightingScene));
-            }
+            if (handler != null) handler(this, new LightingSceneChangeEventArgs(CurrentLightingScene));
         }
 
         public void LinkLightingToApi(BasicTriList trilist, uint joinStart, string joinMapKey, EiscApiAdvanced bridge)
@@ -90,22 +85,22 @@ namespace PepperDash.Essentials.Core.Lighting
             Debug.Console(1, "Linking to Trilist '{0}'", trilist.ID.ToString("X"));
 
             //Send this device name to SIMPL
-            trilist.StringInput[joinMap.Name.JoinNumber].StringValue = this.Name;
+            trilist.StringInput[joinMap.Name.JoinNumber].StringValue = Name;
 
             // GenericLighitng Actions & FeedBack
-            trilist.SetUShortSigAction(joinMap.SelectButton.JoinNumber, u => this.SelectScene(this.LightingScenes[u]));
+            trilist.SetUShortSigAction(joinMap.SelectButton.JoinNumber, u => SelectScene(LightingScenes[u]));
 
             //Set occupied/vacant feedback
             OccupiedFeedback.LinkInputSig(trilist.BooleanInput[joinMap.OccupiedFb.JoinNumber]);
             VacantFeedback.LinkInputSig(trilist.BooleanInput[joinMap.VacantFb.JoinNumber]);
 
             int sceneIndex = 0;
-            foreach (LightingScene scene in this.LightingScenes)
+            foreach (LightingScene scene in LightingScenes)
             {
                 int index = sceneIndex;
 
                 trilist.SetSigTrueAction((uint)(joinMap.SelectButtonDirect.JoinNumber + index),
-                    () => this.SelectScene(this.LightingScenes[index]));
+                    () => SelectScene(LightingScenes[index]));
                 scene.IsActiveFeedback.LinkInputSig(
                     trilist.BooleanInput[(uint)(joinMap.SelectButtonDirect.JoinNumber + index)]);
                 trilist.StringInput[(uint)(joinMap.SelectButtonDirect.JoinNumber + index)].StringValue = scene.Name;
@@ -117,7 +112,7 @@ namespace PepperDash.Essentials.Core.Lighting
                 if (!args.DeviceOnLine) return;
 
                 sceneIndex = 0;
-                foreach (LightingScene scene in this.LightingScenes)
+                foreach (LightingScene scene in LightingScenes)
                 {
                     int index = sceneIndex;
 

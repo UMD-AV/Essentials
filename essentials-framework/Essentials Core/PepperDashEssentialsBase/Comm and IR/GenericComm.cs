@@ -4,12 +4,12 @@ using Crestron.SimplSharp.CrestronSockets;
 using Crestron.SimplSharpPro.DeviceSupport;
 using Newtonsoft.Json;
 using PepperDash.Core;
-using PepperDash.Essentials.Core.Bridges;
-using PepperDash.Essentials.Core.Devices;
-using PepperDash.Essentials.Core.Config;
+using UmdEssentials.Core.Bridges;
+using UmdEssentials.Core.Config;
+using UmdEssentials.Core.Devices;
 
 
-namespace PepperDash.Essentials.Core
+namespace UmdEssentials.Core
 {
     /// <summary>
     /// Serves as a generic wrapper class for all styles of IBasicCommuncation ports
@@ -75,14 +75,10 @@ namespace PepperDash.Essentials.Core
                 joinMap = JsonConvert.DeserializeObject<IBasicCommunicationJoinMap>(joinMapSerialized);
 
             if (bridge != null)
-            {
                 bridge.AddJoinMap(Key, joinMap);
-            }
             else
-            {
                 Debug.Console(0, this,
                     "Please update config to use 'eiscapiadvanced' to get all join map features for this device.");
-            }
 
             if (CommPort == null)
             {
@@ -102,7 +98,7 @@ namespace PepperDash.Essentials.Core
             if (sComm == null) return;
             sComm.ConnectionChange += (s, a) =>
             {
-                trilist.SetUshort(joinMap.Status.JoinNumber, (ushort)(a.Client.ClientStatus));
+                trilist.SetUshort(joinMap.Status.JoinNumber, (ushort)a.Client.ClientStatus);
                 trilist.SetBool(joinMap.Connected.JoinNumber, a.Client.ClientStatus ==
                                                               SocketStatus.SOCKET_STATUS_CONNECTED);
             };
@@ -110,13 +106,9 @@ namespace PepperDash.Essentials.Core
             trilist.SetBoolSigAction(joinMap.Connect.JoinNumber, b =>
             {
                 if (b)
-                {
                     sComm.Connect();
-                }
                 else
-                {
                     sComm.Disconnect();
-                }
             });
         }
     }
@@ -125,7 +117,7 @@ namespace PepperDash.Essentials.Core
     {
         public GenericCommFactory()
         {
-            TypeNames = new List<string>() { "genericComm" };
+            TypeNames = new List<string> { "genericComm" };
         }
 
         public override EssentialsDevice BuildDevice(DeviceConfig dc)

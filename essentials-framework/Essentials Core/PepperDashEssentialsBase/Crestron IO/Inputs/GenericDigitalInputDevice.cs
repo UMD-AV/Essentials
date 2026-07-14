@@ -4,11 +4,11 @@ using Crestron.SimplSharpPro;
 using Crestron.SimplSharpPro.DeviceSupport;
 using Newtonsoft.Json;
 using PepperDash.Core;
-using PepperDash.Essentials.Core.Bridges;
-using PepperDash.Essentials.Core.Config;
+using UmdEssentials.Core.Bridges;
+using UmdEssentials.Core.Config;
 
 
-namespace PepperDash.Essentials.Core.CrestronIO
+namespace UmdEssentials.Core.CrestronIO
 {
     [Description("Wrapper class for Digital Input")]
     public class GenericDigitalInputDevice : EssentialsBridgeableDevice, IDigitalInput
@@ -84,10 +84,8 @@ namespace PepperDash.Essentials.Core.CrestronIO
             }
 
             if (dc.PortNumber > ioPortDevice.NumberOfDigitalInputPorts)
-            {
                 Debug.Console(0, "GetDigitalInput: Device {0} does not contain a port {1}", dc.PortDeviceKey,
                     dc.PortNumber);
-            }
 
             return ioPortDevice.DigitalInputPorts[dc.PortNumber];
         }
@@ -106,14 +104,10 @@ namespace PepperDash.Essentials.Core.CrestronIO
                 joinMap = JsonConvert.DeserializeObject<IDigitalInputJoinMap>(joinMapSerialized);
 
             if (bridge != null)
-            {
                 bridge.AddJoinMap(Key, joinMap);
-            }
             else
-            {
                 Debug.Console(0, this,
                     "Please update config to use 'eiscapiadvanced' to get all join map features for this device.");
-            }
 
             try
             {
@@ -137,7 +131,7 @@ namespace PepperDash.Essentials.Core.CrestronIO
         {
             public GenericDigitalInputDeviceFactory()
             {
-                TypeNames = new List<string>() { "digitalinput" };
+                TypeNames = new List<string> { "digitalinput" };
             }
 
             public override EssentialsDevice BuildDevice(DeviceConfig dc)

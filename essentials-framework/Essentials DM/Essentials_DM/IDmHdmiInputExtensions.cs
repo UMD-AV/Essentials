@@ -1,7 +1,7 @@
 ﻿using Crestron.SimplSharpPro.DM;
-using PepperDash.Essentials.Core;
+using UmdEssentials.Core;
 
-namespace PepperDash.Essentials.DM
+namespace UmdEssentials.DM
 {
     public static class IBasicDmInputExtensions
     {

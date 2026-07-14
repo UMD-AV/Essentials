@@ -6,7 +6,7 @@ using PepperDash.Core;
 using PepperDash.Core.HttpsUtility.Https;
 using HttpsClient = PepperDash.Core.HttpsUtility.Https.HttpsClient;
 
-namespace PepperDash.Essentials.EpiphanPearl
+namespace UmdEssentials.EpiphanPearl
 {
     public class EpiphanPearlSecureClient : IKeyed
     {

@@ -1,7 +1,7 @@
 ﻿using System;
-using PepperDash.Essentials.Core;
+using UmdEssentials.Core;
 
-namespace PepperDash.Essentials.Core.Bridges.JoinMaps
+namespace UmdEssentials.Core.Bridges.JoinMaps
 {
     public class GlsPartitionSensorJoinMap : JoinMapBaseAdvanced
     {

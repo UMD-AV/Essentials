@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using Crestron.SimplSharp;
 using PepperDash.Core;
-using PepperDash.Essentials.Core.Config;
+using UmdEssentials.Core.Config;
 
-namespace PepperDash.Essentials.Core
+namespace UmdEssentials.Core
 {
     /// <summary>
     /// Defines the basic needs for an EssentialsDevice to enable it to be build by an IDeviceFactory class

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace PepperDash.Essentials.Core.DeviceTypeInterfaces
+namespace UmdEssentials.Core.DeviceTypeInterfaces
 {
     public interface ILanguageDefinition
     {

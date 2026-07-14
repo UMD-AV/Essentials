@@ -1,6 +1,6 @@
-﻿using PepperDash.Essentials.Devices.Common.VideoCodec;
+﻿using UmdEssentials.Devices.Common.VideoCodec;
 
-namespace PepperDash.Essentials.Core.DeviceTypeInterfaces
+namespace UmdEssentials.Core.DeviceTypeInterfaces
 {
     public interface IHasSelfviewPosition
     {

@@ -1,6 +1,6 @@
 ﻿using PepperDash.Core;
 
-namespace PepperDash.Essentials.Core.DeviceInfo
+namespace UmdEssentials.Core.DeviceInfo
 {
     public interface IDeviceInfoProvider : IKeyed
     {

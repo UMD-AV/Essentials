@@ -1,6 +1,6 @@
 ﻿using Crestron.SimplSharp;
 
-namespace PepperDash.Essentials.Core
+namespace UmdEssentials.Core
 {
     /// <summary>
     /// A class that wraps a BoolFeedback with logic that extends it's true state for
@@ -54,7 +54,7 @@ namespace PepperDash.Essentials.Core
         public BoolFeedbackPulseExtender(uint timeoutMs)
         {
             TimeoutMs = timeoutMs;
-            Feedback = new BoolFeedback(() => this.BoolValue);
+            Feedback = new BoolFeedback(() => BoolValue);
         }
 
         /// <summary>

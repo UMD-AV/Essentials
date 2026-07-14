@@ -5,9 +5,9 @@ using Crestron.SimplSharp;
 using Crestron.SimplSharp.CrestronIO;
 using Crestron.SimplSharp.Reflection;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
+using UmdEssentials.Core;
 
-namespace PepperDash.Essentials
+namespace UmdEssentials
 {
     /// <summary>
     /// Deals with loading plugins at runtime
@@ -64,27 +64,27 @@ namespace PepperDash.Essentials
 
                 switch (fi.Name)
                 {
-                    case ("PepperDashEssentials.dll"):
+                    case "UmdEssentials.dll":
                     {
                         version = Global.AssemblyVersion;
                         break;
                     }
-                    case ("PepperDash_Essentials_Core.dll"):
+                    case "PepperDash_Essentials_Core.dll":
                     {
                         version = Global.AssemblyVersion;
                         break;
                     }
-                    case ("PepperDash_Essentials_DM.dll"):
+                    case "PepperDash_Essentials_DM.dll":
                     {
                         version = Global.AssemblyVersion;
                         break;
                     }
-                    case ("Essentials Devices Common.dll"):
+                    case "Essentials Devices Common.dll":
                     {
                         version = Global.AssemblyVersion;
                         break;
                     }
-                    case ("PepperDash_Core.dll"):
+                    case "PepperDash_Core.dll":
                     {
                         version = Debug.PepperDashCoreVersion;
                         break;
@@ -98,10 +98,7 @@ namespace PepperDash.Essentials
             {
                 Debug.Console(2, "Loaded Assemblies:");
 
-                foreach (LoadedAssembly assembly in LoadedAssemblies)
-                {
-                    Debug.Console(2, "Assembly: {0}", assembly.Name);
-                }
+                foreach (LoadedAssembly assembly in LoadedAssemblies) Debug.Console(2, "Assembly: {0}", assembly.Name);
             }
         }
 
@@ -110,10 +107,7 @@ namespace PepperDash.Essentials
         {
             LoadedAssembly loadedAssembly = LoadedAssemblies.FirstOrDefault(la => la.Name.Equals(name));
 
-            if (loadedAssembly != null)
-            {
-                loadedAssembly.SetAssembly(assembly);
-            }
+            if (loadedAssembly != null) loadedAssembly.SetAssembly(assembly);
         }
 
         /// <summary>
@@ -194,9 +188,7 @@ namespace PepperDash.Essentials
         {
             Debug.Console(0, "Loaded Assemblies:");
             foreach (LoadedAssembly assembly in LoadedAssemblies)
-            {
                 Debug.Console(0, "{0} Version: {1}", assembly.Name, assembly.Version);
-            }
         }
 
         /// <summary>
@@ -210,15 +202,10 @@ namespace PepperDash.Essentials
             FileInfo[] pluginFiles = pluginDi.GetFiles("*.dll");
 
             if (pluginFiles.Length > 0)
-            {
                 if (!Directory.Exists(_loadedPluginsDirectoryPath))
-                {
                     Directory.CreateDirectory(_loadedPluginsDirectoryPath);
-                }
-            }
 
             foreach (FileInfo pluginFile in pluginFiles)
-            {
                 try
                 {
                     Debug.Console(0, "Found .dll: {0}", pluginFile.Name);
@@ -254,7 +241,6 @@ namespace PepperDash.Essentials
                     Debug.Console(2, "Error with plugin file {0} . Exception: {1}", pluginFile.FullName, e);
                     continue; //catching any load issues and continuing. There will be exceptions loading Crestron .dlls from the cplz Probably should do something different here
                 }
-            }
 
             Debug.Console(0, "Done with .dll assemblies");
         }
@@ -269,12 +255,8 @@ namespace PepperDash.Essentials
             FileInfo[] zFiles = di.GetFiles("*.cplz");
 
             if (zFiles.Length > 0)
-            {
                 if (!Directory.Exists(_loadedPluginsDirectoryPath))
-                {
                     Directory.CreateDirectory(_loadedPluginsDirectoryPath);
-                }
-            }
 
             foreach (FileInfo zfi in zFiles)
             {
@@ -287,7 +269,6 @@ namespace PepperDash.Essentials
 
                 FileInfo[] tempFiles = tempDi.GetFiles("*.dll");
                 foreach (FileInfo tempFile in tempFiles)
-                {
                     try
                     {
                         if (!CheckIfAssemblyLoaded(tempFile.Name))
@@ -321,7 +302,6 @@ namespace PepperDash.Essentials
                         Debug.Console(2, "Assembly {0} is not a custom assembly. Exception: {1}", tempFile.FullName, e);
                         continue; //catching any load issues and continuing. There will be exceptions loading Crestron .dlls from the cplz Probably should do something different here
                     }
-                }
 
                 // Delete the .cplz and the temp directory
                 Directory.Delete(_tempDirectory, true);
@@ -359,7 +339,6 @@ namespace PepperDash.Essentials
         {
             Debug.Console(0, "Loading Custom Plugin Types...");
             foreach (LoadedAssembly loadedAssembly in LoadedPluginFolderAssemblies)
-            {
                 // iteratate this assembly's classes, looking for "LoadPlugin()" methods
                 try
                 {
@@ -378,7 +357,6 @@ namespace PepperDash.Essentials
                     }
 
                     foreach (CType type in types)
-                    {
                         try
                         {
                             if (typeof(IPluginDeviceFactory).IsAssignableFrom(type) && !type.IsAbstract)
@@ -391,10 +369,7 @@ namespace PepperDash.Essentials
                             {
                                 MethodInfo[] methods = type.GetMethods(BindingFlags.Public | BindingFlags.Static);
                                 MethodInfo loadPlugin = methods.FirstOrDefault(m => m.Name.Equals("LoadPlugin"));
-                                if (loadPlugin != null)
-                                {
-                                    LoadCustomLegacyPlugin(type, loadPlugin, loadedAssembly);
-                                }
+                                if (loadPlugin != null) LoadCustomLegacyPlugin(type, loadPlugin, loadedAssembly);
                             }
                         }
                         catch (NotSupportedException)
@@ -407,7 +382,6 @@ namespace PepperDash.Essentials
                                 loadedAssembly.Name, e.Message, type.Name);
                             continue;
                         }
-                    }
                 }
                 catch (Exception e)
                 {
@@ -416,7 +390,6 @@ namespace PepperDash.Essentials
                     Debug.Console(2, "{0}", e.StackTrace);
                     continue;
                 }
-            }
 
             // plugin dll will be loaded.  Any classes in plugin should have a static constructor
             // that registers that class with the Core.DeviceFactory

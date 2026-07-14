@@ -3,11 +3,12 @@ using System.Text;
 using Crestron.SimplSharp.Net.Https;
 using Newtonsoft.Json;
 
-namespace PepperDash.Essentials.PanoptoCloud
+namespace UmdEssentials.PanoptoCloud
 {
     public static class PanoptoOauthClient
     {
-        public static TokenResponse GetToken(string url, string username, string password, string clientId, string clientPassword)
+        public static TokenResponse GetToken(string url, string username, string password, string clientId,
+            string clientPassword)
         {
             using (HttpsClient client = new HttpsClient())
             {
@@ -16,13 +17,15 @@ namespace PepperDash.Essentials.PanoptoCloud
                 if (response == null)
                     throw new NullReferenceException("response");
                 if (response.Code != 200)
-                    throw new Exception(string.Format("Error getting token: {0} {1}", response.Code, response.ContentString));
+                    throw new Exception(string.Format("Error getting token: {0} {1}", response.Code,
+                        response.ContentString));
 
                 return JsonConvert.DeserializeObject<TokenResponse>(response.ContentString);
             }
         }
 
-        public static HttpsClientRequest BuildRequest(string url, string username, string password, string clientId, string clientPassword)
+        public static HttpsClientRequest BuildRequest(string url, string username, string password, string clientId,
+            string clientPassword)
         {
             string auth = Base64Encode(clientId + ":" + clientPassword);
             HttpsHeader authHeader = new HttpsHeader("Authorization", "Basic " + auth);
@@ -31,7 +34,8 @@ namespace PepperDash.Essentials.PanoptoCloud
             HttpsClientRequest request = new HttpsClientRequest
             {
                 RequestType = RequestType.Post,
-                ContentString = string.Format("Grant_type=password&Username={0}&Password={1}&Scope=api", username, password),
+                ContentString = string.Format("Grant_type=password&Username={0}&Password={1}&Scope=api", username,
+                    password)
             };
 
             request.Url.Parse(url);
@@ -48,12 +52,9 @@ namespace PepperDash.Essentials.PanoptoCloud
 
         public class TokenResponse
         {
-            [JsonProperty("access_token")]
-            public string AccessToken { get; set; }
-            [JsonProperty("expires_in")]
-            public int ExpiresIn { get; set; }
-            [JsonProperty("token_type")]
-            public string TokenType { get; set; }
+            [JsonProperty("access_token")] public string AccessToken { get; set; }
+            [JsonProperty("expires_in")] public int ExpiresIn { get; set; }
+            [JsonProperty("token_type")] public string TokenType { get; set; }
         }
     }
 }

@@ -2,10 +2,10 @@ using System;
 using System.Collections.Generic;
 using Crestron.SimplSharpPro.DeviceSupport;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
-using PepperDash.Essentials.Core.Bridges;
+using UmdEssentials.Core;
+using UmdEssentials.Core.Bridges;
 
-namespace PepperDash.Essentials.Devices.Common.Microphones
+namespace UmdEssentials.Devices.Common.Microphones
 {
     public enum LinkStates : ushort
     {

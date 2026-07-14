@@ -1,17 +1,17 @@
 ﻿using Crestron.SimplSharp;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
+using UmdEssentials.Core;
 
-namespace PepperDash.Essentials.Devices.Common.DSP.QscDsp
+namespace UmdEssentials.Devices.Common.DSP.QscDsp
 {
     public class QscDspMonitoringPoint
     {
         public string InstanceTag { get; private set; }
         public string Name { get; private set; }
-        
+
         private bool _isOnline;
         public bool IsSubscribed { get; private set; }
-        
+
         public BoolFeedback IsOnline { get; private set; }
         private QscDsp Parent { get; set; }
 
@@ -27,7 +27,7 @@ namespace PepperDash.Essentials.Devices.Common.DSP.QscDsp
             Name = name;
             Parent = parent;
             IsOnline = new BoolFeedback(() => _isOnline);
-            
+
             parent.CommunicationMonitor.IsOnlineFeedback.OutputChange += (sender, args) =>
             {
                 if (!args.BoolValue)
@@ -51,18 +51,18 @@ namespace PepperDash.Essentials.Devices.Common.DSP.QscDsp
             // Check for valid subscription response
             Debug.Console(1, "Monitoring Point {0} Response: '{1}'", customName, value);
 
-                switch (value)
-                {
-                    case "OK":
-                        _isOnline = true;
-                        break;
-                    default :
-                        _isOnline = false;
-                        break;
-                }
+            switch (value)
+            {
+                case "OK":
+                    _isOnline = true;
+                    break;
+                default:
+                    _isOnline = false;
+                    break;
+            }
 
-                IsSubscribed = true;
-                IsOnline.FireUpdate();
+            IsSubscribed = true;
+            IsOnline.FireUpdate();
         }
 
         /// <summary>

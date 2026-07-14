@@ -7,13 +7,13 @@ using Crestron.SimplSharpPro.DM;
 using Crestron.SimplSharpPro.DM.Endpoints;
 using Crestron.SimplSharpPro.DM.Endpoints.Transmitters;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
-using PepperDash.Essentials.Core.Bridges;
+using UmdEssentials.Core;
+using UmdEssentials.Core.Bridges;
 
-namespace PepperDash.Essentials.DM
+namespace UmdEssentials.DM
 {
-    using eVst = Crestron.SimplSharpPro.DeviceSupport.eX02VideoSourceType;
-    using eAst = Crestron.SimplSharpPro.DeviceSupport.eX02AudioSourceType;
+    using eVst = eX02VideoSourceType;
+    using eAst = eX02AudioSourceType;
 
     [Description("Wrapper class for DM-TX-4K-302-C")]
     public class DmTx4k302CController : DmTxControllerBase, ITxRoutingWithFeedback, IHasFeedback,
@@ -57,12 +57,14 @@ namespace PepperDash.Essentials.DM
         /// <summary>
         /// Helps get the "real" inputs, including when in Auto
         /// </summary>
-        public Crestron.SimplSharpPro.DeviceSupport.eX02VideoSourceType ActualActiveVideoInput
+        public eX02VideoSourceType ActualActiveVideoInput
         {
             get
             {
                 if (Tx.VideoSourceFeedback != eVst.Auto)
+                {
                     return Tx.VideoSourceFeedback;
+                }
                 else // auto
                 {
                     if (Tx.HdmiInputs[1].SyncDetectedFeedback.BoolValue)
@@ -161,7 +163,7 @@ namespace PepperDash.Essentials.DM
             VgaContrastFeedback = new IntFeedback(() => tx.VgaInput.VideoControls.ContrastFeedback.UShortValue);
 
             tx.VgaInput.VideoControls.ControlChange +=
-                new Crestron.SimplSharpPro.DeviceSupport.GenericEventHandler(VideoControls_ControlChange);
+                new GenericEventHandler(VideoControls_ControlChange);
 
 
             VideoStatusFuncsWrapper combinedFuncs = new VideoStatusFuncsWrapper
@@ -239,7 +241,7 @@ namespace PepperDash.Essentials.DM
         }
 
         private void VideoControls_ControlChange(object sender,
-            Crestron.SimplSharpPro.DeviceSupport.GenericEventArgs args)
+            GenericEventArgs args)
         {
             int id = args.EventId;
             Debug.Console(2, this, "EventId {0}", args.EventId);
@@ -279,19 +281,13 @@ namespace PepperDash.Essentials.DM
             DmTxControllerJoinMap joinMap = GetDmTxJoinMap(joinStart, joinMapKey);
 
             if (Hdmi1VideoSyncFeedback != null)
-            {
                 Hdmi1VideoSyncFeedback.LinkInputSig(trilist.BooleanInput[joinMap.Input1VideoSyncStatus.JoinNumber]);
-            }
 
             if (Hdmi2VideoSyncFeedback != null)
-            {
                 Hdmi2VideoSyncFeedback.LinkInputSig(trilist.BooleanInput[joinMap.Input2VideoSyncStatus.JoinNumber]);
-            }
 
             if (VgaVideoSyncFeedback != null)
-            {
                 VgaVideoSyncFeedback.LinkInputSig(trilist.BooleanInput[joinMap.Input3VideoSyncStatus.JoinNumber]);
-            }
 
             LinkDmTxToApi(this, trilist, joinMap, bridge);
         }
@@ -405,7 +401,7 @@ namespace PepperDash.Essentials.DM
 
         private void InputStreamChangeEvent(EndpointInputStream inputStream, EndpointInputStreamEventArgs args)
         {
-            Debug.Console(2, "{0} event {1} stream {2}", this.Tx.ToString(), inputStream.ToString(),
+            Debug.Console(2, "{0} event {1} stream {2}", Tx.ToString(), inputStream.ToString(),
                 args.EventId.ToString());
 
             switch (args.EventId)

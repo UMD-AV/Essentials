@@ -4,13 +4,13 @@ using System.Linq;
 using Crestron.SimplSharp;
 using Crestron.SimplSharpPro.DeviceSupport;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
-using PepperDash.Essentials.Core.Config;
-using PepperDash.Essentials.Core.Bridges;
-using PepperDash.Essentials.Core.Lighting;
-using LightingBase = PepperDash.Essentials.Core.Lighting.LightingBase;
+using UmdEssentials.Core;
+using UmdEssentials.Core.Bridges;
+using UmdEssentials.Core.Config;
+using UmdEssentials.Core.Lighting;
+using LightingBase = UmdEssentials.Core.Lighting.LightingBase;
 
-namespace PepperDash.Essentials.Devices.Common.Environment.Lutron
+namespace UmdEssentials.Devices.Common.Environment.Lutron
 {
     public class LutronQSArea : LightingBase, ILightingMasterRaiseLower, ICommunicationMonitor
     {
@@ -62,10 +62,8 @@ namespace PepperDash.Essentials.Devices.Common.Environment.Lutron
 
             ISocketStatus socket = comm as ISocketStatus;
             if (socket != null)
-            {
                 // IP Control
                 socket.ConnectionChange += socket_ConnectionChange;
-            }
 
             Communication.TextReceived +=
                 Communication_TextReceived;
@@ -74,15 +72,11 @@ namespace PepperDash.Essentials.Devices.Common.Environment.Lutron
             PortGather.LineReceived += PortGather_LineReceived;
 
             if (props.CommunicationMonitorProperties != null)
-            {
                 CommunicationMonitor =
                     new GenericCommunicationMonitor(this, Communication, props.CommunicationMonitorProperties);
-            }
             else
-            {
                 CommunicationMonitor =
                     new GenericCommunicationMonitor(this, Communication, 50000, 120000, 300000, Poll);
-            }
         }
 
         public override bool CustomActivate()
@@ -110,11 +104,8 @@ namespace PepperDash.Essentials.Devices.Common.Environment.Lutron
 
         private void UpdateConfigIntegrationId(string id)
         {
-            if (_props.IntegrationId != id)
-            {
-                _props.IntegrationId = id;
-                //ConfigWriter.UpdateDeviceProperties(this.Key, JToken.FromObject(_props));
-            }
+            if (_props.IntegrationId != id) _props.IntegrationId = id;
+            //ConfigWriter.UpdateDeviceProperties(this.Key, JToken.FromObject(_props));
         }
 
         private void socket_ConnectionChange(object sender, GenericSocketStatusChageEventArgs e)
@@ -150,10 +141,7 @@ namespace PepperDash.Essentials.Devices.Common.Environment.Lutron
             else if (args.Text.ToLower().Contains("access granted") ||
                      args.Text.ToLower().Contains("connection established"))
             {
-                if (SubscribeAfterLogin != null)
-                {
-                    SubscribeAfterLogin.Stop();
-                }
+                if (SubscribeAfterLogin != null) SubscribeAfterLogin.Stop();
 
                 SubscribeToFeedback();
             }
@@ -341,7 +329,7 @@ namespace PepperDash.Essentials.Devices.Common.Environment.Lutron
     {
         public LutronQSAreaFactory()
         {
-            TypeNames = new List<string>() { "lutronqsarea" };
+            TypeNames = new List<string> { "lutronqsarea" };
         }
 
         public override EssentialsDevice BuildDevice(DeviceConfig dc)

@@ -1,13 +1,13 @@
 ﻿using Crestron.SimplSharpPro.DeviceSupport;
 using Crestron.SimplSharpPro;
 using Crestron.SimplSharpPro.DM.Endpoints.Receivers;
-using PepperDash.Essentials.Core.Bridges;
-using PepperDash.Essentials.Core;
 using PepperDash.Core;
 using Newtonsoft.Json;
+using UmdEssentials.Core;
+using UmdEssentials.Core.Bridges;
 
 
-namespace PepperDash.Essentials.DM
+namespace UmdEssentials.DM
 {
     public class HDBaseTRxController : DmHdBaseTControllerBase, IRoutingInputsOutputs,
         IComPorts
@@ -57,19 +57,15 @@ namespace PepperDash.Essentials.DM
                 joinMap = JsonConvert.DeserializeObject<DmRmcControllerJoinMap>(joinMapSerialized);
 
             if (bridge != null)
-            {
                 bridge.AddJoinMap(Key, joinMap);
-            }
             else
-            {
                 Debug.Console(0, this,
                     "Please update config to use 'eiscapiadvanced' to get all join map features for this device.");
-            }
 
             Debug.Console(1, this, "Linking to Trilist '{0}'", trilist.ID.ToString("X"));
 
             IsOnline.LinkInputSig(trilist.BooleanInput[joinMap.IsOnline.JoinNumber]);
-            trilist.StringInput[joinMap.Name.JoinNumber].StringValue = this.Name;
+            trilist.StringInput[joinMap.Name.JoinNumber].StringValue = Name;
         }
 
         #region IComPorts Members

@@ -1,4 +1,4 @@
-﻿namespace PepperDash.Essentials.Core
+﻿namespace UmdEssentials.Core
 {
     public class CrestronTouchpanelPropertiesConfig
     {
@@ -27,7 +27,7 @@
         public CrestronTouchpanelPropertiesConfig()
         {
             SourcesOverflowCount = 5;
-            HeaderStyle = CrestronTouchpanelPropertiesConfig.Habanero;
+            HeaderStyle = Habanero;
 
             // Default values
             ScreenSaverTimeoutMin = 5;

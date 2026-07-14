@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using NvxEpi.Application.Builder;
-using PepperDash.Essentials.Core;
-using PepperDash.Essentials.Core.Config;
+using UmdEssentials.Core;
+using UmdEssentials.Core.Config;
 
 namespace NvxEpi.Application.Factories
 {
@@ -12,7 +12,7 @@ namespace NvxEpi.Application.Factories
 
         static NvxApplicationFactory()
         {
-            _typeNames = new List<string>() { "dynnvx", "nvxapplication", "nvxapp" };
+            _typeNames = new List<string> { "dynnvx", "nvxapplication", "nvxapp" };
         }
 
         public NvxApplicationFactory()

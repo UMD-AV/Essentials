@@ -1,7 +1,7 @@
 ﻿using Crestron.SimplSharpPro.DM;
 using Crestron.SimplSharpPro.DM.Endpoints;
 
-namespace PepperDash.Essentials.DM
+namespace UmdEssentials.DM
 {
     public static class VideoAttributesBasicExtensions
     {

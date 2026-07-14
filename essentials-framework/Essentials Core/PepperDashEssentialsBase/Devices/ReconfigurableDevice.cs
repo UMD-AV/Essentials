@@ -1,9 +1,9 @@
 ﻿using System;
 using Crestron.SimplSharpPro.DeviceSupport;
-using PepperDash.Essentials.Core.Bridges;
-using PepperDash.Essentials.Core.Config;
+using UmdEssentials.Core.Bridges;
+using UmdEssentials.Core.Config;
 
-namespace PepperDash.Essentials.Core.Devices
+namespace UmdEssentials.Core.Devices
 {
     /// <summary>
     /// 
@@ -35,10 +35,7 @@ namespace PepperDash.Essentials.Core.Devices
             CustomSetConfig(config);
 
             EventHandler<EventArgs> handler = ConfigChanged;
-            if (handler != null)
-            {
-                handler(this, new EventArgs());
-            }
+            if (handler != null) handler(this, new EventArgs());
         }
 
         private void SetNameHelper(DeviceConfig config)

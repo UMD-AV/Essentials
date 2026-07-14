@@ -1,7 +1,7 @@
 ﻿using System;
-using PepperDash.Essentials.Core;
+using UmdEssentials.Core;
 
-namespace PepperDash.Essentials.Core.DeviceTypeInterfaces
+namespace UmdEssentials.Core.DeviceTypeInterfaces
 {
     public interface IHasPhoneDialing
     {

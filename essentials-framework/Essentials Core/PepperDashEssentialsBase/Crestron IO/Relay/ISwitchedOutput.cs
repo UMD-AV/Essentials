@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace PepperDash.Essentials.Core.CrestronIO
+namespace UmdEssentials.Core.CrestronIO
 {
     /// <summary>
     /// Describes an output capable of switching on and off

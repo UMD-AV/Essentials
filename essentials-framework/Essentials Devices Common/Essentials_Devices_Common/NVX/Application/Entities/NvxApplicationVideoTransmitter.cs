@@ -9,8 +9,8 @@ using NvxEpi.Devices;
 using NvxEpi.Enums;
 using NvxEpi.Extensions;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
-using PepperDash.Essentials.Core.Routing;
+using UmdEssentials.Core;
+using UmdEssentials.Core.Routing;
 
 namespace NvxEpi.Application.Entities
 {

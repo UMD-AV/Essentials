@@ -1,7 +1,7 @@
 ﻿using System;
-using PepperDash.Essentials.Core;
+using UmdEssentials.Core;
 
-namespace PepperDash.Essentials.Devices.Common.Microphones
+namespace UmdEssentials.Devices.Common.Microphones
 {
     public class MicrophoneDeviceJoinMap : JoinMapBaseAdvanced
     {

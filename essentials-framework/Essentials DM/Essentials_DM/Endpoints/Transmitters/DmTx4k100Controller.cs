@@ -4,12 +4,12 @@ using Crestron.SimplSharpPro.DeviceSupport;
 using Crestron.SimplSharpPro.DM;
 using Crestron.SimplSharpPro.DM.Endpoints.Transmitters;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
-using PepperDash.Essentials.Core.Bridges;
 using Newtonsoft.Json;
+using UmdEssentials.Core;
+using UmdEssentials.Core.Bridges;
 
 
-namespace PepperDash.Essentials.DM
+namespace UmdEssentials.DM
 {
     using eVst = eX02VideoSourceType;
 
@@ -89,20 +89,16 @@ namespace PepperDash.Essentials.DM
                 joinMap = JsonConvert.DeserializeObject<HDBaseTTxControllerJoinMap>(joinMapSerialized);
 
             if (bridge != null)
-            {
                 bridge.AddJoinMap(Key, joinMap);
-            }
             else
-            {
                 Debug.Console(0, this,
                     "Please update config to use 'eiscapiadvanced' to get all join map features for this device.");
-            }
 
             Debug.Console(1, this, "Linking to Trilist '{0}'", trilist.ID.ToString("X"));
 
-            Debug.Console(1, this, "Setting device name on join {0} to {1}", joinMap.Name.JoinNumber, this.Name);
-            this.IsOnline.LinkInputSig(trilist.BooleanInput[joinMap.IsOnline.JoinNumber]);
-            trilist.StringInput[joinMap.Name.JoinNumber].StringValue = this.Name;
+            Debug.Console(1, this, "Setting device name on join {0} to {1}", joinMap.Name.JoinNumber, Name);
+            IsOnline.LinkInputSig(trilist.BooleanInput[joinMap.IsOnline.JoinNumber]);
+            trilist.StringInput[joinMap.Name.JoinNumber].StringValue = Name;
         }
 
         #region IIROutputPorts Members

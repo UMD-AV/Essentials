@@ -1,8 +1,8 @@
 ﻿using Crestron.SimplSharpPro.DM;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
+using UmdEssentials.Core;
 
-namespace PepperDash.Essentials.DM
+namespace UmdEssentials.DM
 {
     public class DmCardAudioOutputController : IBasicVolumeWithFeedback
     {
@@ -88,7 +88,9 @@ namespace PepperDash.Essentials.DM
                 Output.Volume.CreateRamp(0, (uint)(400 * remainingRatio));
             }
             else
+            {
                 Output.Volume.StopRamp();
+            }
         }
 
         /// <summary>
@@ -102,7 +104,9 @@ namespace PepperDash.Essentials.DM
                 Output.Volume.CreateRamp(65535, 400);
             }
             else
+            {
                 Output.Volume.StopRamp();
+            }
         }
 
         #endregion

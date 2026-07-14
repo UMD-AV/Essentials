@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using NvxEpi.Devices;
-using PepperDash.Essentials.Core;
-using PepperDash.Essentials.Core.Config;
+using UmdEssentials.Core;
+using UmdEssentials.Core.Config;
 
 namespace NvxEpi.Factories
 {

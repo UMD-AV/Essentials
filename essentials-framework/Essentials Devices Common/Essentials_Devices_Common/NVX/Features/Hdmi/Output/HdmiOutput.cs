@@ -2,7 +2,7 @@
 using NvxEpi.Abstractions;
 using NvxEpi.Abstractions.HdmiOutput;
 using NvxEpi.Services.Feedback;
-using PepperDash.Essentials.Core;
+using UmdEssentials.Core;
 
 namespace NvxEpi.Features.Hdmi.Output
 {
@@ -94,18 +94,12 @@ namespace NvxEpi.Features.Hdmi.Output
 
         public void BlankOutput()
         {
-            if (_device.Hardware.HdmiOut != null)
-            {
-                _device.Hardware.HdmiOut.BlankEnabled();
-            }
+            if (_device.Hardware.HdmiOut != null) _device.Hardware.HdmiOut.BlankEnabled();
         }
 
         public void UnblankOutput()
         {
-            if (_device.Hardware.HdmiOut != null)
-            {
-                _device.Hardware.HdmiOut.BlankDisabled();
-            }
+            if (_device.Hardware.HdmiOut != null) _device.Hardware.HdmiOut.BlankDisabled();
         }
     }
 }

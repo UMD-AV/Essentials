@@ -6,7 +6,7 @@ using NvxEpi.Abstractions.Stream;
 using NvxEpi.Devices;
 using NvxEpi.Features.Routing;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
+using UmdEssentials.Core;
 
 namespace NvxEpi.Features.Streams.Video
 {
@@ -61,14 +61,10 @@ namespace NvxEpi.Features.Streams.Video
                 _current = GetCurrentStream();
 
                 if (_current == null)
-                {
                     Debug.Console(2, _device, "Current stream address: {0} device ID: {1}", "0.0.0.0", 0);
-                }
                 else
-                {
                     Debug.Console(2, _device, "Current stream address: {0} device ID: {1}", _current.MulticastAddress,
                         _current.DeviceId);
-                }
 
                 CurrentStreamId.FireUpdate();
                 CurrentStreamName.FireUpdate();
@@ -96,28 +92,20 @@ namespace NvxEpi.Features.Streams.Video
 
             IStream result = _transmitters
                 .Where(x => !string.IsNullOrEmpty(x.StreamUrl.StringValue))
-                .FirstOrDefault(
-                    x => x.StreamUrl.StringValue.Equals(_device.StreamUrl.StringValue,
-                        StringComparison.OrdinalIgnoreCase));
+                .FirstOrDefault(x => x.StreamUrl.StringValue.Equals(_device.StreamUrl.StringValue,
+                    StringComparison.OrdinalIgnoreCase));
 
-            if (result != null)
-            {
-                return result;
-            }
+            if (result != null) return result;
 
             result = DeviceManager
                 .AllDevices
                 .OfType<IStream>()
                 .Where(t => t.IsTransmitter)
                 .Where(x => !string.IsNullOrEmpty(x.StreamUrl.StringValue))
-                .FirstOrDefault(
-                    tx => tx.StreamUrl.StringValue.Equals(_device.StreamUrl.StringValue,
-                        StringComparison.OrdinalIgnoreCase));
+                .FirstOrDefault(tx => tx.StreamUrl.StringValue.Equals(_device.StreamUrl.StringValue,
+                    StringComparison.OrdinalIgnoreCase));
 
-            if (result != null)
-            {
-                _transmitters.Add(result);
-            }
+            if (result != null) _transmitters.Add(result);
 
             return result;
         }

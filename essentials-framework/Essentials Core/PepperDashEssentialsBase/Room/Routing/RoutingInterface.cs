@@ -5,10 +5,10 @@ using Crestron.SimplSharp;
 using Crestron.SimplSharpPro;
 using Crestron.SimplSharpPro.DeviceSupport;
 using PepperDash.Core;
-using PepperDash.Essentials.Core.Bridges;
-using PepperDash.Essentials.Core.Config;
+using UmdEssentials.Core.Bridges;
+using UmdEssentials.Core.Config;
 
-namespace PepperDash.Essentials.Core.Routing
+namespace UmdEssentials.Core.Routing
 {
     public class RoutingInterface : IKeyName, IBridgeAdvanced
     {
@@ -30,10 +30,7 @@ namespace PepperDash.Essentials.Core.Routing
         {
             get
             {
-                if (_techPanel)
-                {
-                    return 1;
-                }
+                if (_techPanel) return 1;
 
                 return _advancedMode;
             }
@@ -149,24 +146,15 @@ namespace PepperDash.Essentials.Core.Routing
             {
                 if (newRouterKey == RouterKey || newRouterKey.Length < 2)
                 {
-                    if (debugLevel > 0)
-                    {
-                        Debug.Console(0, "Ignoring new router key: {0}", newRouterKey);
-                    }
+                    if (debugLevel > 0) Debug.Console(0, "Ignoring new router key: {0}", newRouterKey);
                 }
                 else
                 {
                     RouterKey = newRouterKey;
-                    if (_router != null)
-                    {
-                        _router.DestinationFeedbackChanged -= DestinationFeedbackChangedHandler;
-                    }
+                    if (_router != null) _router.DestinationFeedbackChanged -= DestinationFeedbackChangedHandler;
 
                     _router = RouterMain.GetRouter(newRouterKey);
-                    if (_router != null)
-                    {
-                        _router.DestinationFeedbackChanged += DestinationFeedbackChangedHandler;
-                    }
+                    if (_router != null) _router.DestinationFeedbackChanged += DestinationFeedbackChangedHandler;
 
                     UpdateAllOutputs();
                 }
@@ -287,15 +275,10 @@ namespace PepperDash.Essentials.Core.Routing
                 for (ushort i = 0;
                      i <= RouterMain.maxSources;
                      i++)
-                {
                     UpdateSourceFeedback(i);
-                }
 
                 //Update all destination feedback
-                for (ushort i = 0; i <= RouterMain.maxDests; i++)
-                {
-                    UpdateDestinationFeedback(i);
-                }
+                for (ushort i = 0; i <= RouterMain.maxDests; i++) UpdateDestinationFeedback(i);
             }
             catch (Exception ex)
             {
@@ -305,18 +288,13 @@ namespace PepperDash.Essentials.Core.Routing
 
         public void FireAction(ushort i)
         {
-            if (_router != null)
-            {
-                _router.FireAction(i);
-            }
+            if (_router != null) _router.FireAction(i);
         }
 
         public void SelectSource(ushort i)
         {
             if (debugLevel > 0)
-            {
                 Debug.Console(0, "Routing interface {0} selecting source {1}, allow routes: {2}", Key, i, allowRoutes);
-            }
 
             if (!allowRoutes) return;
             if (_router != null && _router.Sources != null)
@@ -326,10 +304,7 @@ namespace PepperDash.Essentials.Core.Routing
                 {
                     SelectedSource = source;
 
-                    if (PreviewRoutes != null)
-                    {
-                        _router.MakeRoute(source.Routes, PreviewRoutes);
-                    }
+                    if (PreviewRoutes != null) _router.MakeRoute(source.Routes, PreviewRoutes);
 
                     if (AdvancedMode == 0)
                     {
@@ -344,20 +319,13 @@ namespace PepperDash.Essentials.Core.Routing
                     }
 
                     if (!string.IsNullOrEmpty(source.disableDestinations))
-                    {
                         //If source has disabled destinations defined, only enable some destinations
                         DisabledDests = SelectedSource.disableDestinations.Split(',').Select(x => ushort.Parse(x))
                             .ToArray();
-                    }
                     else
-                    {
                         DisabledDests = null;
-                    }
 
-                    for (ushort d = 0; d <= RouterMain.maxDests; d++)
-                    {
-                        DestEnableFeedbacks[d].FireUpdate();
-                    }
+                    for (ushort d = 0; d <= RouterMain.maxDests; d++) DestEnableFeedbacks[d].FireUpdate();
                 }
             }
         }
@@ -365,35 +333,23 @@ namespace PepperDash.Essentials.Core.Routing
         public void SelectDest(ushort i)
         {
             if (debugLevel > 0)
-            {
                 Debug.Console(0, "Routing interface {0} selecting dest {1}, allow routes: {2}", Key, i, allowRoutes);
-            }
 
             if (!allowRoutes) return;
 
             if (AdvancedMode == 0)
-            {
                 //In auto route mode, select dest does nothing
                 return;
-            }
 
-            if (_router != null && SelectedSource != null)
-            {
-                _router.RouteByIndex(SelectedSource.Index, i);
-            }
+            if (_router != null && SelectedSource != null) _router.RouteByIndex(SelectedSource.Index, i);
         }
 
         private void MakeRoute(ushort source, ushort dest)
         {
             if (debugLevel > 0)
-            {
                 Debug.Console(0, "Routing interface {0} making route from source: {1} to dest: {2}", Key, source, dest);
-            }
 
-            if (allowRoutes && _router != null)
-            {
-                _router.RouteByIndex(source, dest);
-            }
+            if (allowRoutes && _router != null) _router.RouteByIndex(source, dest);
         }
 
         public void OverridePreview(ushort i)
@@ -406,13 +362,9 @@ namespace PepperDash.Essentials.Core.Routing
                 if (source != null)
                 {
                     if (i > 0)
-                    {
                         _router.MakeRoute(source.Routes, PreviewRoutes);
-                    }
                     else
-                    {
                         _router.MakeRoute(SelectedSource.Routes, PreviewRoutes);
-                    }
                 }
             }
         }
@@ -470,34 +422,20 @@ namespace PepperDash.Essentials.Core.Routing
                 Source source = _router.Sources[sourceIndex];
 
                 //Check for tech panel mode
-                if (_techPanel)
-                {
-                    return source.techVisible ?? false;
-                }
+                if (_techPanel) return source.techVisible ?? false;
 
                 //Check for visible mode defined but not enabled
                 if (!string.IsNullOrEmpty(source.visibleMode) &&
                     !_visibleModes.Contains(source.visibleMode.ToLower()))
-                {
                     return false;
-                }
 
                 //Check for an overflow source with overflow disabled
-                if (_overflowMode == 0 && source.Overflow == true)
-                {
-                    return false;
-                }
+                if (_overflowMode == 0 && source.Overflow == true) return false;
 
                 //Determine source visibility depending on config setting and if advanced mode is enabled
-                if (source.EasyModeVisible == true && AdvancedMode == 0)
-                {
-                    return true;
-                }
+                if (source.EasyModeVisible == true && AdvancedMode == 0) return true;
 
-                if (source.AdvancedModeVisible == true && AdvancedMode == 1)
-                {
-                    return true;
-                }
+                if (source.AdvancedModeVisible == true && AdvancedMode == 1) return true;
             }
 
             return false;
@@ -514,43 +452,26 @@ namespace PepperDash.Essentials.Core.Routing
 
                 //Check for tech panel mode
                 if (_techPanel)
-                {
                     visible = source.techVisible ?? false;
-                }
 
                 //Check for visible mode defined but not enabled
                 else if (!string.IsNullOrEmpty(source.visibleMode) &&
                          !_visibleModes.Contains(source.visibleMode.ToLower()))
-                {
                     visible = false;
-                }
 
                 //Check for an overflow source with overflow disabled
                 else if (_overflowMode == 0 && source.Overflow == true)
-                {
                     visible = false;
-                }
                 else
-                {
                     visible = true;
-                }
 
                 if (visible)
                 {
-                    if (source.EasyModeVisible == true && source.AdvancedModeVisible == true)
-                    {
-                        return 3;
-                    }
+                    if (source.EasyModeVisible == true && source.AdvancedModeVisible == true) return 3;
 
-                    if (source.AdvancedModeVisible == true)
-                    {
-                        return 2;
-                    }
+                    if (source.AdvancedModeVisible == true) return 2;
 
-                    if (source.EasyModeVisible == true)
-                    {
-                        return 1;
-                    }
+                    if (source.EasyModeVisible == true) return 1;
                 }
             }
 
@@ -560,9 +481,7 @@ namespace PepperDash.Essentials.Core.Routing
         private string GetSourceName(ushort sourceIndex)
         {
             if (_router != null && _router.Sources != null && _router.Sources.ContainsKey(sourceIndex))
-            {
                 return _router.Sources[sourceIndex].Name ?? "";
-            }
 
             return "";
         }
@@ -570,9 +489,7 @@ namespace PepperDash.Essentials.Core.Routing
         private string GetSourceIcon(ushort sourceIndex)
         {
             if (_router != null && _router.Sources != null && _router.Sources.ContainsKey(sourceIndex))
-            {
                 return _router.Sources[sourceIndex].Icon ?? "";
-            }
 
             return "";
         }
@@ -580,11 +497,9 @@ namespace PepperDash.Essentials.Core.Routing
         private string GetSourceDeviceKey(ushort sourceIndex)
         {
             if (_router != null && _router.Sources != null && _router.Sources.ContainsKey(sourceIndex))
-            {
                 return _router.Sources[sourceIndex].DeviceKey != null
                     ? _router.Sources[sourceIndex].DeviceKey.ToLower()
                     : "";
-            }
 
             return "";
         }
@@ -592,9 +507,7 @@ namespace PepperDash.Essentials.Core.Routing
         private string GetSourceVideoSyncKey(ushort sourceIndex)
         {
             if (_router != null && _router.Sources != null && _router.Sources.ContainsKey(sourceIndex))
-            {
                 return _router.Sources[sourceIndex].VideoSyncKey ?? "";
-            }
 
             return "";
         }
@@ -602,9 +515,7 @@ namespace PepperDash.Essentials.Core.Routing
         private bool GetSourceAudioVisibility(ushort sourceIndex)
         {
             if (_router != null && _router.Sources != null && _router.Sources.ContainsKey(sourceIndex))
-            {
                 return _router.Sources[sourceIndex].HasAudio && AdvancedMode == 1;
-            }
 
             return false;
         }
@@ -612,9 +523,7 @@ namespace PepperDash.Essentials.Core.Routing
         private bool GetSourceContentVisibility(ushort sourceIndex)
         {
             if (_router != null && _router.Sources != null && _router.Sources.ContainsKey(sourceIndex))
-            {
                 return _router.Sources[sourceIndex].ContentVisible;
-            }
 
             return false;
         }
@@ -622,9 +531,7 @@ namespace PepperDash.Essentials.Core.Routing
         private string GetDestName(ushort destIndex)
         {
             if (_router != null && _router.Dests != null && _router.Dests.ContainsKey(destIndex))
-            {
                 return _router.Dests[destIndex].Name ?? "";
-            }
 
             return "";
         }
@@ -632,9 +539,7 @@ namespace PepperDash.Essentials.Core.Routing
         private string GetDestRouteName(ushort destIndex)
         {
             if (_router != null && _router.Dests != null && _router.Dests.ContainsKey(destIndex))
-            {
                 return _router.Dests[destIndex].FeedbackName ?? "";
-            }
 
             return "";
         }
@@ -646,28 +551,17 @@ namespace PepperDash.Essentials.Core.Routing
                 Dest dest = _router.Dests[destIndex];
 
                 //Check for tech panel mode
-                if (_techPanel)
-                {
-                    return dest.techVisible ?? false;
-                }
+                if (_techPanel) return dest.techVisible ?? false;
 
                 //Check for visible mode defined but not enabled
                 if (!string.IsNullOrEmpty(dest.visibleMode) &&
                     !_visibleModes.Contains(dest.visibleMode.ToLower()))
-                {
                     return false;
-                }
 
                 //Check for overflow dest with overflow disabled
-                if (_overflowMode == 0 && dest.Overflow == true)
-                {
-                    return false;
-                }
+                if (_overflowMode == 0 && dest.Overflow == true) return false;
 
-                if (dest.Visible == true)
-                {
-                    return true;
-                }
+                if (dest.Visible == true) return true;
             }
 
             return false;
@@ -678,16 +572,12 @@ namespace PepperDash.Essentials.Core.Routing
             if (_router != null && _router.Dests != null && _router.Dests.ContainsKey(destIndex))
             {
                 if (SelectedSource == null)
-                {
                     //If no source selected, disable all destinations
                     return false;
-                }
 
                 if (DisabledDests != null && DisabledDests.Contains(destIndex))
-                {
                     //Found match, disable destination
                     return false;
-                }
 
                 return true;
             }
@@ -697,23 +587,14 @@ namespace PepperDash.Essentials.Core.Routing
 
         private void UpdateAllSourceVisibility()
         {
-            foreach (BoolFeedback boolFeedback in SourceVisibleFeedbacks.Values)
-            {
-                boolFeedback.FireUpdate();
-            }
+            foreach (BoolFeedback boolFeedback in SourceVisibleFeedbacks.Values) boolFeedback.FireUpdate();
 
-            foreach (IntFeedback intFeedback in SourceVisibleModeFeedbacks.Values)
-            {
-                intFeedback.FireUpdate();
-            }
+            foreach (IntFeedback intFeedback in SourceVisibleModeFeedbacks.Values) intFeedback.FireUpdate();
         }
 
         private void UpdateAllDestVisibility()
         {
-            foreach (BoolFeedback boolFeedback in DestVisibleFeedbacks.Values)
-            {
-                boolFeedback.FireUpdate();
-            }
+            foreach (BoolFeedback boolFeedback in DestVisibleFeedbacks.Values) boolFeedback.FireUpdate();
         }
 
         public void SetAdvancedMode(ushort mode)
@@ -725,9 +606,7 @@ namespace PepperDash.Essentials.Core.Routing
             for (ushort i = 0;
                  i <= RouterMain.maxSources;
                  i++)
-            {
                 SourceAudioVisibleFeedbacks[i].FireUpdate();
-            }
 
             if (_router != null && _router.Dests.ContainsKey(0))
             {

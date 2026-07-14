@@ -1,4 +1,4 @@
-﻿namespace PepperDash.Essentials.Devices.Common.Codec
+﻿namespace UmdEssentials.Devices.Common.Codec
 {
     public enum eCodecCallStatus
     {
@@ -13,7 +13,7 @@
         OnHold,
         Ringing,
         Preserved,
-        RemotePreserved,
+        RemotePreserved
     }
 
 

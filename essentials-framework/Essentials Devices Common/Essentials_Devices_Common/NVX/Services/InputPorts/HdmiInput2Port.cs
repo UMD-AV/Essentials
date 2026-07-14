@@ -3,7 +3,7 @@ using System.Linq;
 using Crestron.SimplSharpPro.DeviceSupport;
 using NvxEpi.Abstractions.InputSwitching;
 using NvxEpi.Enums;
-using PepperDash.Essentials.Core;
+using UmdEssentials.Core;
 
 namespace NvxEpi.Services.InputPorts
 {
@@ -37,7 +37,7 @@ namespace NvxEpi.Services.InputPorts
             hdmi.VideoAttributes.AttributeChange += (sender, args) => port.VideoStatus.FireAll();
 
             device.InputPorts.Add(port);
-            foreach (PepperDash.Essentials.Core.Feedback videoStatusOutput in port.VideoStatus.ToList()
+            foreach (UmdEssentials.Core.Feedback videoStatusOutput in port.VideoStatus.ToList()
                          .Where(x => x != null))
                 device.Feedbacks.Add(videoStatusOutput);
         }

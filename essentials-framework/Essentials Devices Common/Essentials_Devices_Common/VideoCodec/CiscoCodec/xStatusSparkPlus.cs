@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace PepperDash.Essentials.Devices.Common.VideoCodec.CiscoCodec
+namespace UmdEssentials.Devices.Common.VideoCodec.CiscoCodec
 {
     public class xStatusSparkPlus
     {

@@ -1,8 +1,8 @@
 using Crestron.SimplSharpPro.DM;
-using PepperDash.Essentials.Core;
 using PepperDash.Core;
+using UmdEssentials.Core;
 
-namespace PepperDash.Essentials.DM
+namespace UmdEssentials.DM
 {
     public class RoutingOutputPortWithBlanking : RoutingOutputPort, IHdmiBlanking
     {

@@ -2,10 +2,10 @@
 using Crestron.SimplSharpPro.DeviceSupport;
 using Newtonsoft.Json;
 using PepperDash.Core;
-using PepperDash.Essentials.Core.Bridges;
-using PepperDash.Essentials.Core.Config;
+using UmdEssentials.Core.Bridges;
+using UmdEssentials.Core.Config;
 
-namespace PepperDash.Essentials.Core.Devices
+namespace UmdEssentials.Core.Devices
 {
     public class GenericIrController : EssentialsBridgeableDevice
     {
@@ -39,15 +39,9 @@ namespace PepperDash.Essentials.Core.Devices
 
         private void DriverLoadedOnOutputChange(object sender, FeedbackEventArgs args)
         {
-            if (!args.BoolValue)
-            {
-                return;
-            }
+            if (!args.BoolValue) return;
 
-            if (_trilist == null || _bridge == null)
-            {
-                return;
-            }
+            if (_trilist == null || _bridge == null) return;
 
             LinkToApi(_trilist, _joinStart, _joinMapKey, _bridge);
         }
@@ -94,14 +88,10 @@ namespace PepperDash.Essentials.Core.Devices
             joinMap.PrintJoinMapInfo();
 
             if (bridge != null)
-            {
                 bridge.AddJoinMap(Key, joinMap);
-            }
             else
-            {
                 Debug.Console(0, this,
                     "Please update config to use 'eiscapiadvanced' to get all join map features for this device.");
-            }
         }
 
         #endregion

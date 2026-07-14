@@ -1,6 +1,6 @@
 ﻿using PepperDash.Core;
 
-namespace PepperDash.Essentials.Core
+namespace UmdEssentials.Core
 {
     public static class DeviceFeedbackExtensions
     {
@@ -15,10 +15,7 @@ namespace PepperDash.Essentials.Core
         {
             Feedback feedback = DeviceJsonApi.GetPropertyByName(device.Key, propertyName) as Feedback;
 
-            if (feedback != null)
-            {
-                return feedback;
-            }
+            if (feedback != null) return feedback;
 
             return null;
         }

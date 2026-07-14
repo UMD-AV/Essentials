@@ -7,10 +7,10 @@ using Crestron.SimplSharpPro.DM;
 using Crestron.SimplSharpPro.DM.Endpoints;
 using Crestron.SimplSharpPro.DM.Endpoints.Transmitters;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
-using PepperDash.Essentials.Core.Bridges;
+using UmdEssentials.Core;
+using UmdEssentials.Core.Bridges;
 
-namespace PepperDash.Essentials.DM
+namespace UmdEssentials.DM
 {
     using eVst = eX02VideoSourceType;
 
@@ -247,20 +247,14 @@ namespace PepperDash.Essentials.DM
             DmTxControllerJoinMap joinMap = GetDmTxJoinMap(joinStart, joinMapKey);
 
             if (Hdmi1VideoSyncFeedback != null)
-            {
                 Hdmi1VideoSyncFeedback.LinkInputSig(trilist.BooleanInput[joinMap.Input1VideoSyncStatus.JoinNumber]);
-            }
 
             if (Hdmi2VideoSyncFeedback != null)
-            {
                 Hdmi2VideoSyncFeedback.LinkInputSig(trilist.BooleanInput[joinMap.Input2VideoSyncStatus.JoinNumber]);
-            }
 
             if (DisplayPortVideoSyncFeedback != null)
-            {
                 DisplayPortVideoSyncFeedback.LinkInputSig(
                     trilist.BooleanInput[joinMap.Input3VideoSyncStatus.JoinNumber]);
-            }
 
             LinkDmTxToApi(this, trilist, joinMap, bridge);
         }

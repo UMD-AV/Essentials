@@ -1,6 +1,7 @@
 ﻿using Crestron.SimplSharpPro.DeviceSupport;
+using UmdEssentials.Core.Presets;
 
-namespace PepperDash.Essentials.Core
+namespace UmdEssentials.Core
 {
     /// <summary>
     /// 
@@ -28,7 +29,7 @@ namespace PepperDash.Essentials.Core
         /// </summary>
         bool HasDpad { get; }
 
-        PepperDash.Essentials.Core.Presets.DevicePresetsModel TvPresets { get; }
+        DevicePresetsModel TvPresets { get; }
         void LoadPresets(string filePath);
 
         void DvrList(bool pressRelease);

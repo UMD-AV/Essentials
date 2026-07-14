@@ -1,7 +1,7 @@
 ﻿using System;
 using PepperDash.Core;
 
-namespace PepperDash.Essentials.Core.Queues
+namespace UmdEssentials.Core.Queues
 {
     public interface IQueue<T> : IKeyed, IDisposable where T : class
     {

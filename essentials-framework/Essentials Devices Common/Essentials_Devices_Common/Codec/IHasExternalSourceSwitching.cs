@@ -1,7 +1,7 @@
 ﻿using System;
-using PepperDash.Essentials.Devices.Common.VideoCodec.Cisco;
+using UmdEssentials.Devices.Common.VideoCodec.Cisco;
 
-namespace PepperDash.Essentials.Devices.Common.Codec
+namespace UmdEssentials.Devices.Common.Codec
 {
     public interface IHasExternalSourceSwitching
     {

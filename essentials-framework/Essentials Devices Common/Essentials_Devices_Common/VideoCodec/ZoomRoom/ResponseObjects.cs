@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.ComponentModel;
 using PepperDash.Core;
-using PepperDash.Essentials.Devices.Common.Codec;
 using Newtonsoft.Json;
-using PepperDash.Essentials.Devices.Common.VideoCodec.Interfaces;
+using UmdEssentials.Devices.Common.Codec;
+using UmdEssentials.Devices.Common.VideoCodec.Interfaces;
 
-namespace PepperDash.Essentials.Devices.Common.VideoCodec.ZoomRoom
+namespace UmdEssentials.Devices.Common.VideoCodec.ZoomRoom
 {
     public enum eZoomRoomResponseType
     {
@@ -27,13 +27,9 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.ZoomRoom
         {
             PropertyChangedEventHandler handler = PropertyChanged;
             if (handler != null)
-            {
                 handler(this, new PropertyChangedEventArgs(propertyName));
-            }
             else
-            {
                 Debug.Console(2, "PropertyChanged event is NULL");
-            }
         }
 
         #endregion
@@ -256,26 +252,20 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.ZoomRoom
 
                 try
                 {
-                    if (zoomContacts.Count == 0)
-                    {
-                        return directory;
-                    }
+                    if (zoomContacts.Count == 0) return directory;
 
                     foreach (Contact c in zoomContacts)
                     {
                         InvitableDirectoryContact contact = new InvitableDirectoryContact
                             { Name = c.ScreenName, ContactId = c.Jid };
 
-                        contact.ContactMethods.Add(new ContactMethod()
+                        contact.ContactMethods.Add(new ContactMethod
                         {
                             Number = c.Jid, Device = eContactMethodDevice.Video,
                             CallType = eContactMethodCallType.Video, ContactMethodId = c.Jid
                         });
 
-                        if (folders.Count > 0)
-                        {
-                            contact.ParentFolderId = c.IsZoomRoom ? "rooms" : "contacts";
-                        }
+                        if (folders.Count > 0) contact.ParentFolderId = c.IsZoomRoom ? "rooms" : "contacts";
 
                         contacts.Add(contact);
                     }
@@ -399,7 +389,7 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.ZoomRoom
         {
             None,
             Laptop,
-            IOS,
+            IOS
         }
 
         public class Sharing : NotifiableObject
@@ -997,7 +987,7 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.ZoomRoom
             PhoneCallStatus_Terminated,
             PhoneCallStatus_Accepted,
             PhoneCallStatus_InCall,
-            PhoneCallStatus_Init,
+            PhoneCallStatus_Init
         }
 
         public class MeetingNeedsPassword
@@ -1063,7 +1053,7 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.ZoomRoom
             Gallery = 1,
             Speaker = 2,
             Strip = 4,
-            ShareAll = 8,
+            ShareAll = 8
         }
 
         public enum eLayoutSize
@@ -1331,10 +1321,7 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.ZoomRoom
         {
             List<Meeting> rv = GetGenericMeetingsFromBookingResult(bookings);
 
-            foreach (Meeting meeting in rv)
-            {
-                meeting.MinutesBeforeMeeting = minutesBeforeMeetingStart;
-            }
+            foreach (Meeting meeting in rv) meeting.MinutesBeforeMeeting = minutesBeforeMeetingStart;
 
             return rv;
         }
@@ -1348,10 +1335,7 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.ZoomRoom
         {
             List<Meeting> meetings = new List<Meeting>();
 
-            if (Debug.Level > 0)
-            {
-                Debug.Console(1, "Meetings List:\n");
-            }
+            if (Debug.Level > 0) Debug.Console(1, "Meetings List:\n");
 
             foreach (BookingsListResult b in bookings)
             {
@@ -1512,10 +1496,7 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.ZoomRoom
             public static List<Participant> GetGenericParticipantListFromParticipantsResult(
                 List<ListParticipant> participants)
             {
-                if (participants.Count == 0)
-                {
-                    return new List<Participant>();
-                }
+                if (participants.Count == 0) return new List<Participant>();
 
                 List<ListParticipant> sortedParticipants = SortParticipantListByHandStatus(participants);
                 return sortedParticipants.Select(p => new Participant
@@ -1542,10 +1523,7 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.ZoomRoom
             /// <returns>List</returns>
             public static List<ListParticipant> SortParticipantListByHandStatus(List<ListParticipant> participants)
             {
-                if (participants == null)
-                {
-                    return null;
-                }
+                if (participants == null) return null;
 
                 List<ListParticipant> handRaisedParticipantsList =
                     participants.Where(p => p.HandStatus.HandIsRaisedAndValid).ToList();
@@ -1559,10 +1537,7 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.ZoomRoom
                 List<ListParticipant> allOtherParticipantsList =
                     participants.Where(p => !p.HandStatus.HandIsRaisedAndValid).ToList();
 
-                if (allOtherParticipantsList != null)
-                {
-                    allOtherParticipantsList.OrderBy(p => p.UserName);
-                }
+                if (allOtherParticipantsList != null) allOtherParticipantsList.OrderBy(p => p.UserName);
 
                 // merge the lists
                 List<ListParticipant> sortedList = handRaisedParticipantsList.Union(allOtherParticipantsList).ToList();

@@ -3,7 +3,7 @@ using System.Text;
 using Crestron.SimplSharp;
 using Crestron.SimplSharpPro.DeviceSupport;
 
-namespace PepperDash.Essentials.Core.Touchpanels.Keyboards
+namespace UmdEssentials.Core.Touchpanels.Keyboards
 {
     public class HabaneroKeyboardController
     {
@@ -313,10 +313,7 @@ namespace PepperDash.Essentials.Core.Touchpanels.Keyboards
         /// </summary>
         private void StartBackspaceRepeat()
         {
-            if (BackspaceTimer == null)
-            {
-                BackspaceTimer = new CTimer(o => Backspace(), null, 0, 175);
-            }
+            if (BackspaceTimer == null) BackspaceTimer = new CTimer(o => Backspace(), null, 0, 175);
         }
 
         /// <summary>

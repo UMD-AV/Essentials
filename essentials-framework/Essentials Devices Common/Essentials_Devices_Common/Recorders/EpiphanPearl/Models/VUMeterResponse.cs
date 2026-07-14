@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using Newtonsoft.Json;
 
-namespace PepperDash.Essentials.EpiphanPearl.Models
+namespace UmdEssentials.EpiphanPearl.Models
 {
     public class VUMeterResponse
     {

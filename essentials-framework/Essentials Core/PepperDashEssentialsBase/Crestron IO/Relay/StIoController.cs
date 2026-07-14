@@ -2,9 +2,9 @@
 using Crestron.SimplSharpPro;
 using Crestron.SimplSharpPro.GeneralIO;
 using PepperDash.Core;
-using PepperDash.Essentials.Core.Config;
+using UmdEssentials.Core.Config;
 
-namespace PepperDash.Essentials.Core
+namespace UmdEssentials.Core
 {
     /// <summary>
     /// Wrapper class for ST-IO relay module
@@ -53,7 +53,7 @@ namespace PepperDash.Essentials.Core
         /// </summary>
         public StIoControllerFactory()
         {
-            TypeNames = new List<string>() { "stio" };
+            TypeNames = new List<string> { "stio" };
         }
 
         public override EssentialsDevice BuildDevice(DeviceConfig dc)

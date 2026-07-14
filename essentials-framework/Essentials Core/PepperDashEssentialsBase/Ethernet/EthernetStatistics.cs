@@ -1,6 +1,6 @@
 ﻿using Crestron.SimplSharp;
 
-namespace PepperDash.Essentials.Core.Ethernet
+namespace UmdEssentials.Core.Ethernet
 {
     public static class EthernetSettings
     {

@@ -4,8 +4,8 @@ using System.Linq;
 using Crestron.SimplSharpPro.DM.Streaming;
 using NvxEpi.Devices;
 using NvxEpi.Features.Config;
-using PepperDash.Essentials.Core;
-using PepperDash.Essentials.Core.Config;
+using UmdEssentials.Core;
+using UmdEssentials.Core.Config;
 
 namespace NvxEpi.Factories
 {
@@ -16,7 +16,6 @@ namespace NvxEpi.Factories
         public NvxE3XDeviceFactory()
         {
             if (_typeNames == null)
-            {
                 _typeNames = new List<string>
                 {
                     "dmnvxe30",
@@ -24,7 +23,6 @@ namespace NvxEpi.Factories
                     "dmnvxe31",
                     "dmnvxe31c"
                 };
-            }
 
             TypeNames = _typeNames.ToList();
         }

@@ -5,12 +5,12 @@ using Crestron.SimplSharpPro;
 using Crestron.SimplSharpPro.DeviceSupport;
 using Newtonsoft.Json;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
-using PepperDash.Essentials.Core.Bridges;
-using PepperDash.Essentials.Core.Config;
-using PepperDash.Essentials.Core.CrestronIO;
+using UmdEssentials.Core;
+using UmdEssentials.Core.Bridges;
+using UmdEssentials.Core.Config;
+using UmdEssentials.Core.CrestronIO;
 
-namespace PepperDash.Essentials.Devices.Common.Screens
+namespace UmdEssentials.Devices.Common.Screens
 {
     /// <summary>
     /// Represents a dalite screen controlled by relays
@@ -107,14 +107,10 @@ namespace PepperDash.Essentials.Devices.Common.Screens
                 joinMap = JsonConvert.DeserializeObject<GenericRelayControllerJoinMap>(joinMapSerialized);
 
             if (bridge != null)
-            {
                 bridge.AddJoinMap(Key, joinMap);
-            }
             else
-            {
                 Debug.Console(0, this,
                     "Please update config to use 'eiscapiadvanced' to get all join map features for this device.");
-            }
 
             if (RelayOutput == null)
             {
@@ -148,7 +144,7 @@ namespace PepperDash.Essentials.Devices.Common.Screens
         {
             public DaliteScreenDeviceFactory()
             {
-                TypeNames = new List<string>() { "dalitescreen" };
+                TypeNames = new List<string> { "dalitescreen" };
             }
 
             public override EssentialsDevice BuildDevice(DeviceConfig dc)

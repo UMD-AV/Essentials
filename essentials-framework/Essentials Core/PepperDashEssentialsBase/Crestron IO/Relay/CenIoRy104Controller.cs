@@ -2,9 +2,9 @@
 using Crestron.SimplSharpPro;
 using Crestron.SimplSharpPro.GeneralIO;
 using PepperDash.Core;
-using PepperDash.Essentials.Core.Config;
+using UmdEssentials.Core.Config;
 
-namespace PepperDash.Essentials.Core
+namespace UmdEssentials.Core
 {
     /// <summary>
     /// Wrapper class for CEN-IO-RY-104 relay module
@@ -53,7 +53,7 @@ namespace PepperDash.Essentials.Core
         /// </summary>
         public CenIoRy104ControllerFactory()
         {
-            TypeNames = new List<string>() { "ceniory104" };
+            TypeNames = new List<string> { "ceniory104" };
         }
 
         public override EssentialsDevice BuildDevice(DeviceConfig dc)

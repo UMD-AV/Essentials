@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
-using PepperDash.Essentials.Core.Bridges;
 using Newtonsoft.Json;
-using PepperDash.Essentials.Core.Config;
 using Crestron.SimplSharpPro.DeviceSupport;
+using UmdEssentials.Core;
+using UmdEssentials.Core.Bridges;
+using UmdEssentials.Core.Config;
 
-namespace PepperDash.Essentials.Devices.Common.ContemporaryResearch
+namespace UmdEssentials.Devices.Common.ContemporaryResearch
 {
     public class ContemporaryResearchDevice : EssentialsBridgeableDevice, ISetTopBoxControls
     {
@@ -152,13 +152,8 @@ namespace PepperDash.Essentials.Devices.Common.ContemporaryResearch
             {
                 string message = args.Text.Substring(3, 1);
                 if (message.Equals("U"))
-                {
                     PowerStatus = true;
-                }
-                else if (message.Equals("M"))
-                {
-                    PowerStatus = false;
-                }
+                else if (message.Equals("M")) PowerStatus = false;
             }
         }
 
@@ -170,17 +165,11 @@ namespace PepperDash.Essentials.Devices.Common.ContemporaryResearch
             {
                 ContemporaryResearchJoinMap joinMap = new ContemporaryResearchJoinMap(joinStart);
                 // This adds the join map to the collection on the bridge
-                if (bridge != null)
-                {
-                    bridge.AddJoinMap(Key, joinMap);
-                }
+                if (bridge != null) bridge.AddJoinMap(Key, joinMap);
 
                 Dictionary<string, JoinData> joinMapSerialized =
                     JoinMapHelper.TryGetJoinMapAdvancedForDevice(joinMapKey);
-                if (joinMapSerialized != null)
-                {
-                    joinMap.SetCustomJoinData(joinMapSerialized);
-                }
+                if (joinMapSerialized != null) joinMap.SetCustomJoinData(joinMapSerialized);
 
                 CommunicationMonitor.IsOnlineFeedback.LinkInputSig(trilist.BooleanInput[joinMap.IsOnline.JoinNumber]);
                 PowerStatusFeedback.LinkInputSig(trilist.BooleanInput[joinMap.PowerOn.JoinNumber]);
@@ -332,13 +321,9 @@ namespace PepperDash.Essentials.Devices.Common.ContemporaryResearch
             if (pressRelease)
             {
                 if (PowerStatus)
-                {
                     Communication.SendText(BuildCommand(CmdPwrOff));
-                }
                 else
-                {
                     Communication.SendText(BuildCommand(CmdPwrOn));
-                }
             }
         }
 
@@ -614,7 +599,7 @@ namespace PepperDash.Essentials.Devices.Common.ContemporaryResearch
     public class ContemporaryResearchJoinMap : SetTopBoxControllerJoinMap
     {
         [JoinName("IsOnline")] public JoinDataComplete IsOnline = new JoinDataComplete(
-            new JoinData()
+            new JoinData
             {
                 JoinNumber = 49,
                 JoinSpan = 1

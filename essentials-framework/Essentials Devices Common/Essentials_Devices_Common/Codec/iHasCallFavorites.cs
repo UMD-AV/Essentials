@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace PepperDash.Essentials.Devices.Common.Codec
+namespace UmdEssentials.Devices.Common.Codec
 {
     public interface IHasCallFavorites
     {

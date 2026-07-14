@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
+using UmdEssentials.Core;
 
 namespace DynFusion
 {
@@ -9,11 +9,11 @@ namespace DynFusion
         public EssentialsFactoryTemplate()
         {
             // In the constructor we initialize the list with the type names that will build an instance of this device
-            TypeNames = new List<string>() { "fusion", "fusionschedule" };
+            TypeNames = new List<string> { "fusion", "fusionschedule" };
         }
 
         // Builds and returns an instance of EssentialsPluginDeviceTemplate
-        public override EssentialsDevice BuildDevice(PepperDash.Essentials.Core.Config.DeviceConfig dc)
+        public override EssentialsDevice BuildDevice(UmdEssentials.Core.Config.DeviceConfig dc)
         {
             Debug.Console(1, "Factory Attempting to create new device from type: {0}", dc.Type);
 

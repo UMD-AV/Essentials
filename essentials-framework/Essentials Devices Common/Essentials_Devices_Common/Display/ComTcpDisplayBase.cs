@@ -1,8 +1,8 @@
 ﻿using System;
-using PepperDash.Essentials.Core;
+using UmdEssentials.Core;
 
 
-namespace PepperDash.Essentials.Devices.Displays
+namespace UmdEssentials.Devices.Displays
 {
     [Obsolete("Please use TwoWayDisplayBase instead")]
     public abstract class ComTcpDisplayBase : TwoWayDisplayBase

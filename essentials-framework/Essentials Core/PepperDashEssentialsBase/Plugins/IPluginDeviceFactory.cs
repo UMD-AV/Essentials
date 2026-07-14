@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 
 
-namespace PepperDash.Essentials.Core
+namespace UmdEssentials.Core
 {
     /// <summary>
     /// Defines a class that is capable of loading custom plugin device types

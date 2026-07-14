@@ -8,13 +8,13 @@ using Crestron.SimplSharp.Net.Http;
 using Crestron.SimplSharp.Net.Https;
 using Crestron.SimplSharpPro.CrestronThread;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
-using PepperDash.Essentials.Core.Config;
-using PepperDash.Essentials.Core.Bridges;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using UmdEssentials.Core;
+using UmdEssentials.Core.Bridges;
+using UmdEssentials.Core.Config;
 
-namespace PepperDash.Essentials.Devices.Common.ImageProcessors
+namespace UmdEssentials.Devices.Common.ImageProcessors
 {
     public class AutomateVx : EssentialsDevice, IBridgeAdvanced
     {
@@ -68,14 +68,10 @@ namespace PepperDash.Essentials.Devices.Common.ImageProcessors
             AutomateVxJoinMap joinMap = new AutomateVxJoinMap(joinStart);
 
             if (bridge != null)
-            {
                 bridge.AddJoinMap(Key, joinMap);
-            }
             else
-            {
                 Debug.Console(0, this,
                     "Please update config to use 'eiscapiadvanced' to get all join map features for this device.");
-            }
 
             //Events from SIMPL
             trilist.SetSigTrueAction(joinMap.AutoSwitchOn.JoinNumber, StartAutoSwitch);
@@ -114,25 +110,21 @@ namespace PepperDash.Essentials.Devices.Common.ImageProcessors
             try
             {
                 if (port == 4443)
-                {
-                    secureClient = new HttpsClient()
+                    secureClient = new HttpsClient
                     {
                         UserAgent = "crestron",
                         KeepAlive = false,
                         Accept = "application/json",
                         AllowAutoRedirect = false
                     };
-                }
                 else
-                {
-                    client = new HttpClient()
+                    client = new HttpClient
                     {
                         UserAgent = "crestron",
                         KeepAlive = false,
                         Accept = "application/json",
                         AllowAutoRedirect = false
                     };
-                }
             }
             catch
             {
@@ -313,13 +305,9 @@ namespace PepperDash.Essentials.Devices.Common.ImageProcessors
         private void pollCallback(object o)
         {
             if (onlineStatus)
-            {
                 GetAutoSwitchStatus();
-            }
             else
-            {
                 GetToken();
-            }
 
             pollTimer.Reset(pollTime);
         }
@@ -533,10 +521,7 @@ namespace PepperDash.Essentials.Devices.Common.ImageProcessors
                     {
                         string layouts = (string)obj["layouts"];
                         LayoutNames = (List<AutomateVxLayout>)JsonConvert.DeserializeObject(layouts);
-                        if (LayoutNamesUpdated != null)
-                        {
-                            LayoutNamesUpdated(this, null);
-                        }
+                        if (LayoutNamesUpdated != null) LayoutNamesUpdated(this, null);
                     }
 
                     break;
@@ -575,7 +560,7 @@ namespace PepperDash.Essentials.Devices.Common.ImageProcessors
     {
         public AutomateVxFactory()
         {
-            TypeNames = new List<string>() { "automatevx" };
+            TypeNames = new List<string> { "automatevx" };
         }
 
         public override EssentialsDevice BuildDevice(DeviceConfig dc)
@@ -601,12 +586,12 @@ namespace PepperDash.Essentials.Devices.Common.ImageProcessors
         #region Digital
 
         [JoinName("IsOnline")] public JoinDataComplete IsOnline = new JoinDataComplete(
-            new JoinData()
+            new JoinData
             {
                 JoinNumber = 1,
                 JoinSpan = 1
             },
-            new JoinMetadata()
+            new JoinMetadata
             {
                 Description = "Is Online Fb",
                 JoinCapabilities = eJoinCapabilities.ToSIMPL,
@@ -614,12 +599,12 @@ namespace PepperDash.Essentials.Devices.Common.ImageProcessors
             });
 
         [JoinName("AutoSwitchOn")] public JoinDataComplete AutoSwitchOn = new JoinDataComplete(
-            new JoinData()
+            new JoinData
             {
                 JoinNumber = 2,
                 JoinSpan = 1
             },
-            new JoinMetadata()
+            new JoinMetadata
             {
                 Description = "Auto Switch On Get/Set",
                 JoinCapabilities = eJoinCapabilities.ToFromSIMPL,
@@ -627,12 +612,12 @@ namespace PepperDash.Essentials.Devices.Common.ImageProcessors
             });
 
         [JoinName("AutoSwitchOff")] public JoinDataComplete AutoSwitchOff = new JoinDataComplete(
-            new JoinData()
+            new JoinData
             {
                 JoinNumber = 3,
                 JoinSpan = 1
             },
-            new JoinMetadata()
+            new JoinMetadata
             {
                 Description = "Auto Switch Off Set",
                 JoinCapabilities = eJoinCapabilities.FromSIMPL,
@@ -640,12 +625,12 @@ namespace PepperDash.Essentials.Devices.Common.ImageProcessors
             });
 
         [JoinName("Sleep")] public JoinDataComplete Sleep = new JoinDataComplete(
-            new JoinData()
+            new JoinData
             {
                 JoinNumber = 4,
                 JoinSpan = 1
             },
-            new JoinMetadata()
+            new JoinMetadata
             {
                 Description = "Sleep Set",
                 JoinCapabilities = eJoinCapabilities.FromSIMPL,
@@ -653,12 +638,12 @@ namespace PepperDash.Essentials.Devices.Common.ImageProcessors
             });
 
         [JoinName("Wake")] public JoinDataComplete Wake = new JoinDataComplete(
-            new JoinData()
+            new JoinData
             {
                 JoinNumber = 5,
                 JoinSpan = 1
             },
-            new JoinMetadata()
+            new JoinMetadata
             {
                 Description = "Wake Set",
                 JoinCapabilities = eJoinCapabilities.FromSIMPL,
@@ -666,12 +651,12 @@ namespace PepperDash.Essentials.Devices.Common.ImageProcessors
             });
 
         [JoinName("CloseWirecast")] public JoinDataComplete CloseWirecast = new JoinDataComplete(
-            new JoinData()
+            new JoinData
             {
                 JoinNumber = 6,
                 JoinSpan = 1
             },
-            new JoinMetadata()
+            new JoinMetadata
             {
                 Description = "Close Wirecast Set",
                 JoinCapabilities = eJoinCapabilities.FromSIMPL,
@@ -679,12 +664,12 @@ namespace PepperDash.Essentials.Devices.Common.ImageProcessors
             });
 
         [JoinName("GoHome")] public JoinDataComplete GoHome = new JoinDataComplete(
-            new JoinData()
+            new JoinData
             {
                 JoinNumber = 7,
                 JoinSpan = 1
             },
-            new JoinMetadata()
+            new JoinMetadata
             {
                 Description = "Go Home Set",
                 JoinCapabilities = eJoinCapabilities.FromSIMPL,
@@ -702,12 +687,12 @@ namespace PepperDash.Essentials.Devices.Common.ImageProcessors
         #region Serial
 
         [JoinName("DeviceName")] public JoinDataComplete DeviceName = new JoinDataComplete(
-            new JoinData()
+            new JoinData
             {
                 JoinNumber = 1,
                 JoinSpan = 1
             },
-            new JoinMetadata()
+            new JoinMetadata
             {
                 Description = "Name",
                 JoinCapabilities = eJoinCapabilities.ToSIMPL,
@@ -715,12 +700,12 @@ namespace PepperDash.Essentials.Devices.Common.ImageProcessors
             });
 
         [JoinName("LayoutRecall")] public JoinDataComplete LayoutRecall = new JoinDataComplete(
-            new JoinData()
+            new JoinData
             {
                 JoinNumber = 2,
                 JoinSpan = 1
             },
-            new JoinMetadata()
+            new JoinMetadata
             {
                 Description = "LayoutRecall Get/Set",
                 JoinCapabilities = eJoinCapabilities.ToFromSIMPL,
@@ -728,12 +713,12 @@ namespace PepperDash.Essentials.Devices.Common.ImageProcessors
             });
 
         [JoinName("LayoutNames")] public JoinDataComplete LayoutNames = new JoinDataComplete(
-            new JoinData()
+            new JoinData
             {
                 JoinNumber = 10,
                 JoinSpan = 10
             },
-            new JoinMetadata()
+            new JoinMetadata
             {
                 Description = "Layout Names Get",
                 JoinCapabilities = eJoinCapabilities.ToSIMPL,
@@ -741,12 +726,12 @@ namespace PepperDash.Essentials.Devices.Common.ImageProcessors
             });
 
         [JoinName("LayoutIds")] public JoinDataComplete LayoutIds = new JoinDataComplete(
-            new JoinData()
+            new JoinData
             {
                 JoinNumber = 20,
                 JoinSpan = 10
             },
-            new JoinMetadata()
+            new JoinMetadata
             {
                 Description = "Layout Ids Get",
                 JoinCapabilities = eJoinCapabilities.ToSIMPL,

@@ -3,7 +3,7 @@ using System.Linq;
 using Crestron.SimplSharp;
 using PepperDash.Core;
 
-namespace PepperDash.Essentials.Core
+namespace UmdEssentials.Core
 {
     public static class SecretsManager
     {
@@ -56,9 +56,7 @@ namespace PepperDash.Essentials.Core
             Secrets.TryGetValue(key, out secret);
 
             if (secret == null)
-            {
                 Debug.Console(1, "SecretsManager unable to retrieve SecretProvider with the key '{0}'", key);
-            }
 
             return secret;
         }
@@ -108,14 +106,10 @@ namespace PepperDash.Essentials.Core
             if (cmd.Length == 0)
             {
                 if (Secrets != null && Secrets.Count > 0)
-                {
                     response = Secrets.Aggregate(response,
-                        (current, secretProvider) => current + (secretProvider.Key + "\n\r"));
-                }
+                        (current, secretProvider) => current + secretProvider.Key + "\n\r");
                 else
-                {
                     response = "No Secrets Providers Available";
-                }
 
                 CrestronConsole.ConsoleCommandResponse(response);
                 return;

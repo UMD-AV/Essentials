@@ -1,4 +1,4 @@
-﻿namespace PepperDash.Essentials.Core
+﻿namespace UmdEssentials.Core
 {
     /// <summary>
     /// Adds control of codec receive volume

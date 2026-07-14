@@ -7,14 +7,15 @@ using Crestron.SimplSharpPro.DeviceSupport;
 using Crestron.SimplSharpPro.DM;
 using Crestron.SimplSharpPro.DM.Cards;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
-using PepperDash.Essentials.DM.Config;
-using PepperDash.Essentials.Core.Bridges;
-using PepperDash.Essentials.Core.Config;
-using Feedback = PepperDash.Essentials.Core.Feedback;
+using UmdEssentials.Core;
+using UmdEssentials.Core.Bridges;
+using UmdEssentials.Core.Config;
+using UmdEssentials.DM.Config;
+using Core_Feedback = UmdEssentials.Core.Feedback;
+using Feedback = UmdEssentials.Core.Feedback;
 
 
-namespace PepperDash.Essentials.DM.Chassis
+namespace UmdEssentials.DM.Chassis
 {
     [Description("Wrapper class for all DmMd6xN switchers")]
     public class DmMd6xNController : CrestronGenericBridgeableBaseDevice, IRoutingNumericWithFeedback, IHasFeedback
@@ -55,16 +56,10 @@ namespace PepperDash.Essentials.DM.Chassis
             }
 
             InputNames = new Dictionary<uint, string>();
-            if (props.InputNames != null)
-            {
-                InputNames = props.InputNames;
-            }
+            if (props.InputNames != null) InputNames = props.InputNames;
 
             OutputNames = new Dictionary<uint, string>();
-            if (props.OutputNames != null)
-            {
-                OutputNames = props.OutputNames;
-            }
+            if (props.OutputNames != null) OutputNames = props.OutputNames;
 
             DeviceNameFeedback = new StringFeedback(() => Name);
 
@@ -81,14 +76,10 @@ namespace PepperDash.Essentials.DM.Chassis
 
             //Inputs - should always be 6 audio/video inputs
             for (uint i = 1; i <= _Chassis.NumberOfInputs; i++)
-            {
                 try
                 {
                     uint index = i;
-                    if (!InputNames.ContainsKey(index))
-                    {
-                        InputNames.Add(index, string.Format("Input{0}", index));
-                    }
+                    if (!InputNames.ContainsKey(index)) InputNames.Add(index, string.Format("Input{0}", index));
 
                     string inputName = InputNames[index];
                     _Chassis.Inputs[index].Name.StringValue = inputName;
@@ -109,18 +100,13 @@ namespace PepperDash.Essentials.DM.Chassis
                 {
                     ErrorLog.Error("Exception creating input {0} on DmMd6xN Chassis: {1}", i, ex);
                 }
-            }
 
             //Outputs. Either 6, 4, or 1
             for (uint i = 1; i <= _Chassis.NumberOfOutputs; i++)
-            {
                 try
                 {
                     uint index = i;
-                    if (!OutputNames.ContainsKey(index))
-                    {
-                        OutputNames.Add(index, string.Format("Output{0}", index));
-                    }
+                    if (!OutputNames.ContainsKey(index)) OutputNames.Add(index, string.Format("Output{0}", index));
 
                     string outputName = OutputNames[index];
                     _Chassis.Outputs[index].Name.StringValue = outputName;
@@ -154,7 +140,6 @@ namespace PepperDash.Essentials.DM.Chassis
                 {
                     ErrorLog.Error("Exception creating output {0} on HD-MD8xN Chassis: {1}", i, ex);
                 }
-            }
 
             _Chassis.DMInputChange += Chassis_DMInputChange;
             _Chassis.DMOutputChange += Chassis_DMOutputChange;
@@ -195,34 +180,22 @@ namespace PepperDash.Essentials.DM.Chassis
         public void AddCollectionsToList(params FeedbackCollection<BoolFeedback>[] newFbs)
         {
             foreach (FeedbackCollection<BoolFeedback> fbCollection in newFbs)
-            {
-                foreach (FeedbackCollection<BoolFeedback> item in newFbs)
-                {
-                    AddCollectionToList(item);
-                }
-            }
+            foreach (FeedbackCollection<BoolFeedback> item in newFbs)
+                AddCollectionToList(item);
         }
 
         public void AddCollectionsToList(params FeedbackCollection<IntFeedback>[] newFbs)
         {
             foreach (FeedbackCollection<IntFeedback> fbCollection in newFbs)
-            {
-                foreach (FeedbackCollection<IntFeedback> item in newFbs)
-                {
-                    AddCollectionToList(item);
-                }
-            }
+            foreach (FeedbackCollection<IntFeedback> item in newFbs)
+                AddCollectionToList(item);
         }
 
         public void AddCollectionsToList(params FeedbackCollection<StringFeedback>[] newFbs)
         {
             foreach (FeedbackCollection<StringFeedback> fbCollection in newFbs)
-            {
-                foreach (FeedbackCollection<StringFeedback> item in newFbs)
-                {
-                    AddCollectionToList(item);
-                }
-            }
+            foreach (FeedbackCollection<StringFeedback> item in newFbs)
+                AddCollectionToList(item);
         }
 
         //Add Collections
@@ -257,14 +230,11 @@ namespace PepperDash.Essentials.DM.Chassis
         }
 
         //Add Individual Feedbacks
-        public void AddFeedbackToList(PepperDash.Essentials.Core.Feedback newFb)
+        public void AddFeedbackToList(Core_Feedback newFb)
         {
             if (newFb == null) return;
 
-            if (!Feedbacks.Contains(newFb))
-            {
-                Feedbacks.Add(newFb);
-            }
+            if (!Feedbacks.Contains(newFb)) Feedbacks.Add(newFb);
         }
 
         #endregion
@@ -287,19 +257,13 @@ namespace PepperDash.Essentials.DM.Chassis
             if ((sigType & eRoutingSignalType.Video) == eRoutingSignalType.Video)
             {
                 _Chassis.VideoEnter.BoolValue = true;
-                if (output != null)
-                {
-                    output.VideoOut = input;
-                }
+                if (output != null) output.VideoOut = input;
             }
 
             if ((sigType & eRoutingSignalType.Audio) == eRoutingSignalType.Audio)
             {
                 _Chassis.AudioEnter.BoolValue = true;
-                if (output != null)
-                {
-                    output.AudioOut = input;
-                }
+                if (output != null) output.AudioOut = input;
             }
         }
 
@@ -333,18 +297,14 @@ namespace PepperDash.Essentials.DM.Chassis
                 joinMap = JsonConvert.DeserializeObject<DmChassisControllerJoinMap>(joinMapSerialized);
 
             if (bridge != null)
-            {
                 bridge.AddJoinMap(Key, joinMap);
-            }
             else
-            {
                 Debug.Console(0, this,
                     "Please update config to use 'eiscapiadvanced' to get all join map features for this device.");
-            }
 
             IsOnline.LinkInputSig(trilist.BooleanInput[joinMap.IsOnline.JoinNumber]);
 
-            trilist.StringInput[joinMap.Name.JoinNumber].StringValue = this.Name;
+            trilist.StringInput[joinMap.Name.JoinNumber].StringValue = Name;
 
             for (uint i = 1; i <= _Chassis.NumberOfInputs; i++)
             {
@@ -401,10 +361,7 @@ namespace PepperDash.Essentials.DM.Chassis
 
             if (!args.DeviceOnLine) return;
 
-            foreach (Feedback feedback in Feedbacks)
-            {
-                feedback.FireUpdate();
-            }
+            foreach (Core_Feedback feedback in Feedbacks) feedback.FireUpdate();
         }
 
         private void Chassis_DMOutputChange(Switch device, DMOutputEventArgs args)
@@ -422,10 +379,7 @@ namespace PepperDash.Essentials.DM.Chassis
 
                     IntFeedback feedback = VideoOutputRouteFeedbacks[outputName];
 
-                    if (feedback == null)
-                    {
-                        return;
-                    }
+                    if (feedback == null) return;
 
                     RoutingInputPort inPort = InputPorts.FirstOrDefault(p =>
                         p.FeedbackMatchObject == _Chassis.Outputs[output].VideoOutFeedback);
@@ -448,10 +402,7 @@ namespace PepperDash.Essentials.DM.Chassis
 
                     IntFeedback feedback = AudioOutputRouteFeedbacks[outputName];
 
-                    if (feedback == null)
-                    {
-                        return;
-                    }
+                    if (feedback == null) return;
 
                     RoutingInputPort inPort = InputPorts.FirstOrDefault(p =>
                         p.FeedbackMatchObject == _Chassis.Outputs[output].AudioOutFeedback);
@@ -469,10 +420,7 @@ namespace PepperDash.Essentials.DM.Chassis
                     Debug.Console(1, this, "Event ID {0}:  Updating name feedbacks.", args.EventId);
                     Debug.Console(1, this, "Output {0} Name {1}", args.Number,
                         _Chassis.Outputs[args.Number].NameFeedback.StringValue);
-                    foreach (StringFeedback item in OutputNameFeedbacks)
-                    {
-                        item.FireUpdate();
-                    }
+                    foreach (StringFeedback item in OutputNameFeedbacks) item.FireUpdate();
 
                     break;
                 }
@@ -491,10 +439,7 @@ namespace PepperDash.Essentials.DM.Chassis
                 case DMInputEventIds.VideoDetectedEventId:
                 {
                     Debug.Console(1, this, "Event ID {0}: Updating VideoInputSyncFeedbacks", args.EventId);
-                    foreach (BoolFeedback item in VideoInputSyncFeedbacks)
-                    {
-                        item.FireUpdate();
-                    }
+                    foreach (BoolFeedback item in VideoInputSyncFeedbacks) item.FireUpdate();
 
                     break;
                 }
@@ -505,10 +450,7 @@ namespace PepperDash.Essentials.DM.Chassis
                     Debug.Console(1, this, "Event ID {0}:  Updating name feedbacks.", args.EventId);
                     Debug.Console(1, this, "Input {0} Name {1}", args.Number,
                         _Chassis.Inputs[args.Number].NameFeedback.StringValue);
-                    foreach (StringFeedback item in InputNameFeedbacks)
-                    {
-                        item.FireUpdate();
-                    }
+                    foreach (StringFeedback item in InputNameFeedbacks) item.FireUpdate();
 
                     break;
                 }
@@ -528,7 +470,7 @@ namespace PepperDash.Essentials.DM.Chassis
         {
             public DmMd6xNControllerFactory()
             {
-                TypeNames = new List<string>() { "dmmd6x6", "dmmd6x4", "dmmd6x1" };
+                TypeNames = new List<string> { "dmmd6x6", "dmmd6x4", "dmmd6x1" };
             }
 
             public override EssentialsDevice BuildDevice(DeviceConfig dc)
@@ -544,11 +486,11 @@ namespace PepperDash.Essentials.DM.Chassis
 
                 switch (type)
                 {
-                    case ("dmmd6x6"):
+                    case "dmmd6x6":
                         return new DmMd6xNController(dc.Key, dc.Name, new DmMd6x6(ipid, Global.ControlSystem), props);
-                    case ("dmmd6x4"):
+                    case "dmmd6x4":
                         return new DmMd6xNController(dc.Key, dc.Name, new DmMd6x4(ipid, Global.ControlSystem), props);
-                    case ("dmmd6x1"):
+                    case "dmmd6x1":
                         return new DmMd6xNController(dc.Key, dc.Name, new DmMd6x1(ipid, Global.ControlSystem), props);
                     default:
                         return null;

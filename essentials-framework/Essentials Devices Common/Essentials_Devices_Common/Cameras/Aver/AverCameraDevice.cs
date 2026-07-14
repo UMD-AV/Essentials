@@ -7,11 +7,11 @@ using Crestron.SimplSharpPro.CrestronThread;
 using Crestron.SimplSharpPro.DeviceSupport;
 using PepperDash_Essentials_Core.Monitoring;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
-using PepperDash.Essentials.Core.Bridges;
+using UmdEssentials.Core;
+using UmdEssentials.Core.Bridges;
 using ViscaCameraPlugin;
 
-namespace PepperDash.Essentials.Devices.Common.Cameras.Aver
+namespace UmdEssentials.Devices.Common.Cameras.Aver
 {
     public class AverCameraDevice : EssentialsBridgeableDevice, ICommunicationMonitor, IDisposable
     {

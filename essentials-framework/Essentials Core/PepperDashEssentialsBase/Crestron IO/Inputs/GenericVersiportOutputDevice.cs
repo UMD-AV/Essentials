@@ -4,11 +4,11 @@ using Crestron.SimplSharp;
 using Crestron.SimplSharpPro;
 using Crestron.SimplSharpPro.DeviceSupport;
 using PepperDash.Core;
-using PepperDash.Essentials.Core.Config;
-using PepperDash.Essentials.Core.Bridges;
 using Newtonsoft.Json;
+using UmdEssentials.Core.Bridges;
+using UmdEssentials.Core.Config;
 
-namespace PepperDash.Essentials.Core.CrestronIO
+namespace UmdEssentials.Core.CrestronIO
 {
     /// <summary>
     /// Represents a generic digital output deviced tied to a versiport
@@ -34,13 +34,9 @@ namespace PepperDash.Essentials.Core.CrestronIO
             OutputPort.Register();
 
             if (config.RelayHoldTimeSeconds >= 1)
-            {
                 RelayHoldTimeSeconds = config.RelayHoldTimeSeconds;
-            }
             else
-            {
                 RelayHoldTimeSeconds = (ushort)1;
-            }
 
             AddPostActivationAction(() =>
             {
@@ -128,14 +124,10 @@ namespace PepperDash.Essentials.Core.CrestronIO
                 joinMap = JsonConvert.DeserializeObject<GenericRelayControllerJoinMap>(joinMapSerialized);
 
             if (bridge != null)
-            {
                 bridge.AddJoinMap(Key, joinMap);
-            }
             else
-            {
                 Debug.Console(0, this,
                     "Please update config to use 'eiscapiadvanced' to get all join map features for this device.");
-            }
 
             try
             {
@@ -200,10 +192,8 @@ namespace PepperDash.Essentials.Core.CrestronIO
             }
 
             if (dc.PortNumber > ioPortDevice.NumberOfVersiPorts)
-            {
                 Debug.Console(0, "GetVersiportDigitalOuput: Device {0} does not contain a port {1}", dc.PortDeviceKey,
                     dc.PortNumber);
-            }
 
             return ioPortDevice.VersiPorts[dc.PortNumber];
         }
@@ -214,7 +204,7 @@ namespace PepperDash.Essentials.Core.CrestronIO
     {
         public GenericVersiportDigitalOutputDeviceFactory()
         {
-            TypeNames = new List<string>() { "versiportoutput" };
+            TypeNames = new List<string> { "versiportoutput" };
         }
 
         public override EssentialsDevice BuildDevice(DeviceConfig dc)

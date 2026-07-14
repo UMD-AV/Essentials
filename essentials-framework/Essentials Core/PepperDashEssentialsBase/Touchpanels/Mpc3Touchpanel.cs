@@ -2,7 +2,7 @@
 using Crestron.SimplSharpPro;
 using PepperDash.Core;
 
-namespace PepperDash.Essentials.Core.Touchpanels
+namespace UmdEssentials.Core.Touchpanels
 {
     /// <summary>
     /// A wrapper class for the touchpanel portion of an MPC3 class process to allow for configurable
@@ -85,13 +85,8 @@ namespace PepperDash.Essentials.Core.Touchpanels
             string type = args.NewButtonState.ToString();
 
             if (_Buttons.ContainsKey(args.Button.Number.ToString()))
-            {
                 Press(args.Button.Number.ToString(), type);
-            }
-            else if (_Buttons.ContainsKey(args.Button.Name.ToString()))
-            {
-                Press(args.Button.Name.ToString(), type);
-            }
+            else if (_Buttons.ContainsKey(args.Button.Name.ToString())) Press(args.Button.Name.ToString(), type);
         }
 
         /// <summary>
@@ -104,19 +99,12 @@ namespace PepperDash.Essentials.Core.Touchpanels
         {
             // TODO: In future, consider modifying this to generate actions at device activation time
             //       to prevent the need to dynamically call the method via reflection on each button press
-            if (!_Buttons.ContainsKey(number))
-            {
-                return;
-            }
+            if (!_Buttons.ContainsKey(number)) return;
 
             KeypadButton but = _Buttons[number];
             if (but.EventTypes.ContainsKey(type))
-            {
                 foreach (DeviceActionWrapper a in but.EventTypes[type])
-                {
                     DeviceJsonApi.DoDeviceAction(a);
-                }
-            }
         }
     }
 

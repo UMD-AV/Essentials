@@ -5,12 +5,12 @@ using Crestron.SimplSharpPro.DeviceSupport;
 using Crestron.SimplSharpPro.DM;
 using Crestron.SimplSharpPro.DM.Endpoints;
 using Crestron.SimplSharpPro.DM.Endpoints.Receivers;
-using PepperDash.Essentials.Core;
-using PepperDash.Essentials.Core.Bridges;
 using PepperDash.Core;
+using UmdEssentials.Core;
+using UmdEssentials.Core.Bridges;
 
 
-namespace PepperDash.Essentials.DM
+namespace UmdEssentials.DM
 {
     [Description("Wrapper Class for DM-RMC-4K-Z-SCALER-C")]
     public class DmRmc4kZScalerCController : DmRmcControllerBase, IRmcRoutingWithFeedback,
@@ -83,7 +83,7 @@ namespace PepperDash.Essentials.DM
             // Set Ports for CEC
             HdmiOut.Port = _rmc.HdmiOutput;
 
-            AudioVideoSourceNumericFeedback = new IntFeedback(() => (ushort)(_rmc.SelectedSourceFeedback));
+            AudioVideoSourceNumericFeedback = new IntFeedback(() => (ushort)_rmc.SelectedSourceFeedback);
         }
 
         private void _rmc_OnlineStatusChange(GenericBase currentDevice, OnlineOfflineEventArgs args)
@@ -99,9 +99,7 @@ namespace PepperDash.Essentials.DM
             if (args.EventId == EndpointOutputStreamEventIds.HorizontalResolutionFeedbackEventId ||
                 args.EventId == EndpointOutputStreamEventIds.VerticalResolutionFeedbackEventId ||
                 args.EventId == EndpointOutputStreamEventIds.FramesPerSecondFeedbackEventId)
-            {
                 VideoOutputResolutionFeedback.FireUpdate();
-            }
 
             if (args.EventId == EndpointOutputStreamEventIds.SelectedSourceFeedbackEventId)
             {

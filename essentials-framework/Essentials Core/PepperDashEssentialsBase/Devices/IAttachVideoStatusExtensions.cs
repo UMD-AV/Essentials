@@ -1,6 +1,6 @@
 ﻿using System.Linq;
 
-namespace PepperDash.Essentials.Core
+namespace UmdEssentials.Core
 {
     public static class IAttachVideoStatusExtensions
     {

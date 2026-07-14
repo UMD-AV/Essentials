@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace PepperDash.Essentials.Core.Queues
+namespace UmdEssentials.Core.Queues
 {
     /// <summary>
     /// Message class for processing strings via an IQueue

@@ -17,10 +17,10 @@ using NvxEpi.Services.Feedback;
 using NvxEpi.Services.InputPorts;
 using NvxEpi.Services.Utilities;
 using NvxEpi.Services.Messages;
-using PepperDash.Essentials.Core;
-using PepperDash.Essentials.Core.DeviceInfo;
-using PepperDash.Essentials.Core.Queues;
-using PepperDash.Essentials.Core.Config;
+using UmdEssentials.Core;
+using UmdEssentials.Core.DeviceInfo;
+using UmdEssentials.Core.Queues;
+using UmdEssentials.Core.Config;
 using PepperDash.Core;
 
 namespace NvxEpi.Devices

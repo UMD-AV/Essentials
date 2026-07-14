@@ -1,11 +1,11 @@
 ﻿using System.Collections.Generic;
 using System.Globalization;
 using Crestron.SimplSharpPro.DeviceSupport;
-using PepperDash.Essentials.Core;
+using UmdEssentials.Core;
 using PepperDash.Core;
-using PepperDash.Essentials.Core.Bridges;
+using UmdEssentials.Core.Bridges;
 using Tesira_DSP_EPI.Interfaces;
-using Feedback = PepperDash.Essentials.Core.Feedback;
+using Feedback = UmdEssentials.Core.Feedback;
 
 namespace Tesira_DSP_EPI
 {
@@ -111,22 +111,18 @@ namespace Tesira_DSP_EPI
                 attributeCode == "rampStep" || attributeCode == "autoAnswer" || attributeCode == "dndEnable" ||
                 attributeCode == "dtmf" || attributeCode == "state" || attributeCode == "levelOut" ||
                 attributeCode == "maxLevelOut" || attributeCode == "minLevelOut" || attributeCode == "muteOut" ||
-                attributeCode == "group" && command == "set")
+                (attributeCode == "group" && command == "set"))
             {
                 //Command requires Index
                 if (string.IsNullOrEmpty(value))
-                {
                     cmd = string.IsNullOrEmpty(command)
                         ? string.Format("\"{0}\" {1} {2} ",
                             instanceTagLocal, attributeCode, Index1)
                         : string.Format("\"{0}\" {1} {2} {3}", instanceTagLocal, command, attributeCode, Index1);
-                }
                 else
-                {
                     // format command with value
                     cmd = string.Format("\"{0}\" {1} {2} {3} {4}", instanceTagLocal, command, attributeCode, Index1,
                         value);
-                }
             }
             else if (attributeCode == "crosspointLevelState")
             {
@@ -180,7 +176,7 @@ namespace Tesira_DSP_EPI
             }
         }
 
-        virtual public void ParseGetMessage(string attributeCode, string message)
+        public virtual void ParseGetMessage(string attributeCode, string message)
         {
         }
 
@@ -219,21 +215,15 @@ namespace Tesira_DSP_EPI
             }
 
             if (attributeCode == "callState" || attributeCode == "sourceSelection")
-            {
                 cmd = string.Format("\"{0}\" subscribe {1} {2} {3}", instanceTagLocal, attributeCode, customName,
                     responseRate);
-            }
 
             else if (responseRate > 0)
-            {
                 cmd = string.Format("\"{0}\" subscribe {1} {2} {3} {4}", instanceTagLocal, attributeCode, Index1,
                     customName, responseRate);
-            }
             else
-            {
                 cmd = string.Format("\"{0}\" subscribe {1} {2} {3}", instanceTagLocal, attributeCode, Index1,
                     customName);
-            }
 
             //Parent.WatchDogList.Add(customName,cmd);
             //Parent.SendLine(cmd);
@@ -274,15 +264,11 @@ namespace Tesira_DSP_EPI
             }
 
             if (attributeCode == "callState" || attributeCode == "sourceSelection")
-            {
                 cmd = string.Format("\"{0}\" unsubscribe {1} {2}", localInstanceTag, attributeCode, customName);
-            }
 
             else
-            {
                 cmd = string.Format("\"{0}\" unsubscribe {1} {2} {3}", localInstanceTag, attributeCode, Index1,
                     customName);
-            }
 
             Debug.Console(1, this, "SendingUnsub - {0}", cmd);
             //Parent.WatchDogList.Add(customName,cmd);

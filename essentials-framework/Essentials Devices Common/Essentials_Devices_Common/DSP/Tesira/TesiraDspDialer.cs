@@ -4,12 +4,12 @@ using System.Linq;
 using Crestron.SimplSharpPro.DeviceSupport;
 using Newtonsoft.Json;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
-using PepperDash.Essentials.Core.Bridges;
-using PepperDash.Essentials.Devices.Common.Codec;
+using UmdEssentials.Core;
+using UmdEssentials.Core.Bridges;
+using UmdEssentials.Devices.Common.Codec;
 using System.Text.RegularExpressions;
 using Tesira_DSP_EPI.Bridge.JoinMaps;
-using Feedback = PepperDash.Essentials.Core.Feedback;
+using Feedback = UmdEssentials.Core.Feedback;
 
 namespace Tesira_DSP_EPI
 {
@@ -206,13 +206,11 @@ namespace Tesira_DSP_EPI
                 }
 
                 if (value == ECallStatus.IDLE)
-                {
                     if (ClearOnHangup)
                     {
                         DialString = string.Empty;
                         DialStringFeedback.FireUpdate();
                     }
-                }
 
                 CallStateFeedback.FireUpdate();
                 switch (CallStatusEnum)
@@ -371,7 +369,9 @@ namespace Tesira_DSP_EPI
                     isSubscribed = PotsIsSubscribed;
                 }
                 else
+                {
                     isSubscribed = false;
+                }
 
                 return isSubscribed;
             }
@@ -430,10 +430,7 @@ namespace Tesira_DSP_EPI
 
         private void Initialize(TesiraDialerControlBlockConfig config)
         {
-            if (config.Enabled)
-            {
-                DeviceManager.AddDevice(this);
-            }
+            if (config.Enabled) DeviceManager.AddDevice(this);
 
             Debug.Console(2, this, "Adding Dialer '{0}'", Key);
 
@@ -482,13 +479,13 @@ namespace Tesira_DSP_EPI
             if (IsVoip)
             {
                 DialerCustomName =
-                    (string.Format("{0}__VoIPDialer{1}", InstanceTag1, Index1)).Replace(" ", string.Empty);
+                    string.Format("{0}__VoIPDialer{1}", InstanceTag1, Index1).Replace(" ", string.Empty);
                 AutoAnswerCustomName =
-                    (string.Format("{0}__VoIPDialerAutoAnswer{1}", InstanceTag1, Index1)).Replace(" ", string.Empty);
+                    string.Format("{0}__VoIPDialerAutoAnswer{1}", InstanceTag1, Index1).Replace(" ", string.Empty);
                 ControlStatusCustomName =
-                    (string.Format("{0}__VoIPControl{1}", InstanceTag2, Index1)).Replace(" ", string.Empty);
+                    string.Format("{0}__VoIPControl{1}", InstanceTag2, Index1).Replace(" ", string.Empty);
                 LastDialedCustomName =
-                    (string.Format("{0}__VoIPLastNumber{1}", InstanceTag1, Index1)).Replace(" ", string.Empty);
+                    string.Format("{0}__VoIPLastNumber{1}", InstanceTag1, Index1).Replace(" ", string.Empty);
 
                 AddCustomName(ControlStatusCustomName);
                 SendSubscriptionCommand(ControlStatusCustomName, "callState", 250, 2);
@@ -505,12 +502,12 @@ namespace Tesira_DSP_EPI
             else if (!IsVoip)
             {
                 PotsDialerCustomName =
-                    (string.Format("{0}__PotsDialer{1}", InstanceTag1, Index1)).Replace(" ", string.Empty);
+                    string.Format("{0}__PotsDialer{1}", InstanceTag1, Index1).Replace(" ", string.Empty);
                 LastDialedCustomName =
-                    (string.Format("{0}__PotsLastNumber{1}", InstanceTag1, Index1)).Replace(" ", string.Empty);
+                    string.Format("{0}__PotsLastNumber{1}", InstanceTag1, Index1).Replace(" ", string.Empty);
 
                 HookStateCustomName =
-                    (string.Format("{0}__HookState{1}", InstanceTag1, Index1)).Replace(" ", string.Empty);
+                    string.Format("{0}__HookState{1}", InstanceTag1, Index1).Replace(" ", string.Empty);
 
                 SendSubscriptionCommand(PotsDialerCustomName, "callState", 250, 1);
                 AddCustomName(PotsDialerCustomName);
@@ -536,13 +533,13 @@ namespace Tesira_DSP_EPI
                 AutoAnswerIsSubscribed = false;
 
                 DialerCustomName =
-                    (string.Format("{0}__VoIPDialer{1}", InstanceTag1, Index1)).Replace(" ", string.Empty);
+                    string.Format("{0}__VoIPDialer{1}", InstanceTag1, Index1).Replace(" ", string.Empty);
                 AutoAnswerCustomName =
-                    (string.Format("{0}__VoIPDialerAutoAnswer{1}", InstanceTag1, Index1)).Replace(" ", string.Empty);
+                    string.Format("{0}__VoIPDialerAutoAnswer{1}", InstanceTag1, Index1).Replace(" ", string.Empty);
                 ControlStatusCustomName =
-                    (string.Format("{0}__VoIPControl{1}", InstanceTag2, Index1)).Replace(" ", string.Empty);
+                    string.Format("{0}__VoIPControl{1}", InstanceTag2, Index1).Replace(" ", string.Empty);
                 LastDialedCustomName =
-                    (string.Format("{0}__VoIPLastNumber{1}", InstanceTag1, Index1)).Replace(" ", string.Empty);
+                    string.Format("{0}__VoIPLastNumber{1}", InstanceTag1, Index1).Replace(" ", string.Empty);
 
 
                 SendUnSubscriptionCommand(ControlStatusCustomName, "callState", 2);
@@ -554,12 +551,12 @@ namespace Tesira_DSP_EPI
             else if (!IsVoip)
             {
                 DialerCustomName =
-                    (string.Format("{0}__PotsDialer{1}", InstanceTag1, Index1)).Replace(" ", string.Empty);
+                    string.Format("{0}__PotsDialer{1}", InstanceTag1, Index1).Replace(" ", string.Empty);
                 LastDialedCustomName =
-                    (string.Format("{0}__PotsLastNumber{1}", InstanceTag1, Index1)).Replace(" ", string.Empty);
+                    string.Format("{0}__PotsLastNumber{1}", InstanceTag1, Index1).Replace(" ", string.Empty);
 
                 HookStateCustomName =
-                    (string.Format("{0}__HookState{1}", InstanceTag1, Index1)).Replace(" ", string.Empty);
+                    string.Format("{0}__HookState{1}", InstanceTag1, Index1).Replace(" ", string.Empty);
 
                 SendUnSubscriptionCommand(DialerCustomName, "callState", 2);
 
@@ -594,7 +591,7 @@ namespace Tesira_DSP_EPI
 
                     Debug.Console(2, this, "This is the list of Call States - {0}", myMatches.ToString());
 
-                    Match match = myMatches[CallAppearance - 1 + (IsVoip ? ((Index1 - 1) * 6) : 0)];
+                    Match match = myMatches[CallAppearance - 1 + (IsVoip ? (Index1 - 1) * 6 : 0)];
                     Match match2 = Regex.Match(match.Value, pattern2);
                     if (match2.Success)
                     {
@@ -603,12 +600,9 @@ namespace Tesira_DSP_EPI
                         int callStatusInt = int.Parse(match2.Groups["state"].Value);
 
                         if (IsVoip)
-                        {
-                            CallStatusEnum = (ECallStatus)(callStatusInt);
-                        }
+                            CallStatusEnum = (ECallStatus)callStatusInt;
                         // Set call stauts for POTS 
                         else
-                        {
                             switch (callStatusInt)
                             {
                                 case 1:
@@ -646,7 +640,6 @@ namespace Tesira_DSP_EPI
                                     break;
                                 //default: CallStatusEnum = eCallStatus.IDLE;
                             }
-                        }
 
                         Debug.Console(2, this, "Callstate for Line {0} is {1}", lineNumber,
                             int.Parse(match2.Groups["state"].Value));
@@ -786,10 +779,7 @@ namespace Tesira_DSP_EPI
                 }
                 else if (!OffHookStatus)
                 {
-                    if (!string.IsNullOrEmpty(DialString))
-                    {
-                        SendFullCommand(null, "dial", DialString, 2);
-                    }
+                    if (!string.IsNullOrEmpty(DialString)) SendFullCommand(null, "dial", DialString, 2);
                 }
             }
 
@@ -806,9 +796,7 @@ namespace Tesira_DSP_EPI
                 else if (!OffHookStatus)
                 {
                     if (!string.IsNullOrEmpty(DialString))
-                    {
                         SendFullCommand(null, "dial", DialString, 1);
-                    }
                     else
                         SendFullCommand(null, "OFFHOOK", null, 1);
 
@@ -832,15 +820,9 @@ namespace Tesira_DSP_EPI
         /// </summary>
         public void OnHook()
         {
-            if (IsVoip)
-            {
-                SendFullCommand(null, "end", null, 2);
-            }
+            if (IsVoip) SendFullCommand(null, "end", null, 2);
 
-            if (!IsVoip)
-            {
-                SendFullCommand("set", "hookState", "ONHOOK", 2);
-            }
+            if (!IsVoip) SendFullCommand("set", "hookState", "ONHOOK", 2);
         }
 
         /// <summary>
@@ -977,7 +959,6 @@ namespace Tesira_DSP_EPI
         public void SendKeypad(EKeypadKeys data)
         {
             if (!OffHookStatus)
-            {
                 switch (data)
                 {
                     case EKeypadKeys.Num0:
@@ -1041,7 +1022,6 @@ namespace Tesira_DSP_EPI
 
                         break;
                 }
-            }
 
             if (!OffHookStatus) return;
 
@@ -1232,24 +1212,21 @@ namespace Tesira_DSP_EPI
             if (!string.IsNullOrEmpty(joinMapSerialized))
                 joinMap = JsonConvert.DeserializeObject<TesiraDialerJoinMapAdvancedStandalone>(joinMapSerialized);
 
-            if (bridge != null)
-            {
-                bridge.AddJoinMap(Key, joinMap);
-            }
+            if (bridge != null) bridge.AddJoinMap(Key, joinMap);
 
             Debug.Console(2, "Adding Dialer {0}", Key);
 
             for (int i = 0; i < joinMap.KeyPadNumeric.JoinSpan; i++)
             {
                 int keyNumber = i;
-                trilist.SetSigTrueAction((joinMap.KeyPadNumeric.JoinNumber + (uint)keyNumber),
+                trilist.SetSigTrueAction(joinMap.KeyPadNumeric.JoinNumber + (uint)keyNumber,
                     () => SendKeypad((EKeypadKeys)keyNumber));
             }
 
-            trilist.SetSigTrueAction((joinMap.KeyPadStar.JoinNumber), () => SendKeypad(EKeypadKeys.Star));
-            trilist.SetSigTrueAction((joinMap.KeyPadPound.JoinNumber), () => SendKeypad(EKeypadKeys.Pound));
-            trilist.SetSigTrueAction((joinMap.KeyPadClear.JoinNumber), () => SendKeypad(EKeypadKeys.Clear));
-            trilist.SetSigTrueAction((joinMap.KeyPadBackspace.JoinNumber), () => SendKeypad(EKeypadKeys.Backspace));
+            trilist.SetSigTrueAction(joinMap.KeyPadStar.JoinNumber, () => SendKeypad(EKeypadKeys.Star));
+            trilist.SetSigTrueAction(joinMap.KeyPadPound.JoinNumber, () => SendKeypad(EKeypadKeys.Pound));
+            trilist.SetSigTrueAction(joinMap.KeyPadClear.JoinNumber, () => SendKeypad(EKeypadKeys.Clear));
+            trilist.SetSigTrueAction(joinMap.KeyPadBackspace.JoinNumber, () => SendKeypad(EKeypadKeys.Backspace));
 
             trilist.SetSigTrueAction(joinMap.KeyPadDial.JoinNumber, Dial);
             trilist.SetSigTrueAction(joinMap.DoNotDisturbToggle.JoinNumber, DoNotDisturbToggle);
@@ -1302,10 +1279,7 @@ namespace Tesira_DSP_EPI
             {
                 if (!args.DeviceOnLine) return;
 
-                foreach (Feedback feedback in Feedbacks)
-                {
-                    feedback.FireUpdate();
-                }
+                foreach (Feedback feedback in Feedbacks) feedback.FireUpdate();
             };
         }
     }

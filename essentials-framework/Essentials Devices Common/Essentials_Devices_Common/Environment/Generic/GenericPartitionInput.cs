@@ -1,15 +1,15 @@
 ﻿using System.Collections.Generic;
 using Crestron.SimplSharpPro.DeviceSupport;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
-using PepperDash.Essentials.Core.Config;
-using PepperDash.Essentials.Core.Bridges;
 using Newtonsoft.Json;
-using PepperDash.Essentials.Core.CrestronIO;
-using PepperDash.Essentials.Core.PartitionSensor;
-using PepperDash.Essentials.Core.Bridges.JoinMaps;
+using UmdEssentials.Core;
+using UmdEssentials.Core.Bridges;
+using UmdEssentials.Core.Bridges.JoinMaps;
+using UmdEssentials.Core.Config;
+using UmdEssentials.Core.CrestronIO;
+using UmdEssentials.Core.PartitionSensor;
 
-namespace PepperDash.Essentials.Devices.Common.Environment
+namespace UmdEssentials.Devices.Common.Environment
 {
     public class GenericPartitionInput : GenericVersiportDigitalInputDevice
     {
@@ -89,7 +89,7 @@ namespace PepperDash.Essentials.Devices.Common.Environment
     {
         public GenericPartitionInputFactory()
         {
-            TypeNames = new List<string>() { "genericpartition" };
+            TypeNames = new List<string> { "genericpartition" };
         }
 
         public override EssentialsDevice BuildDevice(DeviceConfig dc)

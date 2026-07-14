@@ -6,12 +6,12 @@ using Crestron.SimplSharpPro.UI;
 using Crestron.SimplSharpPro.DM;
 using Newtonsoft.Json;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
-using PepperDash.Essentials.Core.Config;
 using Crestron.SimplSharpPro.DeviceSupport;
-using PepperDash.Essentials.Core.DeviceInfo;
+using UmdEssentials.Core;
+using UmdEssentials.Core.Config;
+using UmdEssentials.Core.DeviceInfo;
 
-namespace PepperDash.Essentials.DM.Endpoints.DGEs
+namespace UmdEssentials.DM.Endpoints.DGEs
 {
     [Description("Wrapper class for DGE-100")]
     public class Dge100Controller : CrestronGenericBaseDevice, IComPorts, IIROutputPorts,
@@ -121,10 +121,7 @@ namespace PepperDash.Essentials.DM.Endpoints.DGEs
 
             tcpClient.ConnectionChange += (sender, args) =>
             {
-                if (!args.Client.IsConnected)
-                {
-                    return;
-                }
+                if (!args.Client.IsConnected) return;
 
                 args.Client.SendText("ver\r\n");
             };
@@ -157,17 +154,11 @@ namespace PepperDash.Essentials.DM.Endpoints.DGEs
                         return;
                     }*/
 
-                    if (!args.Text.Contains('['))
-                    {
-                        return;
-                    }
+                    if (!args.Text.Contains('[')) return;
 
                     string[] splitResponse = args.Text.Split('[');
 
-                    foreach (string t in splitResponse)
-                    {
-                        Debug.Console(1, this, "{0}", t);
-                    }
+                    foreach (string t in splitResponse) Debug.Console(1, this, "{0}", t);
 
                     DeviceInfo.SerialNumber = splitResponse[1].Split(' ')[4].Replace("#", "");
                     DeviceInfo.FirmwareVersion = splitResponse[1].Split(' ')[0];
@@ -203,7 +194,7 @@ namespace PepperDash.Essentials.DM.Endpoints.DGEs
     {
         public Dge100ControllerFactory()
         {
-            TypeNames = new List<string>() { "dge100" };
+            TypeNames = new List<string> { "dge100" };
         }
 
         public override EssentialsDevice BuildDevice(DeviceConfig dc)

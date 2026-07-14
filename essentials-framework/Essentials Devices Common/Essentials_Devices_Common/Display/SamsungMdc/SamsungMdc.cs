@@ -6,14 +6,15 @@ using Crestron.SimplSharp;
 using Crestron.SimplSharpPro.DeviceSupport;
 using Newtonsoft.Json;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
-using PepperDash.Essentials.Core.Bridges;
-using PepperDash.Essentials.Core.DeviceInfo;
-using PepperDash.Essentials.Core.Routing;
-using PepperDash.Essentials.DM;
-using Feedback = PepperDash.Essentials.Core.Feedback;
+using UmdEssentials.Core;
+using UmdEssentials.Core.Bridges;
+using UmdEssentials.Core.DeviceInfo;
+using UmdEssentials.Core.Routing;
+using UmdEssentials.DM;
+using Core_Feedback = UmdEssentials.Core.Feedback;
+using Feedback = UmdEssentials.Core.Feedback;
 
-namespace PepperDash.Essentials.Devices.Displays
+namespace UmdEssentials.Devices.Displays
 {
     public class SamsungMdcDisplayController : TwoWayDisplayBase, IBasicVolumeWithFeedback, ICommunicationMonitor,
         IBridgeAdvanced, IDeviceInfoProvider
@@ -93,10 +94,7 @@ namespace PepperDash.Essentials.Devices.Displays
             _PowerMutex = new CMutex();
             _feedbackMutex = new CMutex();
 
-            if (config.VideoMuteKey != null)
-            {
-                videoMuteKey = config.VideoMuteKey;
-            }
+            if (config.VideoMuteKey != null) videoMuteKey = config.VideoMuteKey;
 
             videoMuteInput = config.VideoMuteInput;
 
@@ -159,12 +157,12 @@ namespace PepperDash.Essentials.Devices.Displays
         /// <summary>
         /// 
         /// </summary>
-        public override FeedbackCollection<Feedback> Feedbacks
+        public override FeedbackCollection<Core_Feedback> Feedbacks
         {
             get
             {
-                FeedbackCollection<Feedback> list = base.Feedbacks;
-                list.AddRange(new List<Feedback>
+                FeedbackCollection<Core_Feedback> list = base.Feedbacks;
+                list.AddRange(new List<Core_Feedback>
                 {
                     VolumeLevelFeedback,
                     MuteFeedback,
@@ -551,23 +549,16 @@ namespace PepperDash.Essentials.Devices.Displays
         {
             ushort scaled;
             if (!ScaleVolume)
-            {
                 scaled = (ushort)Math.Round(NumericalHelpers.Scale(level, 0, 65535, 0, 100));
-            }
             else
-            {
                 scaled = (ushort)Math.Round(NumericalHelpers.Scale(level, 0, 65535, _lowerLimit, _upperLimit));
-            }
 
             SetVolumeRaw(scaled);
         }
 
         public void SetVolumeRaw(ushort level)
         {
-            if (level > _upperLimit || level < _lowerLimit)
-            {
-                return;
-            }
+            if (level > _upperLimit || level < _lowerLimit) return;
 
             _lastVolumeSent = level;
             if (_isWarmingUp)
@@ -577,10 +568,7 @@ namespace PepperDash.Essentials.Devices.Displays
             else
             {
                 SendBytes(new byte[] { Header, VolumeLevelControlCmd, 0x00, 0x01, Convert.ToByte(level), 0x00 });
-                if (_isMuted)
-                {
-                    MuteOff();
-                }
+                if (_isMuted) MuteOff();
             }
         }
 
@@ -623,13 +611,9 @@ namespace PepperDash.Essentials.Devices.Displays
         public void MuteToggle()
         {
             if (_isMuted)
-            {
                 MuteOff();
-            }
             else
-            {
                 MuteOn();
-            }
         }
 
         /// <summary>
@@ -640,10 +624,7 @@ namespace PepperDash.Essentials.Devices.Displays
         {
             if (pressRelease)
             {
-                if (_isMuted)
-                {
-                    MuteOff();
-                }
+                if (_isMuted) MuteOff();
 
                 _volumeIncrementer.StartDown();
                 _volumeIsRamping = true;
@@ -663,10 +644,7 @@ namespace PepperDash.Essentials.Devices.Displays
         {
             if (pressRelease)
             {
-                if (_isMuted)
-                {
-                    MuteOff();
-                }
+                if (_isMuted) MuteOff();
 
                 _volumeIncrementer.StartUp();
                 _volumeIsRamping = true;
@@ -696,9 +674,7 @@ namespace PepperDash.Essentials.Devices.Displays
             string joinMapSerialized = JoinMapHelper.GetSerializedJoinMapForDevice(joinMapKey);
 
             if (!string.IsNullOrEmpty(joinMapSerialized))
-            {
                 joinMap = JsonConvert.DeserializeObject<SamsungDisplayControllerJoinMap>(joinMapSerialized);
-            }
 
             Debug.Console(1, "Linking to Trilist '{0}'", trilist.ID.ToString("X"));
             Debug.Console(0, "Linking to Display: {0}", Name);
@@ -729,30 +705,21 @@ namespace PepperDash.Essentials.Devices.Displays
 
                 //If config has video mute input defined, only support scaler video mute while on that display input
                 if (videoMuteInput > 0)
-                {
                     InputNumberFeedback.OutputChange += (o, args) =>
                     {
                         if (videoMuteInput == InputNumberFeedback.UShortValue)
-                        {
                             trilist.BooleanInput[joinMap.VideoMuteSupported.JoinNumber].BoolValue = true;
-                        }
                         else
-                        {
                             trilist.BooleanInput[joinMap.VideoMuteSupported.JoinNumber].BoolValue = false;
-                        }
                     };
-                }
                 else
-                {
                     trilist.BooleanInput[joinMap.VideoMuteSupported.JoinNumber].BoolValue = true;
-                }
             }
 
             // Input digital
             int count = 0;
 
             if (_config.FriendlyNames == null)
-            {
                 foreach (RoutingInputPort input in InputPorts)
                 {
                     RoutingInputPort i = input;
@@ -765,11 +732,8 @@ namespace PepperDash.Essentials.Devices.Displays
                         trilist.BooleanInput[joinMap.InputSelectOffset.JoinNumber + (uint)count]);
                     count++;
                 }
-            }
             else
-            {
                 foreach (FriendlyName name in _config.FriendlyNames)
-                {
                     try
                     {
                         RoutingInputPort input = InputPorts.First(n => n.Key == name.InputKey);
@@ -788,24 +752,15 @@ namespace PepperDash.Essentials.Devices.Displays
                     {
                         Debug.ConsoleWithLog(0, this, "Error creating input {0}", count + 1);
                     }
-                }
-            }
 
             // Input Analog
             trilist.SetUShortSigAction(joinMap.InputSelect.JoinNumber, a =>
             {
                 if (a == 0)
-                {
                     PowerOff();
-                }
                 else if (a < InputPorts.Count)
-                {
                     InputNumber = a + 1;
-                }
-                else if (a == 102)
-                {
-                    PowerToggle();
-                }
+                else if (a == 102) PowerToggle();
 
                 Debug.Console(2, this, "InputChange {0}", a);
             });
@@ -834,10 +789,7 @@ namespace PepperDash.Essentials.Devices.Displays
 
             trilist.SetUShortSigAction(joinMap.VolumeLevel.JoinNumber, u =>
             {
-                if (trilist.BooleanOutput[joinMap.EnableLevelSend.JoinNumber].BoolValue)
-                {
-                    SetVolume(u);
-                }
+                if (trilist.BooleanOutput[joinMap.EnableLevelSend.JoinNumber].BoolValue) SetVolume(u);
             });
 
             VolumeLevelFeedback.LinkInputSig(trilist.UShortInput[joinMap.VolumeLevel.JoinNumber]);
@@ -997,10 +949,7 @@ namespace PepperDash.Essentials.Devices.Displays
 
         private void InitVolumeControls()
         {
-            if (_upperLimit != _lowerLimit && _upperLimit > _lowerLimit)
-            {
-                ScaleVolume = true;
-            }
+            if (_upperLimit != _lowerLimit && _upperLimit > _lowerLimit) ScaleVolume = true;
 
             if (!ScaleVolume)
             {
@@ -1067,11 +1016,9 @@ namespace PepperDash.Essentials.Devices.Displays
                 e.Bytes.CopyTo(newBytes, _incomingBuffer.Length);
 
                 if (Debug.Level == 2)
-                {
                     // This check is here to prevent
                     // following string format from building unnecessarily on level 0 or 1
                     Debug.Console(2, this, "Received new bytes:{0}", ComTextHelper.GetEscapedText(newBytes));
-                }
 
                 // Get data length
                 if (newBytes.Length >= 6)
@@ -1095,10 +1042,8 @@ namespace PepperDash.Essentials.Devices.Displays
                 {
                     _incomingBuffer = newBytes;
                     if (Debug.Level == 2)
-                    {
                         // This check is here to prevent following string format from building unnecessarily on level 0 or 1
                         Debug.Console(2, this, "Add to buffer:{0}", ComTextHelper.GetEscapedText(_incomingBuffer));
-                    }
                 }
                 else
                 {
@@ -1122,10 +1067,8 @@ namespace PepperDash.Essentials.Devices.Displays
             byte command = message[5];
 
             if (Debug.Level == 2)
-            {
                 // This check is here to prevent following string format from building unnecessarily on level 0 or 1
                 Debug.Console(2, this, "Add to buffer:{0}", ComTextHelper.GetEscapedText(_incomingBuffer));
-            }
 
             try
             {
@@ -1143,9 +1086,7 @@ namespace PepperDash.Essentials.Devices.Displays
                         //UpdatePowerFB(message[2], message[5]); // "power" can be misrepresented when the display sleeps
                         // Handle the first power on fb when waiting for it.
                         if (_isPoweringOnIgnorePowerFb && message[6] == PowerControlOn)
-                        {
                             _isPoweringOnIgnorePowerFb = false;
-                        }
 
                         // Ignore general-status power off messages when powering up
                         // if (!(_isPoweringOnIgnorePowerFb && message[6] == PowerControlOff))
@@ -1157,12 +1098,10 @@ namespace PepperDash.Essentials.Devices.Displays
                             UpdateMuteFb(message[8]);
                             UpdateInputFb(message[9]);
                             if (Debug.Level == 2)
-                            {
                                 // This check is here to prevent following string format from building unnecessarily on level 0 or 1
                                 Debug.Console(2, this, "StatusControlCmd Power{0}, Mute{2}, Volume{1} Input{3}",
                                     message[6],
                                     message[7], message[8], message[9]);
-                            }
                         }
 
                         break;
@@ -1297,10 +1236,7 @@ namespace PepperDash.Essentials.Devices.Displays
         {
             DeviceInfoChangeHandler handler = DeviceInfoChanged;
 
-            if (handler == null)
-            {
-                return;
-            }
+            if (handler == null) return;
 
             handler(this, new DeviceInfoEventArgs { DeviceInfo = DeviceInfo });
         }
@@ -1311,17 +1247,12 @@ namespace PepperDash.Essentials.Devices.Displays
         private void UpdatePowerFb(byte powerByte)
         {
             bool newVal = powerByte == 1;
-            if (newVal == _powerIsOn)
-            {
-                return;
-            }
+            if (newVal == _powerIsOn) return;
 
             _powerIsOn = newVal;
             _PowerMutex.WaitForMutex();
             if ((_RequestedPowerState == 1 && _powerIsOn) || (_RequestedPowerState == 2 && !_powerIsOn))
-            {
                 _RequestedPowerState = 0;
-            }
 
             _PowerMutex.ReleaseMutex();
             PowerIsOnFeedback.FireUpdate();
@@ -1334,23 +1265,13 @@ namespace PepperDash.Essentials.Devices.Displays
         {
             ushort newVol;
             if (!ScaleVolume)
-            {
                 newVol = (ushort)NumericalHelpers.Scale(b, 0, 100, 0, 65535);
-            }
             else
-            {
                 newVol = (ushort)NumericalHelpers.Scale(b, _lowerLimit, _upperLimit, 0, 65535);
-            }
 
-            if (!_volumeIsRamping)
-            {
-                _lastVolumeSent = b;
-            }
+            if (!_volumeIsRamping) _lastVolumeSent = b;
 
-            if (newVol == _volumeLevelForSig)
-            {
-                return;
-            }
+            if (newVol == _volumeLevelForSig) return;
 
             _volumeLevelForSig = newVol;
             VolumeLevelFeedback.FireUpdate();
@@ -1421,20 +1342,14 @@ namespace PepperDash.Essentials.Devices.Displays
             // [HEADER][CMD][ID][DATA_LEN][DATA-1]....[DATA-N][CHK_SUM]
             // PowerOn ex: 0xAA,0x11,0x01,0x01,0x01,0x01
             if (_lastCommandSentWasVolume) // If the last command sent was volume
-            {
                 if (b[1] != 0x12) // Check if this command is volume, and if not, delay this command 
-                {
                     CrestronEnvironment.Sleep(100);
-                }
-            }
 
             b[2] = Id;
             // append checksum by adding all bytes, except last which should be 00
             int checksum = 0;
             for (int i = 1; i < b.Length - 1; i++) // add 2nd through 2nd-to-last bytes
-            {
                 checksum += b[i];
-            }
 
             checksum = checksum & 0x000000FF; // mask off MSBs
             b[b.Length - 1] = (byte)checksum;
@@ -1533,10 +1448,7 @@ namespace PepperDash.Essentials.Devices.Displays
             // If a display has unreliable-power off feedback, just override this and
             // remove this check.
 
-            if (_hdmiBlanking != null)
-            {
-                _hdmiBlanking.UnblankOutput();
-            }
+            if (_hdmiBlanking != null) _hdmiBlanking.UnblankOutput();
 
             SendBytes(new byte[] { Header, PowerControlCmd, 0x00, 0x01, PowerControlOff, 0x00 });
             _isCoolingDown = true;
@@ -1567,13 +1479,8 @@ namespace PepperDash.Essentials.Devices.Displays
             if (!_isWarmingUp && !_isCoolingDown)
             {
                 if (_RequestedPowerState == 1 && (_powerIsOn == false || !CommunicationMonitor.IsOnline))
-                {
                     PowerOnGo();
-                }
-                else if (_RequestedPowerState == 2 && (_powerIsOn || !CommunicationMonitor.IsOnline))
-                {
-                    PowerOffGo();
-                }
+                else if (_RequestedPowerState == 2 && (_powerIsOn || !CommunicationMonitor.IsOnline)) PowerOffGo();
             }
         }
 
@@ -1581,10 +1488,7 @@ namespace PepperDash.Essentials.Devices.Displays
         {
             try
             {
-                foreach (BoolFeedback item in InputFeedback)
-                {
-                    item.FireUpdate();
-                }
+                foreach (BoolFeedback item in InputFeedback) item.FireUpdate();
             }
             catch (Exception e)
             {
@@ -1600,13 +1504,8 @@ namespace PepperDash.Essentials.Devices.Displays
         public override void PowerToggle()
         {
             if (PowerIsOnFeedback.BoolValue && !IsWarmingUpFeedback.BoolValue)
-            {
                 PowerOff();
-            }
-            else if (!PowerIsOnFeedback.BoolValue && !IsCoolingDownFeedback.BoolValue)
-            {
-                PowerOn();
-            }
+            else if (!PowerIsOnFeedback.BoolValue && !IsCoolingDownFeedback.BoolValue) PowerOn();
         }
 
         /// <summary>
@@ -1626,9 +1525,7 @@ namespace PepperDash.Essentials.Devices.Displays
         public void InputHdmi1()
         {
             if (_isWarmingUp)
-            {
                 _RequestedInputState = 1;
-            }
             else
                 SendBytes(new byte[] { Header, InputControlCmd, 0x00, 0x01, InputControlHdmi1, 0x00 });
         }
@@ -1640,9 +1537,7 @@ namespace PepperDash.Essentials.Devices.Displays
         public void InputHdmi2()
         {
             if (_isWarmingUp)
-            {
                 _RequestedInputState = 2;
-            }
             else
                 SendBytes(new byte[] { Header, InputControlCmd, 0x00, 0x01, InputControlHdmi2, 0x00 });
         }
@@ -1654,9 +1549,7 @@ namespace PepperDash.Essentials.Devices.Displays
         public void InputHdmi3()
         {
             if (_isWarmingUp)
-            {
                 _RequestedInputState = 3;
-            }
             else
                 SendBytes(new byte[] { Header, InputControlCmd, 0x00, 0x01, InputControlHdmi3, 0x00 });
         }
@@ -1668,9 +1561,7 @@ namespace PepperDash.Essentials.Devices.Displays
         public void InputHdmi4()
         {
             if (_isWarmingUp)
-            {
                 _RequestedInputState = 4;
-            }
             else
                 SendBytes(new byte[] { Header, InputControlCmd, 0x00, 0x01, InputControlHdmi4, 0x00 });
         }
@@ -1682,9 +1573,7 @@ namespace PepperDash.Essentials.Devices.Displays
         public void InputDisplayPort1()
         {
             if (_isWarmingUp)
-            {
                 _RequestedInputState = 5;
-            }
             else
                 SendBytes(new byte[] { Header, InputControlCmd, 0x00, 0x01, InputControlDisplayPort1, 0x00 });
         }
@@ -1696,9 +1585,7 @@ namespace PepperDash.Essentials.Devices.Displays
         public void InputDisplayPort2()
         {
             if (_isWarmingUp)
-            {
                 _RequestedInputState = 6;
-            }
             else
                 SendBytes(new byte[] { Header, InputControlCmd, 0x00, 0x01, InputControlDisplayPort2, 0x00 });
         }
@@ -1710,9 +1597,7 @@ namespace PepperDash.Essentials.Devices.Displays
         public void InputDvi1()
         {
             if (_isWarmingUp)
-            {
                 _RequestedInputState = 7;
-            }
             else
                 SendBytes(new byte[] { Header, InputControlCmd, 0x00, 0x01, InputControlDvi1, 0x00 });
         }
@@ -1766,7 +1651,7 @@ namespace PepperDash.Essentials.Devices.Displays
 
         private double ConvertCelsiusToFahrenheit(double c)
         {
-            return ((9.0 / 5.0) * c) + 32;
+            return 9.0 / 5.0 * c + 32;
         }
 
         private void InputSwitchNumeric(ushort input)
@@ -1811,10 +1696,7 @@ namespace PepperDash.Essentials.Devices.Displays
             if (_powerIsOn)
             {
                 Action action = selector as Action;
-                if (action != null)
-                {
-                    action();
-                }
+                if (action != null) action();
             }
             else // if power is off, wait until we get on FB to send it. 
             {
@@ -1822,17 +1704,11 @@ namespace PepperDash.Essentials.Devices.Displays
                 EventHandler<FeedbackEventArgs> handler = null; // necessary to allow reference inside lambda to handler
                 handler = (o, a) =>
                 {
-                    if (_isWarmingUp)
-                    {
-                        return;
-                    }
+                    if (_isWarmingUp) return;
 
                     IsWarmingUpFeedback.OutputChange -= handler;
                     Action action = selector as Action;
-                    if (action != null)
-                    {
-                        action();
-                    }
+                    if (action != null) action();
                 };
                 IsWarmingUpFeedback.OutputChange += handler; // attach and wait for on FB
                 PowerOn();
@@ -1864,10 +1740,7 @@ namespace PepperDash.Essentials.Devices.Displays
 
         public void UpdateDeviceInfo()
         {
-            if (DeviceInfo == null)
-            {
-                DeviceInfo = new DeviceInfo();
-            }
+            if (DeviceInfo == null) DeviceInfo = new DeviceInfo();
 
             //get serial number
             SendBytes(new byte[] { Header, 0x0B, Id, 0x00 });

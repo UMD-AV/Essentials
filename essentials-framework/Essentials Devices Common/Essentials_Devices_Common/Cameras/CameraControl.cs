@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using PepperDash.Essentials.Core;
+using UmdEssentials.Core;
 
-namespace PepperDash.Essentials.Devices.Common.Cameras
+namespace UmdEssentials.Devices.Common.Cameras
 {
     public enum eCameraControlMode
     {

@@ -1,6 +1,6 @@
-﻿using PepperDash.Essentials.Core;
+﻿using UmdEssentials.Core;
 
-namespace PepperDash.Essentials.DM
+namespace UmdEssentials.DM
 {
     /// <summary>
     /// Defines a device capable of setting the Free Run state of a VGA input and reporting feedback

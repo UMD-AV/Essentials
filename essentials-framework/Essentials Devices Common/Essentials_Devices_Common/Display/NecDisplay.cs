@@ -5,13 +5,13 @@ using Crestron.SimplSharp;
 using Crestron.SimplSharpPro.CrestronThread;
 using Crestron.SimplSharpPro.DeviceSupport;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
-using PepperDash.Essentials.Core.Bridges;
-using PepperDash.Essentials.Core.Config;
 using Newtonsoft.Json;
-using PepperDash.Essentials.DM;
+using UmdEssentials.Core;
+using UmdEssentials.Core.Bridges;
+using UmdEssentials.Core.Config;
+using UmdEssentials.DM;
 
-namespace PepperDash.Essentials.Devices.Displays
+namespace UmdEssentials.Devices.Displays
 {
     /// <summary>
     /// 
@@ -133,10 +133,7 @@ namespace PepperDash.Essentials.Devices.Displays
             WarmupTimer = new CTimer(WarmupCallback, Timeout.Infinite);
             CooldownTimer = new CTimer(CooldownCallback, Timeout.Infinite);
 
-            if (config.VideoMuteKey != null)
-            {
-                videoMuteKey = config.VideoMuteKey;
-            }
+            if (config.VideoMuteKey != null) videoMuteKey = config.VideoMuteKey;
 
             videoMuteInput = config.VideoMuteInput;
 
@@ -181,10 +178,7 @@ namespace PepperDash.Essentials.Devices.Displays
             }
 
             Communication.Connect();
-            if (!_tcpComm)
-            {
-                _readyForCommands = true;
-            }
+            if (!_tcpComm) _readyForCommands = true;
 
             CommunicationMonitor.StatusChange += (o, a) =>
                 Debug.Console(1, this, "Communication monitor state: {0}", CommunicationMonitor.Status);
@@ -209,23 +203,15 @@ namespace PepperDash.Essentials.Devices.Displays
 
                 //If config has video mute input defined, only support scaler video mute while on that display input
                 if (videoMuteInput > 0)
-                {
                     CurrentInputFeedback.OutputChange += (o, args) =>
                     {
                         if (videoMuteInput == _CurrentInputIndex)
-                        {
                             trilist.BooleanInput[joinMap.VideoMuteSupported.JoinNumber].BoolValue = true;
-                        }
                         else
-                        {
                             trilist.BooleanInput[joinMap.VideoMuteSupported.JoinNumber].BoolValue = false;
-                        }
                     };
-                }
                 else
-                {
                     trilist.BooleanInput[joinMap.VideoMuteSupported.JoinNumber].BoolValue = true;
-                }
             }
 
             IsWarmingUpFeedback.LinkInputSig(trilist.BooleanInput[joinMap.Warming.JoinNumber]);
@@ -270,42 +256,28 @@ namespace PepperDash.Essentials.Devices.Displays
             byte lengthB = Convert.ToByte(commandLength);
 
             // Byte 5 - This is to take the actual number and map it to the ascii value
-            commandB[5] = Convert.ToByte((lengthB & 0xF0));
+            commandB[5] = Convert.ToByte(lengthB & 0xF0);
             if (commandB[5] <= 0x09)
-            {
                 commandB[5] += 0x30;
-            }
             else
-            {
                 commandB[5] += 0x37;
-            }
 
             // Byte 6 - This is to take the actual number and map it to the ascii value
-            commandB[6] = Convert.ToByte((lengthB & 0x0F));
+            commandB[6] = Convert.ToByte(lengthB & 0x0F);
             if (commandB[6] <= 0x09)
-            {
                 commandB[6] += 0x30;
-            }
             else
-            {
                 commandB[6] += 0x37;
-            }
 
             //Header complete, now build command hex
             commandB[7] = 0x02; //Add Start TX
-            for (int i = 0; i < commandLength - 2; i++)
-            {
-                commandB[i + 8] = Convert.ToByte(command[i]);
-            }
+            for (int i = 0; i < commandLength - 2; i++) commandB[i + 8] = Convert.ToByte(command[i]);
 
             commandB[commandLength + 6] = 0x03; //Add End TX
 
             //Now generate checksum, starting at byte 1 (skip SOH, byte 0)
             byte checksum = commandB[1];
-            for (int i = 2; i < fullLength - 2; i++)
-            {
-                checksum = Convert.ToByte(checksum ^ commandB[i]);
-            }
+            for (int i = 2; i < fullLength - 2; i++) checksum = Convert.ToByte(checksum ^ commandB[i]);
 
             commandB[fullLength - 2] = checksum;
 
@@ -344,8 +316,7 @@ namespace PepperDash.Essentials.Devices.Displays
 
                 int startPos = -1;
                 //Try to trim any beginning garbage, but only check to (length - 10) for start position since min length is at least 10 bytes
-                for (int i = 0; (i + 10) < feedbackBytes.Length; i++)
-                {
+                for (int i = 0; i + 10 < feedbackBytes.Length; i++)
                     if (feedbackBytes[i] == 0x01
                         && feedbackBytes[i + 1] == '0'
                         && feedbackBytes[i + 2] == '0'
@@ -355,7 +326,6 @@ namespace PepperDash.Essentials.Devices.Displays
                         startPos = i;
                         break;
                     }
-                }
 
                 //Check for header
                 if (startPos == -1)
@@ -401,14 +371,13 @@ namespace PepperDash.Essentials.Devices.Displays
                     }
 
                     if (parsedFb.Length >= 16 && parsedFb.StartsWith("00006000"))
-                    {
                         try
                         {
                             string inputFb = parsedFb.Substring(14, 2);
                             Debug.Console(1, this, "Found valid input feedback reply: {0}", inputFb);
                             int index = InputPorts.FindIndex(i => i.FeedbackMatchObject.Equals(inputFb));
                             RoutingInputPort newInput = InputPorts[index];
-                            if (_CurrentInputIndex != (index + 1))
+                            if (_CurrentInputIndex != index + 1)
                             {
                                 _CurrentInputIndex = index + 1; //Offset from 0 based index
                                 Input1Feedback.FireUpdate();
@@ -429,7 +398,6 @@ namespace PepperDash.Essentials.Devices.Displays
                         {
                             Debug.Console(1, this, "Invalid input feedback: {0}", feedbackBytes);
                         }
-                    }
                 }
                 else if (messageType == eNecMessageType.SetReply)
                 {
@@ -455,18 +423,12 @@ namespace PepperDash.Essentials.Devices.Displays
 
                 //Clear power check
                 _PowerMutex.WaitForMutex();
-                if (_RequestedPowerState == 1)
-                {
-                    _RequestedPowerState = 0;
-                }
+                if (_RequestedPowerState == 1) _RequestedPowerState = 0;
 
                 _PowerMutex.ReleaseMutex();
 
                 //Finish the warming-up process
-                if (_IsWarmingUp)
-                {
-                    CrestronInvoke.BeginInvoke((o) => WarmupDone());
-                }
+                if (_IsWarmingUp) CrestronInvoke.BeginInvoke((o) => WarmupDone());
             }
             else if (powerFb == "0002" || powerFb == "0003" || powerFb == "0004")
             {
@@ -479,18 +441,12 @@ namespace PepperDash.Essentials.Devices.Displays
 
                 //Clear power check
                 _PowerMutex.WaitForMutex();
-                if (_RequestedPowerState == 2)
-                {
-                    _RequestedPowerState = 0;
-                }
+                if (_RequestedPowerState == 2) _RequestedPowerState = 0;
 
                 _PowerMutex.ReleaseMutex();
 
                 //Finish the cooling-down process
-                if (_IsCoolingDown)
-                {
-                    CrestronInvoke.BeginInvoke(o => CooldownDone());
-                }
+                if (_IsCoolingDown) CrestronInvoke.BeginInvoke(o => CooldownDone());
             }
         }
 
@@ -504,13 +460,9 @@ namespace PepperDash.Essentials.Devices.Displays
                 KeyValuePair<eCommandType, string> kvp = new KeyValuePair<eCommandType, string>(type, cmd);
                 Debug.Console(1, this, "Enqueuing command: {0}", cmd);
                 if (priority)
-                {
                     _priorityQueue.AddOrUpdateCommand(kvp);
-                }
                 else
-                {
                     _cmdQueue.AddOrUpdateCommand(kvp);
-                }
 
                 CrestronInvoke.BeginInvoke((o) => ProcessQueue());
             }
@@ -527,18 +479,13 @@ namespace PepperDash.Essentials.Devices.Displays
             {
                 //Pace the commands sending out
                 while (_cmdQueue.Count > 0 || _priorityQueue.Count > 0)
-                {
                     try
                     {
                         KeyValuePair<eCommandType, string> kvp;
                         if (_priorityQueue.Count > 0)
-                        {
                             kvp = _priorityQueue.Dequeue();
-                        }
                         else
-                        {
                             kvp = _cmdQueue.Dequeue();
-                        }
 
                         if (kvp.Value != null)
                         {
@@ -553,7 +500,6 @@ namespace PepperDash.Essentials.Devices.Displays
                         Debug.Console(0, this, "Caught an exception in ProcessQueue {0}\r{1}\r{2}", ex.Message,
                             ex.InnerException, ex.StackTrace);
                     }
-                }
 
                 _CommandMutex.ReleaseMutex();
             }
@@ -602,10 +548,7 @@ namespace PepperDash.Essentials.Devices.Displays
 
             InputGet();
 
-            if (_RequestedInputState != 0)
-            {
-                InputSelectGo(_RequestedInputState);
-            }
+            if (_RequestedInputState != 0) InputSelectGo(_RequestedInputState);
 
             ProcessPower();
 
@@ -690,10 +633,7 @@ namespace PepperDash.Essentials.Devices.Displays
 
         private void PowerOffGo()
         {
-            if (_hdmiBlanking != null)
-            {
-                _hdmiBlanking.UnblankOutput();
-            }
+            if (_hdmiBlanking != null) _hdmiBlanking.UnblankOutput();
 
             SendCommand(eCommandType.Power, PowerOffCmd, true);
             CrestronInvoke.BeginInvoke((o) => CooldownStart());
@@ -704,26 +644,17 @@ namespace PepperDash.Essentials.Devices.Displays
             if (!_IsWarmingUp && !_IsCoolingDown)
             {
                 if (_RequestedPowerState == 1 && (_PowerIsOn == false || !CommunicationMonitor.IsOnline))
-                {
                     PowerOnGo();
-                }
-                else if (_RequestedPowerState == 2 && (_PowerIsOn || !CommunicationMonitor.IsOnline))
-                {
-                    PowerOffGo();
-                }
+                else if (_RequestedPowerState == 2 && (_PowerIsOn || !CommunicationMonitor.IsOnline)) PowerOffGo();
             }
         }
 
         public override void PowerToggle()
         {
             if (_PowerIsOn)
-            {
                 PowerOff();
-            }
             else
-            {
                 PowerOn();
-            }
         }
 
         public void PowerGet()
@@ -906,14 +837,10 @@ namespace PepperDash.Essentials.Devices.Displays
                 try
                 {
                     int i = Q.FindIndex(x => x.Key.Equals(command.Key));
-                    if (i != -1 && (command.Key == eCommandType.Input))
-                    {
+                    if (i != -1 && command.Key == eCommandType.Input)
                         Q[i] = command;
-                    }
                     else
-                    {
                         Q.Add(command);
-                    }
                 }
                 catch (Exception ex)
                 {
@@ -971,12 +898,12 @@ namespace PepperDash.Essentials.Devices.Displays
     public class NecDisplayJoinMap : DisplayControllerJoinMap
     {
         [JoinName("Warming")] public readonly JoinDataComplete Warming = new JoinDataComplete(
-            new JoinData()
+            new JoinData
             {
                 JoinNumber = 53,
                 JoinSpan = 1
             },
-            new JoinMetadata()
+            new JoinMetadata
             {
                 JoinCapabilities = eJoinCapabilities.ToSIMPL,
                 JoinType = eJoinType.Digital,
@@ -984,12 +911,12 @@ namespace PepperDash.Essentials.Devices.Displays
             });
 
         [JoinName("Cooling")] public readonly JoinDataComplete Cooling = new JoinDataComplete(
-            new JoinData()
+            new JoinData
             {
                 JoinNumber = 54,
                 JoinSpan = 1
             },
-            new JoinMetadata()
+            new JoinMetadata
             {
                 JoinCapabilities = eJoinCapabilities.ToSIMPL,
                 JoinType = eJoinType.Digital,
@@ -997,12 +924,12 @@ namespace PepperDash.Essentials.Devices.Displays
             });
 
         [JoinName("Video Mute On")] public readonly JoinDataComplete VideoMuteOn = new JoinDataComplete(
-            new JoinData()
+            new JoinData
             {
                 JoinNumber = 57,
                 JoinSpan = 1
             },
-            new JoinMetadata()
+            new JoinMetadata
             {
                 JoinCapabilities = eJoinCapabilities.ToFromSIMPL,
                 JoinType = eJoinType.Digital,
@@ -1010,12 +937,12 @@ namespace PepperDash.Essentials.Devices.Displays
             });
 
         [JoinName("Video Mute Off")] public readonly JoinDataComplete VideoMuteOff = new JoinDataComplete(
-            new JoinData()
+            new JoinData
             {
                 JoinNumber = 58,
                 JoinSpan = 1
             },
-            new JoinMetadata()
+            new JoinMetadata
             {
                 JoinCapabilities = eJoinCapabilities.FromSIMPL,
                 JoinType = eJoinType.Digital,
@@ -1023,12 +950,12 @@ namespace PepperDash.Essentials.Devices.Displays
             });
 
         [JoinName("Video Mute Supported")] public readonly JoinDataComplete VideoMuteSupported = new JoinDataComplete(
-            new JoinData()
+            new JoinData
             {
                 JoinNumber = 55,
                 JoinSpan = 1
             },
-            new JoinMetadata()
+            new JoinMetadata
             {
                 JoinCapabilities = eJoinCapabilities.ToSIMPL,
                 JoinType = eJoinType.Digital,
@@ -1036,12 +963,12 @@ namespace PepperDash.Essentials.Devices.Displays
             });
 
         [JoinName("Lamp Hours Supported")] public readonly JoinDataComplete LampHoursSupported = new JoinDataComplete(
-            new JoinData()
+            new JoinData
             {
                 JoinNumber = 56,
                 JoinSpan = 1
             },
-            new JoinMetadata()
+            new JoinMetadata
             {
                 JoinCapabilities = eJoinCapabilities.ToSIMPL,
                 JoinType = eJoinType.Digital,
@@ -1065,7 +992,7 @@ namespace PepperDash.Essentials.Devices.Displays
     {
         public NecDisplayFactory()
         {
-            TypeNames = new List<string>() { "nec" };
+            TypeNames = new List<string> { "nec" };
         }
 
         public override EssentialsDevice BuildDevice(DeviceConfig dc)

@@ -4,11 +4,11 @@ using System.Linq;
 using Crestron.SimplSharp;
 using Crestron.SimplSharpPro.DeviceSupport;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
-using PepperDash.Essentials.Core.Bridges;
-using PepperDash.Essentials.Core.Routing;
-using PepperDash.Essentials.Core.Queues;
-using PepperDash.Essentials.DM;
+using UmdEssentials.Core;
+using UmdEssentials.Core.Bridges;
+using UmdEssentials.Core.Routing;
+using UmdEssentials.Core.Queues;
+using UmdEssentials.DM;
 
 namespace Epi.Display.Lg
 {
@@ -63,10 +63,7 @@ namespace Epi.Display.Lg
 
             InputNumberFeedback = new IntFeedback(() => _inputNumber);
 
-            if (config.VideoMuteKey != null)
-            {
-                videoMuteKey = config.VideoMuteKey;
-            }
+            if (config.VideoMuteKey != null) videoMuteKey = config.VideoMuteKey;
 
             Init();
         }
@@ -81,10 +78,7 @@ namespace Epi.Display.Lg
             get { return _powerIsOn; }
             set
             {
-                if (_powerIsOn == value)
-                {
-                    return;
-                }
+                if (_powerIsOn == value) return;
 
                 _powerIsOn = value;
 
@@ -198,13 +192,9 @@ namespace Epi.Display.Lg
             int scaled;
             _lastVolumeSent = level;
             if (!ScaleVolume)
-            {
                 scaled = (int)NumericalHelpers.Scale(level, 0, 65535, 0, 100);
-            }
             else
-            {
                 scaled = (int)NumericalHelpers.Scale(level, 0, 65535, _lowerLimit, _upperLimit);
-            }
 
             SendData(string.Format("kf {0} {1}", Id, scaled));
         }
@@ -231,13 +221,9 @@ namespace Epi.Display.Lg
         public void MuteToggle()
         {
             if (IsMuted)
-            {
                 MuteOff();
-            }
             else
-            {
                 MuteOn();
-            }
         }
 
         /// <summary>
@@ -310,25 +296,18 @@ namespace Epi.Display.Lg
             _inputFeedback = new List<bool>();
             InputFeedback = new List<BoolFeedback>();
 
-            if (_upperLimit != _lowerLimit && _upperLimit > _lowerLimit)
-            {
-                ScaleVolume = true;
-            }
+            if (_upperLimit != _lowerLimit && _upperLimit > _lowerLimit) ScaleVolume = true;
 
             PortGather = new CommunicationGather(Communication, "x");
             PortGather.LineReceived += PortGather_LineReceived;
 
             ISocketStatus socket = Communication as ISocketStatus;
             if (socket != null)
-            {
                 //This Instance Uses IP Control
                 Debug.Console(2, this, "The LG Display Plugin does NOT support IP Control currently");
-            }
             else
-            {
                 // This instance uses RS-232 Control
                 _isSerialComm = true;
-            }
 
             long pollInterval = _pollIntervalMs > 0 ? _pollIntervalMs : 10000;
             CommunicationMonitor = new GenericCommunicationMonitor(this, Communication, pollInterval, 180000, 300000,
@@ -373,10 +352,7 @@ namespace Epi.Display.Lg
         {
             Communication.Connect();
 
-            if (_isSerialComm)
-            {
-                CommunicationMonitor.Start();
-            }
+            if (_isSerialComm) CommunicationMonitor.Start();
 
             if (videoMuteKey != null)
             {
@@ -435,16 +411,16 @@ namespace Epi.Display.Lg
             //command = 'ka' 
             switch (command)
             {
-                case ("a"):
+                case "a":
                     UpdatePowerFb(responseValue);
                     break;
-                case ("b"):
+                case "b":
                     UpdateInputFb(responseValue);
                     break;
-                case ("f"):
+                case "f":
                     UpdateVolumeFb(responseValue);
                     break;
-                case ("e"):
+                case "e":
                     UpdateMuteFb(responseValue);
                     break;
             }
@@ -464,12 +440,8 @@ namespace Epi.Display.Lg
         private void SendData(string s)
         {
             if (_lastCommandSentWasVolume)
-            {
                 if (s[1] != 'f')
-                {
                     CrestronEnvironment.Sleep(100);
-                }
-            }
 
             _lastCommandSentWasVolume = s[1] == 'f';
 
@@ -536,10 +508,7 @@ namespace Epi.Display.Lg
             if (PowerIsOn)
             {
                 Action action = selector as Action;
-                if (action != null)
-                {
-                    action();
-                }
+                if (action != null) action();
             }
             else // if power is off, wait until we get on FB to send it. 
             {
@@ -547,18 +516,12 @@ namespace Epi.Display.Lg
                 EventHandler<FeedbackEventArgs> handler = null; // necessary to allow reference inside lambda to handler
                 handler = (o, a) =>
                 {
-                    if (_isWarmingUp)
-                    {
-                        return;
-                    }
+                    if (_isWarmingUp) return;
 
                     IsWarmingUpFeedback.OutputChange -= handler;
 
                     Action action = selector as Action;
-                    if (action != null)
-                    {
-                        action();
-                    }
+                    if (action != null) action();
                 };
                 IsWarmingUpFeedback.OutputChange += handler; // attach and wait for on FB
                 PowerOn();
@@ -571,10 +534,7 @@ namespace Epi.Display.Lg
         /// </summary>
         public override void PowerOn()
         {
-            if (_isSerialComm)
-            {
-                SendData(string.Format("ka {0} {1}", Id, _smallDisplay ? "1" : "01"));
-            }
+            if (_isSerialComm) SendData(string.Format("ka {0} {1}", Id, _smallDisplay ? "1" : "01"));
         }
 
         /// <summary>
@@ -584,10 +544,7 @@ namespace Epi.Display.Lg
         {
             SendData(string.Format("ka {0} {1}", Id, _smallDisplay ? "0" : "00"));
 
-            if (_hdmiBlanking != null)
-            {
-                _hdmiBlanking.UnblankOutput();
-            }
+            if (_hdmiBlanking != null) _hdmiBlanking.UnblankOutput();
         }
 
         /// <summary>
@@ -605,13 +562,9 @@ namespace Epi.Display.Lg
         public override void PowerToggle()
         {
             if (PowerIsOn)
-            {
                 PowerOff();
-            }
             else
-            {
                 PowerOn();
-            }
         }
 
         /// <summary>
@@ -660,23 +613,13 @@ namespace Epi.Display.Lg
             {
                 ushort newVol;
                 if (!ScaleVolume)
-                {
                     newVol = (ushort)NumericalHelpers.Scale(Convert.ToDouble(s), 0, 100, 0, 65535);
-                }
                 else
-                {
                     newVol = (ushort)NumericalHelpers.Scale(Convert.ToDouble(s), _lowerLimit, _upperLimit, 0, 65535);
-                }
 
-                if (!_volumeIsRamping)
-                {
-                    _lastVolumeSent = newVol;
-                }
+                if (!_volumeIsRamping) _lastVolumeSent = newVol;
 
-                if (newVol == _volumeLevelForSig)
-                {
-                    return;
-                }
+                if (newVol == _volumeLevelForSig) return;
 
                 _volumeLevelForSig = newVol;
                 VolumeLevelFeedback.FireUpdate();
@@ -698,13 +641,8 @@ namespace Epi.Display.Lg
                 int state = Convert.ToInt32(s);
 
                 if (state == 0)
-                {
                     IsMuted = true;
-                }
-                else if (state == 1)
-                {
-                    IsMuted = false;
-                }
+                else if (state == 1) IsMuted = false;
             }
             catch (Exception e)
             {
@@ -720,15 +658,9 @@ namespace Epi.Display.Lg
         {
             try
             {
-                if (_inputFeedback[data])
-                {
-                    return;
-                }
+                if (_inputFeedback[data]) return;
 
-                for (int i = 1; i < InputPorts.Count + 1; i++)
-                {
-                    _inputFeedback[i] = false;
-                }
+                for (int i = 1; i < InputPorts.Count + 1; i++) _inputFeedback[i] = false;
 
                 _inputFeedback[data] = true;
                 foreach (BoolFeedback item in InputFeedback)
@@ -765,12 +697,12 @@ namespace Epi.Display.Lg
     public class LgDisplayJoinMap : DisplayControllerJoinMap
     {
         [JoinName("Video Mute On")] public readonly JoinDataComplete VideoMuteOn = new JoinDataComplete(
-            new JoinData()
+            new JoinData
             {
                 JoinNumber = 57,
                 JoinSpan = 1
             },
-            new JoinMetadata()
+            new JoinMetadata
             {
                 JoinCapabilities = eJoinCapabilities.ToFromSIMPL,
                 JoinType = eJoinType.Digital,
@@ -778,12 +710,12 @@ namespace Epi.Display.Lg
             });
 
         [JoinName("Video Mute Off")] public readonly JoinDataComplete VideoMuteOff = new JoinDataComplete(
-            new JoinData()
+            new JoinData
             {
                 JoinNumber = 58,
                 JoinSpan = 1
             },
-            new JoinMetadata()
+            new JoinMetadata
             {
                 JoinCapabilities = eJoinCapabilities.FromSIMPL,
                 JoinType = eJoinType.Digital,
@@ -791,12 +723,12 @@ namespace Epi.Display.Lg
             });
 
         [JoinName("Video Mute Supported")] public readonly JoinDataComplete VideoMuteSupported = new JoinDataComplete(
-            new JoinData()
+            new JoinData
             {
                 JoinNumber = 55,
                 JoinSpan = 1
             },
-            new JoinMetadata()
+            new JoinMetadata
             {
                 JoinCapabilities = eJoinCapabilities.ToSIMPL,
                 JoinType = eJoinType.Digital,

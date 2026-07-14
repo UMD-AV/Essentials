@@ -6,11 +6,11 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using PepperDash_Essentials_Core.Monitoring;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
-using PepperDash.Essentials.Core.Bridges;
-using PepperDash.Essentials.Core.Config;
+using UmdEssentials.Core;
+using UmdEssentials.Core.Bridges;
+using UmdEssentials.Core.Config;
 
-namespace PepperDash.Essentials.Devices.Common.Microphones
+namespace UmdEssentials.Devices.Common.Microphones
 {
     public class CatchboxDevice : EssentialsBridgeableDevice, IDisposable
     {

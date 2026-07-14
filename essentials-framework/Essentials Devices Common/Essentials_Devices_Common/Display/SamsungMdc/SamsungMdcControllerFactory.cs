@@ -1,9 +1,9 @@
 ﻿using System.Collections.Generic;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
-using PepperDash.Essentials.Core.Config;
+using UmdEssentials.Core;
+using UmdEssentials.Core.Config;
 
-namespace PepperDash.Essentials.Devices.Displays
+namespace UmdEssentials.Devices.Displays
 {
     public class SamsungMdcControllerFactory : EssentialsDeviceFactory<SamsungMdcDisplayController>
     {
@@ -26,10 +26,7 @@ namespace PepperDash.Essentials.Devices.Displays
 
             SamsungMDCDisplayPropertiesConfig config = dc.Properties.ToObject<SamsungMDCDisplayPropertiesConfig>();
 
-            if (config != null)
-            {
-                return new SamsungMdcDisplayController(dc.Key, dc.Name, config, comms);
-            }
+            if (config != null) return new SamsungMdcDisplayController(dc.Key, dc.Name, config, comms);
 
             Debug.Console(0, Debug.ErrorLogLevel.Error, "Unable to deserialize config for device {0}", dc.Key);
             return null;

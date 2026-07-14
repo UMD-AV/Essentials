@@ -1,5 +1,5 @@
 ﻿using Newtonsoft.Json;
-using PepperDash.Essentials.Core.PartitionSensor;
+using UmdEssentials.Core.PartitionSensor;
 
 namespace PepperDash_Essentials_Core.PartitionSensor
 {

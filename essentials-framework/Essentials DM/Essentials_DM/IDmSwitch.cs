@@ -3,7 +3,7 @@ using Crestron.SimplSharpPro.DM;
 
 //using PepperDash.Essentials.DM.Cards;
 
-namespace PepperDash.Essentials.DM
+namespace UmdEssentials.DM
 {
     public interface IDmSwitch
     {

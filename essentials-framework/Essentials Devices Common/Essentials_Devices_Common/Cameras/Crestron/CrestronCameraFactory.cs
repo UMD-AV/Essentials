@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using ExtronDmp;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
-using PepperDash.Essentials.Core.Config;
+using UmdEssentials.Core;
+using UmdEssentials.Core.Config;
 using ViscaCameraPlugin;
 
 namespace CrestronCameraPlugin
@@ -12,7 +12,7 @@ namespace CrestronCameraPlugin
         public CrestronCameraFactory()
         {
             // In the constructor we initialize the list with the typenames that will build an instance of this device
-            TypeNames = new List<string>() { "crestroncamera" };
+            TypeNames = new List<string> { "crestroncamera" };
         }
 
         // Builds and returns an instance of EssentialsPluginDeviceTemplate

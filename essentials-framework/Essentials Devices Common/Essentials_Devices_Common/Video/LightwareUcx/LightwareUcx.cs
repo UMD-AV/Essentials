@@ -4,11 +4,11 @@ using Crestron.SimplSharp;
 using Crestron.SimplSharpPro.CrestronThread;
 using Crestron.SimplSharpPro.DeviceSupport;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
-using PepperDash.Essentials.Core.Bridges;
-using PepperDash.Essentials.Core.Config;
+using UmdEssentials.Core;
+using UmdEssentials.Core.Bridges;
+using UmdEssentials.Core.Config;
 
-namespace PepperDash.Essentials.Devices.Common.Video.LightwareUcx
+namespace UmdEssentials.Devices.Common.Video.LightwareUcx
 {
     public class LightwareUcxDevice : EssentialsBridgeableDevice, IRoutingNumericWithFeedback, IDisposable
     {
@@ -173,13 +173,9 @@ namespace PepperDash.Essentials.Devices.Common.Video.LightwareUcx
         private void CommunicationOnConnectionChange(object sender, GenericSocketStatusChageEventArgs e)
         {
             if (e.Client.IsConnected)
-            {
                 UpdateAllNodes();
-            }
             else
-            {
                 _commandQueue.Clear();
-            }
         }
 
         public void RebootDevice()
@@ -206,25 +202,16 @@ namespace PepperDash.Essentials.Devices.Common.Video.LightwareUcx
 
         private void SendConfiguration()
         {
-            foreach (string setting in configSettings)
-            {
-                QueueCommand(string.Format("SET {0}", setting));
-            }
+            foreach (string setting in configSettings) QueueCommand(string.Format("SET {0}", setting));
 
             configSent = true;
         }
 
         private void Subscribe()
         {
-            if (VideoInputs.Count == 0)
-            {
-                UpdateAllNodes();
-            }
+            if (VideoInputs.Count == 0) UpdateAllNodes();
 
-            if (!configSent)
-            {
-                SendConfiguration();
-            }
+            if (!configSent) SendConfiguration();
 
             foreach (string i in VideoInputs)
             {
@@ -301,7 +288,7 @@ namespace PepperDash.Essentials.Devices.Common.Video.LightwareUcx
                             while (!_commandQueue.IsEmpty)
                             {
                                 int count = 0;
-                                while (!_commandReady && (count < 50))
+                                while (!_commandReady && count < 50)
                                 {
                                     Thread.Sleep(100);
                                     count++;
@@ -366,11 +353,9 @@ namespace PepperDash.Essentials.Devices.Common.Video.LightwareUcx
         private void ProcessUsbRoute()
         {
             if (_requestedUsbRoute > 0)
-            {
                 QueueCommand(string.Format("CALL /V1/MEDIA/USB/XP:switch({0}{1}:H1)",
                     _requestedUsbRoute != 0 ? "U" : "",
                     _requestedUsbRoute));
-            }
         }
 
         public void RouteUsbInput(ushort input, ushort output)
@@ -387,10 +372,7 @@ namespace PepperDash.Essentials.Devices.Common.Video.LightwareUcx
                     ushort oldFeedback = _usbOutputRouteFb;
                     while (_requestedUsbRoute == input && input > 0 && count < 10)
                     {
-                        if (count == 3 || count == 6)
-                        {
-                            ProcessUsbRoute();
-                        }
+                        if (count == 3 || count == 6) ProcessUsbRoute();
 
                         _usbOutputRouteFb = count % 2 == 0 ? input : (ushort)0;
                         UsbOutputRouteFeedback.FireUpdate();
@@ -413,10 +395,7 @@ namespace PepperDash.Essentials.Devices.Common.Video.LightwareUcx
             RoutingNumericEventArgs e = new RoutingNumericEventArgs(output, input,
                 null, null, signalType);
 
-            if (NumericSwitchChange != null)
-            {
-                NumericSwitchChange(this, e);
-            }
+            if (NumericSwitchChange != null) NumericSwitchChange(this, e);
         }
 
         private void GatherOnLineReceived(object sender, GenericCommMethodReceiveTextArgs e)
@@ -503,44 +482,30 @@ namespace PepperDash.Essentials.Devices.Common.Video.LightwareUcx
             // Split the path into segments
             string[] segments = node.Split('/');
             if (segments.Length == 6 && segments[1] == "V1" && segments[2] == "MEDIA" && segments[4] == "XP")
-            {
                 switch (segments[3])
                 {
                     case "VIDEO":
                         if (segments[5].StartsWith("I") && !VideoInputs.Contains(segments[5]))
-                        {
                             VideoInputs.Add(segments[5]);
-                        }
                         else if (segments[5].StartsWith("O") && !VideoOutputs.Contains(segments[5]))
-                        {
                             VideoOutputs.Add(segments[5]);
-                        }
 
                         break;
                     case "AUDIO":
                         if (segments[5].StartsWith("I") && !AudioInputs.Contains(segments[5]))
-                        {
                             AudioInputs.Add(segments[5]);
-                        }
                         else if (segments[5].StartsWith("O") && !AudioOutputs.Contains(segments[5]))
-                        {
                             AudioOutputs.Add(segments[5]);
-                        }
 
                         break;
                     case "USB":
                         if (segments[5].StartsWith("U") && !UsbInputs.Contains(segments[5]))
-                        {
                             UsbInputs.Add(segments[5]);
-                        }
                         else if (segments[5].StartsWith("H") && !UsbOutputs.Contains(segments[5]))
-                        {
                             UsbOutputs.Add(segments[5]);
-                        }
 
                         break;
                 }
-            }
         }
 
         private void ProcessProperty(string path)
@@ -603,6 +568,7 @@ namespace PepperDash.Essentials.Devices.Common.Video.LightwareUcx
                 }
             }
             else
+            {
                 switch (segments[5])
                 {
                     case "SignalPresent":
@@ -628,6 +594,7 @@ namespace PepperDash.Essentials.Devices.Common.Video.LightwareUcx
                         break;
                     }
                 }
+            }
         }
 
         private void ProcessAudioProperties(string[] segments)
@@ -667,13 +634,8 @@ namespace PepperDash.Essentials.Devices.Common.Video.LightwareUcx
                             UsbOutputRouteFeedback.FireUpdate();
                             OnSwitchChange((ushort)input, 1, eRoutingSignalType.UsbOutput);
                             if (_requestedUsbRoute == input)
-                            {
                                 _requestedUsbRoute = -1;
-                            }
-                            else if (!_usbAutoRouteFb)
-                            {
-                                ProcessUsbRoute();
-                            }
+                            else if (!_usbAutoRouteFb) ProcessUsbRoute();
                         }
                     }
                     else if (segments[5].StartsWith("U") && segments[6] == "Connected")
@@ -706,10 +668,7 @@ namespace PepperDash.Essentials.Devices.Common.Video.LightwareUcx
         public override void LinkToApi(BasicTriList trilist, uint joinStart, string joinMapKey, EiscApiAdvanced bridge)
         {
             LightwareUcxJoinMap joinMap = new LightwareUcxJoinMap(joinStart);
-            if (bridge != null)
-            {
-                bridge.AddJoinMap(Key, joinMap);
-            }
+            if (bridge != null) bridge.AddJoinMap(Key, joinMap);
 
             CommunicationMonitor.IsOnlineFeedback.LinkInputSig(trilist.BooleanInput[joinMap.IsOnline.JoinNumber]);
             trilist.StringInput[joinMap.Name.JoinNumber].StringValue = Name;
@@ -789,13 +748,9 @@ namespace PepperDash.Essentials.Devices.Common.Video.LightwareUcx
         private void ToggleUsbAutoRoute()
         {
             if (_usbAutoRouteFb)
-            {
                 QueueCommand("SET /V1/MEDIA/USB/AUTOSELECT/H1.Policy=Off");
-            }
             else
-            {
                 QueueCommand("SET /V1/MEDIA/USB/AUTOSELECT/H1.Policy=Last detect");
-            }
         }
 
         private void UpdateAllFeedbacks()
@@ -804,70 +759,31 @@ namespace PepperDash.Essentials.Devices.Common.Video.LightwareUcx
             UsbOutputRouteFeedback.FireUpdate();
             UsbAutoRouteFeedback.FireUpdate();
 
-            foreach (StringFeedback feedback in VideoInputNameFeedbacks)
-            {
-                feedback.FireUpdate();
-            }
+            foreach (StringFeedback feedback in VideoInputNameFeedbacks) feedback.FireUpdate();
 
-            foreach (BoolFeedback feedback in VideoInputSyncFeedbacks)
-            {
-                feedback.FireUpdate();
-            }
+            foreach (BoolFeedback feedback in VideoInputSyncFeedbacks) feedback.FireUpdate();
 
-            foreach (IntFeedback feedback in VideoOutputRouteFeedbacks)
-            {
-                feedback.FireUpdate();
-            }
+            foreach (IntFeedback feedback in VideoOutputRouteFeedbacks) feedback.FireUpdate();
 
-            foreach (IntFeedback feedback in AudioOutputRouteFeedbacks)
-            {
-                feedback.FireUpdate();
-            }
+            foreach (IntFeedback feedback in AudioOutputRouteFeedbacks) feedback.FireUpdate();
 
-            foreach (StringFeedback feedback in VideoOutputNameFeedbacks)
-            {
-                feedback.FireUpdate();
-            }
+            foreach (StringFeedback feedback in VideoOutputNameFeedbacks) feedback.FireUpdate();
 
-            foreach (StringFeedback feedback in AudioInputNameFeedbacks)
-            {
-                feedback.FireUpdate();
-            }
+            foreach (StringFeedback feedback in AudioInputNameFeedbacks) feedback.FireUpdate();
 
-            foreach (StringFeedback feedback in AudioOutputNameFeedbacks)
-            {
-                feedback.FireUpdate();
-            }
+            foreach (StringFeedback feedback in AudioOutputNameFeedbacks) feedback.FireUpdate();
 
-            foreach (StringFeedback feedback in UsbInputNameFeedbacks)
-            {
-                feedback.FireUpdate();
-            }
+            foreach (StringFeedback feedback in UsbInputNameFeedbacks) feedback.FireUpdate();
 
-            foreach (StringFeedback feedback in OutputVideoRouteNameFeedbacks)
-            {
-                feedback.FireUpdate();
-            }
+            foreach (StringFeedback feedback in OutputVideoRouteNameFeedbacks) feedback.FireUpdate();
 
-            foreach (StringFeedback feedback in OutputAudioRouteNameFeedbacks)
-            {
-                feedback.FireUpdate();
-            }
+            foreach (StringFeedback feedback in OutputAudioRouteNameFeedbacks) feedback.FireUpdate();
 
-            foreach (StringFeedback feedback in VideoInputResolutionFeedbacks)
-            {
-                feedback.FireUpdate();
-            }
+            foreach (StringFeedback feedback in VideoInputResolutionFeedbacks) feedback.FireUpdate();
 
-            foreach (BoolFeedback feedback in OutputConnectedFeedbacks)
-            {
-                feedback.FireUpdate();
-            }
+            foreach (BoolFeedback feedback in OutputConnectedFeedbacks) feedback.FireUpdate();
 
-            foreach (BoolFeedback feedback in UsbConnectedFeedbacks)
-            {
-                feedback.FireUpdate();
-            }
+            foreach (BoolFeedback feedback in UsbConnectedFeedbacks) feedback.FireUpdate();
         }
 
         #endregion
@@ -917,10 +833,7 @@ namespace PepperDash.Essentials.Devices.Common.Video.LightwareUcx
             DateTime now = DateTime.Now;
             DateTime threeAM = DateTime.Today.AddHours(3);
 
-            if (now >= threeAM)
-            {
-                threeAM = threeAM.AddHours(24);
-            }
+            if (now >= threeAM) threeAM = threeAM.AddHours(24);
 
             int timeUntilThreeAM = (int)(threeAM - now).TotalMilliseconds + 10000;
             _rebootTimer.Reset(timeUntilThreeAM);

@@ -2,7 +2,7 @@
 using Crestron.SimplSharpPro;
 using Crestron.SimplSharpPro.DeviceSupport;
 
-namespace PepperDash.Essentials.Core
+namespace UmdEssentials.Core
 {
     public static class ButtonExtensions
     {

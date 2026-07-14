@@ -1,4 +1,4 @@
-﻿namespace PepperDash.Essentials.DM
+﻿namespace UmdEssentials.DM
 {
     /// <summary>
     /// Constants for consistent port naming

@@ -6,7 +6,7 @@ using Crestron.SimplSharpPro.DeviceSupport;
 using PepperDash.Core;
 
 
-namespace PepperDash.Essentials.Core
+namespace UmdEssentials.Core
 {
     ////*****************************************************************************
     ///// <summary>
@@ -70,9 +70,11 @@ namespace PepperDash.Essentials.Core
                 SRL.SigChange += new SmartObjectSigChangeEventHandler(SRL_SigChange);
             }
             else
+            {
                 Debug.Console(0,
                     "ERROR: TriList 0x{0:X2} Cannot load smart object {1}. Verify correct SGD file is loaded",
                     triList.ID, smartObjectId);
+            }
         }
 
         /// <summary>

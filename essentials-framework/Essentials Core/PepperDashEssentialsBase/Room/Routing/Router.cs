@@ -5,10 +5,10 @@ using Crestron.SimplSharp;
 using Crestron.SimplSharpPro;
 using Crestron.SimplSharpPro.DeviceSupport;
 using PepperDash.Core;
-using PepperDash.Essentials.Core.Bridges;
-using PepperDash.Essentials.Core.Config;
+using UmdEssentials.Core.Bridges;
+using UmdEssentials.Core.Config;
 
-namespace PepperDash.Essentials.Core.Routing
+namespace UmdEssentials.Core.Routing
 {
     public class Router : IKeyName, IBridgeAdvanced
     {
@@ -84,29 +84,21 @@ namespace PepperDash.Essentials.Core.Routing
         private string GetSourceDeviceKey(ushort index)
         {
             if (Sources != null && Sources.ContainsKey(index))
-            {
                 return Sources[index].DeviceKey != null ? Sources[index].DeviceKey.ToLower() : "";
-            }
 
             return "";
         }
 
         private ushort GetRouteFeedback(ushort index)
         {
-            if (Dests != null && Dests.ContainsKey(index))
-            {
-                return Dests[index].FeedbackIndex ?? 0;
-            }
+            if (Dests != null && Dests.ContainsKey(index)) return Dests[index].FeedbackIndex ?? 0;
 
             return 0;
         }
 
         private string GetRouteName(ushort index)
         {
-            if (Dests != null && Dests.ContainsKey(index))
-            {
-                return Dests[index].FeedbackName ?? "";
-            }
+            if (Dests != null && Dests.ContainsKey(index)) return Dests[index].FeedbackName ?? "";
 
             return "";
         }
@@ -114,9 +106,7 @@ namespace PepperDash.Essentials.Core.Routing
         private string GetDestDeviceKey(ushort index)
         {
             if (Dests != null && Dests.ContainsKey(index))
-            {
                 return Dests[index].DeviceKey != null ? Dests[index].DeviceKey.ToLower() : "";
-            }
 
             return "";
         }
@@ -183,85 +173,59 @@ namespace PepperDash.Essentials.Core.Routing
 
             for (ushort i = 1; i <= RouterMain.maxSources; i++)
             {
-                if (txs.ContainsKey(i) && txs[i] != null)
-                {
-                    txs[i].NumericSwitchChange -= TxOnNumericSwitchChange;
-                }
+                if (txs.ContainsKey(i) && txs[i] != null) txs[i].NumericSwitchChange -= TxOnNumericSwitchChange;
 
                 if (i < 10)
-                {
                     txs[i] = GetTx("tx0" + i);
-                }
                 else
-                {
                     txs[i] = GetTx("tx" + i);
-                }
 
-                if (txs.ContainsKey(i) && txs[i] != null)
-                {
-                    txs[i].NumericSwitchChange += TxOnNumericSwitchChange;
-                }
+                if (txs.ContainsKey(i) && txs[i] != null) txs[i].NumericSwitchChange += TxOnNumericSwitchChange;
             }
 
             //Process Sources
             if (roomConfig.Sources != null)
-            {
                 foreach (Source source in roomConfig.Sources)
-                {
                     try
                     {
                         Sources.Add(source.Index, source);
                         if (source.Routes != null)
-                        {
                             foreach (Route route in source.Routes)
                             {
                                 Debug.Console(0, "Loading route: {0}-{1}", source.Name, route.RouteKey);
                                 //Check the source for routes that are marked UseForFeedback
                                 if (route.UseForFeedback == true && route.Output != null && route.Input != null)
-                                {
                                     SourceFeedbacks.Add(new KeyValuePair<ushort, SourceFeedback>(source.Index,
                                         new SourceFeedback(route.RouteKey, (ushort)route.Output, (ushort)route.Input)));
-                                }
 
                                 if ((route.RouteKey == "audioRoute" || route.RouteKey == "audioRoute2" ||
                                      route.RouteKey == "audioRoute3") &&
                                     route.Input != null)
                                 {
                                     if (!PreviouslyUsedAudioIndexes.Contains((ushort)route.Input))
-                                    {
                                         //Only enable audio routing visibility if audioRoute exists and hasn't been used yet
                                         PreviouslyUsedAudioIndexes.Add(route.Input.Value);
-                                    }
 
                                     source.HasAudio = true;
                                 }
 
-                                source.ContentVisible = (route.RouteKey == "contentRoute" && route.Input != null);
+                                source.ContentVisible = route.RouteKey == "contentRoute" && route.Input != null;
                             }
-                        }
 
-                        if (debugLevel > 0)
-                        {
-                            Debug.Console(0, "Source loaded: {0}", source.Name);
-                        }
+                        if (debugLevel > 0) Debug.Console(0, "Source loaded: {0}", source.Name);
                     }
                     catch (Exception e)
                     {
                         Debug.ConsoleWithLog(0, "Exception loading {0}: {1}", source.Name, e.Message);
                     }
-                }
-            }
 
             //Process Dests
             if (Dests != null)
-            {
                 foreach (Dest dest in roomConfig.Dests)
-                {
                     try
                     {
                         Dests.Add(dest.Index, dest);
                         if (dest.Routes != null)
-                        {
                             foreach (Route route in dest.Routes)
                             {
                                 Debug.Console(0, "Loading route: {0}-{1}", dest.Name, route.RouteKey);
@@ -274,10 +238,8 @@ namespace PepperDash.Essentials.Core.Routing
                                     {
                                         feedbackKey = route.RouteKey.Substring(0, dashLoc);
                                         if (debugLevel > 0)
-                                        {
                                             Debug.Console(0, "Found '-' in dest feedback, new feedback key is {0}",
                                                 route.RouteKey);
-                                        }
                                     }
 
                                     DestFeedbacks.Add(new KeyValuePair<ushort, DestFeedback>(dest.Index,
@@ -285,29 +247,21 @@ namespace PepperDash.Essentials.Core.Routing
                                             route.DisableInOverflow, route.EnableInOverflow)));
                                 }
                             }
-                        }
 
-                        if (debugLevel > 0)
-                        {
-                            Debug.Console(0, "Dest loaded: {0}", dest.Name);
-                        }
+                        if (debugLevel > 0) Debug.Console(0, "Dest loaded: {0}", dest.Name);
                     }
                     catch (Exception e)
                     {
                         Debug.ConsoleWithLog(0, "Exception loading {0}: {1}", dest.Name, e.Message);
                     }
-                }
-            }
 
             //Process Actions
             if (Actions != null)
-            {
                 foreach (RoutingAction action in roomConfig.Actions)
                 {
                     Actions.Add(action.Index, action);
                     Debug.Console(0, "Action loaded: {0}", action.Index);
                 }
-            }
 
             //Finalize initialization
             UpdateAllFeedback();
@@ -341,10 +295,7 @@ namespace PepperDash.Essentials.Core.Routing
         {
             string key = ((Device)sender).Key;
             ushort output = ushort.Parse(key.Substring(2));
-            if (debugLevel > 0)
-            {
-                Debug.Console(0, "txRoute feedback: output {0} input {1}", output, e.Input);
-            }
+            if (debugLevel > 0) Debug.Console(0, "txRoute feedback: output {0} input {1}", output, e.Input);
 
             FeedbackFromSimpl("txRoute", output, e.Input);
         }
@@ -371,10 +322,8 @@ namespace PepperDash.Essentials.Core.Routing
 
 
             for (ushort i = 1; i <= RouterMain.maxSources; i++)
-            {
                 SourceDeviceKeyFeedbacks[i]
                     .LinkInputSig(trilist.StringInput[joinMap.SourceDevKey.JoinNumber + i - 1]);
-            }
 
             for (ushort i = 1; i <= RouterMain.maxDests; i++)
             {
@@ -413,10 +362,7 @@ namespace PepperDash.Essentials.Core.Routing
 
         private void UpdateAllFeedback()
         {
-            for (ushort i = 0; i <= RouterMain.maxSources; i++)
-            {
-                SourceDeviceKeyFeedbacks[i].FireUpdate();
-            }
+            for (ushort i = 0; i <= RouterMain.maxSources; i++) SourceDeviceKeyFeedbacks[i].FireUpdate();
 
             for (ushort i = 0; i <= RouterMain.maxDests; i++)
             {
@@ -435,32 +381,21 @@ namespace PepperDash.Essentials.Core.Routing
                 if (!Actions.ContainsKey(actionIndex))
                     return;
                 RoutingAction action = Actions[actionIndex];
-                if (action.Routes == null)
-                {
-                    return;
-                }
+                if (action.Routes == null) return;
 
                 foreach (Route route in action.Routes)
                 {
                     //Don't route if marked disabled in overflow and overflow is on
-                    if (route.DisableInOverflow == true && Overflow != 0)
-                    {
-                        continue;
-                    }
+                    if (route.DisableInOverflow == true && Overflow != 0) continue;
 
                     //Don't route if marked enabled in overflow and overflow is off
-                    if (route.EnableInOverflow == true && Overflow == 0)
-                    {
-                        continue;
-                    }
+                    if (route.EnableInOverflow == true && Overflow == 0) continue;
 
                     //Check that route has an input and an output
                     if (route.Input != null && route.Output != null)
                     {
                         if (route.DelaySeconds != null && route.DelaySeconds > 0)
-                        {
                             CrestronEnvironment.Sleep((int)route.DelaySeconds * 1000);
-                        }
 
                         switch (route.RouteKey)
                         {
@@ -468,10 +403,8 @@ namespace PepperDash.Essentials.Core.Routing
                             case "route":
                             {
                                 if (debugLevel > 0)
-                                {
                                     Debug.Console(0, "Making route from source {0} to dest {1}", route.Input,
                                         route.Output);
-                                }
 
                                 RouteByIndex((ushort)route.Input, (ushort)route.Output);
                                 break;
@@ -479,11 +412,9 @@ namespace PepperDash.Essentials.Core.Routing
                             default:
                             {
                                 if (debugLevel > 0)
-                                {
                                     Debug.Console(0, "Making {0} from input {1} to output {2}", route.RouteKey,
                                         route.Input,
                                         route.Output);
-                                }
 
                                 MakeDeviceRoute(route.RouteKey, (ushort)route.Output, (ushort)route.Input);
                                 break;
@@ -509,15 +440,9 @@ namespace PepperDash.Essentials.Core.Routing
                     return;
                 }
 
-                if (debugLevel > 0)
-                {
-                    Debug.Console(0, "Routing {0} to {1}", source.Name, dest.Name);
-                }
+                if (debugLevel > 0) Debug.Console(0, "Routing {0} to {1}", source.Name, dest.Name);
 
-                if (source.Routes != null)
-                {
-                    MakeRoute(source.Routes, dest.Routes);
-                }
+                if (source.Routes != null) MakeRoute(source.Routes, dest.Routes);
             }
         }
 
@@ -528,54 +453,40 @@ namespace PepperDash.Essentials.Core.Routing
             List<Route> mergedRoutes = new List<Route>();
             destRoutes.ForEach(x => { mergedRoutes.Add(x.Copy()); });
 
-            if (sourceRoutes == null)
-            {
-                return;
-            }
+            if (sourceRoutes == null) return;
 
             foreach (Route sourceRoute in sourceRoutes)
-            {
                 //Source has both input and output defined, look for destRoute to overwrite, otherwise add as a new route
                 if (sourceRoute.Input.HasValue && sourceRoute.Output.HasValue)
                 {
                     bool match = false;
                     foreach (Route destRoute in mergedRoutes)
-                    {
                         if (sourceRoute.RouteKey == destRoute.RouteKey && sourceRoute.Output == destRoute.Output)
                         {
                             //Found a key and output match
                             destRoute.Input = sourceRoute.Input.Value;
-                            destRoute.EnableInOverflow = (destRoute.EnableInOverflow == true ||
-                                                          sourceRoute.EnableInOverflow == true);
-                            destRoute.DisableInOverflow = (destRoute.DisableInOverflow == true ||
-                                                           sourceRoute.DisableInOverflow == true);
+                            destRoute.EnableInOverflow = destRoute.EnableInOverflow == true ||
+                                                         sourceRoute.EnableInOverflow == true;
+                            destRoute.DisableInOverflow = destRoute.DisableInOverflow == true ||
+                                                          sourceRoute.DisableInOverflow == true;
                             match = true;
                         }
-                    }
 
                     //If no match, add as a new route
-                    if (!match)
-                    {
-                        mergedRoutes.Add(sourceRoute);
-                    }
+                    if (!match) mergedRoutes.Add(sourceRoute);
                 }
                 else if (sourceRoute.Input.HasValue)
                 {
                     foreach (Route destRoute in mergedRoutes)
-                    {
                         if (sourceRoute.RouteKey == destRoute.RouteKey)
                         {
                             //Found a key match
                             if (debugLevel > 0)
-                            {
                                 Debug.Console(0, "Setting {0} input to {1}", destRoute.RouteKey, sourceRoute.Input);
-                            }
 
                             destRoute.Input = sourceRoute.Input.Value;
                         }
-                    }
                 }
-            }
 
             //Now make the routes
             foreach (Route route in mergedRoutes)
@@ -602,10 +513,8 @@ namespace PepperDash.Essentials.Core.Routing
                         : route.RouteKey;
 
                     if (debugLevel > 0)
-                    {
                         Debug.Console(0, "Making {0} from input {1} to output {2}", routeKey, route.Input,
                             route.Output);
-                    }
 
                     MakeDeviceRoute(routeKey, (ushort)route.Output, (ushort)route.Input);
                 }
@@ -633,16 +542,14 @@ namespace PepperDash.Essentials.Core.Routing
             foreach (KeyValuePair<ushort, SourceFeedback> feedback in SourceFeedbacks)
             {
                 if (debugLevel > 0)
-                {
                     Debug.Console(0, "Checking source feedback: {0} {1} {2}", feedback.Value.RouteKey,
                         feedback.Value.Output,
                         feedback.Value.Input);
-                }
 
                 //If key and index match, update the stored feedback value
                 if (feedback.Value.RouteKey == key && feedback.Value.Output == output)
                 {
-                    feedback.Value.FeedbackState = (feedback.Value.Input == input);
+                    feedback.Value.FeedbackState = feedback.Value.Input == input;
                     FeedbackMutex.WaitForMutex();
                     try
                     {
@@ -665,7 +572,6 @@ namespace PepperDash.Essentials.Core.Routing
 
             //Check each feedback in the dest list for matching key and index
             foreach (KeyValuePair<ushort, DestFeedback> feedback in DestFeedbacks)
-            {
                 //If key and index match, update the stored feedback value
                 if (feedback.Value.RouteKey == key && feedback.Value.Output == output)
                 {
@@ -688,28 +594,18 @@ namespace PepperDash.Essentials.Core.Routing
                         FeedbackMutex.ReleaseMutex();
                     }
                 }
-            }
         }
 
         private void FeedbackTimerCallback(object o)
         {
-            if (debugLevel > 0)
-            {
-                Debug.Console(0, "Feedback timer callback");
-            }
+            if (debugLevel > 0) Debug.Console(0, "Feedback timer callback");
 
             FeedbackMutex.WaitForMutex();
             try
             {
-                foreach (ushort feedbackIndex in SourceFeedbackToProcess)
-                {
-                    RecalculateSourceFeedback(feedbackIndex);
-                }
+                foreach (ushort feedbackIndex in SourceFeedbackToProcess) RecalculateSourceFeedback(feedbackIndex);
 
-                foreach (ushort feedbackIndex in DestFeedbackToProcess)
-                {
-                    RecalculateDestFeedback(feedbackIndex);
-                }
+                foreach (ushort feedbackIndex in DestFeedbackToProcess) RecalculateDestFeedback(feedbackIndex);
             }
             catch (Exception ex)
             {
@@ -730,40 +626,24 @@ namespace PepperDash.Essentials.Core.Routing
             foreach (KeyValuePair<ushort, SourceFeedback> feedback in SourceFeedbacks)
             {
                 if (debugLevel > 0)
-                {
                     Debug.Console(0, "Recalculating source feedback for key {0}: sourceIndex: {1}",
                         feedback.Key, sourceIndex);
-                }
 
                 if (feedback.Key == sourceIndex)
-                {
                     if (feedback.Value.FeedbackState == false)
-                    {
                         newFeedbackState = false;
-                    }
-                }
             }
 
             Source source = Sources[sourceIndex];
-            if (source != null)
-            {
-                source.FeedbackState = newFeedbackState;
-            }
+            if (source != null) source.FeedbackState = newFeedbackState;
 
             //Recheck all destinations
             foreach (Dest dest in Dests.Values)
-            {
                 //Find if destination is currently on this source and new source feedback is false
                 if (!newFeedbackState == false && dest.FeedbackIndex == sourceIndex)
-                {
                     RecalculateDestFeedback(dest.Index);
-                }
                 //Find if destination is currently not on this source and new source feedback is true
-                else if (newFeedbackState && dest.FeedbackIndex != sourceIndex)
-                {
-                    RecalculateDestFeedback(dest.Index);
-                }
-            }
+                else if (newFeedbackState && dest.FeedbackIndex != sourceIndex) RecalculateDestFeedback(dest.Index);
         }
 
         private void RecalculateDestFeedback(ushort destIndex)
@@ -782,35 +662,21 @@ namespace PepperDash.Essentials.Core.Routing
                 try
                 {
                     if (destFeedbacks.Count > 0)
-                    {
                         //Set to true and only change to false on failure
                         match = true;
-                    }
 
                     foreach (KeyValuePair<ushort, DestFeedback> feedback in destFeedbacks)
                     {
-                        if (Overflow != 0 && feedback.Value.DisableInOverflow == true)
-                        {
-                            continue;
-                        }
+                        if (Overflow != 0 && feedback.Value.DisableInOverflow == true) continue;
 
-                        if (Overflow == 0 && feedback.Value.EnableInOverflow == true)
-                        {
-                            continue;
-                        }
+                        if (Overflow == 0 && feedback.Value.EnableInOverflow == true) continue;
 
                         bool routeMatch = false;
                         foreach (Route sourceRoute in source.Routes)
                         {
-                            if (Overflow != 0 && sourceRoute.DisableInOverflow == true)
-                            {
-                                continue;
-                            }
+                            if (Overflow != 0 && sourceRoute.DisableInOverflow == true) continue;
 
-                            if (Overflow == 0 && sourceRoute.EnableInOverflow == true)
-                            {
-                                continue;
-                            }
+                            if (Overflow == 0 && sourceRoute.EnableInOverflow == true) continue;
 
                             if (sourceRoute.RouteKey == feedback.Value.RouteKey)
                             {
@@ -818,12 +684,12 @@ namespace PepperDash.Essentials.Core.Routing
                                 if (sourceRoute.Output == null)
                                 {
                                     //Found a matching route. If input values match, set routeMatch=true
-                                    routeMatch = (sourceRoute.Input == feedback.Value.FeedbackInput);
+                                    routeMatch = sourceRoute.Input == feedback.Value.FeedbackInput;
                                 }
                                 else if (sourceRoute.Output == feedback.Value.Output)
                                 {
                                     //Found a matching route. If input values match, set routeMatch=true
-                                    routeMatch = (sourceRoute.Input == feedback.Value.FeedbackInput);
+                                    routeMatch = sourceRoute.Input == feedback.Value.FeedbackInput;
                                     //Stop searching for this particular feedback condition
                                     break;
                                 }
@@ -834,22 +700,18 @@ namespace PepperDash.Essentials.Core.Routing
                         if (routeMatch == false && feedback.Value.Input != null)
                         {
                             if (debugLevel > 0)
-                            {
                                 Debug.Console(0, "Found matching dest only feedback for {0}: feedback value: {1}",
                                     feedback.Value.RouteKey, feedback.Value.FeedbackInput);
-                            }
 
-                            routeMatch = (feedback.Value.Input == feedback.Value.FeedbackInput);
+                            routeMatch = feedback.Value.Input == feedback.Value.FeedbackInput;
                         }
 
                         if (routeMatch == false)
                         {
                             //Stop checking feedback once one feedback match has failed
                             if (debugLevel > 0)
-                            {
                                 Debug.Console(0, "Router feedback match for {0} failed at {1}", source.Name,
                                     feedback.Value.RouteKey);
-                            }
 
                             match = false;
                             break;
@@ -866,21 +728,17 @@ namespace PepperDash.Essentials.Core.Routing
                         {
                             //Found a perfect match, no need to continue
                             if (debugLevel > 0)
-                            {
                                 Debug.Console(0, "Router found matching feedback for {0}: {1}", Dests[destIndex].Name,
                                     sourceMatch.Name);
-                            }
 
                             UpdateRouteFeedback(destIndex, sourceMatch);
                             return;
                         }
 
                         if (debugLevel > 0)
-                        {
                             Debug.Console(0, "Router found matching feedback but source feedback wasn't valid {0}: {1}",
                                 Dests[destIndex].Name,
                                 sourceMatch.Name);
-                        }
                     }
                 }
                 catch (Exception ex)
@@ -894,20 +752,16 @@ namespace PepperDash.Essentials.Core.Routing
             if (sourceMatch != null)
             {
                 if (debugLevel > 0)
-                {
                     CrestronConsole.PrintLine("Router found partial matching feedback for {0}: {1}",
                         Dests[destIndex].Name,
                         sourceMatch.Name);
-                }
 
                 UpdateRouteFeedback(destIndex, sourceMatch);
                 return;
             }
 
             if (debugLevel > 0)
-            {
                 Debug.Console(0, "Router found no sources that match feedback for {0}", Dests[destIndex].Name);
-            }
 
             ClearRouteFeedback(destIndex);
         }
@@ -915,10 +769,7 @@ namespace PepperDash.Essentials.Core.Routing
         private void ClearRouteFeedback(ushort destIndex)
         {
             Dest dest = Dests[destIndex];
-            if (dest == null)
-            {
-                return;
-            }
+            if (dest == null) return;
 
             dest.FeedbackName = "Off";
             dest.FeedbackIndex = 0;
@@ -930,10 +781,8 @@ namespace PepperDash.Essentials.Core.Routing
             {
                 dest.AudioMode = 0;
                 foreach (ushort index in dest.AudioFollowers)
-                {
                     if (!AudioFeedbackToProcess.Contains(index))
                         AudioFeedbackToProcess.Add(index);
-                }
             }
 
             UpdateDestinationFeedback(destIndex);
@@ -942,10 +791,7 @@ namespace PepperDash.Essentials.Core.Routing
         private void UpdateRouteFeedback(ushort destIndex, Source source)
         {
             Dest dest = Dests[destIndex];
-            if (dest == null)
-            {
-                return;
-            }
+            if (dest == null) return;
 
             try
             {
@@ -965,10 +811,8 @@ namespace PepperDash.Essentials.Core.Routing
                 {
                     dest.AudioMode = 0;
                     foreach (ushort index in dest.AudioFollowers)
-                    {
                         if (!AudioFeedbackToProcess.Contains(index))
                             AudioFeedbackToProcess.Add(index);
-                    }
                 }
             }
             catch (Exception ex)
@@ -984,19 +828,14 @@ namespace PepperDash.Essentials.Core.Routing
             CurrentRouteFeedbacks[destIndex].FireUpdate();
             CurrentRouteNameFeedbacks[destIndex].FireUpdate();
             if (DestinationFeedbackChanged != null)
-            {
                 DestinationFeedbackChanged(this, new UshrtChangeEventArgs(destIndex, 0));
-            }
         }
 
         private void MakeDeviceRoute(string key, ushort output, ushort input)
         {
             try
             {
-                if (fakeFeedback)
-                {
-                    FeedbackFromSimpl(key, output, input);
-                }
+                if (fakeFeedback) FeedbackFromSimpl(key, output, input);
 
                 switch (key)
                 {
@@ -1034,9 +873,7 @@ namespace PepperDash.Essentials.Core.Routing
                         if (txs.ContainsKey(output) && txs[output] != null)
                         {
                             if (debugLevel > 0)
-                            {
                                 Debug.Console(0, "Router making txRoute for tx {0} to input {1}", output, input);
-                            }
 
                             txs[output].ExecuteNumericSwitch(input, 1, eRoutingSignalType.AudioVideo);
                         }

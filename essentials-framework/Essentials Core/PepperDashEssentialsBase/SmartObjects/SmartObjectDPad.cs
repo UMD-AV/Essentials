@@ -1,6 +1,6 @@
 ﻿using Crestron.SimplSharpPro;
 
-namespace PepperDash.Essentials.Core.SmartObjects
+namespace UmdEssentials.Core.SmartObjects
 {
     public class SmartObjectDPad : SmartObjectHelperBase
     {

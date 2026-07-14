@@ -8,7 +8,7 @@ using Crestron.SimplSharp.CrestronIO;
 using PepperDash.Core;
 using Newtonsoft.Json;
 
-namespace PepperDash.Essentials.Core
+namespace UmdEssentials.Core
 {
     public static class JoinMapHelper
     {
@@ -107,7 +107,6 @@ namespace PepperDash.Essentials.Core
         private void PrintJoinList(List<KeyValuePair<string, JoinMetadata>> joins)
         {
             foreach (KeyValuePair<string, JoinMetadata> join in joins)
-            {
                 Debug.Console(0,
                     @"Join Number: {0} | Label: '{1}' | JoinSpan: '{2}' | Type: '{3}' | Capabilities: '{4}'",
                     join.Value.JoinNumber,
@@ -115,7 +114,6 @@ namespace PepperDash.Essentials.Core
                     join.Value.JoinSpan,
                     join.Value.JoinType.ToString(),
                     join.Value.JoinCapabilities.ToString());
-            }
         }
 
         /// <summary>
@@ -195,10 +193,7 @@ namespace PepperDash.Essentials.Core
             }
 
 
-            if (Debug.Level > 0)
-            {
-                PrintJoinMapInfo();
-            }
+            if (Debug.Level > 0) PrintJoinMapInfo();
         }
 
         /// <summary>
@@ -307,7 +302,6 @@ namespace PepperDash.Essentials.Core
         private void PrintJoinList(List<KeyValuePair<string, JoinDataComplete>> joins)
         {
             foreach (KeyValuePair<string, JoinDataComplete> join in joins)
-            {
                 Debug.Console(0,
                     @"Join Number: {0} | JoinSpan: '{1}' | JoinName: {2} | Description: '{3}' | Type: '{4}' | Capabilities: '{5}'",
                     join.Value.JoinNumber,
@@ -318,7 +312,6 @@ namespace PepperDash.Essentials.Core
                         : join.Value.AttributeName,
                     join.Value.Metadata.JoinType.ToString(),
                     join.Value.Metadata.JoinCapabilities.ToString());
-            }
         }
 
         private static StringBuilder AppendJoinList(List<KeyValuePair<string, JoinDataComplete>> joins)
@@ -348,9 +341,7 @@ namespace PepperDash.Essentials.Core
                 new string('-', capabilitiesLen)));
 
             foreach (KeyValuePair<string, JoinDataComplete> join in joins)
-            {
                 sb.AppendLine(join.Value.GetMarkdownFormattedData(stringFormatter, descriptionLen));
-            }
 
             sb.AppendLine();
             return sb;
@@ -367,13 +358,9 @@ namespace PepperDash.Essentials.Core
                 JoinDataComplete join = Joins[customJoinData.Key];
 
                 if (join != null)
-                {
                     join.SetCustomJoinData(customJoinData.Value);
-                }
                 else
-                {
                     Debug.Console(2, "No matching key found in join map for: '{0}'", customJoinData.Key);
-                }
             }
 
             PrintJoinMapInfo();
@@ -414,7 +401,7 @@ namespace PepperDash.Essentials.Core
         ToFromSIMPL = ToSIMPL | FromSIMPL,
         ToFusion = 4,
         FromFusion = 8,
-        ToFromFusion = ToFusion | FromFusion,
+        ToFromFusion = ToFusion | FromFusion
     }
 
     [Flags]
@@ -427,7 +414,7 @@ namespace PepperDash.Essentials.Core
         DigitalAnalog = Digital | Analog,
         DigitalSerial = Digital | Serial,
         AnalogSerial = Analog | Serial,
-        DigitalAnalogSerial = Digital | Analog | Serial,
+        DigitalAnalogSerial = Digital | Analog | Serial
     }
 
     /// <summary>
@@ -594,7 +581,7 @@ namespace PepperDash.Essentials.Core
                 }
 
                 Debug.Console(0, "Unable to decode join metadata {1}- {0}", e.Message,
-                    !string.IsNullOrEmpty(errorKey) ? (' ' + errorKey) : string.Empty);
+                    !string.IsNullOrEmpty(errorKey) ? ' ' + errorKey : string.Empty);
                 return string.Format(stringFormatter,
                     dataArray["joinNumber"],
                     dataArray["joinSpan"],

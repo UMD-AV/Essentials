@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Crestron.SimplSharp;
 using PepperDash.Core;
 
-namespace PepperDash.Essentials.Core.Routing
+namespace UmdEssentials.Core.Routing
 {
     public static class RouterMain
     {
@@ -22,12 +22,8 @@ namespace PepperDash.Essentials.Core.Routing
 
             //Update all UI connections
             foreach (RoutingInterface ui in UIs.Values)
-            {
                 if (ui.RouterKey == key)
-                {
                     ui.Register(key);
-                }
-            }
 
             mutex.ReleaseMutex();
         }
@@ -42,28 +38,17 @@ namespace PepperDash.Essentials.Core.Routing
                     r.fakeFeedback = false;
                 }
 
-                foreach (RoutingInterface i in UIs.Values)
-                {
-                    i.debugLevel = 0;
-                }
+                foreach (RoutingInterface i in UIs.Values) i.debugLevel = 0;
             }
             else if (command == "fake")
             {
-                foreach (Router r in Routers.Values)
-                {
-                    r.fakeFeedback = true;
-                }
+                foreach (Router r in Routers.Values) r.fakeFeedback = true;
             }
             else
             {
                 if (Routers.ContainsKey(command))
-                {
                     Routers[command].debugLevel = 1;
-                }
-                else if (UIs.ContainsKey(command))
-                {
-                    UIs[command].debugLevel = 1;
-                }
+                else if (UIs.ContainsKey(command)) UIs[command].debugLevel = 1;
             }
         }
 
@@ -80,10 +65,7 @@ namespace PepperDash.Essentials.Core.Routing
             try
             {
                 mutex.WaitForMutex();
-                if (Routers.ContainsKey(key))
-                {
-                    return Routers[key];
-                }
+                if (Routers.ContainsKey(key)) return Routers[key];
             }
             catch (Exception e)
             {

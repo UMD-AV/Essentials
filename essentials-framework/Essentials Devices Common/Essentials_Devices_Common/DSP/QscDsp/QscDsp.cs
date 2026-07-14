@@ -6,11 +6,11 @@ using Crestron.SimplSharp;
 using Crestron.SimplSharpPro.DeviceSupport;
 using Newtonsoft.Json;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
-using PepperDash.Essentials.Core.Bridges;
-using PepperDash.Essentials.Core.Config;
+using UmdEssentials.Core;
+using UmdEssentials.Core.Bridges;
+using UmdEssentials.Core.Config;
 
-namespace PepperDash.Essentials.Devices.Common.DSP.QscDsp
+namespace UmdEssentials.Devices.Common.DSP.QscDsp
 {
     /// <summary>
     /// DSP Device 
@@ -37,6 +37,7 @@ namespace PepperDash.Essentials.Devices.Common.DSP.QscDsp
         /// Communication monitor object
         /// </summary>
         public StatusMonitorBase CommunicationMonitor { get; private set; }
+
         public Dictionary<string, QscDspLevelControl> LevelControlPoints { get; private set; }
         public List<QscDspMonitoringPoint> MonitoringControlPoints { get; private set; }
         public readonly List<QscDspPresets> PresetList = new List<QscDspPresets>();
@@ -130,13 +131,9 @@ namespace PepperDash.Essentials.Devices.Common.DSP.QscDsp
 
             // Check for prefix
             string prefix = "";
-            if (props.Prefix != null)
-            {
-                prefix = props.Prefix;
-            }
+            if (props.Prefix != null) prefix = props.Prefix;
 
             if (props.LevelControlBlocks != null)
-            {
                 foreach (KeyValuePair<string, QscDspLevelControlBlockConfig> block in props.LevelControlBlocks)
                 {
                     string key = string.Format("{0}{1}", prefix, block.Key);
@@ -148,26 +145,24 @@ namespace PepperDash.Essentials.Devices.Common.DSP.QscDsp
                     Debug.Console(2, this, "Added LevelControlPoint {0} LevelTag: {1} MuteTag: {2}", key,
                         value.LevelInstanceTag, value.MuteInstanceTag);
                 }
-            }
 
             if (props.Presets != null)
-            {
                 foreach (QscDspPresets value in props.Presets.Select(preset => preset.Value))
                 {
                     value.Preset = string.Format("{0}{1}", prefix, value.Preset);
                     AddPreset(value);
                     Debug.Console(2, this, "Added Preset {0} {1}", value.Label, value.Preset);
                 }
-            }
 
             if (props.MonitoringPoints != null)
-            {
                 foreach (QscDspMonitoringPointConfig monitorConfig in props.MonitoringPoints)
                 {
-                    MonitoringControlPoints.Add(new QscDspMonitoringPoint(monitorConfig.InstanceTag, monitorConfig.Name, this));
-                    Debug.Console(0, this, "Added Monitoring Control Point {0} - {1}", monitorConfig.Name, monitorConfig.InstanceTag);
+                    MonitoringControlPoints.Add(new QscDspMonitoringPoint(monitorConfig.InstanceTag, monitorConfig.Name,
+                        this));
+                    Debug.Console(0, this, "Added Monitoring Control Point {0} - {1}", monitorConfig.Name,
+                        monitorConfig.InstanceTag);
                 }
-            }
+
             SubscribeToAttributes();
         }
 
@@ -215,20 +210,11 @@ namespace PepperDash.Essentials.Devices.Common.DSP.QscDsp
             // Change group subscribe to feedback with no ack (updates every 1000 ms)
             SendLine("cgsna 1 1000");
 
-            foreach (KeyValuePair<string, QscDspLevelControl> level in LevelControlPoints)
-            {
-                level.Value.Subscribe();
-            }
-            
-            foreach (QscDspMonitoringPoint monitoringPoint in MonitoringControlPoints)
-            {
-                monitoringPoint.Subscribe();
-            }
+            foreach (KeyValuePair<string, QscDspLevelControl> level in LevelControlPoints) level.Value.Subscribe();
 
-            if (CommunicationMonitor != null)
-            {
-                CommunicationMonitor.Start();
-            }
+            foreach (QscDspMonitoringPoint monitoringPoint in MonitoringControlPoints) monitoringPoint.Subscribe();
+
+            if (CommunicationMonitor != null) CommunicationMonitor.Start();
         }
 
         /// <summary>
@@ -274,14 +260,15 @@ namespace PepperDash.Essentials.Devices.Common.DSP.QscDsp
                             return;
                         }
                     }
-                    
+
                     foreach (QscDspMonitoringPoint monitoringPoint in MonitoringControlPoints)
                     {
                         Debug.Console(2, this, "DSP Monitoring Point Status Compare: {0} == {1}", changedInstance,
                             monitoringPoint.InstanceTag);
                         if (changedInstance == monitoringPoint.InstanceTag)
                         {
-                            monitoringPoint.ParseSubscriptionMessage(changedInstance, changeMessage[2].Replace("\"", "").Trim());
+                            monitoringPoint.ParseSubscriptionMessage(changedInstance,
+                                changeMessage[2].Replace("\"", "").Trim());
                             return;
                         }
                     }

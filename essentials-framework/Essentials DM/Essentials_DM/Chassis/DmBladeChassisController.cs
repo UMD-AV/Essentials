@@ -9,11 +9,11 @@ using Crestron.SimplSharpPro.DM.Cards;
 using Crestron.SimplSharpPro.DM.Endpoints;
 using Newtonsoft.Json;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
-using PepperDash.Essentials.Core.Bridges;
-using PepperDash.Essentials.DM.Config;
+using UmdEssentials.Core;
+using UmdEssentials.Core.Bridges;
+using UmdEssentials.DM.Config;
 
-namespace PepperDash.Essentials.DM
+namespace UmdEssentials.DM
 {
     /// <summary>
     /// Builds a controller for basic DM-RMCs with Com and IR ports and no control functions
@@ -81,38 +81,24 @@ namespace PepperDash.Essentials.DM
                 uint ipid = properties.Control.IpIdInt;
 
                 if (properties.VolumeControls == null)
-                {
                     properties.VolumeControls = new Dictionary<uint, DmCardAudioPropertiesConfig>();
-                }
 
                 if (properties.InputSlotSupportsHdcp2 == null)
-                {
                     properties.InputSlotSupportsHdcp2 = new Dictionary<uint, bool>();
-                }
 
                 BladeSwitch chassis = null;
                 if (type == "dmmd64x64")
-                {
                     chassis = new DmMd64x64(ipid, Global.ControlSystem);
-                }
-                else if (type == "dmmd128x128")
-                {
-                    chassis = new DmMd128x128(ipid, Global.ControlSystem);
-                }
+                else if (type == "dmmd128x128") chassis = new DmMd128x128(ipid, Global.ControlSystem);
 
-                if (chassis == null)
-                {
-                    return null;
-                }
+                if (chassis == null) return null;
 
                 DmBladeChassisController controller = new DmBladeChassisController(key, name, chassis);
                 // add the cards and port names
                 foreach (KeyValuePair<uint, string> kvp in properties.InputSlots)
                     controller.AddInputBlade(kvp.Value, kvp.Key);
                 foreach (KeyValuePair<uint, string> kvp in properties.OutputSlots)
-                {
                     controller.AddOutputBlade(kvp.Value, kvp.Key);
-                }
 
                 foreach (KeyValuePair<uint, DmCardAudioPropertiesConfig> kvp in properties.VolumeControls)
                 {
@@ -141,7 +127,7 @@ namespace PepperDash.Essentials.DM
                 controller.PropertiesConfig = properties;
                 return controller;
             }
-            catch (System.Exception e)
+            catch (Exception e)
             {
                 Debug.Console(0, "Error creating DM chassis:\r{0}", e);
             }
@@ -191,13 +177,9 @@ namespace PepperDash.Essentials.DM
                     VideoOutputFeedbacks[tempX] = new IntFeedback(() =>
                     {
                         if (Chassis.Outputs[tempX].VideoOutFeedback != null)
-                        {
                             return (ushort)Chassis.Outputs[tempX].VideoOutFeedback.Number;
-                        }
                         else
-                        {
                             return 0;
-                        }
 
                         ;
                     });
@@ -205,24 +187,16 @@ namespace PepperDash.Essentials.DM
                     OutputNameFeedbacks[tempX] = new StringFeedback(() =>
                     {
                         if (Chassis.Outputs[tempX].NameFeedback != null)
-                        {
                             return Chassis.Outputs[tempX].NameFeedback.StringValue;
-                        }
                         else
-                        {
                             return "";
-                        }
                     });
                     OutputVideoRouteNameFeedbacks[tempX] = new StringFeedback(() =>
                     {
                         if (Chassis.Outputs[tempX].VideoOutFeedback != null)
-                        {
                             return Chassis.Outputs[tempX].VideoOutFeedback.NameFeedback.StringValue;
-                        }
                         else
-                        {
                             return "";
-                        }
                     });
 
                     OutputEndpointOnlineFeedbacks[tempX] = new BoolFeedback(() =>
@@ -239,13 +213,9 @@ namespace PepperDash.Essentials.DM
                     UsbInputRoutedToFeebacks[tempX] = new IntFeedback(() =>
                     {
                         if (Chassis.Inputs[tempX].USBRoutedToFeedback != null)
-                        {
                             return (ushort)Chassis.Inputs[tempX].USBRoutedToFeedback.Number;
-                        }
                         else
-                        {
                             return 0;
-                        }
 
                         ;
                     });
@@ -259,13 +229,9 @@ namespace PepperDash.Essentials.DM
                     InputNameFeedbacks[tempX] = new StringFeedback(() =>
                     {
                         if (Chassis.Inputs[tempX].NameFeedback != null)
-                        {
                             return Chassis.Inputs[tempX].NameFeedback.StringValue;
-                        }
                         else
-                        {
                             return "";
-                        }
                     });
 
                     InputEndpointOnlineFeedbacks[tempX] = new BoolFeedback(() =>
@@ -299,7 +265,9 @@ namespace PepperDash.Essentials.DM
                         }
 
                         else
+                        {
                             return 0;
+                        }
                     });
                 }
             }
@@ -318,7 +286,7 @@ namespace PepperDash.Essentials.DM
 
             if (type == "dmb4kihd")
             {
-                Dmb4kIHd inputBlade = new Dmb4kIHd(number, this.Chassis);
+                Dmb4kIHd inputBlade = new Dmb4kIHd(number, Chassis);
                 foreach (DMInput item in inputBlade.Inputs)
                 {
                     DmBladeHdmi4kInputPort card = (item.Card as DmHdmi4kInputBladeCard).Hdmi4kInput;
@@ -329,7 +297,7 @@ namespace PepperDash.Essentials.DM
 
             else if (type == "dmb4kihddnt")
             {
-                Dmb4kIHd inputBlade = new Dmb4kIHd(number, this.Chassis);
+                Dmb4kIHd inputBlade = new Dmb4kIHd(number, Chassis);
                 foreach (DMInput item in inputBlade.Inputs)
                 {
                     DmBladeHdmi4kInputPort card = (item.Card as DmHdmi4kInputBladeCard).Hdmi4kInput;
@@ -340,28 +308,19 @@ namespace PepperDash.Essentials.DM
 
             else if (type == "dmb4kic")
             {
-                Dmb4kIC inputBlade = new Dmb4kIC(number, this.Chassis);
-                foreach (DMInput item in inputBlade.Inputs)
-                {
-                    AddDmInBladePorts(item.Number);
-                }
+                Dmb4kIC inputBlade = new Dmb4kIC(number, Chassis);
+                foreach (DMInput item in inputBlade.Inputs) AddDmInBladePorts(item.Number);
             }
 
             else if (type == "dmbis")
             {
-                DmbIS inputBlade = new DmbIS(number, this.Chassis);
-                foreach (DMInput item in inputBlade.Inputs)
-                {
-                    AddDmInMmFiberPorts(item.Number);
-                }
+                DmbIS inputBlade = new DmbIS(number, Chassis);
+                foreach (DMInput item in inputBlade.Inputs) AddDmInMmFiberPorts(item.Number);
             }
             else if (type == "dmbis2")
             {
-                DmbIS2 inputBlade = new DmbIS2(number, this.Chassis);
-                foreach (DMInput item in inputBlade.Inputs)
-                {
-                    AddDmInSmFiberPorts(item.Number);
-                }
+                DmbIS2 inputBlade = new DmbIS2(number, Chassis);
+                foreach (DMInput item in inputBlade.Inputs) AddDmInSmFiberPorts(item.Number);
             }
         }
 
@@ -410,52 +369,34 @@ namespace PepperDash.Essentials.DM
             if (type == "dmb4kohd")
             {
                 Dmb4KOHD outputBlade = new Dmb4KOHD(number, Chassis);
-                foreach (DMOutput item in outputBlade.Outputs)
-                {
-                    AddHdmiOutBladePorts(item.Number);
-                }
+                foreach (DMOutput item in outputBlade.Outputs) AddHdmiOutBladePorts(item.Number);
             }
 
             else if (type == "dmb4kohddnt")
             {
                 Dmb4KOHD outputBlade = new Dmb4KOHD(number, Chassis);
-                foreach (DMOutput item in outputBlade.Outputs)
-                {
-                    AddHdmiOutBladePorts(item.Number);
-                }
+                foreach (DMOutput item in outputBlade.Outputs) AddHdmiOutBladePorts(item.Number);
             }
 
             else if (type == "dmb4koc")
             {
                 Dmb4KOC outputBlade = new Dmb4KOC(number, Chassis);
-                foreach (DMOutput item in outputBlade.Outputs)
-                {
-                    AddDmOutBladePorts(item.Number);
-                }
+                foreach (DMOutput item in outputBlade.Outputs) AddDmOutBladePorts(item.Number);
             }
             else if (type == "dmb4koc")
             {
                 Dmb4KOC outputBlade = new Dmb4KOC(number, Chassis);
-                foreach (DMOutput item in outputBlade.Outputs)
-                {
-                    AddDmOutBladePorts(item.Number);
-                }
+                foreach (DMOutput item in outputBlade.Outputs) AddDmOutBladePorts(item.Number);
             }
             else if (type == "dmbos")
             {
                 DmbOS outputBlade = new DmbOS(number, Chassis);
-                foreach (DMOutput item in outputBlade.Outputs)
-                {
-                    AddDmOutMmFiberBladePorts(item.Number);
-                }
+                foreach (DMOutput item in outputBlade.Outputs) AddDmOutMmFiberBladePorts(item.Number);
             }
             else if (type == "dmbos2")
             {
                 DmbOS2 outputBlade = new DmbOS2(number, Chassis);
-                foreach (DMOutput item in outputBlade.Outputs)
-                {
-                    AddDmOutSmFiberBladePorts(item.Number);
-                }
+                foreach (DMOutput item in outputBlade.Outputs) AddDmOutSmFiberBladePorts(item.Number);
             }
         }
 
@@ -614,10 +555,7 @@ namespace PepperDash.Essentials.DM
             {
                 case DMOutputEventIds.VolumeEventId:
                 {
-                    if (VolumeControls.ContainsKey(output))
-                    {
-                        VolumeControls[args.Number].VolumeEventFromChassis();
-                    }
+                    if (VolumeControls.ContainsKey(output)) VolumeControls[args.Number].VolumeEventFromChassis();
 
                     break;
                 }
@@ -647,7 +585,7 @@ namespace PepperDash.Essentials.DM
                         ? 0
                         : Chassis.Outputs[output].VideoOutFeedback.Number;
 
-                    Debug.Console(2, this, "DMSwitchAudioVideo:{0} Routed Input:{1} Output:{2}'", this.Name,
+                    Debug.Console(2, this, "DMSwitchAudioVideo:{0} Routed Input:{1} Output:{2}'", Name,
                         inputNumber, output);
 
                     if (VideoOutputFeedbacks.ContainsKey(output))
@@ -667,9 +605,7 @@ namespace PepperDash.Essentials.DM
                     }
 
                     if (OutputVideoRouteNameFeedbacks.ContainsKey(output))
-                    {
                         OutputVideoRouteNameFeedbacks[output].FireUpdate();
-                    }
 
                     break;
                 }
@@ -788,14 +724,10 @@ namespace PepperDash.Essentials.DM
                 joinMap = JsonConvert.DeserializeObject<DmBladeChassisControllerJoinMap>(joinMapSerialized);
 
             if (bridge != null)
-            {
                 bridge.AddJoinMap(Key, joinMap);
-            }
             else
-            {
                 Debug.Console(0, this,
                     "Please update config to use 'eiscapiadvanced' to get all join map features for this device.");
-            }
 
             Debug.Console(1, this, "Linking to Trilist '{0}'", trilist.ID.ToString("X"));
 
@@ -864,7 +796,6 @@ namespace PepperDash.Essentials.DM
                             object port = inputPort.Port;
 
                             if (port != null)
-                            {
                                 if (port is HdmiInputWithCEC)
                                 {
                                     Debug.Console(1, "Port is HdmiInputWithCec");
@@ -872,10 +803,8 @@ namespace PepperDash.Essentials.DM
                                     HdmiInputWithCEC hdmiInPortWCec = port as HdmiInputWithCEC;
 
                                     if (hdmiInPortWCec.HdcpSupportedLevel != eHdcpSupportedLevel.Unknown)
-                                    {
                                         SetHdcpStateAction(true, hdmiInPortWCec,
                                             joinMap.HdcpSupportState.JoinNumber + ioSlotJoin, trilist);
-                                    }
 
                                     InputCardHdcpCapabilityFeedbacks[ioSlot].LinkInputSig(
                                         trilist.UShortInput[joinMap.HdcpSupportState.JoinNumber + ioSlotJoin]);
@@ -887,7 +816,6 @@ namespace PepperDash.Essentials.DM
                                         trilist.UShortInput[joinMap.HdcpSupportCapability.JoinNumber + ioSlotJoin]
                                             .UShortValue = 1;
                                 }
-                            }
                         }
                         else
                         {
@@ -972,73 +900,46 @@ namespace PepperDash.Essentials.DM
         private void SetHdcpStateAction(bool hdcpTypeSimple, HdmiInputWithCEC port, uint join, BasicTriList trilist)
         {
             if (hdcpTypeSimple)
-            {
                 trilist.SetUShortSigAction(join,
                     s =>
                     {
                         if (s == 0)
-                        {
                             port.HdcpSupportOff();
-                        }
-                        else if (s > 0)
-                        {
-                            port.HdcpSupportOn();
-                        }
+                        else if (s > 0) port.HdcpSupportOn();
                     });
-            }
             else
-            {
                 trilist.SetUShortSigAction(join,
                     u => { port.HdcpReceiveCapability = (eHdcpCapabilityType)u; });
-            }
         }
 
         private void SetHdcpStateAction(bool hdcpTypeSimple, EndpointHdmiInput port, uint join, BasicTriList trilist)
         {
             if (hdcpTypeSimple)
-            {
                 trilist.SetUShortSigAction(join,
                     s =>
                     {
                         if (s == 0)
-                        {
                             port.HdcpSupportOff();
-                        }
-                        else if (s > 0)
-                        {
-                            port.HdcpSupportOn();
-                        }
+                        else if (s > 0) port.HdcpSupportOn();
                     });
-            }
             else
-            {
                 trilist.SetUShortSigAction(join,
                     u => { port.HdcpCapability = (eHdcpCapabilityType)u; });
-            }
         }
 
         private void SetHdcpStateAction(bool supportsHdcp2, DMInputPortWithCec port, uint join, BasicTriList trilist)
         {
             if (!supportsHdcp2)
-            {
                 trilist.SetUShortSigAction(join,
                     s =>
                     {
                         if (s == 0)
-                        {
                             port.HdcpSupportOff();
-                        }
-                        else if (s > 0)
-                        {
-                            port.HdcpSupportOn();
-                        }
+                        else if (s > 0) port.HdcpSupportOn();
                     });
-            }
             else
-            {
                 trilist.SetUShortSigAction(join,
                     u => { port.HdcpReceiveCapability = (eHdcpCapabilityType)u; });
-            }
         }
     }
 

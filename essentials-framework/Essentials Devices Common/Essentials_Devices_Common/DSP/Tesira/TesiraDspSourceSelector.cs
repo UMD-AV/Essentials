@@ -4,12 +4,12 @@ using System.Linq;
 using Crestron.SimplSharpPro.DeviceSupport;
 using Newtonsoft.Json;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
+using UmdEssentials.Core;
 using System.Text.RegularExpressions;
-using PepperDash.Essentials.Core.Bridges;
+using UmdEssentials.Core.Bridges;
 using Tesira_DSP_EPI.Bridge.JoinMaps;
 using Tesira_DSP_EPI.Extensions;
-using Feedback = PepperDash.Essentials.Core.Feedback;
+using Feedback = UmdEssentials.Core.Feedback;
 using IRoutingWithFeedback = Tesira_DSP_EPI.Interfaces.IRoutingWithFeedback;
 
 namespace Tesira_DSP_EPI
@@ -84,9 +84,7 @@ namespace Tesira_DSP_EPI
 
             ShowRoutedString = config.ShowSelectedStringFeedback;
             foreach (KeyValuePair<uint, RoutingPort> input in config.SourceSelectorInputs)
-            {
                 SourceSelectorInputs.Add(input.Key, input.Value.Label);
-            }
 
             SourceSelectorInputs.Add(0, "None");
 
@@ -126,18 +124,14 @@ namespace Tesira_DSP_EPI
             Enabled = config.Enabled;
 
             if (config.SourceSelectorInputs != null)
-            {
                 foreach (
                     KeyValuePair<uint, RoutingPort> input in
                     from input in config.SourceSelectorInputs
                     let inputPort = input.Value
                     let inputPortKey = input.Key
                     select input)
-                {
                     InputPorts.Add(new RoutingInputPort(input.Value.Label, eRoutingSignalType.Audio,
                         eRoutingPortConnectionType.BackplaneOnly, input.Key, this));
-                }
-            }
 
             if (config.SourceSelectorOutput == null) return;
             RoutingPort output = config.SourceSelectorOutput;
@@ -150,7 +144,7 @@ namespace Tesira_DSP_EPI
         /// </summary>
         public override void Subscribe()
         {
-            SelectorCustomName = (string.Format("{0}__Selector{1}", InstanceTag1, Index1)).Replace(" ", string.Empty);
+            SelectorCustomName = string.Format("{0}__Selector{1}", InstanceTag1, Index1).Replace(" ", string.Empty);
             AddCustomName(SelectorCustomName);
             SendSubscriptionCommand(SelectorCustomName, "sourceSelection", 250, 1);
         }
@@ -162,7 +156,7 @@ namespace Tesira_DSP_EPI
         {
             IsSubscribed = false;
 
-            SelectorCustomName = (string.Format("{0}__Selector{1}", InstanceTag1, Index1)).Replace(" ", string.Empty);
+            SelectorCustomName = string.Format("{0}__Selector{1}", InstanceTag1, Index1).Replace(" ", string.Empty);
 
             SendUnSubscriptionCommand(SelectorCustomName, "sourceSelection", 1);
         }
@@ -309,10 +303,7 @@ namespace Tesira_DSP_EPI
             if (!string.IsNullOrEmpty(joinMapSerialized))
                 joinMap = JsonConvert.DeserializeObject<TesiraSwitcherJoinMapAdvancedStandalone>(joinMapSerialized);
 
-            if (bridge != null)
-            {
-                bridge.AddJoinMap(Key, joinMap);
-            }
+            if (bridge != null) bridge.AddJoinMap(Key, joinMap);
 
             if (!Enabled) return;
 
@@ -335,10 +326,7 @@ namespace Tesira_DSP_EPI
             {
                 if (!args.DeviceOnLine) return;
 
-                foreach (Feedback feedback in Feedbacks)
-                {
-                    feedback.FireUpdate();
-                }
+                foreach (Feedback feedback in Feedbacks) feedback.FireUpdate();
 
                 GetSourceNames();
             };

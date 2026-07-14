@@ -7,14 +7,15 @@ using Crestron.SimplSharpPro.DM.Endpoints;
 using Crestron.SimplSharpPro.DM.Endpoints.Transmitters;
 using Newtonsoft.Json;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
-using PepperDash.Essentials.Core.Bridges;
-using PepperDash.Essentials.DM.Config;
-using PepperDash.Essentials.Core.Config;
-using Feedback = PepperDash.Essentials.Core.Feedback;
+using UmdEssentials.Core;
+using UmdEssentials.Core.Bridges;
+using UmdEssentials.Core.Config;
+using UmdEssentials.DM.Config;
+using Core_Feedback = UmdEssentials.Core.Feedback;
+using Feedback = UmdEssentials.Core.Feedback;
 
 
-namespace PepperDash.Essentials.DM
+namespace UmdEssentials.DM
 {
     public class DmTxHelper
     {
@@ -133,7 +134,7 @@ namespace PepperDash.Essentials.DM
             if (parentDev is DmChassisController)
             {
                 // Get the Crestron chassis and link stuff up
-                DmChassisController switchDev = (parentDev as DmChassisController);
+                DmChassisController switchDev = parentDev as DmChassisController;
                 Switch chassis = switchDev.Chassis;
 
                 //Check that the input is within range of this chassis' possible inputs
@@ -188,11 +189,9 @@ namespace PepperDash.Essentials.DM
                         tx.IsOnline.SetValueFunc(() => switchDev.InputEndpointOnlineFeedbacks[num].BoolValue);
                         switchDev.InputEndpointOnlineFeedbacks[num].OutputChange += (o, a) =>
                         {
-                            foreach (Feedback feedback in tx.Feedbacks)
-                            {
+                            foreach (Core_Feedback feedback in tx.Feedbacks)
                                 if (feedback != null)
                                     feedback.FireUpdate();
-                            }
                         };
                     }
 
@@ -207,7 +206,7 @@ namespace PepperDash.Essentials.DM
             else if (parentDev is DmpsRoutingController)
             {
                 // Get the DMPS chassis and link stuff up
-                DmpsRoutingController dmpsDev = (parentDev as DmpsRoutingController);
+                DmpsRoutingController dmpsDev = parentDev as DmpsRoutingController;
                 CrestronControlSystem chassis = dmpsDev.Dmps;
 
                 //Check that the input is within range of this chassis' possible inputs
@@ -258,11 +257,9 @@ namespace PepperDash.Essentials.DM
                             tx.IsOnline.SetValueFunc(() => dmpsDev.InputEndpointOnlineFeedbacks[num].BoolValue);
                             dmpsDev.InputEndpointOnlineFeedbacks[num].OutputChange += (o, a) =>
                             {
-                                foreach (Feedback feedback in tx.Feedbacks)
-                                {
+                                foreach (Core_Feedback feedback in tx.Feedbacks)
                                     if (feedback != null)
                                         feedback.FireUpdate();
-                                }
                             };
                         }
                         catch (Exception ex)
@@ -320,11 +317,9 @@ namespace PepperDash.Essentials.DM
 
             IsOnline.OutputChange += (currentDevice, args) =>
             {
-                foreach (Feedback feedback in Feedbacks)
-                {
+                foreach (Core_Feedback feedback in Feedbacks)
                     if (feedback != null)
                         feedback.FireUpdate();
-                }
             };
         }
 
@@ -348,14 +343,10 @@ namespace PepperDash.Essentials.DM
             EiscApiAdvanced bridge)
         {
             if (bridge != null)
-            {
                 bridge.AddJoinMap(Key, joinMap);
-            }
             else
-            {
                 Debug.Console(0, this,
                     "Please update config to use 'eiscapiadvanced' to get all join map features for this device.");
-            }
 
             Debug.Console(1, tx, "Linking to Trilist '{0}'", trilist.ID.ToString("X"));
 
@@ -450,25 +441,17 @@ namespace PepperDash.Essentials.DM
             BasicTriList trilist)
         {
             if (hdcpTypeSimple)
-            {
                 trilist.SetUShortSigAction(join,
                     s =>
                     {
                         if (s == 0)
-                        {
                             port.HdcpSupportOff();
-                        }
                         else
-                        {
                             port.HdcpSupportOn();
-                        }
                     });
-            }
             else
-            {
                 trilist.SetUShortSigAction(join,
                     s => { port.HdcpCapability = (eHdcpCapabilityType)s; });
-            }
         }
     }
 
@@ -476,7 +459,7 @@ namespace PepperDash.Essentials.DM
     {
         public DmTxControllerFactory()
         {
-            TypeNames = new List<string>()
+            TypeNames = new List<string>
             {
                 "dmtx200c", "dmtx201c", "dmtx201s", "dmtx4k100c", "dmtx4k202c", "dmtx4kz202c", "dmtx4k302c",
                 "dmtx4kz302c", "dmtx401c", "dmtx401s", "dmtx4k100c1g", "dmtx4kz100c1g", "hdbasettx"

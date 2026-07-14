@@ -2,7 +2,7 @@
 using Crestron.SimplSharpPro.DeviceSupport;
 using PepperDash.Core;
 
-namespace PepperDash.Essentials.Core
+namespace UmdEssentials.Core
 {
     public class ModalDialog
     {

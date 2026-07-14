@@ -1,13 +1,14 @@
 ﻿using PepperDash.Core;
-using PepperDash.Essentials.Core;
+using UmdEssentials.Core;
 
-namespace PepperDash.Essentials.PanoptoCloud
+namespace UmdEssentials.PanoptoCloud
 {
     public class PanoptoCloudStatusMonitor : StatusMonitorBase
     {
         private bool _isStarted;
 
-        public PanoptoCloudStatusMonitor(IKeyed parent, long warningTime, long errorTime) : base(parent, warningTime, errorTime)
+        public PanoptoCloudStatusMonitor(IKeyed parent, long warningTime, long errorTime) : base(parent, warningTime,
+            errorTime)
         {
         }
 
@@ -27,10 +28,7 @@ namespace PepperDash.Essentials.PanoptoCloud
         {
             IsOnline = isOnline;
 
-            if (IsOnline)
-            {
-                Status = MonitorStatus.IsOk;
-            }
+            if (IsOnline) Status = MonitorStatus.IsOk;
 
             UpdateTimers();
         }
@@ -41,13 +39,9 @@ namespace PepperDash.Essentials.PanoptoCloud
                 return;
 
             if (Status == MonitorStatus.IsOk)
-            {
                 StopErrorTimers();
-            }
             else
-            {
                 StartErrorTimers();
-            }
         }
     }
 }

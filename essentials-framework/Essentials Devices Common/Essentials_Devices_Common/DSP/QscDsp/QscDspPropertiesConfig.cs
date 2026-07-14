@@ -1,9 +1,9 @@
 ﻿using System.Collections.Generic;
 using Newtonsoft.Json;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
+using UmdEssentials.Core;
 
-namespace PepperDash.Essentials.Devices.Common.DSP.QscDsp
+namespace UmdEssentials.Devices.Common.DSP.QscDsp
 {
     /// <summary>
     /// QSC DSP Properties config class
@@ -51,9 +51,8 @@ namespace PepperDash.Essentials.Devices.Common.DSP.QscDsp
         public Dictionary<string, QscDspLevelControlBlockConfig> LevelControlBlocks { get; set; }
 
         [JsonProperty("presets")] public Dictionary<string, QscDspPresets> Presets { get; set; }
-        
-        [JsonProperty("monitoringPoints")]
-        public List<QscDspMonitoringPointConfig> MonitoringPoints { get; set; }
+
+        [JsonProperty("monitoringPoints")] public List<QscDspMonitoringPointConfig> MonitoringPoints { get; set; }
     }
 
     /// <summary>
@@ -142,11 +141,11 @@ namespace PepperDash.Essentials.Devices.Common.DSP.QscDsp
 
         [JsonProperty("unmuteOnVolChange")] public bool UnmuteOnVolChange { get; set; }
     }
-    
+
     public class QscDspMonitoringPointConfig
     {
         [JsonProperty("name")] public string Name { get; set; }
-        
+
         [JsonProperty("instanceTag")] public string InstanceTag { get; set; }
     }
 }

@@ -1,7 +1,7 @@
 ﻿using PepperDash.Core;
 using Newtonsoft.Json;
 
-namespace PepperDash.Essentials.DM.AirMedia
+namespace UmdEssentials.DM.AirMedia
 {
     public class AirMediaPropertiesConfig
     {

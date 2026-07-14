@@ -1,6 +1,6 @@
 ﻿using PepperDash.Core;
 
-namespace PepperDash.Essentials.Core.Routing
+namespace UmdEssentials.Core.Routing
 {
     public class DummyRoutingInputsDevice : Device, IRoutingSource
     {
@@ -14,7 +14,7 @@ namespace PepperDash.Essentials.Core.Routing
         /// </summary>
         public RoutingPortCollection<RoutingOutputPort> OutputPorts
         {
-            get { return new RoutingPortCollection<RoutingOutputPort>() { AudioVideoOutputPort }; }
+            get { return new RoutingPortCollection<RoutingOutputPort> { AudioVideoOutputPort }; }
         }
 
         /// <summary>

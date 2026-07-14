@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace PepperDash.Essentials.Core
+namespace UmdEssentials.Core
 {
     public interface IHasDspPresets
     {

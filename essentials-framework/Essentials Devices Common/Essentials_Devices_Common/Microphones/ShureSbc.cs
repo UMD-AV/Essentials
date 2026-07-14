@@ -1,14 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using Crestron.SimplSharp;
 using Crestron.SimplSharpPro.DeviceSupport;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
-using PepperDash.Essentials.Core.Bridges;
-using PepperDash.Essentials.Core.Config;
-using PepperDash.Essentials.Core.Queues;
+using UmdEssentials.Core;
+using UmdEssentials.Core.Bridges;
+using UmdEssentials.Core.Config;
+using UmdEssentials.Core.Queues;
 
-namespace PepperDash.Essentials.Devices.Common.Microphones
+namespace UmdEssentials.Devices.Common.Microphones
 {
     public class ShureSbcDevice : EssentialsBridgeableDevice, IHasErrorString
     {
@@ -17,8 +18,7 @@ namespace PepperDash.Essentials.Devices.Common.Microphones
         private const string CommsDelimiter = ">";
         private readonly GenericQueue _commsQueue;
         public int SbcSize { get; private set; }
-        public readonly ShureSbcBattery[] Batteries;
-        public readonly WirelessMic[] Microphones;
+        public readonly ShureSbcBattery[] Microphones;
 
         private readonly Regex _regexPattern = new Regex(
             @"< REP (?<Index>[0-9]\s)?(?<Command>.*\b) (?<State>\w+|\{.*\}) >",
@@ -126,11 +126,37 @@ namespace PepperDash.Essentials.Devices.Common.Microphones
             DeviceFirmwareVersionFeedback = new StringFeedback(() => DeviceFirmwareVersion);
             ErrorFeedback = new StringFeedback(() => DeviceError);
 
-            SbcSize = MicControllerUtilities.GetConfiguredSize(config, 8, 8);
-            Batteries = MicControllerUtilities.BuildMicrophones(this, 8, config, "Shure Battery", true,
-                (micKey, micName) => new ShureSbcBattery(micKey, micName));
-            Microphones = new WirelessMic[8];
-            for (ushort i = 0; i < 8; i++) Microphones[i] = Batteries[i];
+            SbcSize = 8;
+            Microphones = new ShureSbcBattery[config.MicKeys.Length];
+            ushort i = 0;
+            while (i < config.MicKeys.Length)
+            {
+                Microphones[i] = new ShureSbcBattery(config.MicKeys[i], config.MicKeys[i])
+                {
+                    Model = "Shure Battery"
+                };
+                try
+                {
+                    DeviceManager.AddDevice(Microphones[i]);
+                }
+                catch (Exception e)
+                {
+                    Debug.ConsoleWithLog(0, this, "Exception adding mic '{0}' to device manager: {1}",
+                        config.MicKeys[i],
+                        e.Message);
+                }
+
+                i++;
+            }
+
+            while (i < SbcSize)
+            {
+                Microphones[i] = new ShureSbcBattery(Key + "-battery" + i + 1, Key + "-battery" + i + 1)
+                {
+                    Model = "Shure Battery"
+                };
+                i++;
+            }
 
             _comms = comms;
             _commsGather = new CommunicationGather(_comms, CommsDelimiter)
@@ -203,13 +229,13 @@ namespace PepperDash.Essentials.Devices.Common.Microphones
                 case "BATT_CHARGE":
                 {
                     int index = Convert.ToInt16(indexString) - 1;
-                    if (index < 8)
+                    if (index >= 0 && index < SbcSize)
                     {
                         short stateInt = Convert.ToInt16(state);
                         if (stateInt >= 0 && stateInt <= 100)
-                            Batteries[index].PercentCharge = stateInt;
+                            Microphones[index].PercentCharge = stateInt;
                         else
-                            Batteries[index].PercentCharge = 0;
+                            Microphones[index].PercentCharge = 0;
                     }
 
                     break;
@@ -220,13 +246,13 @@ namespace PepperDash.Essentials.Devices.Common.Microphones
                 case "BATT_HEALTH":
                 {
                     int index = Convert.ToInt16(indexString) - 1;
-                    if (index < 8)
+                    if (index >= 0 && index < SbcSize)
                     {
                         short stateInt = Convert.ToInt16(state);
                         if (stateInt >= 0 && stateInt <= 100)
-                            Batteries[index].PercentHealth = stateInt;
+                            Microphones[index].PercentHealth = stateInt;
                         else
-                            Batteries[index].PercentHealth = 0;
+                            Microphones[index].PercentHealth = 0;
                     }
 
                     break;
@@ -237,13 +263,13 @@ namespace PepperDash.Essentials.Devices.Common.Microphones
                 case "BATT_TEMP_F":
                 {
                     int index = Convert.ToInt16(indexString) - 1;
-                    if (index < 8)
+                    if (index >= 0 && index < SbcSize)
                     {
                         short stateInt = Convert.ToInt16(state);
                         if (stateInt >= 0 && stateInt <= 253)
-                            Batteries[index].TemperatureF = stateInt;
+                            Microphones[index].TemperatureF = stateInt;
                         else
-                            Batteries[index].TemperatureF = 0;
+                            Microphones[index].TemperatureF = 0;
                     }
 
                     break;
@@ -256,41 +282,41 @@ namespace PepperDash.Essentials.Devices.Common.Microphones
                 {
                     int index = Convert.ToInt16(indexString) - 1;
                     short stateInt = Convert.ToInt16(state);
-                    if (index < 8)
+                    if (index >= 0 && index < SbcSize)
                     {
-                        Batteries[index].BatteryError = stateInt;
+                        Microphones[index].BatteryError = stateInt;
                         switch (stateInt)
                         {
                             case 0:
-                                Batteries[index].BatteryErrorText = "No Active Error";
+                                Microphones[index].ErrorString = "No Active Error";
                                 break;
                             case 1:
-                                Batteries[index].BatteryErrorText = "Unknown Module";
+                                Microphones[index].ErrorString = "Unknown Module";
                                 break;
                             case 2:
-                                Batteries[index].BatteryErrorText = "Unrecognized Battery";
+                                Microphones[index].ErrorString = "Unrecognized Battery";
                                 break;
                             case 3:
-                                Batteries[index].BatteryErrorText = "Deep Discharge Recovery Failed";
+                                Microphones[index].ErrorString = "Deep Discharge Recovery Failed";
                                 break;
                             case 4:
-                                Batteries[index].BatteryErrorText = "Charge Failed";
+                                Microphones[index].ErrorString = "Charge Failed";
                                 break;
                             case 5:
-                                Batteries[index].BatteryErrorText = "Check Battery";
+                                Microphones[index].ErrorString = "Check Battery";
                                 break;
                             case 6:
-                                Batteries[index].BatteryErrorText = "Check Charger";
+                                Microphones[index].ErrorString = "Check Charger";
                                 break;
                             case 7:
-                                Batteries[index].BatteryErrorText = "Communication Failure";
+                                Microphones[index].ErrorString = "Communication Failure";
                                 break;
                             case 255:
                                 //Supposed to be "No battery present" but appears to always send 255 on firmware 1.4.7.0 even with battery present
-                                Batteries[index].BatteryErrorText = "No Active Error";
+                                Microphones[index].ErrorString = "No Active Error";
                                 break;
                             default:
-                                Batteries[index].BatteryErrorText = "Unknown Error";
+                                Microphones[index].ErrorString = "Unknown Error";
                                 break;
                         }
                     }
@@ -304,7 +330,7 @@ namespace PepperDash.Essentials.Devices.Common.Microphones
                 case "BATT_STATE":
                 {
                     int index = Convert.ToInt16(indexString) - 1;
-                    if (index < 8) SetBatteryState(index, state);
+                    if (index >= 0 && index < SbcSize) Microphones[index].BatteryState = state;
 
                     break;
                 }
@@ -322,7 +348,7 @@ namespace PepperDash.Essentials.Devices.Common.Microphones
                 case "FW_VER":
                 {
                     DeviceFirmwareVersion = state;
-                    for (ushort i = 0; i < 8; i++) Batteries[i].DeviceFirmwareVersion = state;
+                    for (ushort i = 0; i < SbcSize; i++) Microphones[i].DeviceFirmwareVersion = state;
                     break;
                 }
                 default:
@@ -334,29 +360,13 @@ namespace PepperDash.Essentials.Devices.Common.Microphones
             }
         }
 
-        private void SetBatteryState(int index, string state)
-        {
-            ShureSbcBattery battery = Batteries[index];
-            battery.BatteryState = state;
-
-            if (battery.BatteryPresent)
-            {
-                WirelessMicAssignmentManager.Release(battery.Key);
-                battery.MicrophonePresent = false;
-                return;
-            }
-
-            battery.OnDock = false;
-            WirelessMicAssignmentManager.AssignFirstAvailable(battery.Key, battery);
-        }
-
         /// <summary>
         /// Sends text to the device plugin comms
         /// </summary>
         /// <param name="text">Command to be sent</param>		
         public void SendText(string text)
         {
-            if (_comms.IsConnected == false) return;
+            if (!_comms.IsConnected) return;
 
             if (string.IsNullOrEmpty(text)) return;
 
@@ -438,7 +448,7 @@ namespace PepperDash.Essentials.Devices.Common.Microphones
             MonitorStatusFeedback.FireUpdate();
             DeviceModelFeedback.FireUpdate();
             DeviceFirmwareVersionFeedback.FireUpdate();
-            MicControllerUtilities.FireMicrophoneFeedbacks(Microphones);
+            for (ushort i = 0; i < SbcSize; i++) Microphones[i].FireUpdate();
         }
 
         #endregion Overrides of EssentialsBridgeableDevice

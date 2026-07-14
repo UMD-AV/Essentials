@@ -1,17 +1,17 @@
-﻿using PepperDash.Essentials.Core;
-using PepperDash.Essentials.Core.Bridges;
+﻿using UmdEssentials.Core;
+using UmdEssentials.Core.Bridges;
 
-namespace PepperDash.Essentials.Devices.Displays
+namespace UmdEssentials.Devices.Displays
 {
     public class SamsungDisplayControllerJoinMap : DisplayControllerJoinMap
     {
         [JoinName("Warming")] public JoinDataComplete Warming = new JoinDataComplete(
-            new JoinData()
+            new JoinData
             {
                 JoinNumber = 53,
                 JoinSpan = 1
             },
-            new JoinMetadata()
+            new JoinMetadata
             {
                 JoinCapabilities = eJoinCapabilities.ToSIMPL,
                 JoinType = eJoinType.Digital,
@@ -19,12 +19,12 @@ namespace PepperDash.Essentials.Devices.Displays
             });
 
         [JoinName("Cooling")] public JoinDataComplete Cooling = new JoinDataComplete(
-            new JoinData()
+            new JoinData
             {
                 JoinNumber = 54,
                 JoinSpan = 1
             },
-            new JoinMetadata()
+            new JoinMetadata
             {
                 JoinCapabilities = eJoinCapabilities.ToSIMPL,
                 JoinType = eJoinType.Digital,
@@ -92,12 +92,12 @@ namespace PepperDash.Essentials.Devices.Displays
                 });
 
         [JoinName("Video Mute On")] public JoinDataComplete VideoMuteOn = new JoinDataComplete(
-            new JoinData()
+            new JoinData
             {
                 JoinNumber = 57,
                 JoinSpan = 1
             },
-            new JoinMetadata()
+            new JoinMetadata
             {
                 JoinCapabilities = eJoinCapabilities.ToFromSIMPL,
                 JoinType = eJoinType.Digital,
@@ -105,12 +105,12 @@ namespace PepperDash.Essentials.Devices.Displays
             });
 
         [JoinName("Video Mute Off")] public JoinDataComplete VideoMuteOff = new JoinDataComplete(
-            new JoinData()
+            new JoinData
             {
                 JoinNumber = 58,
                 JoinSpan = 1
             },
-            new JoinMetadata()
+            new JoinMetadata
             {
                 JoinCapabilities = eJoinCapabilities.FromSIMPL,
                 JoinType = eJoinType.Digital,
@@ -118,12 +118,12 @@ namespace PepperDash.Essentials.Devices.Displays
             });
 
         [JoinName("Video Mute Supported")] public JoinDataComplete VideoMuteSupported = new JoinDataComplete(
-            new JoinData()
+            new JoinData
             {
                 JoinNumber = 55,
                 JoinSpan = 1
             },
-            new JoinMetadata()
+            new JoinMetadata
             {
                 JoinCapabilities = eJoinCapabilities.ToSIMPL,
                 JoinType = eJoinType.Digital,

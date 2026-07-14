@@ -8,10 +8,10 @@ using Crestron.SimplSharp.CrestronDataStore;
 using Crestron.SimplSharpPro;
 using Crestron.SimplSharpPro.DM;
 using PepperDash.Core;
-using PepperDash.Essentials.License;
+using UmdEssentials.License;
 
 
-namespace PepperDash.Essentials.Core
+namespace UmdEssentials.Core
 {
     public static class Global
     {
@@ -42,12 +42,8 @@ namespace PepperDash.Essentials.Core
             get
             {
                 if (ControlSystem.SystemControl != null)
-                {
                     if (ControlSystem.SystemControl.SystemControlType > 0)
-                    {
                         return true;
-                    }
-                }
 
                 return false;
             }
@@ -61,16 +57,12 @@ namespace PepperDash.Essentials.Core
             get
             {
                 if (ControlSystem.SystemControl != null)
-                {
                     if (ControlSystem.SystemControl.SystemControlType == eSystemControlType.Dmps34K150CSystemControl ||
                         ControlSystem.SystemControl.SystemControlType == eSystemControlType.Dmps34K200CSystemControl ||
                         ControlSystem.SystemControl.SystemControlType == eSystemControlType.Dmps34K250CSystemControl ||
                         ControlSystem.SystemControl.SystemControlType == eSystemControlType.Dmps34K300CSystemControl ||
                         ControlSystem.SystemControl.SystemControlType == eSystemControlType.Dmps34K350CSystemControl)
-                    {
                         return true;
-                    }
-                }
 
                 return false;
             }
@@ -84,15 +76,11 @@ namespace PepperDash.Essentials.Core
             get
             {
                 if (ControlSystem.SystemControl != null)
-                {
                     if (ControlSystem.SystemControl.SystemControlType == eSystemControlType.Dmps34K200CSystemControl ||
                         ControlSystem.SystemControl.SystemControlType == eSystemControlType.Dmps34K250CSystemControl ||
                         ControlSystem.SystemControl.SystemControlType == eSystemControlType.Dmps34K300CSystemControl ||
                         ControlSystem.SystemControl.SystemControlType == eSystemControlType.Dmps34K350CSystemControl)
-                    {
                         return true;
-                    }
-                }
 
                 return false;
             }
@@ -223,10 +211,7 @@ namespace PepperDash.Essentials.Core
 
 
             // Check for beta build version
-            if (runtimeVer.Major != 0)
-            {
-                return runtimeVer.CompareTo(minimumVer) >= 0;
-            }
+            if (runtimeVer.Major != 0) return runtimeVer.CompareTo(minimumVer) >= 0;
 
             Debug.Console(2, "Running Local Build.  Bypassing Dependency Check.");
             return true;

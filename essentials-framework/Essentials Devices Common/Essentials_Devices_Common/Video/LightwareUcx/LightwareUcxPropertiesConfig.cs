@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using Newtonsoft.Json;
 using PepperDash.Core;
 
-namespace PepperDash.Essentials.Devices.Common.Video.LightwareUcx
+namespace UmdEssentials.Devices.Common.Video.LightwareUcx
 {
     public class LightwareUcxPropertiesConfig
     {

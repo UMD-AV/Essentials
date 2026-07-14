@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
-using PepperDash.Essentials.Core;
+using UmdEssentials.Core;
 
-namespace PepperDash.Essentials.Devices.Common.DSP
+namespace UmdEssentials.Devices.Common.DSP
 {
     public abstract class DspBase : EssentialsDevice
     {

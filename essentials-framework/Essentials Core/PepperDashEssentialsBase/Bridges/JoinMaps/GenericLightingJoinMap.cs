@@ -1,7 +1,7 @@
 ﻿using System;
 
 
-namespace PepperDash.Essentials.Core.Bridges
+namespace UmdEssentials.Core.Bridges
 {
     public class GenericLightingJoinMap : JoinMapBaseAdvanced
     {

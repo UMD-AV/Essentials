@@ -5,9 +5,9 @@ using Crestron.SimplSharpPro;
 using Crestron.SimplSharpPro.DeviceSupport;
 using Crestron.SimplSharpPro.EthernetCommunication;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
-using PepperDash.Essentials.Core.Config;
-using PepperDash.Essentials.Core.Bridges;
+using UmdEssentials.Core;
+using UmdEssentials.Core.Config;
+using UmdEssentials.Core.Bridges;
 using Newtonsoft.Json;
 
 namespace OverflowPlugin
@@ -71,9 +71,7 @@ namespace OverflowPlugin
             RemoteOverflowOff.LinkInputSig(trilist.BooleanInput[joinMap.OverflowOff.JoinNumber]);
 
             if (tielines != null)
-            {
                 foreach (Tieline tieline in tielines)
-                {
                     try
                     {
                         uint remoteIndex = uint.Parse(tieline.remote.Replace("rx", ""));
@@ -88,8 +86,6 @@ namespace OverflowPlugin
                         Debug.Console(0, this, "Unable to process tieline {0} to {1}, exception: {2}", tieline.remote,
                             tieline.local, e.Message);
                     }
-                }
-            }
         }
 
         public override bool CustomActivate()
@@ -97,10 +93,7 @@ namespace OverflowPlugin
             OverflowEisc.Register();
             RemoteOverflowOn.FireUpdate();
             RemoteOverflowOff.FireUpdate();
-            for (uint i = 0; i < StreamUrls.Length; i++)
-            {
-                StreamUrls[i].FireUpdate();
-            }
+            for (uint i = 0; i < StreamUrls.Length; i++) StreamUrls[i].FireUpdate();
 
             return true;
         }
@@ -116,13 +109,8 @@ namespace OverflowPlugin
                 {
                     //Remote overflow command
                     if (args.Sig.Number == overflowJoinMap.OverflowOn.JoinNumber)
-                    {
                         RemoteOverflowOn.FireUpdate();
-                    }
-                    else if (args.Sig.Number == overflowJoinMap.OverflowOff.JoinNumber)
-                    {
-                        RemoteOverflowOff.FireUpdate();
-                    }
+                    else if (args.Sig.Number == overflowJoinMap.OverflowOff.JoinNumber) RemoteOverflowOff.FireUpdate();
 
                     break;
                 }
@@ -135,9 +123,7 @@ namespace OverflowPlugin
                     //Remote overflow command
                     if (args.Sig.Number >= overflowJoinMap.StreamUrl.JoinNumber &&
                         args.Sig.Number < overflowJoinMap.StreamUrl.JoinNumber + 32)
-                    {
                         StreamUrls[args.Sig.Number - overflowJoinMap.StreamUrl.JoinNumber].FireUpdate();
-                    }
 
                     break;
                 }
@@ -157,9 +143,7 @@ namespace OverflowPlugin
                     //For sending commands to remote overflow - shift to joins 1-10 on remote EISC
                     if (args.Sig.Number > internalJoinOffset && args.Sig.Number <= endInternalJoin &&
                         OverflowEisc != null)
-                    {
                         OverflowEisc.BooleanInput[args.Sig.Number - internalJoinOffset].BoolValue = args.Sig.BoolValue;
-                    }
 
                     break;
                 }
@@ -168,10 +152,8 @@ namespace OverflowPlugin
                     //For sending commands to remote overflow - shift to joins 1-10 on remote EISC
                     if (args.Sig.Number > internalJoinOffset && args.Sig.Number <= endInternalJoin &&
                         OverflowEisc != null)
-                    {
                         OverflowEisc.UShortInput[args.Sig.Number - internalJoinOffset].UShortValue =
                             args.Sig.UShortValue;
-                    }
 
                     break;
                 }
@@ -180,10 +162,8 @@ namespace OverflowPlugin
                     //For sending commands to remote overflow - shift to joins 1-10 on remote EISC
                     if (args.Sig.Number > internalJoinOffset && args.Sig.Number <= endInternalJoin &&
                         OverflowEisc != null)
-                    {
                         OverflowEisc.StringInput[args.Sig.Number - internalJoinOffset].StringValue =
                             args.Sig.StringValue;
-                    }
 
                     break;
                 }
@@ -203,10 +183,7 @@ namespace OverflowPlugin
             {
                 RemoteOverflowOn.FireUpdate();
                 RemoteOverflowOff.FireUpdate();
-                for (uint i = 0; i < StreamUrls.Length; i++)
-                {
-                    StreamUrls[i].FireUpdate();
-                }
+                for (uint i = 0; i < StreamUrls.Length; i++) StreamUrls[i].FireUpdate();
             }
             else
             {
@@ -219,10 +196,7 @@ namespace OverflowPlugin
             InternalOnline.FireUpdate();
             RemoteOverflowOn.FireUpdate();
             RemoteOverflowOff.FireUpdate();
-            for (uint i = 0; i < StreamUrls.Length; i++)
-            {
-                StreamUrls[i].FireUpdate();
-            }
+            for (uint i = 0; i < StreamUrls.Length; i++) StreamUrls[i].FireUpdate();
         }
 
         private void CrestronEnvironment_ProgramStatusEventHandler(eProgramStatusEventType programEventType)
@@ -258,7 +232,7 @@ namespace OverflowPlugin
     {
         public OverflowFactory()
         {
-            TypeNames = new List<string>() { "overflow" };
+            TypeNames = new List<string> { "overflow" };
         }
 
         public override EssentialsDevice BuildDevice(DeviceConfig dc)
@@ -276,12 +250,12 @@ namespace OverflowPlugin
         #region Digital
 
         [JoinName("IsOnline")] public JoinDataComplete IsOnline = new JoinDataComplete(
-            new JoinData()
+            new JoinData
             {
                 JoinNumber = 1,
                 JoinSpan = 1
             },
-            new JoinMetadata()
+            new JoinMetadata
             {
                 Description = "Is Online",
                 JoinCapabilities = eJoinCapabilities.ToSIMPL,
@@ -289,12 +263,12 @@ namespace OverflowPlugin
             });
 
         [JoinName("OverflowOn")] public JoinDataComplete OverflowOn = new JoinDataComplete(
-            new JoinData()
+            new JoinData
             {
                 JoinNumber = 2,
                 JoinSpan = 1
             },
-            new JoinMetadata()
+            new JoinMetadata
             {
                 Description = "Overflow On",
                 JoinCapabilities = eJoinCapabilities.ToFromSIMPL,
@@ -302,12 +276,12 @@ namespace OverflowPlugin
             });
 
         [JoinName("OverflowOff")] public JoinDataComplete OverflowOff = new JoinDataComplete(
-            new JoinData()
+            new JoinData
             {
                 JoinNumber = 3,
                 JoinSpan = 1
             },
-            new JoinMetadata()
+            new JoinMetadata
             {
                 Description = "Overflow Off",
                 JoinCapabilities = eJoinCapabilities.ToFromSIMPL,
@@ -319,12 +293,12 @@ namespace OverflowPlugin
         #region Serial
 
         [JoinName("DeviceName")] public JoinDataComplete DeviceName = new JoinDataComplete(
-            new JoinData()
+            new JoinData
             {
                 JoinNumber = 1,
                 JoinSpan = 1
             },
-            new JoinMetadata()
+            new JoinMetadata
             {
                 Description = "Name",
                 JoinCapabilities = eJoinCapabilities.ToSIMPL,
@@ -332,12 +306,12 @@ namespace OverflowPlugin
             });
 
         [JoinName("StreamUrl")] public JoinDataComplete StreamUrl = new JoinDataComplete(
-            new JoinData()
+            new JoinData
             {
                 JoinNumber = 2,
                 JoinSpan = 32
             },
-            new JoinMetadata()
+            new JoinMetadata
             {
                 Description = "StreamUrl",
                 JoinCapabilities = eJoinCapabilities.ToFromSIMPL,

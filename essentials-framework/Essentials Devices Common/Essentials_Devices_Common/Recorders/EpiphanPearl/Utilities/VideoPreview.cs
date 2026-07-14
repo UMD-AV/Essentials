@@ -3,7 +3,7 @@ using Crestron.SimplSharp;
 using Crestron.SimplSharp.WebScripting;
 using PepperDash.Core;
 
-namespace PepperDash.Essentials.EpiphanPearl.Utilities
+namespace UmdEssentials.EpiphanPearl.Utilities
 {
     /// <summary>
     /// Polls an image from a URL using the provided EpiphanPearlSecureClient
@@ -20,20 +20,21 @@ namespace PepperDash.Essentials.EpiphanPearl.Utilities
         private readonly string _imageUrl;
         private readonly int _minPollIntervalMs;
         private bool _enablePreviewFeedback;
-        
+
         public string Key { get; private set; }
 
-        public VideoPreview(EpiphanPearlSecureClient httpsClient, string name, string imageUrl, HttpCwsServer previewApi)
+        public VideoPreview(EpiphanPearlSecureClient httpsClient, string name, string imageUrl,
+            HttpCwsServer previewApi)
         {
             if (httpsClient == null) throw new ArgumentNullException("httpsClient");
             if (string.IsNullOrEmpty(name)) throw new ArgumentNullException("name");
             if (string.IsNullOrEmpty(imageUrl)) throw new ArgumentNullException("imageUrl");
-            
+
             previewApi.AddRoute(new HttpCwsRoute(string.Format("{0}.jpg", name))
             {
                 RouteHandler = this
             });
-            
+
             _client = httpsClient;
             Key = "videoPreview-" + name;
             _imageUrl = imageUrl;
@@ -105,7 +106,7 @@ namespace PepperDash.Essentials.EpiphanPearl.Utilities
             _previewPollTimer.Reset(Timeout.Infinite);
             _previewPollTimer.Dispose();
         }
-        
+
         public void ProcessRequest(HttpCwsContext context)
         {
             try

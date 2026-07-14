@@ -1,4 +1,4 @@
-﻿namespace PepperDash.Essentials.Core
+﻿namespace UmdEssentials.Core
 {
     /// <summary>
     /// Defines a class that has warm up and cool down

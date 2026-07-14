@@ -5,11 +5,11 @@ using Crestron.SimplSharpPro.DeviceSupport;
 using Crestron.SimplSharpPro.GeneralIO;
 using Newtonsoft.Json;
 using PepperDash.Core;
-using PepperDash.Essentials.Core.Bridges;
-using PepperDash.Essentials.Core.Config;
+using UmdEssentials.Core.Bridges;
+using UmdEssentials.Core.Config;
 
 
-namespace PepperDash.Essentials.Core.CrestronIO
+namespace UmdEssentials.Core.CrestronIO
 {
     [Description("Wrapper class for the C2N-RTHS sensor")]
     public class C2nRthsController : CrestronGenericBridgeableBaseDevice
@@ -65,14 +65,10 @@ namespace PepperDash.Essentials.Core.CrestronIO
                 joinMap = JsonConvert.DeserializeObject<C2nRthsControllerJoinMap>(joinMapSerialized);
 
             if (bridge != null)
-            {
                 bridge.AddJoinMap(Key, joinMap);
-            }
             else
-            {
                 Debug.Console(0, this,
                     "Please update config to use 'eiscapiadvanced' to get all join map features for this device.");
-            }
 
             Debug.Console(1, this, "Linking to Trilist '{0}'", trilist.ID.ToString("X"));
 
@@ -138,7 +134,7 @@ namespace PepperDash.Essentials.Core.CrestronIO
         {
             public C2nRthsControllerFactory()
             {
-                TypeNames = new List<string>() { "c2nrths" };
+                TypeNames = new List<string> { "c2nrths" };
             }
 
             public override EssentialsDevice BuildDevice(DeviceConfig dc)

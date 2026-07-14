@@ -1,4 +1,4 @@
-﻿namespace PepperDash.Essentials.Core.Shades
+﻿namespace UmdEssentials.Core.Shades
 {
     /// <summary>
     /// Base class for a shade device

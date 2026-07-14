@@ -20,10 +20,10 @@ using NvxEpi.Services.Feedback;
 using NvxEpi.Services.InputPorts;
 using NvxEpi.Services.InputSwitching;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
-using PepperDash.Essentials.Core.Bridges;
-using PepperDash.Essentials.Core.Config;
-using Feedback = PepperDash.Essentials.Core.Feedback;
+using UmdEssentials.Core;
+using UmdEssentials.Core.Bridges;
+using UmdEssentials.Core.Config;
+using Feedback = UmdEssentials.Core.Feedback;
 using HdmiInput = NvxEpi.Features.Hdmi.Input.HdmiInput;
 
 namespace NvxEpi.Devices
@@ -123,7 +123,7 @@ namespace NvxEpi.Devices
         {
             get { return _hdmiOutput.EdidManufacturer; }
         }
-        
+
         public BoolFeedback OutputSinkConnected
         {
             get { return _hdmiOutput.OutputSinkConnected; }
@@ -256,13 +256,9 @@ namespace NvxEpi.Devices
             SwitcherForAnalogAudioOutput.AddRoutingPort(this);
 
             if (IsTransmitter)
-            {
                 SwitcherForStreamOutput.AddRoutingPort(this);
-            }
             else
-            {
                 StreamInput.AddRoutingPort(this);
-            }
         }
 
         public StringFeedback UsbLocalId

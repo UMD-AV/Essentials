@@ -1,6 +1,6 @@
-﻿using PepperDash.Essentials.Core;
+﻿using UmdEssentials.Core;
 
-namespace PepperDash.Essentials.Devices.Common.DSP.QscDsp
+namespace UmdEssentials.Devices.Common.DSP.QscDsp
 {
     /// <summary>
     /// DSP Basic Level Interface

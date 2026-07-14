@@ -6,12 +6,12 @@ using Crestron.SimplSharp;
 using Crestron.SimplSharpPro.DeviceSupport;
 using Newtonsoft.Json;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
+using UmdEssentials.Core;
 using System.Text.RegularExpressions;
-using PepperDash.Essentials.Core.Bridges;
+using UmdEssentials.Core.Bridges;
 using Tesira_DSP_EPI.Bridge.JoinMaps;
 using Tesira_DSP_EPI.Extensions;
-using Feedback = PepperDash.Essentials.Core.Feedback;
+using Feedback = UmdEssentials.Core.Feedback;
 using IRoutingWithFeedback = Tesira_DSP_EPI.Interfaces.IRoutingWithFeedback;
 
 namespace Tesira_DSP_EPI
@@ -91,9 +91,7 @@ namespace Tesira_DSP_EPI
 
             ShowRoutedString = config.ShowRoutedStringFeedback;
             foreach (KeyValuePair<uint, RoutingPort> input in config.SwitcherInputs)
-            {
                 SwitcherInputs.Add(input.Key, input.Value.Label);
-            }
 
             SwitcherInputs.Add(0, "None");
 
@@ -132,26 +130,19 @@ namespace Tesira_DSP_EPI
 
             Label = config.Label;
 
-            if (config.Type != null)
-            {
-                Type = config.Type;
-            }
+            if (config.Type != null) Type = config.Type;
 
             Enabled = config.Enabled;
 
             if (config.SwitcherInputs != null)
-            {
                 foreach (
                     KeyValuePair<uint, RoutingPort> input in
                     from input in config.SwitcherInputs
                     let inputPort = input.Value
                     let inputPortKey = input.Key
                     select input)
-                {
                     InputPorts.Add(new RoutingInputPort(input.Value.Label, eRoutingSignalType.Audio,
                         eRoutingPortConnectionType.BackplaneOnly, input.Key, this));
-                }
-            }
 
             if (config.SwitcherOutputs == null) return;
             foreach (
@@ -160,10 +151,8 @@ namespace Tesira_DSP_EPI
                 let outputPort = output.Value
                 let outputPortKey = output.Key
                 select output)
-            {
                 OutputPorts.Add(new RoutingOutputPort(output.Value.Label, eRoutingSignalType.Audio,
                     eRoutingPortConnectionType.BackplaneOnly, output.Key, this));
-            }
         }
 
         /// <summary>
@@ -174,15 +163,12 @@ namespace Tesira_DSP_EPI
             if (Type == "router")
             {
                 IsSubscribed = true;
-                if (_pollTimer != null)
-                {
-                    _pollTimer.Reset(PollIntervalMs);
-                }
+                if (_pollTimer != null) _pollTimer.Reset(PollIntervalMs);
 
                 return;
             }
 
-            SelectorCustomName = (string.Format("{0}__Selector{1}", InstanceTag1, Index1)).Replace(" ", string.Empty);
+            SelectorCustomName = string.Format("{0}__Selector{1}", InstanceTag1, Index1).Replace(" ", string.Empty);
             AddCustomName(SelectorCustomName);
             SendSubscriptionCommand(SelectorCustomName, "sourceSelection", 250, 1);
         }
@@ -194,7 +180,7 @@ namespace Tesira_DSP_EPI
         {
             IsSubscribed = false;
 
-            SelectorCustomName = (string.Format("{0}__Selector{1}", InstanceTag1, Index1)).Replace(" ", string.Empty);
+            SelectorCustomName = string.Format("{0}__Selector{1}", InstanceTag1, Index1).Replace(" ", string.Empty);
 
             SendUnSubscriptionCommand(SelectorCustomName, "sourceSelection", 1);
         }
@@ -366,10 +352,7 @@ namespace Tesira_DSP_EPI
             if (!string.IsNullOrEmpty(joinMapSerialized))
                 joinMap = JsonConvert.DeserializeObject<TesiraSwitcherJoinMapAdvancedStandalone>(joinMapSerialized);
 
-            if (bridge != null)
-            {
-                bridge.AddJoinMap(Key, joinMap);
-            }
+            if (bridge != null) bridge.AddJoinMap(Key, joinMap);
 
             if (!Enabled) return;
 
@@ -391,10 +374,7 @@ namespace Tesira_DSP_EPI
             {
                 if (!args.DeviceOnLine) return;
 
-                foreach (Feedback feedback in Feedbacks)
-                {
-                    feedback.FireUpdate();
-                }
+                foreach (Feedback feedback in Feedbacks) feedback.FireUpdate();
 
                 GetSourceNames();
             };

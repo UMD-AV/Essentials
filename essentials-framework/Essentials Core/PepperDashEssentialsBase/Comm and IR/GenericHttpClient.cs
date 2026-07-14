@@ -2,7 +2,7 @@
 using Crestron.SimplSharp.Net.Http;
 using PepperDash.Core;
 
-namespace PepperDash.Essentials.Core
+namespace UmdEssentials.Core
 {
     public class GenericHttpClient : Device
     {
@@ -51,12 +51,10 @@ namespace PepperDash.Essentials.Core
                 HttpClientResponse responseReceived = response;
 
                 if (responseReceived.ContentString.Length > 0)
-                {
                     if (ResponseRecived != null)
                         ResponseRecived(this,
                             new GenericHttpClientEventArgs(responseReceived.ContentString,
                                 ((HttpClientRequest)request).Url.ToString(), error));
-                }
             }
         }
 

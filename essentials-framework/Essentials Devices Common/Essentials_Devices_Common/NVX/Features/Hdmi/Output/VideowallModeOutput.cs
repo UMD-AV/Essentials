@@ -1,7 +1,7 @@
 using NvxEpi.Abstractions;
 using NvxEpi.Abstractions.HdmiOutput;
 using NvxEpi.Services.Feedback;
-using PepperDash.Essentials.Core;
+using UmdEssentials.Core;
 
 namespace NvxEpi.Features.Hdmi.Output
 {

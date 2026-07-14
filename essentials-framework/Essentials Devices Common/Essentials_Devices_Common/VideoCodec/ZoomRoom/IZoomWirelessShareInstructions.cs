@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace PepperDash.Essentials.Devices.Common.VideoCodec.ZoomRoom
+namespace UmdEssentials.Devices.Common.VideoCodec.ZoomRoom
 {
     public class ShareInfoEventArgs : EventArgs
     {

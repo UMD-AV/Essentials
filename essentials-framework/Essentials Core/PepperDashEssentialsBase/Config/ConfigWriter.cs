@@ -6,7 +6,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using PepperDash.Core;
 
-namespace PepperDash.Essentials.Core.Config
+namespace UmdEssentials.Core.Config
 {
     /// <summary>
     /// Responsible for updating config at runtime, and writing the updates out to a local file
@@ -143,17 +143,13 @@ namespace PepperDash.Essentials.Core.Config
             try
             {
                 if (fileLock.TryEnter())
-                {
                     using (StreamWriter sw = new StreamWriter(filePath))
                     {
                         sw.Write(configData);
                         sw.Flush();
                     }
-                }
                 else
-                {
                     Debug.Console(0, Debug.ErrorLogLevel.Error, "Unable to enter FileLock");
-                }
             }
             catch (Exception e)
             {

@@ -4,8 +4,8 @@ using NvxEpi.Abstractions;
 using NvxEpi.Application.Config;
 using NvxEpi.Enums;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
-using PepperDash.Essentials.Core.Routing;
+using UmdEssentials.Core;
+using UmdEssentials.Core.Routing;
 
 namespace NvxEpi.Application.Entities
 {

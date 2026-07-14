@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
-using PepperDash.Essentials.Core.Bridges;
-using PepperDash.Essentials.Core.Config;
 using Crestron.SimplSharpPro.DeviceSupport;
+using UmdEssentials.Core;
+using UmdEssentials.Core.Bridges;
+using UmdEssentials.Core.Config;
 
-namespace PepperDash.Essentials.Devices.Common.Oppo
+namespace UmdEssentials.Devices.Common.Oppo
 {
     public class OppoBdpDevice : EssentialsBridgeableDevice
     {
@@ -123,9 +123,7 @@ namespace PepperDash.Essentials.Devices.Common.Oppo
             if (message.StartsWith("@OK"))
             {
                 if (message.Equals("@OK 0") || message.Equals("@OK 1") || message.Equals("@OK 3"))
-                {
                     Communication.SendText(BuildCommand(VerboseMode2));
-                }
             }
             else if (message.StartsWith("@UPW"))
             {
@@ -168,17 +166,11 @@ namespace PepperDash.Essentials.Devices.Common.Oppo
             {
                 OppoBdpJoinMap joinMap = new OppoBdpJoinMap(joinStart);
                 // This adds the join map to the collection on the bridge
-                if (bridge != null)
-                {
-                    bridge.AddJoinMap(Key, joinMap);
-                }
+                if (bridge != null) bridge.AddJoinMap(Key, joinMap);
 
                 Dictionary<string, JoinData> joinMapSerialized =
                     JoinMapHelper.TryGetJoinMapAdvancedForDevice(joinMapKey);
-                if (joinMapSerialized != null)
-                {
-                    joinMap.SetCustomJoinData(joinMapSerialized);
-                }
+                if (joinMapSerialized != null) joinMap.SetCustomJoinData(joinMapSerialized);
 
                 CommunicationMonitor.IsOnlineFeedback.LinkInputSig(trilist.BooleanInput[joinMap.IsOnline.JoinNumber]);
 
@@ -432,10 +424,7 @@ namespace PepperDash.Essentials.Devices.Common.Oppo
             }
 
             pollCount++;
-            if (pollCount > 1)
-            {
-                pollCount = 0;
-            }
+            if (pollCount > 1) pollCount = 0;
         }
 
         #endregion
@@ -444,7 +433,7 @@ namespace PepperDash.Essentials.Devices.Common.Oppo
     public class OppoBdpJoinMap : IRBlurayBaseJoinMap
     {
         [JoinName("IsOnline")] public JoinDataComplete IsOnline = new JoinDataComplete(
-            new JoinData()
+            new JoinData
             {
                 JoinNumber = 49,
                 JoinSpan = 1

@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Linq;
 using System.Collections.Generic;
-using PepperDash.Essentials.Core;
+using UmdEssentials.Core;
 
-namespace PepperDash.Essentials.Devices.Common.VideoCodec.Interfaces
+namespace UmdEssentials.Devices.Common.VideoCodec.Interfaces
 {
     /// <summary>
     /// Describes a device that has call participants

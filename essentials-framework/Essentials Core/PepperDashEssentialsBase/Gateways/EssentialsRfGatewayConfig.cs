@@ -1,7 +1,7 @@
 ﻿using Newtonsoft.Json;
 
 
-namespace PepperDash.Essentials.Core
+namespace UmdEssentials.Core
 {
     public class EssentialsRfGatewayConfig
     {

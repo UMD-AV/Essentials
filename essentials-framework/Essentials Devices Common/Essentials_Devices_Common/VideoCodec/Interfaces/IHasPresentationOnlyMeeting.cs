@@ -1,4 +1,4 @@
-﻿namespace PepperDash.Essentials.Devices.Common.VideoCodec.Interfaces
+﻿namespace UmdEssentials.Devices.Common.VideoCodec.Interfaces
 {
     public interface IHasPresentationOnlyMeeting
     {
@@ -13,6 +13,6 @@
     {
         None,
         Laptop,
-        Ios,
+        Ios
     }
 }

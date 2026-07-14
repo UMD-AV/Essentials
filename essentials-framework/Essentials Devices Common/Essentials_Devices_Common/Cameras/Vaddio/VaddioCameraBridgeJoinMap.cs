@@ -1,4 +1,4 @@
-﻿using PepperDash.Essentials.Core;
+﻿using UmdEssentials.Core;
 
 namespace VaddioCameraPlugin
 {
@@ -7,12 +7,12 @@ namespace VaddioCameraPlugin
         #region Digital
 
         [JoinName("TiltUp")] public JoinDataComplete TiltUp = new JoinDataComplete(
-            new JoinData()
+            new JoinData
             {
                 JoinNumber = 1,
                 JoinSpan = 1
             },
-            new JoinMetadata()
+            new JoinMetadata
             {
                 Description = "Tilt Up",
                 JoinCapabilities = eJoinCapabilities.FromSIMPL,
@@ -20,12 +20,12 @@ namespace VaddioCameraPlugin
             });
 
         [JoinName("TiltDown")] public JoinDataComplete TiltDown = new JoinDataComplete(
-            new JoinData()
+            new JoinData
             {
                 JoinNumber = 2,
                 JoinSpan = 1
             },
-            new JoinMetadata()
+            new JoinMetadata
             {
                 Description = "Tilt Down",
                 JoinCapabilities = eJoinCapabilities.FromSIMPL,
@@ -33,12 +33,12 @@ namespace VaddioCameraPlugin
             });
 
         [JoinName("PanLeft")] public JoinDataComplete PanLeft = new JoinDataComplete(
-            new JoinData()
+            new JoinData
             {
                 JoinNumber = 3,
                 JoinSpan = 1
             },
-            new JoinMetadata()
+            new JoinMetadata
             {
                 Description = "Pan Left",
                 JoinCapabilities = eJoinCapabilities.FromSIMPL,
@@ -46,12 +46,12 @@ namespace VaddioCameraPlugin
             });
 
         [JoinName("PanRight")] public JoinDataComplete PanRight = new JoinDataComplete(
-            new JoinData()
+            new JoinData
             {
                 JoinNumber = 4,
                 JoinSpan = 1
             },
-            new JoinMetadata()
+            new JoinMetadata
             {
                 Description = "Pan Right",
                 JoinCapabilities = eJoinCapabilities.FromSIMPL,
@@ -59,12 +59,12 @@ namespace VaddioCameraPlugin
             });
 
         [JoinName("ZoomIn")] public JoinDataComplete ZoomIn = new JoinDataComplete(
-            new JoinData()
+            new JoinData
             {
                 JoinNumber = 5,
                 JoinSpan = 1
             },
-            new JoinMetadata()
+            new JoinMetadata
             {
                 Description = "Zoom In",
                 JoinCapabilities = eJoinCapabilities.FromSIMPL,
@@ -72,12 +72,12 @@ namespace VaddioCameraPlugin
             });
 
         [JoinName("ZoomOut")] public JoinDataComplete ZoomOut = new JoinDataComplete(
-            new JoinData()
+            new JoinData
             {
                 JoinNumber = 6,
                 JoinSpan = 1
             },
-            new JoinMetadata()
+            new JoinMetadata
             {
                 Description = "Zoom Out",
                 JoinCapabilities = eJoinCapabilities.FromSIMPL,
@@ -85,12 +85,12 @@ namespace VaddioCameraPlugin
             });
 
         [JoinName("PowerOn")] public JoinDataComplete PowerOn = new JoinDataComplete(
-            new JoinData()
+            new JoinData
             {
                 JoinNumber = 7,
                 JoinSpan = 1
             },
-            new JoinMetadata()
+            new JoinMetadata
             {
                 Description = "Power On",
                 JoinCapabilities = eJoinCapabilities.ToFromSIMPL,
@@ -98,12 +98,12 @@ namespace VaddioCameraPlugin
             });
 
         [JoinName("PowerOff")] public JoinDataComplete PowerOff = new JoinDataComplete(
-            new JoinData()
+            new JoinData
             {
                 JoinNumber = 8,
                 JoinSpan = 1
             },
-            new JoinMetadata()
+            new JoinMetadata
             {
                 Description = "Power Off",
                 JoinCapabilities = eJoinCapabilities.ToFromSIMPL,
@@ -111,12 +111,12 @@ namespace VaddioCameraPlugin
             });
 
         [JoinName("IsOnline")] public JoinDataComplete IsOnline = new JoinDataComplete(
-            new JoinData()
+            new JoinData
             {
                 JoinNumber = 9,
                 JoinSpan = 1
             },
-            new JoinMetadata()
+            new JoinMetadata
             {
                 Description = "Is Online",
                 JoinCapabilities = eJoinCapabilities.ToSIMPL,
@@ -124,12 +124,12 @@ namespace VaddioCameraPlugin
             });
 
         [JoinName("Home")] public JoinDataComplete Home = new JoinDataComplete(
-            new JoinData()
+            new JoinData
             {
                 JoinNumber = 10,
                 JoinSpan = 1
             },
-            new JoinMetadata()
+            new JoinMetadata
             {
                 Description = "Home",
                 JoinCapabilities = eJoinCapabilities.FromSIMPL,
@@ -137,12 +137,12 @@ namespace VaddioCameraPlugin
             });
 
         [JoinName("PresetRecall")] public JoinDataComplete PresetRecall = new JoinDataComplete(
-            new JoinData()
+            new JoinData
             {
                 JoinNumber = 11,
                 JoinSpan = 15
             },
-            new JoinMetadata()
+            new JoinMetadata
             {
                 Description = "Preset Recall",
                 JoinCapabilities = eJoinCapabilities.ToFromSIMPL,
@@ -150,12 +150,12 @@ namespace VaddioCameraPlugin
             });
 
         [JoinName("PresetSaved")] public JoinDataComplete PresetSaved = new JoinDataComplete(
-            new JoinData()
+            new JoinData
             {
                 JoinNumber = 26,
                 JoinSpan = 1
             },
-            new JoinMetadata()
+            new JoinMetadata
             {
                 Description = "Preset Saved Feedback",
                 JoinCapabilities = eJoinCapabilities.ToSIMPL,
@@ -163,12 +163,12 @@ namespace VaddioCameraPlugin
             });
 
         [JoinName("AutoFocusOff")] public JoinDataComplete AutoFocusOff = new JoinDataComplete(
-            new JoinData()
+            new JoinData
             {
                 JoinNumber = 29,
                 JoinSpan = 1
             },
-            new JoinMetadata()
+            new JoinMetadata
             {
                 Description = "AutoFocus Off",
                 JoinCapabilities = eJoinCapabilities.ToFromSIMPL,
@@ -176,12 +176,12 @@ namespace VaddioCameraPlugin
             });
 
         [JoinName("AutoFocusOn")] public JoinDataComplete AutoFocusOn = new JoinDataComplete(
-            new JoinData()
+            new JoinData
             {
                 JoinNumber = 30,
                 JoinSpan = 1
             },
-            new JoinMetadata()
+            new JoinMetadata
             {
                 Description = "AutoFocus On",
                 JoinCapabilities = eJoinCapabilities.ToFromSIMPL,
@@ -189,12 +189,12 @@ namespace VaddioCameraPlugin
             });
 
         [JoinName("PresetSave")] public JoinDataComplete PresetSave = new JoinDataComplete(
-            new JoinData()
+            new JoinData
             {
                 JoinNumber = 31,
                 JoinSpan = 15
             },
-            new JoinMetadata()
+            new JoinMetadata
             {
                 Description = "Preset Save",
                 JoinCapabilities = eJoinCapabilities.ToSIMPL,
@@ -202,12 +202,12 @@ namespace VaddioCameraPlugin
             });
 
         [JoinName("PrivacyOn")] public JoinDataComplete PrivacyOn = new JoinDataComplete(
-            new JoinData()
+            new JoinData
             {
                 JoinNumber = 48,
                 JoinSpan = 1
             },
-            new JoinMetadata()
+            new JoinMetadata
             {
                 Description = "Privacy On",
                 JoinCapabilities = eJoinCapabilities.ToFromSIMPL,
@@ -215,12 +215,12 @@ namespace VaddioCameraPlugin
             });
 
         [JoinName("PrivacyOff")] public JoinDataComplete PrivacyOff = new JoinDataComplete(
-            new JoinData()
+            new JoinData
             {
                 JoinNumber = 49,
                 JoinSpan = 1
             },
-            new JoinMetadata()
+            new JoinMetadata
             {
                 Description = "Privacy Off",
                 JoinCapabilities = eJoinCapabilities.ToFromSIMPL,
@@ -233,12 +233,12 @@ namespace VaddioCameraPlugin
         #region Analog
 
         [JoinName("PresetRecallByNumber")] public JoinDataComplete PresetRecallByNumber = new JoinDataComplete(
-            new JoinData()
+            new JoinData
             {
                 JoinNumber = 11,
                 JoinSpan = 1
             },
-            new JoinMetadata()
+            new JoinMetadata
             {
                 Description = "Preset Recall by Number",
                 JoinCapabilities = eJoinCapabilities.ToFromSIMPL,
@@ -246,12 +246,12 @@ namespace VaddioCameraPlugin
             });
 
         [JoinName("PresetSaveByNumber")] public JoinDataComplete PresetSaveByNumber = new JoinDataComplete(
-            new JoinData()
+            new JoinData
             {
                 JoinNumber = 12,
                 JoinSpan = 1
             },
-            new JoinMetadata()
+            new JoinMetadata
             {
                 Description = "Preset Save by Number",
                 JoinCapabilities = eJoinCapabilities.FromSIMPL,
@@ -259,12 +259,12 @@ namespace VaddioCameraPlugin
             });
 
         [JoinName("PresetCount")] public JoinDataComplete PresetCount = new JoinDataComplete(
-            new JoinData()
+            new JoinData
             {
                 JoinNumber = 11,
                 JoinSpan = 1
             },
-            new JoinMetadata()
+            new JoinMetadata
             {
                 Description = "Preset Count",
                 JoinCapabilities = eJoinCapabilities.ToSIMPL,
@@ -272,12 +272,12 @@ namespace VaddioCameraPlugin
             });
 
         [JoinName("Status")] public JoinDataComplete Status = new JoinDataComplete(
-            new JoinData()
+            new JoinData
             {
                 JoinNumber = 50,
                 JoinSpan = 1
             },
-            new JoinMetadata()
+            new JoinMetadata
             {
                 Description = "Status",
                 JoinCapabilities = eJoinCapabilities.ToSIMPL,
@@ -290,12 +290,12 @@ namespace VaddioCameraPlugin
         #region Serial
 
         [JoinName("DeviceName")] public JoinDataComplete DeviceName = new JoinDataComplete(
-            new JoinData()
+            new JoinData
             {
                 JoinNumber = 1,
                 JoinSpan = 1
             },
-            new JoinMetadata()
+            new JoinMetadata
             {
                 Description = "Name",
                 JoinCapabilities = eJoinCapabilities.ToSIMPL,
@@ -303,12 +303,12 @@ namespace VaddioCameraPlugin
             });
 
         [JoinName("PresetName")] public JoinDataComplete PresetNames = new JoinDataComplete(
-            new JoinData()
+            new JoinData
             {
                 JoinNumber = 11,
                 JoinSpan = 16
             },
-            new JoinMetadata()
+            new JoinMetadata
             {
                 Description = "Preset Name",
                 JoinCapabilities = eJoinCapabilities.ToSIMPL,

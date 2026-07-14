@@ -1,5 +1,5 @@
 using System;
-using PepperDash.Essentials.Core;
+using UmdEssentials.Core;
 
 namespace PepperDash_Essentials_Core.Bridges
 {

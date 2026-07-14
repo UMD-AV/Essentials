@@ -1,5 +1,5 @@
 ﻿using Crestron.SimplSharpPro.DM.Streaming;
-using PepperDash.Essentials.Core;
+using UmdEssentials.Core;
 
 namespace NvxEpi.Services.Feedback
 {
@@ -13,7 +13,8 @@ namespace NvxEpi.Services.Feedback
                 return new BoolFeedback(() => false);
 
             BoolFeedback feedback = new BoolFeedback(string.Format(Key, _inputNumber),
-                () => device.HdmiIn[_inputNumber].SyncDetectedFeedback.BoolValue && device.IsOnline && device.HdmiIn[_inputNumber].VideoAttributes.VerticalResolutionFeedback.UShortValue > 1);
+                () => device.HdmiIn[_inputNumber].SyncDetectedFeedback.BoolValue && device.IsOnline &&
+                      device.HdmiIn[_inputNumber].VideoAttributes.VerticalResolutionFeedback.UShortValue > 1);
 
             device.HdmiIn[_inputNumber].VideoAttributes.AttributeChange += (s, args) => feedback.FireUpdate();
             device.HdmiIn[_inputNumber].StreamChange += (stream, args) => feedback.FireUpdate();
@@ -21,7 +22,7 @@ namespace NvxEpi.Services.Feedback
             return feedback;
         }
     }
-    
+
     public class UsbcSyncDetectedFeedback
     {
         public const string Key = "Usbc{0}SyncDetected";
@@ -32,7 +33,8 @@ namespace NvxEpi.Services.Feedback
                 return new BoolFeedback(() => false);
 
             BoolFeedback feedback = new BoolFeedback(string.Format(Key, _inputNumber),
-                () => device.UsbcIn[_inputNumber].SyncDetectedFeedback.BoolValue && device.IsOnline && device.UsbcIn[_inputNumber].VideoAttributes.VerticalResolutionFeedback.UShortValue > 1);
+                () => device.UsbcIn[_inputNumber].SyncDetectedFeedback.BoolValue && device.IsOnline &&
+                      device.UsbcIn[_inputNumber].VideoAttributes.VerticalResolutionFeedback.UShortValue > 1);
 
             device.UsbcIn[_inputNumber].StreamChange += (stream, args) => feedback.FireUpdate();
             device.OnlineStatusChange += (s, args) => feedback.FireUpdate();
@@ -47,9 +49,7 @@ namespace NvxEpi.Services.Feedback
         public static StringFeedback GetFeedback(DmNvxBaseClass device, uint _inputNumber)
         {
             if (device.HdmiIn == null || device.HdmiIn[_inputNumber] == null)
-            {
                 return new StringFeedback(string.Format(Key, _inputNumber), () => string.Empty);
-            }
 
             StringFeedback feedback = new StringFeedback(string.Format(Key, _inputNumber),
                 () => device.HdmiIn[_inputNumber].HdcpSupportedLevelFeedback.ToString());
@@ -76,7 +76,7 @@ namespace NvxEpi.Services.Feedback
             return feedback;
         }
     }
-    
+
     public class UsbcHdcpCapabilityValueFeedback
     {
         public const string Key = "Usbc{0}HdcpCapabilityValue";
@@ -136,9 +136,7 @@ namespace NvxEpi.Services.Feedback
         public static StringFeedback GetFeedback(DmNvxBaseClass device, uint _inputNumber)
         {
             if (device.HdmiIn == null || device.HdmiIn[_inputNumber] == null)
-            {
                 return new StringFeedback(() => string.Empty);
-            }
 
             StringFeedback feedback = new StringFeedback(string.Format(Key, _inputNumber), () =>
             {
@@ -154,7 +152,7 @@ namespace NvxEpi.Services.Feedback
             return feedback;
         }
     }
-    
+
     public class UsbcCurrentResolutionFeedback
     {
         public const string Key = "Usbc{0}CurrentResolution";
@@ -162,9 +160,7 @@ namespace NvxEpi.Services.Feedback
         public static StringFeedback GetFeedback(DmNvx38x device, uint _inputNumber)
         {
             if (device.UsbcIn == null || device.UsbcIn[_inputNumber] == null)
-            {
                 return new StringFeedback(() => string.Empty);
-            }
 
             StringFeedback feedback = new StringFeedback(string.Format(Key, _inputNumber), () =>
             {
@@ -187,10 +183,7 @@ namespace NvxEpi.Services.Feedback
 
         public static IntFeedback GetFeedback(DmNvxBaseClass device, uint _inputNumber)
         {
-            if (device.HdmiIn == null || device.HdmiIn[_inputNumber] == null)
-            {
-                return new IntFeedback(() => 0);
-            }
+            if (device.HdmiIn == null || device.HdmiIn[_inputNumber] == null) return new IntFeedback(() => 0);
 
             IntFeedback feedback = new IntFeedback(string.Format(Key, _inputNumber),
                 () => device.HdmiIn[_inputNumber].AudioChannelsFeedback.UShortValue);
@@ -208,9 +201,7 @@ namespace NvxEpi.Services.Feedback
         public static StringFeedback GetFeedback(DmNvxBaseClass device, uint _inputNumber)
         {
             if (device.HdmiIn == null || device.HdmiIn[_inputNumber] == null)
-            {
                 return new StringFeedback(() => string.Empty);
-            }
 
             StringFeedback feedback = new StringFeedback(string.Format(Key, _inputNumber),
                 () => device.HdmiIn[_inputNumber].AudioFormatFeedback.ToString());
@@ -228,9 +219,7 @@ namespace NvxEpi.Services.Feedback
         public static StringFeedback GetFeedback(DmNvxBaseClass device, uint _inputNumber)
         {
             if (device.HdmiIn == null || device.HdmiIn[_inputNumber] == null)
-            {
                 return new StringFeedback(() => string.Empty);
-            }
 
             StringFeedback feedback = new StringFeedback(string.Format(Key, _inputNumber),
                 () => device.HdmiIn[_inputNumber].VideoAttributes.ColorSpaceFeedback.ToString());
@@ -248,9 +237,7 @@ namespace NvxEpi.Services.Feedback
         public static StringFeedback GetFeedback(DmNvxBaseClass device, uint _inputNumber)
         {
             if (device.HdmiIn == null || device.HdmiIn[_inputNumber] == null)
-            {
                 return new StringFeedback(() => string.Empty);
-            }
 
             StringFeedback feedback = new StringFeedback(string.Format(Key, _inputNumber),
                 () => device.HdmiIn[_inputNumber].HdrTypeFeedback.ToString());

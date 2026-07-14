@@ -5,7 +5,7 @@ using Crestron.SimplSharpPro.DeviceSupport;
 using PepperDash.Core;
 
 
-namespace PepperDash.Essentials.Core.SmartObjects
+namespace UmdEssentials.Core.SmartObjects
 {
     public class SmartObjectDynamicList : SmartObjectHelperBase
     {

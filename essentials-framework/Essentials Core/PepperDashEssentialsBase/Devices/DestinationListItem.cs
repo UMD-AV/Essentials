@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace PepperDash.Essentials.Core
+namespace UmdEssentials.Core
 {
     public class DestinationListItem
     {
@@ -19,10 +19,7 @@ namespace PepperDash.Essentials.Core
         {
             get
             {
-                if (!string.IsNullOrEmpty(Name))
-                {
-                    return Name;
-                }
+                if (!string.IsNullOrEmpty(Name)) return Name;
 
                 return SinkDevice == null ? "---" : SinkDevice.Name;
             }

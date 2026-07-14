@@ -4,10 +4,10 @@ using Crestron.SimplSharpPro.DeviceSupport;
 using Crestron.SimplSharpPro.GeneralIO;
 using Newtonsoft.Json;
 using PepperDash.Core;
-using PepperDash.Essentials.Core.Config;
-using PepperDash.Essentials.Core.Bridges;
+using UmdEssentials.Core.Bridges;
+using UmdEssentials.Core.Config;
 
-namespace PepperDash.Essentials.Core
+namespace UmdEssentials.Core
 {
     [Description("Wrapper class for Single Technology GLS Occupancy Sensors")]
     [ConfigSnippet(
@@ -67,29 +67,19 @@ namespace PepperDash.Essentials.Core
             GlsOccupancySensorPropertiesConfig props = config.Properties.ToObject<GlsOccupancySensorPropertiesConfig>();
 
             if (props != null)
-            {
                 PropertiesConfig = props;
-            }
             else
-            {
                 Debug.Console(1, this,
                     "props are null.  Unable to deserialize into GlsOccupancySensorPropertiesConfig");
-            }
 
             AddPostActivationAction(() =>
             {
                 OccSensor.OnlineStatusChange += (o, a) =>
                 {
-                    if (a.DeviceOnLine)
-                    {
-                        ApplySettingsToSensorFromConfig();
-                    }
+                    if (a.DeviceOnLine) ApplySettingsToSensorFromConfig();
                 };
 
-                if (OccSensor.IsOnline)
-                {
-                    ApplySettingsToSensorFromConfig();
-                }
+                if (OccSensor.IsOnline) ApplySettingsToSensorFromConfig();
             });
         }
 
@@ -128,24 +118,15 @@ namespace PepperDash.Essentials.Core
             }
 
             if (PropertiesConfig.ShortTimeoutState != null)
-            {
                 SetShortTimeoutState((bool)PropertiesConfig.ShortTimeoutState);
-            }
 
-            if (PropertiesConfig.EnableRawStates != null)
-            {
-                EnableRawStates((bool)PropertiesConfig.EnableRawStates);
-            }
+            if (PropertiesConfig.EnableRawStates != null) EnableRawStates((bool)PropertiesConfig.EnableRawStates);
 
             if (PropertiesConfig.InternalPhotoSensorMinChange != null)
-            {
                 SetInternalPhotoSensorMinChange((ushort)PropertiesConfig.InternalPhotoSensorMinChange);
-            }
 
             if (PropertiesConfig.ExternalPhotoSensorMinChange != null)
-            {
                 SetExternalPhotoSensorMinChange((ushort)PropertiesConfig.ExternalPhotoSensorMinChange);
-            }
         }
 
         protected void RegisterGlsOccupancySensorBaseController(GlsOccupancySensorBase occSensor)
@@ -256,7 +237,9 @@ namespace PepperDash.Essentials.Core
         public void SetTestOccupiedState(bool state)
         {
             if (!InTestMode)
+            {
                 Debug.Console(1, "Mock mode not enabled");
+            }
             else
             {
                 TestRoomIsOccupiedFeedback = state;
@@ -412,14 +395,10 @@ namespace PepperDash.Essentials.Core
                 joinMap = JsonConvert.DeserializeObject<GlsOccupancySensorBaseJoinMap>(joinMapSerialized);
 
             if (bridge != null)
-            {
                 bridge.AddJoinMap(Key, joinMap);
-            }
             else
-            {
                 Debug.Console(0, this,
                     "Please update config to use 'eiscapiadvanced' to get all join map features for this device.");
-            }
 
             Debug.Console(1, occController, "Linking to Trilist '{0}'", trilist.ID.ToString("X"));
 
@@ -428,10 +407,7 @@ namespace PepperDash.Essentials.Core
 
             trilist.OnlineStatusChange += (d, args) =>
             {
-                if (args.DeviceOnLine)
-                {
-                    trilist.StringInput[joinMap.Name.JoinNumber].StringValue = occController.Name;
-                }
+                if (args.DeviceOnLine) trilist.StringInput[joinMap.Name.JoinNumber].StringValue = occController.Name;
             };
 
             LinkSingleTechSensorToApi(occController, trilist, joinMap);
@@ -445,10 +421,7 @@ namespace PepperDash.Essentials.Core
         {
             GlsOdtOccupancySensorController odtOccController = occController as GlsOdtOccupancySensorController;
 
-            if (odtOccController == null)
-            {
-                return;
-            }
+            if (odtOccController == null) return;
 
             // OR When Vacated
             trilist.SetBoolSigAction(joinMap.OrWhenVacated.JoinNumber, odtOccController.SetOrWhenVacatedState);

@@ -8,8 +8,8 @@ using NvxEpi.Features.Routing;
 using NvxEpi.Features.Streams.Audio;
 using NvxEpi.Services.Feedback;
 using NvxEpi.Services.InputSwitching;
-using PepperDash.Essentials.Core;
-using PepperDash.Essentials.Devices.Common;
+using UmdEssentials.Core;
+using UmdEssentials.Devices.Common;
 
 namespace NvxEpi.Application.Entities
 {

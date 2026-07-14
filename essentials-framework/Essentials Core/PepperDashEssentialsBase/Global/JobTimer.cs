@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Crestron.SimplSharp;
 
-namespace PepperDash.Essentials.Core
+namespace UmdEssentials.Core
 {
     public static class JobTimer
     {
@@ -26,10 +26,7 @@ namespace PepperDash.Essentials.Core
         public static void AddJobTimerItem(JobTimerItem item)
         {
             JobTimerItem existing = Items.FirstOrDefault(i => i.Key == item.Key);
-            if (existing != null)
-            {
-                Items.Remove(existing);
-            }
+            if (existing != null) Items.Remove(existing);
 
             Items.Add(item);
         }
@@ -37,9 +34,7 @@ namespace PepperDash.Essentials.Core
         private static void CheckAndRunTimer()
         {
             if (Items.Count > 0 && MinuteTimer == null)
-            {
                 MinuteTimer = new CTimer(o => MinuteTimerCallback(), null, 60000, 60000);
-            }
         }
 
         private static void MinuteTimerCallback()

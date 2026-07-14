@@ -7,7 +7,7 @@ using Crestron.SimplSharpPro.DM.Streaming;
 using NvxEpi.Devices;
 using NvxEpi.Extensions;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
+using UmdEssentials.Core;
 
 namespace NvxEpi.Services.Feedback
 {
@@ -37,10 +37,7 @@ namespace NvxEpi.Services.Feedback
 
         private static int ReturnRoute(DmNvxBaseClass device)
         {
-            if (device == null || device.UsbInput == null)
-            {
-                return 0;
-            }
+            if (device == null || device.UsbInput == null) return 0;
 
             string deviceIp = device.Network.IpAddressFeedback.StringValue;
 
@@ -53,15 +50,11 @@ namespace NvxEpi.Services.Feedback
 
             NvxBaseDevice remoteEndpoint = DeviceManager.AllDevices.OfType<NvxBaseDevice>()
                 .Where(d => d.Hardware.UsbInput != null)
-                .FirstOrDefault(
-                    o =>
-                        o.Hardware.UsbInput.LocalDeviceIdFeedback.StringValue.Equals(remoteDeviceId,
-                            StringComparison.OrdinalIgnoreCase));
+                .FirstOrDefault(o =>
+                    o.Hardware.UsbInput.LocalDeviceIdFeedback.StringValue.Equals(remoteDeviceId,
+                        StringComparison.OrdinalIgnoreCase));
 
-            if (remoteEndpoint == null)
-            {
-                return 0;
-            }
+            if (remoteEndpoint == null) return 0;
 
             StringBuilder sb = new StringBuilder(Newline);
             sb.AppendFormat("Device ID :: {0}" + Newline, remoteEndpoint.DeviceId);

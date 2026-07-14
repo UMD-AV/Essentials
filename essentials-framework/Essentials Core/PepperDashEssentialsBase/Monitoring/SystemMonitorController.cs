@@ -7,9 +7,9 @@ using Crestron.SimplSharpPro.Diagnostics;
 using PepperDash.Core;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using PepperDash.Essentials.Core.Bridges;
+using UmdEssentials.Core.Bridges;
 
-namespace PepperDash.Essentials.Core.Monitoring
+namespace UmdEssentials.Core.Monitoring
 {
     /// <summary>
     /// Wrapper for the static SystemMonitor class to extend functionality and provide external access
@@ -162,9 +162,7 @@ namespace PepperDash.Essentials.Core.Monitoring
             if (ethernetEventArgs.EthernetEventType != eEthernetEventType.LinkUp) return;
 
             foreach (KeyValuePair<short, EthernetStatusFeedbacks> fb in EthernetStatusFeedbackCollection)
-            {
                 fb.Value.UpdateEthernetStatus();
-            }
         }
 
         private void CreateEthernetStatusFeedbacks()
@@ -234,10 +232,7 @@ namespace PepperDash.Essentials.Core.Monitoring
         private void OnSystemMonitorPropertiesChanged()
         {
             EventHandler<EventArgs> handler = SystemMonitorPropertiesChanged;
-            if (handler != null)
-            {
-                handler(this, EventArgs.Empty);
-            }
+            if (handler != null) handler(this, EventArgs.Empty);
         }
 
         public override bool CustomActivate()
@@ -257,14 +252,10 @@ namespace PepperDash.Essentials.Core.Monitoring
                 joinMap = JsonConvert.DeserializeObject<SystemMonitorJoinMap>(joinMapSerialized);
 
             if (bridge != null)
-            {
                 bridge.AddJoinMap(Key, joinMap);
-            }
             else
-            {
                 Debug.Console(0, this,
                     "Please update config to use 'eiscapiadvanced' to get all join map features for this device.");
-            }
 
             Debug.Console(1, "Linking to Trilist '{0}'", trilist.ID.ToString("X"));
             Debug.Console(2, this, "Linking API starting at join: {0}", joinStart);
@@ -396,7 +387,9 @@ namespace PepperDash.Essentials.Core.Monitoring
                     program.ProgramStoppedFeedback.FireUpdate();
                     program.ProgramInfo.OperatingState = args.OperatingState;
                     if (args.OperatingState == eProgramOperatingState.Start)
+                    {
                         program.GetProgramInfo();
+                    }
                     else
                     {
                         program.AggregatedProgramInfoFeedback.FireUpdate();
@@ -700,10 +693,7 @@ namespace PepperDash.Essentials.Core.Monitoring
             {
                 //Debug.Console(1, "Firing ProgramInfoChanged for slot: {0}", Program.Number);
                 EventHandler<ProgramInfoEventArgs> handler = ProgramInfoChanged;
-                if (handler != null)
-                {
-                    handler(this, new ProgramInfoEventArgs(ProgramInfo));
-                }
+                if (handler != null) handler(this, new ProgramInfoEventArgs(ProgramInfo));
             }
 
             private string ParseConsoleData(string data, string line, string startString, string endString)

@@ -2,10 +2,10 @@ using System.Collections.Generic;
 using Crestron.SimplSharp;
 using Crestron.SimplSharpPro.DeviceSupport;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
-using PepperDash.Essentials.Core.Bridges;
+using UmdEssentials.Core;
+using UmdEssentials.Core.Bridges;
 
-namespace PepperDash.Essentials.Devices.Common.DSP.QscDsp
+namespace UmdEssentials.Devices.Common.DSP.QscDsp
 {
     /// <summary>
     /// QSC DSP api extensions
@@ -19,7 +19,7 @@ namespace PepperDash.Essentials.Devices.Common.DSP.QscDsp
 
             Debug.Console(1, dspDevice, "Linking to Trilist '{0}'", trilist.ID.ToString("X"));
             ushort i = 1;
-            
+
             dspDevice.IsOnline.LinkInputSig(trilist.BooleanInput[joinMap.IsOnline.JoinNumber]);
             trilist.StringInput[joinMap.Name.JoinNumber].StringValue = dspDevice.Name;
 
@@ -35,12 +35,12 @@ namespace PepperDash.Essentials.Devices.Common.DSP.QscDsp
                     trilist.BooleanInput[joinMap.ChannelVisible.JoinNumber + x].BoolValue = true;
                     trilist.UShortInput[joinMap.ChannelPermissions.JoinNumber + x].UShortValue =
                         (ushort)channel.Value.Permissions;
-                    
+
                     genericChannel.MuteFeedback.LinkInputSig(
                         trilist.BooleanInput[joinMap.ChannelMuteToggle.JoinNumber + x]);
                     genericChannel.VolumeLevelFeedback.LinkInputSig(
                         trilist.UShortInput[joinMap.ChannelVolume.JoinNumber + x]);
-                    
+
                     trilist.SetSigTrueAction(joinMap.ChannelMuteToggle.JoinNumber + x,
                         genericChannel.MuteToggle);
                     trilist.SetSigTrueAction(joinMap.ChannelMuteOn.JoinNumber + x, genericChannel.MuteOn);
@@ -58,9 +58,7 @@ namespace PepperDash.Essentials.Devices.Common.DSP.QscDsp
                     trilist.SetUShortSigAction(joinMap.ChannelVolume.JoinNumber + x, u =>
                     {
                         if (trilist.BooleanOutput[joinMap.EnableLevelSend.JoinNumber + x].BoolValue)
-                        {
                             genericChannel.SetVolume(u);
-                        }
                     });
                 }
 
@@ -77,13 +75,14 @@ namespace PepperDash.Essentials.Devices.Common.DSP.QscDsp
                 trilist.SetSigTrueAction(joinMap.Presets.JoinNumber + x + 1, () => dspDevice.RunPresetNumber(x));
                 i++;
             }
-            
+
             i = 0;
             foreach (QscDspMonitoringPoint monitoringPoint in dspDevice.MonitoringControlPoints)
             {
                 ushort x = i;
                 trilist.StringInput[joinMap.MonitoringPointName.JoinNumber + x].StringValue = monitoringPoint.Name;
-                monitoringPoint.IsOnline.LinkComplementInputSig(trilist.BooleanInput[joinMap.MonitoringPointOffline.JoinNumber + x]);
+                monitoringPoint.IsOnline.LinkComplementInputSig(
+                    trilist.BooleanInput[joinMap.MonitoringPointOffline.JoinNumber + x]);
                 i++;
             }
 
@@ -127,7 +126,7 @@ namespace PepperDash.Essentials.Devices.Common.DSP.QscDsp
                     JoinCapabilities = eJoinCapabilities.ToSIMPL,
                     JoinType = eJoinType.Serial
                 });
-        
+
         [JoinName("MonitoringPointOffline")] public JoinDataComplete MonitoringPointOffline =
             new JoinDataComplete(new JoinData { JoinNumber = 11, JoinSpan = 30 },
                 new JoinMetadata
@@ -136,7 +135,7 @@ namespace PepperDash.Essentials.Devices.Common.DSP.QscDsp
                     JoinCapabilities = eJoinCapabilities.ToSIMPL,
                     JoinType = eJoinType.Digital
                 });
-        
+
         [JoinName("EnableLevelSend")] public JoinDataComplete EnableLevelSend =
             new JoinDataComplete(new JoinData { JoinNumber = 200, JoinSpan = 200 },
                 new JoinMetadata

@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using PepperDash.Essentials.Core;
-using PepperDash.Essentials.Devices.Common.VideoCodec;
+using UmdEssentials.Core;
+using UmdEssentials.Devices.Common.VideoCodec;
 
-namespace PepperDash.Essentials.Devices.Common.Codec
+namespace UmdEssentials.Devices.Common.Codec
 {
     /// <summary>
     /// Defines the API for codecs with a directory

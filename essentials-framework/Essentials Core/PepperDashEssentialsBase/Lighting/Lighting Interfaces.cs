@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace PepperDash.Essentials.Core.Lighting
+namespace UmdEssentials.Core.Lighting
 {
     /// <summary>
     /// Requirements for a device that implements lighting scene control

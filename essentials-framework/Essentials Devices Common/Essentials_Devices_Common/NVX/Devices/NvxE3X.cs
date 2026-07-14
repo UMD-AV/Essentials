@@ -9,9 +9,9 @@ using NvxEpi.Services.Bridge;
 using NvxEpi.Services.InputPorts;
 using NvxEpi.Services.InputSwitching;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
-using PepperDash.Essentials.Core.Bridges;
-using PepperDash.Essentials.Core.Config;
+using UmdEssentials.Core;
+using UmdEssentials.Core.Bridges;
+using UmdEssentials.Core.Config;
 using HdmiInput = NvxEpi.Features.Hdmi.Input.HdmiInput;
 
 namespace NvxEpi.Devices

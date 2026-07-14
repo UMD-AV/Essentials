@@ -10,15 +10,15 @@ using Crestron.SimplSharp.CrestronXml;
 using Crestron.SimplSharp.CrestronXmlLinq;
 using Newtonsoft.Json;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
-using PepperDash.Essentials.Core.Bridges;
-using PepperDash.Essentials.Core.Config;
-using PepperDash.Essentials.Core.Devices;
-using PepperDash.Essentials.Core.Recording;
+using UmdEssentials.Core;
+using UmdEssentials.Core.Bridges;
+using UmdEssentials.Core.Config;
+using UmdEssentials.Core.Devices;
+using UmdEssentials.Core.Recording;
 using Formatting = Newtonsoft.Json.Formatting;
 using RequestType = Crestron.SimplSharp.Net.Https.RequestType;
 
-namespace PepperDash.Essentials.PanoptoCloud
+namespace UmdEssentials.PanoptoCloud
 {
     public class PanoptoCloudController : ReconfigurableBridgableDevice, ICommunicationMonitor, IRecordingController
     {
@@ -372,10 +372,8 @@ namespace PepperDash.Essentials.PanoptoCloud
                    XmlReader.Create(stringReader))
             {
                 while (reader.Read())
-                {
                     if (reader.NodeType == XmlNodeType.Element && reader.NamespaceURI ==
                         "http://schemas.datacontract.org/2004/07/Panopto.Server.Services.PublicAPI.V46.Soap")
-                    {
                         switch (reader.LocalName)
                         {
                             // Check for the start element named "Id" in the expected namespace.
@@ -401,8 +399,6 @@ namespace PepperDash.Essentials.PanoptoCloud
                                     name);
                                 break;
                         }
-                    }
-                }
             }
 
             return new KeyValuePair<string, Guid>(name, id);
@@ -428,17 +424,12 @@ namespace PepperDash.Essentials.PanoptoCloud
                     Debug.Console(2, this, "Processing users...\r{0}",
                         JsonConvert.SerializeObject(users, Formatting.Indented));
 
-                    if (users.Results.Count > 20)
-                    {
-                        users.Results = users.Results.Take(20).ToList();
-                    }
+                    if (users.Results.Count > 20) users.Results = users.Results.Take(20).ToList();
 
                     users.Results.RemoveAll(x => x.Id == Guid.Empty);
                     if (!string.IsNullOrEmpty(_searchPrefix))
                         foreach (UserResultsEntry user in users.Results)
-                        {
                             user.Username = user.Username.Replace(_searchPrefix, "");
-                        }
 
                     return users;
                 }
@@ -635,7 +626,7 @@ namespace PepperDash.Essentials.PanoptoCloud
                 Recorders = new List<Recorder> { new Recorder { RemoteRecorderId = _recorder.Id } },
                 StartTime = DateTime.Now,
                 EndTime = (DateTime)endTime,
-                FolderId = folderId == Guid.Empty ? _recorder.DefaultRecordingFolder.Id : folderId,
+                FolderId = folderId == Guid.Empty ? _recorder.DefaultRecordingFolder.Id : folderId
             };
 
             HttpsClientRequest request = GetDefaultRequestWithAuthHeaders(url, _token, RequestType.Post);

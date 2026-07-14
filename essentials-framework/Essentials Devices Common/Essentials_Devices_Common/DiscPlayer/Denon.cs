@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using Crestron.SimplSharp;
 using Crestron.SimplSharpPro.CrestronThread;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
-using PepperDash.Essentials.Core.Bridges;
-using PepperDash.Essentials.Core.Config;
 using Crestron.SimplSharpPro.DeviceSupport;
+using UmdEssentials.Core;
+using UmdEssentials.Core.Bridges;
+using UmdEssentials.Core.Config;
 
-namespace PepperDash.Essentials.Devices.Common.Denon
+namespace UmdEssentials.Devices.Common.Denon
 {
     public class DenonBdpDevice : EssentialsBridgeableDevice
     {
@@ -116,7 +116,6 @@ namespace PepperDash.Essentials.Devices.Common.Denon
             {
                 //Pace the commands sending out
                 while (_cmdQueue.Count > 0)
-                {
                     try
                     {
                         string command;
@@ -133,13 +132,9 @@ namespace PepperDash.Essentials.Devices.Common.Denon
                                 _lastCommand = command;
                                 Communication.SendText(fullCommand);
                                 if (command == CmdPwrOn)
-                                {
                                     Thread.Sleep(1000);
-                                }
                                 else
-                                {
                                     Thread.Sleep(300);
-                                }
 
                                 count++;
                             }
@@ -156,7 +151,6 @@ namespace PepperDash.Essentials.Devices.Common.Denon
                         Debug.Console(0, this, "Caught an exception in ProcessQueue {0}\r{1}\r{2}", ex.Message,
                             ex.InnerException, ex.StackTrace);
                     }
-                }
 
                 _CommandMutex.ReleaseMutex();
             }
@@ -237,17 +231,11 @@ namespace PepperDash.Essentials.Devices.Common.Denon
             {
                 DenonBdpJoinMap joinMap = new DenonBdpJoinMap(joinStart);
                 // This adds the join map to the collection on the bridge
-                if (bridge != null)
-                {
-                    bridge.AddJoinMap(Key, joinMap);
-                }
+                if (bridge != null) bridge.AddJoinMap(Key, joinMap);
 
                 Dictionary<string, JoinData> joinMapSerialized =
                     JoinMapHelper.TryGetJoinMapAdvancedForDevice(joinMapKey);
-                if (joinMapSerialized != null)
-                {
-                    joinMap.SetCustomJoinData(joinMapSerialized);
-                }
+                if (joinMapSerialized != null) joinMap.SetCustomJoinData(joinMapSerialized);
 
                 CommunicationMonitor.IsOnlineFeedback.LinkInputSig(trilist.BooleanInput[joinMap.IsOnline.JoinNumber]);
 
@@ -440,13 +428,9 @@ namespace PepperDash.Essentials.Devices.Common.Denon
         public void PowerToggle()
         {
             if (_PowerIsOn)
-            {
                 PowerOn();
-            }
             else
-            {
                 PowerOff();
-            }
         }
 
         public BoolFeedback PowerIsOnFeedback { get; set; }
@@ -511,10 +495,7 @@ namespace PepperDash.Essentials.Devices.Common.Denon
             }
 
             pollCount++;
-            if (pollCount > 2)
-            {
-                pollCount = 0;
-            }
+            if (pollCount > 2) pollCount = 0;
         }
 
         #endregion
@@ -600,7 +581,7 @@ namespace PepperDash.Essentials.Devices.Common.Denon
     public class DenonBdpJoinMap : IRBlurayBaseJoinMap
     {
         [JoinName("IsOnline")] public JoinDataComplete IsOnline = new JoinDataComplete(
-            new JoinData()
+            new JoinData
             {
                 JoinNumber = 49,
                 JoinSpan = 1

@@ -7,10 +7,10 @@ using Crestron.SimplSharpPro.DM;
 using Crestron.SimplSharpPro.DM.Endpoints;
 using Crestron.SimplSharpPro.DM.Endpoints.Transmitters;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
-using PepperDash.Essentials.Core.Bridges;
+using UmdEssentials.Core;
+using UmdEssentials.Core.Bridges;
 
-namespace PepperDash.Essentials.DM
+namespace UmdEssentials.DM
 {
     using eVst = DmTx401C.eSourceSelection;
 
@@ -61,7 +61,9 @@ namespace PepperDash.Essentials.DM
             get
             {
                 if (Tx.VideoSourceFeedback != BaseDmTx401.eSourceSelection.Auto)
+                {
                     return Tx.VideoSourceFeedback;
+                }
                 else // auto
                 {
                     if (Tx.HdmiInput.SyncDetectedFeedback.BoolValue)
@@ -253,14 +255,10 @@ namespace PepperDash.Essentials.DM
             DmTxControllerJoinMap joinMap = GetDmTxJoinMap(joinStart, joinMapKey);
 
             if (HdmiVideoSyncFeedback != null)
-            {
                 HdmiVideoSyncFeedback.LinkInputSig(trilist.BooleanInput[joinMap.Input1VideoSyncStatus.JoinNumber]);
-            }
 
             if (VgaVideoSyncFeedback != null)
-            {
                 VgaVideoSyncFeedback.LinkInputSig(trilist.BooleanInput[joinMap.Input2VideoSyncStatus.JoinNumber]);
-            }
 
             LinkDmTxToApi(this, trilist, joinMap, bridge);
         }
@@ -400,10 +398,7 @@ namespace PepperDash.Essentials.DM
         /// </summary>
         private void FowardInputStreamChange(RoutingInputPortWithVideoStatuses inputPort, int eventId)
         {
-            if (eventId != EndpointInputStreamEventIds.SyncDetectedFeedbackEventId)
-            {
-                return;
-            }
+            if (eventId != EndpointInputStreamEventIds.SyncDetectedFeedbackEventId) return;
 
             inputPort.VideoStatus.VideoSyncFeedback.FireUpdate();
             AnyVideoInput.VideoStatus.VideoSyncFeedback.FireUpdate();

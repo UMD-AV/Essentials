@@ -3,7 +3,7 @@ using Crestron.SimplSharp;
 using Crestron.SimplSharpPro.DM.Streaming;
 using NvxEpi.Abstractions;
 using NvxEpi.Abstractions.HdmiInput;
-using PepperDash.Essentials.Core;
+using UmdEssentials.Core;
 
 namespace NvxEpi.Features.Hdmi.Input
 {

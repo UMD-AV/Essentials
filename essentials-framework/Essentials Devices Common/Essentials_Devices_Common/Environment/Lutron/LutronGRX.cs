@@ -3,13 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using Crestron.SimplSharpPro.DeviceSupport;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
-using PepperDash.Essentials.Core.Config;
-using PepperDash.Essentials.Core.Bridges;
-using PepperDash.Essentials.Core.Lighting;
-using LightingBase = PepperDash.Essentials.Core.Lighting.LightingBase;
+using UmdEssentials.Core;
+using UmdEssentials.Core.Bridges;
+using UmdEssentials.Core.Config;
+using UmdEssentials.Core.Lighting;
+using LightingBase = UmdEssentials.Core.Lighting.LightingBase;
 
-namespace PepperDash.Essentials.Devices.Common.Environment.Lutron
+namespace UmdEssentials.Devices.Common.Environment.Lutron
 {
     public class LutronGRX : LightingBase, ICommunicationMonitor
     {
@@ -37,12 +37,9 @@ namespace PepperDash.Essentials.Devices.Common.Environment.Lutron
             Communication = comm;
             _props = props;
 
-            ControlUnit = (props.ControlUnit != 0) ? props.ControlUnit : 1;
+            ControlUnit = props.ControlUnit != 0 ? props.ControlUnit : 1;
             Debug.Console(0, this, "Lutron GRX Control Unit {0}", ControlUnit);
-            if (props.Scenes != null)
-            {
-                LightingScenes = props.Scenes;
-            }
+            if (props.Scenes != null) LightingScenes = props.Scenes;
 
             PortGather = new CommunicationGather(Communication, "\x0D\x0A");
             PortGather.LineReceived += PortGather_LineReceived;
@@ -119,9 +116,7 @@ namespace PepperDash.Essentials.Devices.Common.Environment.Lutron
         public override void SelectScene(LightingScene scene)
         {
             if (LightingScenes != null && LightingScenes.Exists(o => o.ID == scene.ID))
-            {
                 SelectScene((ushort)LightingScenes.FindIndex(o => o.ID == scene.ID));
-            }
         }
 
         /// <summary>
@@ -132,14 +127,12 @@ namespace PepperDash.Essentials.Devices.Common.Environment.Lutron
         public void SelectScene(ushort scene)
         {
             if (LightingScenes != null && LightingScenes[scene] != null && LightingScenes[scene].ID != null)
-            {
                 if (scene >= 0 && scene <= 10)
                 {
                     Debug.Console(1, this, "Selecting Scene: '{0}'", LightingScenes[scene].ID);
                     SendLine(string.Format(":A{0}{1}", LightingScenes[scene].ID, ControlUnit));
                     SendLine(":G\x0D\x0A");
                 }
-            }
         }
 
         /// <summary>
@@ -165,7 +158,7 @@ namespace PepperDash.Essentials.Devices.Common.Environment.Lutron
     {
         public LutronGrafikEyeFactory()
         {
-            TypeNames = new List<string>() { "lutrongrafikeye", "lutrongrx" };
+            TypeNames = new List<string> { "lutrongrafikeye", "lutrongrx" };
         }
 
         public override EssentialsDevice BuildDevice(DeviceConfig dc)

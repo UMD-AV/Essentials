@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using Crestron.SimplSharpPro.DeviceSupport;
 using PepperDash.Core;
-using PepperDash.Essentials.Core.Bridges;
-using PepperDash.Essentials.Devices.Common.AudioCodec;
-using PepperDash.Essentials.Devices.Common.Codec;
+using UmdEssentials.Core.Bridges;
+using UmdEssentials.Devices.Common.AudioCodec;
+using UmdEssentials.Devices.Common.Codec;
 using Tesira_DSP_EPI.Interfaces;
 
 namespace Tesira_DSP_EPI
@@ -39,11 +39,11 @@ namespace Tesira_DSP_EPI
         }
 
 
-        virtual public void Subscribe()
+        public virtual void Subscribe()
         {
         }
 
-        virtual public void Unsubscribe()
+        public virtual void Unsubscribe()
         {
         }
 
@@ -91,16 +91,12 @@ namespace Tesira_DSP_EPI
             {
                 //Command requires Index
                 if (string.IsNullOrEmpty(value))
-                {
                     cmd = string.IsNullOrEmpty(command)
                         ? string.Format("{0} {1} {2} ", localInstanceTag, attributeCode, Index1)
                         : string.Format("{0} {1} {2} {3}", localInstanceTag, command, attributeCode, Index1);
-                }
                 else
-                {
                     // format command with value
                     cmd = string.Format("{0} {1} {2} {3} {4}", localInstanceTag, command, attributeCode, Index1, value);
-                }
             }
 
 
@@ -136,7 +132,7 @@ namespace Tesira_DSP_EPI
             }
         }
 
-        virtual public void ParseGetMessage(string attributeCode, string message)
+        public virtual void ParseGetMessage(string attributeCode, string message)
         {
         }
 
@@ -181,21 +177,15 @@ namespace Tesira_DSP_EPI
             }
 
             if (attributeCode == "callState" || attributeCode == "sourceSelection" || attributeCode == "hookState")
-            {
                 cmd = string.Format("\"{0}\" subscribe {1} {2} {3}", localInstanceTag, attributeCode, customName,
                     responseRate);
-            }
 
             else if (responseRate > 0)
-            {
                 cmd = string.Format("\"{0}\" subscribe {1} {2} {3} {4}", localInstanceTag, attributeCode, Index1,
                     customName, responseRate);
-            }
             else
-            {
                 cmd = string.Format("\"{0}\" subscribe {1} {2} {3}", localInstanceTag, attributeCode, Index1,
                     customName);
-            }
 
             //Parent.WatchDogList.Add(customName,cmd);
             //Parent.SendLine(cmd);
@@ -231,15 +221,11 @@ namespace Tesira_DSP_EPI
             }
 
             if (attributeCode == "callState" || attributeCode == "sourceSelection")
-            {
                 cmd = string.Format("\"{0}\" unsubscribe {1} {2}", localInstanceTag, attributeCode, customName);
-            }
 
             else
-            {
                 cmd = string.Format("\"{0}\" unsubscribe {1} {2} {3}", localInstanceTag, attributeCode, Index1,
                     customName);
-            }
 
             //Parent.WatchDogList.Add(customName,cmd);
             //Parent.SendLine(cmd);

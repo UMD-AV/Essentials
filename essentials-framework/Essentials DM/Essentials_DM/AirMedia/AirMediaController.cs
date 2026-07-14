@@ -8,11 +8,11 @@ using Crestron.SimplSharpPro.DM;
 using Crestron.SimplSharpPro.DM.AirMedia;
 using Newtonsoft.Json;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
-using PepperDash.Essentials.Core.Bridges;
-using PepperDash.Essentials.Core.Config;
+using UmdEssentials.Core;
+using UmdEssentials.Core.Bridges;
+using UmdEssentials.Core.Config;
 
-namespace PepperDash.Essentials.DM.AirMedia
+namespace UmdEssentials.DM.AirMedia
 {
     [Description("Wrapper class for an AM-200 or AM-300")]
     public class AirMediaController : CrestronGenericBridgeableBaseDevice, IRoutingNumericWithFeedback, IIROutputPorts,
@@ -77,19 +77,17 @@ namespace PepperDash.Essentials.DM.AirMedia
             });
 
             if (AirMedia is Am300)
-            {
                 InputPorts.Add(new RoutingInputPort(DmPortName.DmIn, eRoutingSignalType.AudioVideo,
                     eRoutingPortConnectionType.DmCat, new Action(SelectDmIn), this)
                 {
                     FeedbackMatchObject = 3
                 });
-            }
 
             OutputPorts.Add(new RoutingOutputPort(DmPortName.HdmiOut, eRoutingSignalType.AudioVideo,
                 eRoutingPortConnectionType.Hdmi, null, this));
 
             AirMedia.AirMedia.AirMediaChange +=
-                new Crestron.SimplSharpPro.DeviceSupport.GenericEventHandler(AirMedia_AirMediaChange);
+                new GenericEventHandler(AirMedia_AirMediaChange);
 
             IsInSessionFeedback =
                 new BoolFeedback(new Func<bool>(() => AirMedia.AirMedia.StatusFeedback.UShortValue == 0));
@@ -106,7 +104,7 @@ namespace PepperDash.Essentials.DM.AirMedia
             SerialNumberFeedback = new StringFeedback(new Func<string>(() => "unknown"));
 
             AirMedia.DisplayControl.DisplayControlChange +=
-                new Crestron.SimplSharpPro.DeviceSupport.GenericEventHandler(DisplayControl_DisplayControlChange);
+                new GenericEventHandler(DisplayControl_DisplayControlChange);
 
             VideoOutFeedback =
                 new IntFeedback(new Func<int>(() => Convert.ToInt16(AirMedia.DisplayControl.VideoOutFeedback)));
@@ -114,7 +112,7 @@ namespace PepperDash.Essentials.DM.AirMedia
                 AirMedia.DisplayControl.EnableAutomaticRoutingFeedback.BoolValue));
 
             AirMedia.HdmiIn.StreamChange +=
-                new Crestron.SimplSharpPro.DeviceSupport.StreamEventHandler(HdmiIn_StreamChange);
+                new StreamEventHandler(HdmiIn_StreamChange);
 
             HdmiVideoSyncDetectedFeedback =
                 new BoolFeedback(new Func<bool>(() => AirMedia.HdmiIn.SyncDetectedFeedback.BoolValue));
@@ -140,14 +138,10 @@ namespace PepperDash.Essentials.DM.AirMedia
                 joinMap = JsonConvert.DeserializeObject<AirMediaControllerJoinMap>(joinMapSerialized);
 
             if (bridge != null)
-            {
                 bridge.AddJoinMap(Key, joinMap);
-            }
             else
-            {
                 Debug.Console(0, this,
                     "Please update config to use 'eiscapiadvanced' to get all join map features for this device.");
-            }
 
             Debug.Console(1, "Linking to Trilist '{0}'", trilist.ID.ToString("X"));
             Debug.Console(0, "Linking to Airmedia: {0}", Name);
@@ -213,7 +207,7 @@ namespace PepperDash.Essentials.DM.AirMedia
         }
 
         private void DisplayControl_DisplayControlChange(object sender,
-            Crestron.SimplSharpPro.DeviceSupport.GenericEventArgs args)
+            GenericEventArgs args)
         {
             if (args.EventId == AmX00.VideoOutFeedbackEventId)
             {
@@ -226,10 +220,12 @@ namespace PepperDash.Essentials.DM.AirMedia
                     localInputPort, eRoutingSignalType.AudioVideo));
             }
             else if (args.EventId == AmX00.EnableAutomaticRoutingFeedbackEventId)
+            {
                 AutomaticInputRoutingEnabledFeedback.FireUpdate();
+            }
         }
 
-        private void HdmiIn_StreamChange(Stream stream, Crestron.SimplSharpPro.DeviceSupport.StreamEventArgs args)
+        private void HdmiIn_StreamChange(Stream stream, StreamEventArgs args)
         {
             if (args.EventId == DMInputEventIds.SourceSyncEventId)
                 HdmiVideoSyncDetectedFeedback.FireUpdate();
@@ -352,7 +348,7 @@ namespace PepperDash.Essentials.DM.AirMedia
     {
         public AirMediaControllerFactory()
         {
-            TypeNames = new List<string>() { "am200", "am300" };
+            TypeNames = new List<string> { "am200", "am300" };
         }
 
         public override EssentialsDevice BuildDevice(DeviceConfig dc)
@@ -365,9 +361,9 @@ namespace PepperDash.Essentials.DM.AirMedia
                 JsonConvert.DeserializeObject<AirMediaPropertiesConfig>(dc.Properties.ToString());
             AmX00 amDevice = null;
             if (type == "am200")
-                amDevice = new Crestron.SimplSharpPro.DM.AirMedia.Am200(props.Control.IpIdInt, Global.ControlSystem);
+                amDevice = new Am200(props.Control.IpIdInt, Global.ControlSystem);
             else if (type == "am300")
-                amDevice = new Crestron.SimplSharpPro.DM.AirMedia.Am300(props.Control.IpIdInt, Global.ControlSystem);
+                amDevice = new Am300(props.Control.IpIdInt, Global.ControlSystem);
 
             return new AirMediaController(dc.Key, dc.Name, amDevice, dc, props);
         }

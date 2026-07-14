@@ -1,10 +1,10 @@
 ﻿using System;
 using Crestron.SimplSharpPro;
 using Newtonsoft.Json.Linq;
-using PepperDash.Essentials.Core.Config;
 using PepperDash.Core;
+using UmdEssentials.Core.Config;
 
-namespace PepperDash.Essentials.Core
+namespace UmdEssentials.Core
 {
     /// <summary>
     /// IR port wrapper. May act standalone
@@ -73,10 +73,7 @@ namespace PepperDash.Essentials.Core
         public void PrintAvailableCommands()
         {
             Debug.Console(2, this, "Available IR Commands in IR File {0}", IrPortUid);
-            foreach (string cmd in IrPort.AvailableIRCmds())
-            {
-                Debug.Console(2, this, "{0}", cmd);
-            }
+            foreach (string cmd in IrPort.AvailableIRCmds()) Debug.Console(2, this, "{0}", cmd);
         }
 
 
@@ -133,7 +130,9 @@ namespace PepperDash.Essentials.Core
                     NoIrCommandError(command);
             }
             else
+            {
                 IrPort.Release();
+            }
         }
 
         /// <summary>

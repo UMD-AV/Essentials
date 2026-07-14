@@ -4,7 +4,7 @@ using Crestron.SimplSharpPro.DeviceSupport;
 using Crestron.SimplSharpPro.DM.Streaming;
 using NvxEpi.Abstractions;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
+using UmdEssentials.Core;
 
 namespace NvxEpi.Services.Utilities
 {
@@ -44,10 +44,10 @@ namespace NvxEpi.Services.Utilities
             if (feedback.Feedbacks == null)
                 throw new NullReferenceException("Feedbacks");
 
-            foreach (PepperDash.Essentials.Core.Feedback item in feedback.Feedbacks.Where(x =>
+            foreach (UmdEssentials.Core.Feedback item in feedback.Feedbacks.Where(x =>
                          x != null && !string.IsNullOrEmpty(x.Key)))
             {
-                PepperDash.Essentials.Core.Feedback fb = item;
+                UmdEssentials.Core.Feedback fb = item;
                 item.OutputChange += (sender, args) =>
                 {
                     if (sender is BoolFeedback)
@@ -113,19 +113,15 @@ namespace NvxEpi.Services.Utilities
                         args.EventId);
 
                 if (device.DmNaxRouting.DmNaxReceive != null)
-                {
                     device.DmNaxRouting.DmNaxReceive.DmNaxStreamChange += (sender, args) =>
                         Debug.Console(2,
                             keyed,
                             "received NAX Routing Receive Change:{0}",
                             args.EventId);
-                }
 
                 if (device.DmNaxRouting.DmNaxTransmit != null)
-                {
                     device.DmNaxRouting.DmNaxTransmit.DmNaxStreamChange += (sender, args) =>
                         Debug.Console(2, keyed, "received NAX Routing Transmit Change:{0}", args.EventId);
-                }
             }
             catch (MissingMethodException ex)
             {

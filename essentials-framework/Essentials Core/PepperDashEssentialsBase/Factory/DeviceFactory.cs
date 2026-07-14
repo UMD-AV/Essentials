@@ -4,9 +4,9 @@ using System.Linq;
 using Crestron.SimplSharp.Reflection;
 using PepperDash.Core;
 using Newtonsoft.Json.Linq;
-using PepperDash.Essentials.Core.Config;
+using UmdEssentials.Core.Config;
 
-namespace PepperDash.Essentials.Core
+namespace UmdEssentials.Core
 {
     public class DeviceFactoryWrapper
     {
@@ -32,9 +32,7 @@ namespace PepperDash.Essentials.Core
                 typeof(IDeviceFactory).IsAssignableFrom(ct) && !ct.IsInterface && !ct.IsAbstract);
 
             if (types != null)
-            {
                 foreach (CType type in types)
-                {
                     try
                     {
                         IDeviceFactory factory =
@@ -46,8 +44,6 @@ namespace PepperDash.Essentials.Core
                         Debug.Console(0, Debug.ErrorLogLevel.Error, "Unable to load type: '{1}' DeviceFactory: {0}", e,
                             type.Name);
                     }
-                }
-            }
         }
 
         /// <summary>
@@ -64,7 +60,7 @@ namespace PepperDash.Essentials.Core
         public static void AddFactoryForType(string typeName, Func<DeviceConfig, IKeyed> method)
         {
             //Debug.Console(1, Debug.ErrorLogLevel.Notice, "Adding factory method for type '{0}'", typeName);
-            DeviceFactory.FactoryMethods.Add(typeName, new DeviceFactoryWrapper() { FactoryMethod = method });
+            FactoryMethods.Add(typeName, new DeviceFactoryWrapper { FactoryMethod = method });
         }
 
         public static void AddFactoryForType(string typeName, string description, CType cType,
@@ -79,9 +75,9 @@ namespace PepperDash.Essentials.Core
                 return;
             }
 
-            DeviceFactoryWrapper wrapper = new DeviceFactoryWrapper()
+            DeviceFactoryWrapper wrapper = new DeviceFactoryWrapper
                 { CType = cType, Description = description, FactoryMethod = method };
-            DeviceFactory.FactoryMethods.Add(typeName, wrapper);
+            FactoryMethods.Add(typeName, wrapper);
         }
 
         private static void CheckForSecrets(IEnumerable<JProperty> obj)
@@ -156,10 +152,7 @@ namespace PepperDash.Essentials.Core
 
                 Debug.Console(2, "{0}", ex.StackTrace);
 
-                if (ex.InnerException == null)
-                {
-                    return null;
-                }
+                if (ex.InnerException == null) return null;
 
                 Debug.Console(0, Debug.ErrorLogLevel.Error, "Inner exception while creating device {0}: {1}", dc.Key,
                     ex.InnerException.Message);
@@ -176,13 +169,9 @@ namespace PepperDash.Essentials.Core
             Dictionary<string, DeviceFactoryWrapper> types;
 
             if (!string.IsNullOrEmpty(filter))
-            {
                 types = FactoryMethods.Where(k => k.Key.Contains(filter)).ToDictionary(k => k.Key, k => k.Value);
-            }
             else
-            {
                 types = FactoryMethods;
-            }
 
             Debug.Console(0, "Device Types:");
 
@@ -191,10 +180,7 @@ namespace PepperDash.Essentials.Core
                 string description = type.Value.Description;
                 string cType = "Not Specified by Plugin";
 
-                if (type.Value.CType != null)
-                {
-                    cType = type.Value.CType.FullName;
-                }
+                if (type.Value.CType != null) cType = type.Value.CType.FullName;
 
                 Debug.Console(0,
                     @"Type: '{0}' 

@@ -1,6 +1,6 @@
 ﻿using Crestron.SimplSharpPro.DeviceSupport;
 
-namespace PepperDash.Essentials.Core.Bridges
+namespace UmdEssentials.Core.Bridges
 {
     /// <summary>
     /// Defines a device that uses JoinMapBaseAdvanced for its join map

@@ -1,5 +1,5 @@
 ﻿using Newtonsoft.Json;
-using PepperDash.Essentials.Core;
+using UmdEssentials.Core;
 
 namespace VaddioBridgePlugin
 {

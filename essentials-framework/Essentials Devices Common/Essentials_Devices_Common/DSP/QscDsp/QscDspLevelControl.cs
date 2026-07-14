@@ -1,9 +1,9 @@
 ﻿using System;
 using Crestron.SimplSharp;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
+using UmdEssentials.Core;
 
-namespace PepperDash.Essentials.Devices.Common.DSP.QscDsp
+namespace UmdEssentials.Devices.Common.DSP.QscDsp
 {
     public class QscDspLevelControl : QscDspControlPoint, IBasicVolumeWithFeedback, IKeyed
     {
@@ -32,7 +32,7 @@ namespace PepperDash.Essentials.Devices.Common.DSP.QscDsp
         {
             get
             {
-                bool isNotSubscribed = HasMute && !_muteIsSubscribed || HasLevel && !_levelIsSubscribed;
+                bool isNotSubscribed = (HasMute && !_muteIsSubscribed) || (HasLevel && !_levelIsSubscribed);
                 return !isNotSubscribed;
             }
         }
@@ -115,16 +115,10 @@ namespace PepperDash.Essentials.Devices.Common.DSP.QscDsp
         public void Subscribe()
         {
             // Subscribe to mute
-            if (HasMute)
-            {
-                SendSubscriptionCommand(MuteInstanceTag);
-            }
+            if (HasMute) SendSubscriptionCommand(MuteInstanceTag);
 
             // Subscribe to level
-            if (HasLevel)
-            {
-                SendSubscriptionCommand(LevelInstanceTag);
-            }
+            if (HasLevel) SendSubscriptionCommand(LevelInstanceTag);
         }
 
 
@@ -208,10 +202,7 @@ namespace PepperDash.Essentials.Devices.Common.DSP.QscDsp
         {
             Debug.Console(1, this, "volume: {0}", level);
             // Unmute volume if new level is higher than existing
-            if (AutomaticUnmuteOnVolume && _isMuted)
-            {
-                MuteOff();
-            }
+            if (AutomaticUnmuteOnVolume && _isMuted) MuteOff();
 
             if (!UseAbsoluteValue)
             {
@@ -267,10 +258,7 @@ namespace PepperDash.Essentials.Devices.Common.DSP.QscDsp
                 }
                 else if (press)
                 {
-                    if (AutomaticUnmuteOnVolume && _isMuted)
-                    {
-                        MuteOff();
-                    }
+                    if (AutomaticUnmuteOnVolume && _isMuted) MuteOff();
 
                     _volumeDownCount++;
                     SendFullCommand("css ", LevelInstanceTag, "--");
@@ -308,10 +296,7 @@ namespace PepperDash.Essentials.Devices.Common.DSP.QscDsp
                 }
                 else if (press)
                 {
-                    if (AutomaticUnmuteOnVolume && _isMuted)
-                    {
-                        MuteOff();
-                    }
+                    if (AutomaticUnmuteOnVolume && _isMuted) MuteOff();
 
                     _volumeUpCount++;
                     SendFullCommand("css ", LevelInstanceTag, "++");
@@ -342,7 +327,7 @@ namespace PepperDash.Essentials.Devices.Common.DSP.QscDsp
         {
             Debug.Console(1, this, "Scaling (double) input '{0}'", input);
 
-            double output = (input / 65535);
+            double output = input / 65535;
 
             Debug.Console(1, this, "Scaled output '{0}'", output);
 

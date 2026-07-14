@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 
 
-namespace PepperDash.Essentials.Core
+namespace UmdEssentials.Core
 {
     /// <summary>
     /// For rooms with in call feedback

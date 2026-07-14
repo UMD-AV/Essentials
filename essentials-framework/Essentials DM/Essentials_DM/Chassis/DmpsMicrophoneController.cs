@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using Crestron.SimplSharpPro;
 using Crestron.SimplSharpPro.DeviceSupport;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
-using PepperDash.Essentials.Core.Bridges;
+using UmdEssentials.Core;
+using UmdEssentials.Core.Bridges;
 
 
-namespace PepperDash.Essentials.DM
+namespace UmdEssentials.DM
 {
     /// <summary>
     /// Exposes the volume levels for microphones DMPS3 chassis
@@ -40,10 +40,7 @@ namespace PepperDash.Essentials.DM
 
             Debug.Console(2, "Dmps Microphone Controller Index: {0} EventId: {1}", mic.ID, args.EventId.ToString());
 
-            if (Mics.ContainsKey(mic.ID))
-            {
-                Mics[mic.ID].Event(args.EventId);
-            }
+            if (Mics.ContainsKey(mic.ID)) Mics[mic.ID].Event(args.EventId);
         }
     }
 
@@ -91,14 +88,10 @@ namespace PepperDash.Essentials.DM
             DmpsMicrophoneControllerJoinMap joinMap = new DmpsMicrophoneControllerJoinMap(joinStart);
 
             if (bridge != null)
-            {
                 bridge.AddJoinMap(Key, joinMap);
-            }
             else
-            {
                 Debug.Console(0, this,
                     "Please update config to use 'eiscapiadvanced' to get all join map features for this device.");
-            }
 
             Debug.Console(1, this, "Linking to Trilist '{0}'", trilist.ID.ToString("X"));
 
@@ -131,10 +124,7 @@ namespace PepperDash.Essentials.DM
         public void SetVolumeScaled(ushort level)
         {
             VolumeLevelInput = (ushort)(level * (MaxLevel - MinLevel) / ushort.MaxValue + MinLevel);
-            if (EnableVolumeSend == true)
-            {
-                Mic.Gain.UShortValue = VolumeLevelInput;
-            }
+            if (EnableVolumeSend == true) Mic.Gain.UShortValue = VolumeLevelInput;
         }
 
         public ushort ScaleVolumeFeedback(ushort level)
@@ -146,10 +136,7 @@ namespace PepperDash.Essentials.DM
         public void SendScaledVolume(bool pressRelease)
         {
             EnableVolumeSend = pressRelease;
-            if (pressRelease == false)
-            {
-                SetVolumeScaled(VolumeLevelInput);
-            }
+            if (pressRelease == false) SetVolumeScaled(VolumeLevelInput);
         }
 
         #region IBasicVolumeWithFeedback Members

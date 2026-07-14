@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace PepperDash.Essentials.Core.Privacy
+namespace UmdEssentials.Core.Privacy
 {
     public class MicrophonePrivacyControllerConfig
     {

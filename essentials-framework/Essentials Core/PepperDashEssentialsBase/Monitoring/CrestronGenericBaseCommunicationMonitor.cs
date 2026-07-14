@@ -2,7 +2,7 @@
 using PepperDash.Core;
 
 
-namespace PepperDash.Essentials.Core
+namespace UmdEssentials.Core
 {
     /// <summary>
     /// 
@@ -43,7 +43,9 @@ namespace PepperDash.Essentials.Core
                 StopErrorTimers();
             }
             else
+            {
                 StartErrorTimers();
+            }
         }
     }
 }

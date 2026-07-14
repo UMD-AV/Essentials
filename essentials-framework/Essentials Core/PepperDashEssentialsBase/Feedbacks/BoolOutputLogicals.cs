@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace PepperDash.Essentials.Core
+namespace UmdEssentials.Core
 {
     public abstract class BoolFeedbackLogic
     {
@@ -85,10 +85,7 @@ namespace PepperDash.Essentials.Core
         {
             bool prevValue = ComputedValue;
             bool newValue = OutputsIn.All(o => o.BoolValue);
-            if (newValue == prevValue)
-            {
-                return;
-            }
+            if (newValue == prevValue) return;
 
             ComputedValue = newValue;
             Output.FireUpdate();
@@ -101,10 +98,7 @@ namespace PepperDash.Essentials.Core
         {
             bool prevValue = ComputedValue;
             bool newValue = OutputsIn.Any(o => o.BoolValue);
-            if (newValue == prevValue)
-            {
-                return;
-            }
+            if (newValue == prevValue) return;
 
             ComputedValue = newValue;
             Output.FireUpdate();
@@ -125,10 +119,7 @@ namespace PepperDash.Essentials.Core
         {
             bool prevValue = ComputedValue;
             bool newValue = _predicate(OutputsIn);
-            if (newValue == prevValue)
-            {
-                return;
-            }
+            if (newValue == prevValue) return;
 
             ComputedValue = newValue;
             Output.FireUpdate();

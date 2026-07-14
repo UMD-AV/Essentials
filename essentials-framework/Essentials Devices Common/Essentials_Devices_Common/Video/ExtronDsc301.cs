@@ -4,13 +4,13 @@ using System.Collections.Generic;
 using Crestron.SimplSharp;
 using Crestron.SimplSharpPro.CrestronThread;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
-using PepperDash.Essentials.Core.Bridges;
 using Newtonsoft.Json;
-using PepperDash.Essentials.Core.Config;
 using Crestron.SimplSharpPro.DeviceSupport;
+using UmdEssentials.Core;
+using UmdEssentials.Core.Bridges;
+using UmdEssentials.Core.Config;
 
-namespace PepperDash.Essentials.Devices.Common.ExtronDsc301
+namespace UmdEssentials.Devices.Common.ExtronDsc301
 {
     public class ExtronDsc301Device : EssentialsBridgeableDevice, ITxRoutingWithFeedback
     {
@@ -157,7 +157,7 @@ namespace PepperDash.Essentials.Devices.Common.ExtronDsc301
                             while (!_commandQueue.IsEmpty)
                             {
                                 int count = 0;
-                                while (!_commandReady && (count < 50))
+                                while (!_commandReady && count < 50)
                                 {
                                     Thread.Sleep(100);
                                     count++;
@@ -246,10 +246,7 @@ namespace PepperDash.Essentials.Devices.Common.ExtronDsc301
             RoutingNumericEventArgs e = new RoutingNumericEventArgs(1, input,
                 null, null, eRoutingSignalType.AudioVideo);
 
-            if (NumericSwitchChange != null)
-            {
-                NumericSwitchChange(this, e);
-            }
+            if (NumericSwitchChange != null) NumericSwitchChange(this, e);
         }
 
         /// <summary>
@@ -271,7 +268,6 @@ namespace PepperDash.Essentials.Devices.Common.ExtronDsc301
                 // Look for CRLF and process when found
                 int start = 0;
                 for (int i = 1; i < newBytes.Length; i++)
-                {
                     if (newBytes[i] == 0x0A && newBytes[i - 1] == 0x0D)
                     {
                         byte[] message = new byte[i - start - 1];
@@ -281,7 +277,6 @@ namespace PepperDash.Essentials.Devices.Common.ExtronDsc301
                         start = i + 1;
                         CrestronInvoke.BeginInvoke((o) => processResponse(message));
                     }
-                }
 
                 int extraDataLength = newBytes.Length - start;
                 if (extraDataLength > 0 && extraDataLength < 30)
@@ -326,26 +321,19 @@ namespace PepperDash.Essentials.Devices.Common.ExtronDsc301
                 {
                     //Found the hot plug message
                     if (responseText.Length > 5)
-                    {
                         Debug.Console(0, this, "Found hotplug event on output {0}", responseText.Substring(5, 1));
-                    }
                 }
                 else if (responseText.StartsWith("In") && responseText.EndsWith("All"))
                 {
                     //Found the route feedback message
                     InputFb = ushort.Parse(responseText.Substring(2, 1));
-                    if (_lastInquiry == eDsc301Command.Route)
-                    {
-                        readyForNextCommand();
-                    }
+                    if (_lastInquiry == eDsc301Command.Route) readyForNextCommand();
                 }
                 else if (responseText.StartsWith("SsavT"))
                 {
                     //Found sync timeout message
                     if (responseText.Length > 5)
-                    {
                         Debug.Console(0, this, "Sync timeout set to {0}", responseText.Substring(5));
-                    }
 
                     readyForNextCommand();
                 }
@@ -363,10 +351,7 @@ namespace PepperDash.Essentials.Devices.Common.ExtronDsc301
                             break;
                         case eDsc301Command.Route:
                             //Found the route feedback message
-                            if (responseText.Length == 1)
-                            {
-                                InputFb = ushort.Parse(responseText);
-                            }
+                            if (responseText.Length == 1) InputFb = ushort.Parse(responseText);
 
                             Debug.Console(2, this, "Found route feedback {0}", InputFb);
                             readyForNextCommand();
@@ -397,7 +382,6 @@ namespace PepperDash.Essentials.Devices.Common.ExtronDsc301
                             //Video Sync Reply
                             Debug.Console(1, this, "Found video sync feedback {0}", responseText);
                             if (responseText.Length == 5)
-                            {
                                 if (responseText.Substring(1, 1) == "*" && responseText.Substring(3, 1) == "*")
                                 {
                                     _Input1Sync = responseText.Substring(0, 1) != "0";
@@ -407,7 +391,6 @@ namespace PepperDash.Essentials.Devices.Common.ExtronDsc301
                                     Input2SyncFb.FireUpdate();
                                     Input3SyncFb.FireUpdate();
                                 }
-                            }
 
                             readyForNextCommand();
                             break;
@@ -449,10 +432,7 @@ namespace PepperDash.Essentials.Devices.Common.ExtronDsc301
         public override void LinkToApi(BasicTriList trilist, uint joinStart, string joinMapKey, EiscApiAdvanced bridge)
         {
             DmTxControllerJoinMap joinMap = new DmTxControllerJoinMap(joinStart);
-            if (bridge != null)
-            {
-                bridge.AddJoinMap(Key, joinMap);
-            }
+            if (bridge != null) bridge.AddJoinMap(Key, joinMap);
 
             CommunicationMonitor.IsOnlineFeedback.LinkInputSig(trilist.BooleanInput[joinMap.IsOnline.JoinNumber]);
 

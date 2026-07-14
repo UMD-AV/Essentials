@@ -1,10 +1,10 @@
 ﻿using System.Collections.Generic;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
-using PepperDash.Essentials.Core.Config;
+using UmdEssentials.Core;
+using UmdEssentials.Core.Config;
 using ViscaCameraPlugin;
 
-namespace PepperDash.Essentials.Devices.Common.Cameras.Aver
+namespace UmdEssentials.Devices.Common.Cameras.Aver
 {
     public class AverCameraFactory : EssentialsPluginDeviceFactory<AverCameraDevice>
     {

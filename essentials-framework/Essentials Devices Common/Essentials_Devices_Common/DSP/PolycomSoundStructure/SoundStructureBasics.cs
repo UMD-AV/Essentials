@@ -1,4 +1,4 @@
-﻿namespace PepperDash.Essentials.Devices.Common.DSP
+﻿namespace UmdEssentials.Devices.Common.DSP
 {
     public class SoundStructureBasics
     {

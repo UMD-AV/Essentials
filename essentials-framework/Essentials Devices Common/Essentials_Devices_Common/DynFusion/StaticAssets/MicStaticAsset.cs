@@ -2,10 +2,10 @@
 using Crestron.SimplSharpPro.Fusion;
 using DynFusion.Assets;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
-using PepperDash.Essentials.Devices.Common.Microphones;
+using UmdEssentials.Core;
+using UmdEssentials.Devices.Common.Microphones;
 
-namespace PepperDash.Essentials.Devices.Common.DynFusion.StaticAssets
+namespace UmdEssentials.Devices.Common.DynFusion.StaticAssets
 {
     public class MicStaticAsset : StaticAsset
     {

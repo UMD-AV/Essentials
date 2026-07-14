@@ -1,6 +1,6 @@
-﻿using PepperDash.Essentials.Devices.Common.Codec;
+﻿using UmdEssentials.Devices.Common.Codec;
 
-namespace PepperDash.Essentials.Devices.Common.VideoCodec
+namespace UmdEssentials.Devices.Common.VideoCodec
 {
     public interface IJoinCalls
     {

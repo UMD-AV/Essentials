@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace PepperDash.Essentials.Core.Shades
+namespace UmdEssentials.Core.Shades
 {
     /// <summary>
     /// Requirements for an object that contains shades

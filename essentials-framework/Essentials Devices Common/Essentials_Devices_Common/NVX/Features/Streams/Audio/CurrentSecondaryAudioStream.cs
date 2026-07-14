@@ -6,7 +6,7 @@ using NvxEpi.Abstractions;
 using NvxEpi.Abstractions.SecondaryAudio;
 using NvxEpi.Features.Routing;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
+using UmdEssentials.Core;
 
 namespace NvxEpi.Features.Streams.Audio
 {
@@ -53,8 +53,7 @@ namespace NvxEpi.Features.Streams.Audio
 
             ISecondaryAudioStream result = _audioTransmitters
                 .Where(x => !string.IsNullOrEmpty(x.TxAudioAddress.StringValue))
-                .FirstOrDefault(
-                    x => x.TxAudioAddress.StringValue.Equals(RxAudioAddress.StringValue));
+                .FirstOrDefault(x => x.TxAudioAddress.StringValue.Equals(RxAudioAddress.StringValue));
 
             if (result != null)
                 return result;
@@ -63,8 +62,7 @@ namespace NvxEpi.Features.Streams.Audio
                 .AllDevices
                 .OfType<ISecondaryAudioStream>()
                 .Where(x => !string.IsNullOrEmpty(x.TxAudioAddress.StringValue))
-                .FirstOrDefault(
-                    tx => tx.TxAudioAddress.StringValue.Equals(RxAudioAddress.StringValue));
+                .FirstOrDefault(tx => tx.TxAudioAddress.StringValue.Equals(RxAudioAddress.StringValue));
 
             if (result != null)
                 _audioTransmitters.Add(result);

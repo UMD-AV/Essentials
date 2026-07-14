@@ -1,7 +1,7 @@
 ﻿using Crestron.SimplSharpPro.DeviceSupport;
-using PepperDash.Essentials.Core;
-using PepperDash.Essentials.Core.Bridges;
-using PepperDash.Essentials.Core.Interfaces;
+using UmdEssentials.Core;
+using UmdEssentials.Core.Bridges;
+using UmdEssentials.Core.Interfaces;
 using PepperDash.Core;
 using System;
 using System.Collections.Generic;
@@ -16,8 +16,8 @@ using Crestron.SimplSharp;
 using PepperDash_Essentials_Core.Extensions;
 using System.Text.RegularExpressions;
 using Newtonsoft.Json.Linq;
-using PepperDash.Essentials.Devices.Common.DynFusion.StaticAssets;
-using PepperDash.Essentials.Devices.Common.Microphones;
+using UmdEssentials.Devices.Common.DynFusion.StaticAssets;
+using UmdEssentials.Devices.Common.Microphones;
 
 namespace DynFusion
 {

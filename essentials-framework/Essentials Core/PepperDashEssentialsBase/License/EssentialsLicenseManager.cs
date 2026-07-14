@@ -1,11 +1,11 @@
 ﻿using System;
 using Crestron.SimplSharp;
 using Crestron.SimplSharp.CrestronDataStore;
-using PepperDash.Essentials.Core;
 using PepperDash.Core;
+using UmdEssentials.Core;
 
 
-namespace PepperDash.Essentials.License
+namespace UmdEssentials.License
 {
     public abstract class LicenseManager
     {

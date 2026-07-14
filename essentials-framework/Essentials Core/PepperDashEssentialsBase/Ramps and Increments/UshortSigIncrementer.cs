@@ -2,7 +2,7 @@
 using Crestron.SimplSharpPro;
 using PepperDash.Core;
 
-namespace PepperDash.Essentials.Core
+namespace UmdEssentials.Core
 {
     /// <summary>
     /// Attaches to UShortInputSig and does incremental ramping of the signal 
@@ -76,7 +76,9 @@ namespace PepperDash.Essentials.Core
                 IsAtLimit = true;
             }
             else
+            {
                 levelOut = levelIn;
+            }
 
             return IsAtLimit;
         }

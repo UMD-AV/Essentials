@@ -5,12 +5,12 @@ using Newtonsoft.Json;
 using Crestron.SimplSharpPro.DeviceSupport;
 using Crestron.SimplSharpPro.DM;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
-using PepperDash.Essentials.DM.Config;
-using PepperDash.Essentials.Core.Bridges;
-using PepperDash.Essentials.Core.Config;
+using UmdEssentials.Core;
+using UmdEssentials.Core.Bridges;
+using UmdEssentials.Core.Config;
+using UmdEssentials.DM.Config;
 
-namespace PepperDash.Essentials.DM.Chassis
+namespace UmdEssentials.DM.Chassis
 {
     [Description("Wrapper class for all HdMdNxM4E switchers")]
     public class HdMdNxM4kEBridgeableController : CrestronGenericBridgeableBaseDevice, IRoutingNumericWithFeedback,
@@ -57,9 +57,7 @@ namespace PepperDash.Essentials.DM.Chassis
             if (props.InputNames != null)
             {
                 foreach (KeyValuePair<uint, string> kvp in props.InputNames)
-                {
                     Debug.Console(1, this, "props.Inputs: {0}-{1}", kvp.Key, kvp.Value);
-                }
 
                 InputNames = props.InputNames;
             }
@@ -67,9 +65,7 @@ namespace PepperDash.Essentials.DM.Chassis
             if (props.OutputNames != null)
             {
                 foreach (KeyValuePair<uint, string> kvp in props.OutputNames)
-                {
                     Debug.Console(1, this, "props.Outputs: {0}-{1}", kvp.Key, kvp.Value);
-                }
 
                 OutputNames = props.OutputNames;
             }
@@ -256,14 +252,10 @@ namespace PepperDash.Essentials.DM.Chassis
                 joinMap = JsonConvert.DeserializeObject<HdMdNxM4kEControllerJoinMap>(joinMapSerialized);
 
             if (bridge != null)
-            {
                 bridge.AddJoinMap(Key, joinMap);
-            }
             else
-            {
                 Debug.Console(0, this,
                     "Please update config to use 'eiscapiadvanced' to get all join map features for this device.");
-            }
 
             IsOnline.LinkInputSig(trilist.BooleanInput[joinMap.IsOnline.JoinNumber]);
             DeviceNameFeedback.LinkInputSig(trilist.StringInput[joinMap.Name.JoinNumber]);
@@ -329,53 +321,31 @@ namespace PepperDash.Essentials.DM.Chassis
             if (!args.DeviceOnLine) return;
 
             foreach (DMInput input in _Chassis.Inputs)
-            {
                 if (InputNames[input.Number] != null)
                 {
                     Debug.Console(1, this, "Updating input {0} with name {1}", input.Number, InputNames[input.Number]);
                     input.Name.StringValue = InputNames[input.Number];
                 }
-            }
 
             foreach (DMOutput output in _Chassis.Outputs)
-            {
                 if (OutputNames[output.Number] != null)
                 {
                     Debug.Console(1, this, "Updating output {0} with name {1}", output.Number,
                         OutputNames[output.Number]);
                     output.Name.StringValue = OutputNames[output.Number];
                 }
-            }
 
-            foreach (BoolFeedback feedback in VideoInputSyncFeedbacks)
-            {
-                feedback.FireUpdate();
-            }
+            foreach (BoolFeedback feedback in VideoInputSyncFeedbacks) feedback.FireUpdate();
 
-            foreach (IntFeedback feedback in VideoOutputRouteFeedbacks)
-            {
-                feedback.FireUpdate();
-            }
+            foreach (IntFeedback feedback in VideoOutputRouteFeedbacks) feedback.FireUpdate();
 
-            foreach (StringFeedback feedback in InputNameFeedbacks)
-            {
-                feedback.FireUpdate();
-            }
+            foreach (StringFeedback feedback in InputNameFeedbacks) feedback.FireUpdate();
 
-            foreach (StringFeedback feedback in OutputNameFeedbacks)
-            {
-                feedback.FireUpdate();
-            }
+            foreach (StringFeedback feedback in OutputNameFeedbacks) feedback.FireUpdate();
 
-            foreach (StringFeedback feedback in OutputRouteNameFeedbacks)
-            {
-                feedback.FireUpdate();
-            }
+            foreach (StringFeedback feedback in OutputRouteNameFeedbacks) feedback.FireUpdate();
 
-            foreach (IntFeedback feedback in InputHdcpFeedbacks)
-            {
-                feedback.FireUpdate();
-            }
+            foreach (IntFeedback feedback in InputHdcpFeedbacks) feedback.FireUpdate();
 
             if (_Chassis4x1 != null)
                 AutoRouteFeedback.FireUpdate();
@@ -395,10 +365,7 @@ namespace PepperDash.Essentials.DM.Chassis
 
                     IntFeedback feedback = VideoOutputRouteFeedbacks[output.ToString()];
 
-                    if (feedback == null)
-                    {
-                        return;
-                    }
+                    if (feedback == null) return;
 
                     RoutingInputPort inPort =
                         InputPorts.FirstOrDefault(p =>
@@ -469,7 +436,7 @@ namespace PepperDash.Essentials.DM.Chassis
         {
             public HdMdNxM4kEControllerFactory()
             {
-                TypeNames = new List<string>() { "hdmd4x14ke", "hdmd4x24ke", "hdmd6x24ke" };
+                TypeNames = new List<string> { "hdmd4x14ke", "hdmd4x24ke", "hdmd6x24ke" };
             }
 
             public override EssentialsDevice BuildDevice(DeviceConfig dc)
@@ -485,13 +452,13 @@ namespace PepperDash.Essentials.DM.Chassis
 
                 switch (type)
                 {
-                    case ("hdmd4x14ke"):
+                    case "hdmd4x14ke":
                         return new HdMdNxM4kEBridgeableController(dc.Key, dc.Name,
                             new HdMd4x14kE(ipid, address, Global.ControlSystem), props);
-                    case ("hdmd4x24ke"):
+                    case "hdmd4x24ke":
                         return new HdMdNxM4kEBridgeableController(dc.Key, dc.Name,
                             new HdMd4x24kE(ipid, address, Global.ControlSystem), props);
-                    case ("hdmd6x24ke"):
+                    case "hdmd6x24ke":
                         return new HdMdNxM4kEBridgeableController(dc.Key, dc.Name,
                             new HdMd6x24kE(ipid, address, Global.ControlSystem), props);
                     default:

@@ -3,14 +3,14 @@ using System.Collections.Generic;
 using Crestron.SimplSharp;
 using Crestron.SimplSharpPro.DeviceSupport;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
-using PepperDash.Essentials.Core.Config;
-using PepperDash.Essentials.Core.Bridges;
-using PepperDash.Essentials.Core.Lighting;
-using LightingBase = PepperDash.Essentials.Core.Lighting.LightingBase;
+using LightingBase = UmdEssentials.Core.Lighting.LightingBase;
 using Crestron.SimplSharpPro.CrestronThread;
+using UmdEssentials.Core;
+using UmdEssentials.Core.Bridges;
+using UmdEssentials.Core.Config;
+using UmdEssentials.Core.Lighting;
 
-namespace PepperDash.Essentials.Devices.Common.Environment.NLight
+namespace UmdEssentials.Devices.Common.Environment.NLight
 {
     public class NLight : LightingBase, ICommunicationMonitor
     {
@@ -28,10 +28,7 @@ namespace PepperDash.Essentials.Devices.Common.Environment.NLight
             _CommandMutex = new CMutex();
             _readyForNextCommand = true;
 
-            if (props.Scenes != null)
-            {
-                LightingScenes = props.Scenes;
-            }
+            if (props.Scenes != null) LightingScenes = props.Scenes;
 
             Communication.BytesReceived += Communication_BytesReceived;
             CommunicationMonitor = new GenericCommunicationMonitor(this, Communication, 60000, 120000, 300000, Poll);
@@ -63,16 +60,11 @@ namespace PepperDash.Essentials.Devices.Common.Environment.NLight
             try
             {
                 if (args.Bytes.Length > 2)
-                {
                     if (args.Bytes[0] == 0xA5)
                     {
                         _readyForNextCommand = true;
-                        if (args.Bytes[2] == 0x0D)
-                        {
-                            Debug.Console(1, this, "Found poll response");
-                        }
+                        if (args.Bytes[2] == 0x0D) Debug.Console(1, this, "Found poll response");
                     }
-                }
             }
             catch (Exception ex)
             {
@@ -121,9 +113,7 @@ namespace PepperDash.Essentials.Devices.Common.Environment.NLight
         public override void SelectScene(LightingScene scene)
         {
             if (LightingScenes != null && LightingScenes.Exists(o => o.Name == scene.Name))
-            {
                 SelectScene((ushort)LightingScenes.FindIndex(o => o.Name == scene.Name));
-            }
         }
 
         /// <summary>
@@ -147,10 +137,7 @@ namespace PepperDash.Essentials.Devices.Common.Environment.NLight
                     else if (LightingScenes[scene].Levels != null && LightingScenes[scene].Levels.Length > 0)
                     {
                         Debug.Console(1, this, "Selecting Scene Levels");
-                        foreach (SceneLevel level in LightingScenes[scene].Levels)
-                        {
-                            SetLevel(level.Index, level.Level);
-                        }
+                        foreach (SceneLevel level in LightingScenes[scene].Levels) SetLevel(level.Index, level.Level);
                     }
                 }
             }
@@ -202,13 +189,9 @@ namespace PepperDash.Essentials.Devices.Common.Environment.NLight
 
                     //Now build the checksums
                     if (count % 2 == 0)
-                    {
                         checksum2 = checksum2 ^ data[count];
-                    }
                     else
-                    {
                         checksum1 = checksum1 ^ data[count];
-                    }
 
                     count++;
                 }
@@ -232,7 +215,6 @@ namespace PepperDash.Essentials.Devices.Common.Environment.NLight
             {
                 //Pace the commands sending out
                 while (_cmdQueue.Count > 0)
-                {
                     try
                     {
                         byte[] data = _cmdQueue.Dequeue();
@@ -250,14 +232,10 @@ namespace PepperDash.Essentials.Devices.Common.Environment.NLight
                             }
 
                             if (count >= 100)
-                            {
                                 Debug.Console(1, this, "ProcessQueue timed out waiting for next command");
-                            }
                             else
-                            {
                                 //Delay due to nLight not liking too fast paced commands
                                 Thread.Sleep(500);
-                            }
                         }
                     }
                     catch (Exception ex)
@@ -265,7 +243,6 @@ namespace PepperDash.Essentials.Devices.Common.Environment.NLight
                         Debug.Console(0, this, "Caught an exception in ProcessQueue {0}\r{1}\r{2}", ex.Message,
                             ex.InnerException, ex.StackTrace);
                     }
-                }
 
                 _CommandMutex.ReleaseMutex();
             }
@@ -360,7 +337,7 @@ namespace PepperDash.Essentials.Devices.Common.Environment.NLight
     {
         public NLightFactory()
         {
-            TypeNames = new List<string>() { "nlight" };
+            TypeNames = new List<string> { "nlight" };
         }
 
         public override EssentialsDevice BuildDevice(DeviceConfig dc)

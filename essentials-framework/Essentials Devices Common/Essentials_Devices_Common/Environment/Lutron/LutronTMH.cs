@@ -2,13 +2,13 @@
 using System.Linq;
 using Crestron.SimplSharpPro.DeviceSupport;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
-using PepperDash.Essentials.Core.Config;
-using PepperDash.Essentials.Core.Bridges;
-using PepperDash.Essentials.Core.Lighting;
-using LightingBase = PepperDash.Essentials.Core.Lighting.LightingBase;
+using UmdEssentials.Core;
+using UmdEssentials.Core.Bridges;
+using UmdEssentials.Core.Config;
+using UmdEssentials.Core.Lighting;
+using LightingBase = UmdEssentials.Core.Lighting.LightingBase;
 
-namespace PepperDash.Essentials.Devices.Common.Environment.Lutron
+namespace UmdEssentials.Devices.Common.Environment.Lutron
 {
     public class LutronTMH : LightingBase
     {
@@ -35,10 +35,7 @@ namespace PepperDash.Essentials.Devices.Common.Environment.Lutron
             Communication = comm;
             _props = props;
 
-            if (props.Scenes != null)
-            {
-                LightingScenes = props.Scenes;
-            }
+            if (props.Scenes != null) LightingScenes = props.Scenes;
 
             comm.BytesReceived += CommOnBytesReceived;
         }
@@ -47,13 +44,9 @@ namespace PepperDash.Essentials.Devices.Common.Environment.Lutron
         {
             Debug.Console(1, this, "Rx: '{0}'", ComTextHelper.GetEscapedText(e.Bytes));
             if (e.Bytes == presetFeedback)
-            {
                 CurrentLightingScene = LightingScenes.FirstOrDefault(s => s.ID.Equals(_lastRecalledScene));
-            }
             else if (e.Bytes == offFeedback)
-            {
                 CurrentLightingScene = LightingScenes.FirstOrDefault(s => s.ID.Equals("0"));
-            }
         }
 
         public override bool CustomActivate()
@@ -79,9 +72,7 @@ namespace PepperDash.Essentials.Devices.Common.Environment.Lutron
         public override void SelectScene(LightingScene scene)
         {
             if (LightingScenes != null && LightingScenes.Exists(o => o.ID == scene.ID))
-            {
                 SelectScene((ushort)LightingScenes.FindIndex(o => o.ID == scene.ID));
-            }
         }
 
         /// <summary>
@@ -92,14 +83,12 @@ namespace PepperDash.Essentials.Devices.Common.Environment.Lutron
         public void SelectScene(ushort scene)
         {
             if (LightingScenes != null && LightingScenes[scene] != null && LightingScenes[scene].ID != null)
-            {
                 if (scene <= 10)
                 {
                     Debug.Console(1, this, "Selecting Scene: '{0}'", LightingScenes[scene].ID);
                     _lastRecalledScene = LightingScenes[scene].ID;
                     Communication.SendBytes(presets[int.Parse(LightingScenes[scene].ID)]);
                 }
-            }
         }
     }
 
@@ -107,7 +96,7 @@ namespace PepperDash.Essentials.Devices.Common.Environment.Lutron
     {
         public LutronTMHFactory()
         {
-            TypeNames = new List<string>() { "lutrontmh" };
+            TypeNames = new List<string> { "lutrontmh" };
         }
 
         public override EssentialsDevice BuildDevice(DeviceConfig dc)

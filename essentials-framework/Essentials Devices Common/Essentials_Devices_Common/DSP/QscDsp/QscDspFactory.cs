@@ -1,16 +1,16 @@
 ﻿using System.Collections.Generic;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
-using PepperDash.Essentials.Core.Config;
+using UmdEssentials.Core;
+using UmdEssentials.Core.Config;
 
-namespace PepperDash.Essentials.Devices.Common.DSP.QscDsp
+namespace UmdEssentials.Devices.Common.DSP.QscDsp
 {
     public class QscDspFactory : EssentialsPluginDeviceFactory<QscDsp>
     {
         public QscDspFactory()
         {
             // In the constructor we initialize the list with the typenames that will build an instance of this device
-            TypeNames = new List<string>() { "qscdsp" };
+            TypeNames = new List<string> { "qscdsp" };
         }
 
         /// <summary>

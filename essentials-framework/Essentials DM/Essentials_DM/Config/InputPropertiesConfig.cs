@@ -1,4 +1,4 @@
-﻿namespace PepperDash.Essentials.DM.Config
+﻿namespace UmdEssentials.DM.Config
 {
     public class InputPropertiesConfig
     {

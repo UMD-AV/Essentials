@@ -1,6 +1,6 @@
 ﻿using System;
-using PepperDash.Essentials.Core;
-using PepperDash.Essentials.Devices.Common.Codec;
+using UmdEssentials.Core;
+using UmdEssentials.Devices.Common.Codec;
 
 namespace ExtronDmp
 {
@@ -474,10 +474,7 @@ namespace ExtronDmp
                         break;
                     case EKeypadKeys.Backspace:
                     {
-                        if (DialString.Length > 0)
-                        {
-                            DialString = DialString.Remove(DialString.Length - 1, 1);
-                        }
+                        if (DialString.Length > 0) DialString = DialString.Remove(DialString.Length - 1, 1);
 
                         break;
                     }
@@ -519,13 +516,9 @@ namespace ExtronDmp
         public void Dial()
         {
             if (!OffHook)
-            {
                 SendDialerCommand("DIAL", DialString);
-            }
             else
-            {
                 SendDialerCommand("END");
-            }
         }
 
         /// <summary>

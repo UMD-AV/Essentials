@@ -3,10 +3,10 @@ using Crestron.SimplSharpPro;
 using Crestron.SimplSharpPro.DeviceSupport;
 using Crestron.SimplSharpPro.GeneralIO;
 using PepperDash.Core;
-using PepperDash.Essentials.Core.Config;
+using UmdEssentials.Core.Config;
 
 
-namespace PepperDash.Essentials.Core
+namespace UmdEssentials.Core
 {
     public class DinCenCn2Controller : CrestronGenericBaseDevice, IHasCresnetBranches
     {
@@ -27,7 +27,7 @@ namespace PepperDash.Essentials.Core
         {
             public DinCenCn2ControllerFactory()
             {
-                TypeNames = new List<string>() { "dincencn2", "dincencn2poe", "din-cencn2", "din-cencn2-poe" };
+                TypeNames = new List<string> { "dincencn2", "dincencn2poe", "din-cencn2", "din-cencn2-poe" };
             }
 
             public override EssentialsDevice BuildDevice(DeviceConfig dc)
@@ -38,9 +38,7 @@ namespace PepperDash.Essentials.Core
                 uint ipid = control.IpIdInt;
 
                 if (dc.Type.ToLower().Contains("poe"))
-                {
                     return new DinCenCn2Controller(dc.Key, dc.Name, new DinCenCn2Poe(ipid, Global.ControlSystem), dc);
-                }
 
                 return new DinCenCn2Controller(dc.Key, dc.Name, new DinCenCn2(ipid, Global.ControlSystem), dc);
             }

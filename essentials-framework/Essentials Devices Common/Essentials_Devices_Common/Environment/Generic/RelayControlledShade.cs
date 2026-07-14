@@ -2,15 +2,15 @@
 using System.Collections.Generic;
 using Crestron.SimplSharpPro.DeviceSupport;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
-using PepperDash.Essentials.Core.Config;
-using PepperDash.Essentials.Core.CrestronIO;
-using PepperDash.Essentials.Core.Shades;
-using PepperDash.Essentials.Core.Bridges;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using UmdEssentials.Core;
+using UmdEssentials.Core.Bridges;
+using UmdEssentials.Core.Config;
+using UmdEssentials.Core.CrestronIO;
+using UmdEssentials.Core.Shades;
 
-namespace PepperDash.Essentials.Devices.Common.Environment
+namespace UmdEssentials.Devices.Common.Environment
 {
     /// <summary>
     /// Controls a single shade using three relays
@@ -39,31 +39,20 @@ namespace PepperDash.Essentials.Devices.Common.Environment
             foreach (string x in Config.OpenRelay)
             {
                 GenericRelayDevice relay = DeviceManager.GetDeviceForKey(x) as GenericRelayDevice;
-                if (relay != null)
-                {
-                    OpenShadesRelays.Add(relay);
-                }
+                if (relay != null) OpenShadesRelays.Add(relay);
             }
 
             if (Config.StopRelay != null)
-            {
                 foreach (string x in Config.StopRelay)
                 {
                     GenericRelayDevice relay = DeviceManager.GetDeviceForKey(x) as GenericRelayDevice;
-                    if (relay != null)
-                    {
-                        StopShadesRelays.Add(relay);
-                    }
+                    if (relay != null) StopShadesRelays.Add(relay);
                 }
-            }
 
             foreach (string x in Config.CloseRelay)
             {
                 GenericRelayDevice relay = DeviceManager.GetDeviceForKey(x) as GenericRelayDevice;
-                if (relay != null)
-                {
-                    CloseShadesRelays.Add(relay);
-                }
+                if (relay != null) CloseShadesRelays.Add(relay);
             }
 
             return base.CustomActivate();
@@ -76,13 +65,9 @@ namespace PepperDash.Essentials.Devices.Common.Environment
             trilist.StringInput[joinMap.ShadesOpenName.JoinNumber].StringValue = OpenShadesRelays[0].Name;
             trilist.StringInput[joinMap.ShadesCloseName.JoinNumber].StringValue = CloseShadesRelays[0].Name;
             if (Config.StopLabel != null)
-            {
                 trilist.StringInput[joinMap.ShadesStopName.JoinNumber].StringValue = Config.StopLabel;
-            }
             else if (StopShadesRelays.Count > 0)
-            {
                 trilist.StringInput[joinMap.ShadesStopName.JoinNumber].StringValue = StopShadesRelays[0].Name;
-            }
 
             trilist.SetSigTrueAction(joinMap.ShadesOpen.JoinNumber, Open);
             trilist.SetSigTrueAction(joinMap.ShadesClose.JoinNumber, Close);
@@ -93,24 +78,14 @@ namespace PepperDash.Essentials.Devices.Common.Environment
         {
             Debug.Console(1, this, "Opening Shade: '{0}'", Name);
             //Stop close
-            foreach (GenericRelayDevice relay in CloseShadesRelays)
-            {
-                relay.StopPulse();
-            }
+            foreach (GenericRelayDevice relay in CloseShadesRelays) relay.StopPulse();
 
             //Stop
             if (StopShadesRelays.Count > 0)
-            {
                 foreach (GenericRelayDevice relay in StopShadesRelays)
-                {
                     relay.StopPulse();
-                }
-            }
 
-            foreach (GenericRelayDevice relay in OpenShadesRelays)
-            {
-                relay.PulseRelay();
-            }
+            foreach (GenericRelayDevice relay in OpenShadesRelays) relay.PulseRelay();
         }
 
         public void Stop()
@@ -118,35 +93,19 @@ namespace PepperDash.Essentials.Devices.Common.Environment
             Debug.Console(1, this, "Stopping Shade: '{0}'", Name);
             if (Config.UseOpenCloseForStop)
             {
-                foreach (GenericRelayDevice relay in OpenShadesRelays)
-                {
-                    relay.PulseRelay();
-                }
+                foreach (GenericRelayDevice relay in OpenShadesRelays) relay.PulseRelay();
 
-                foreach (GenericRelayDevice relay in CloseShadesRelays)
-                {
-                    relay.PulseRelay();
-                }
+                foreach (GenericRelayDevice relay in CloseShadesRelays) relay.PulseRelay();
             }
             else
             {
-                foreach (GenericRelayDevice relay in OpenShadesRelays)
-                {
-                    relay.StopPulse();
-                }
+                foreach (GenericRelayDevice relay in OpenShadesRelays) relay.StopPulse();
 
-                foreach (GenericRelayDevice relay in CloseShadesRelays)
-                {
-                    relay.StopPulse();
-                }
+                foreach (GenericRelayDevice relay in CloseShadesRelays) relay.StopPulse();
 
                 if (StopShadesRelays.Count > 0)
-                {
                     foreach (GenericRelayDevice relay in StopShadesRelays)
-                    {
                         relay.PulseRelay();
-                    }
-                }
             }
         }
 
@@ -154,24 +113,14 @@ namespace PepperDash.Essentials.Devices.Common.Environment
         {
             Debug.Console(1, this, "Closing Shade: '{0}'", Name);
             //Stop open
-            foreach (GenericRelayDevice relay in OpenShadesRelays)
-            {
-                relay.StopPulse();
-            }
+            foreach (GenericRelayDevice relay in OpenShadesRelays) relay.StopPulse();
 
             //Stop
             if (StopShadesRelays.Count > 0)
-            {
                 foreach (GenericRelayDevice relay in StopShadesRelays)
-                {
                     relay.StopPulse();
-                }
-            }
 
-            foreach (GenericRelayDevice relay in CloseShadesRelays)
-            {
-                relay.PulseRelay();
-            }
+            foreach (GenericRelayDevice relay in CloseShadesRelays) relay.PulseRelay();
         }
     }
 
@@ -179,17 +128,14 @@ namespace PepperDash.Essentials.Devices.Common.Environment
     {
         public override bool CanConvert(Type objecType)
         {
-            return (objecType == typeof(List<T>));
+            return objecType == typeof(List<T>);
         }
 
         public override object ReadJson(JsonReader reader, Type objecType, object existingValue,
             JsonSerializer serializer)
         {
             JToken token = JToken.Load(reader);
-            if (token.Type == JTokenType.Array)
-            {
-                return token.ToObject<List<T>>();
-            }
+            if (token.Type == JTokenType.Array) return token.ToObject<List<T>>();
 
             return new List<T> { token.ToObject<T>() };
         }
@@ -227,7 +173,7 @@ namespace PepperDash.Essentials.Devices.Common.Environment
     {
         public RelayControlledShadeFactory()
         {
-            TypeNames = new List<string>() { "relaycontrolledshade" };
+            TypeNames = new List<string> { "relaycontrolledshade" };
         }
 
         public override EssentialsDevice BuildDevice(DeviceConfig dc)

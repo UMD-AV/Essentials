@@ -1,7 +1,7 @@
 ﻿using PepperDash.Core;
-using PepperDash.Essentials.Core;
+using UmdEssentials.Core;
 
-namespace PepperDash.Essentials.Devices.Displays.SharpDisplay
+namespace UmdEssentials.Devices.Displays.SharpDisplay
 {
     public class SharpCommunicationMonitor : StatusMonitorBase
     {

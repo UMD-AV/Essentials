@@ -2,11 +2,11 @@
 using Crestron.SimplSharpPro.DeviceSupport;
 using Newtonsoft.Json;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
+using UmdEssentials.Core;
 using System.Text.RegularExpressions;
-using PepperDash.Essentials.Core.Bridges;
+using UmdEssentials.Core.Bridges;
 using Tesira_DSP_EPI.Bridge.JoinMaps;
-using Feedback = PepperDash.Essentials.Core.Feedback;
+using Feedback = UmdEssentials.Core.Feedback;
 
 namespace Tesira_DSP_EPI
 {
@@ -107,10 +107,7 @@ namespace Tesira_DSP_EPI
 
         private void FireFeedbacks()
         {
-            foreach (Feedback feedback in Feedbacks)
-            {
-                feedback.FireUpdate();
-            }
+            foreach (Feedback feedback in Feedbacks) feedback.FireUpdate();
         }
 
         /// <summary>
@@ -185,13 +182,8 @@ namespace Tesira_DSP_EPI
         {
             Debug.Console(2, this, "StateToggle sent to {0}", Key);
             if (_state)
-            {
                 SendFullCommand("set", "state", "false", 1);
-            }
-            else if (!_state)
-            {
-                SendFullCommand("set", "state", "true", 1);
-            }
+            else if (!_state) SendFullCommand("set", "state", "true", 1);
 
             GetState();
         }
@@ -205,10 +197,7 @@ namespace Tesira_DSP_EPI
             if (!string.IsNullOrEmpty(joinMapSerialized))
                 joinMap = JsonConvert.DeserializeObject<TesiraStateJoinMapAdvancedStandalone>(joinMapSerialized);
 
-            if (bridge != null)
-            {
-                bridge.AddJoinMap(Key, joinMap);
-            }
+            if (bridge != null) bridge.AddJoinMap(Key, joinMap);
 
             if (!Enabled) return;
 
@@ -227,10 +216,7 @@ namespace Tesira_DSP_EPI
             {
                 if (!args.DeviceOnLine) return;
 
-                foreach (Feedback feedback in Feedbacks)
-                {
-                    feedback.FireUpdate();
-                }
+                foreach (Feedback feedback in Feedbacks) feedback.FireUpdate();
             };
         }
 

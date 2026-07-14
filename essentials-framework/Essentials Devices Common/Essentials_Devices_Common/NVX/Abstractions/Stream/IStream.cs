@@ -1,5 +1,5 @@
 ﻿using NvxEpi.Abstractions.Device;
-using PepperDash.Essentials.Core;
+using UmdEssentials.Core;
 
 namespace NvxEpi.Abstractions.Stream
 {

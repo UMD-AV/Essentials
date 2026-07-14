@@ -1,5 +1,5 @@
 ﻿using NvxEpi.Abstractions.Dante;
-using PepperDash.Essentials.Core;
+using UmdEssentials.Core;
 
 namespace NvxEpi.Abstractions.InputSwitching
 {

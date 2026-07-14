@@ -1,5 +1,5 @@
-﻿using PepperDash.Essentials.Core;
-using PepperDash.Essentials.DM;
+﻿using UmdEssentials.Core;
+using UmdEssentials.DM;
 
 namespace NvxEpi.Abstractions.HdmiOutput
 {

@@ -1,4 +1,4 @@
-﻿namespace PepperDash.Essentials.Devices.Common.DSP.QscDsp
+﻿namespace UmdEssentials.Devices.Common.DSP.QscDsp
 {
     public abstract class QscDspControlPoint : DspControlPoint
     {

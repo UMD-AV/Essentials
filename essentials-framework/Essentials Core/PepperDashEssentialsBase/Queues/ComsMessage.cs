@@ -1,7 +1,7 @@
 ﻿using System;
 using PepperDash.Core;
 
-namespace PepperDash.Essentials.Core.Queues
+namespace UmdEssentials.Core.Queues
 {
     /// <summary>
     /// IBasicCommunication Message for IQueue
@@ -53,13 +53,9 @@ namespace PepperDash.Essentials.Core.Queues
         public void Dispatch()
         {
             if (_isByteMessage)
-            {
                 _coms.SendBytes(_bytes);
-            }
             else
-            {
                 _coms.SendText(_string);
-            }
         }
 
         /// <summary>
@@ -125,13 +121,9 @@ namespace PepperDash_Essentials_Core.Queues
         public void Dispatch()
         {
             if (_isByteMessage)
-            {
                 _coms.SendBytes(_bytes);
-            }
             else
-            {
                 _coms.SendText(_string);
-            }
         }
 
         /// <summary>

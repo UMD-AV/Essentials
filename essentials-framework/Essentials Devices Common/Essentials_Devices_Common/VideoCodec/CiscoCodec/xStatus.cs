@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using PepperDash.Core;
-using PepperDash.Essentials.Core.Presets;
+using UmdEssentials.Core.Presets;
 
-namespace PepperDash.Essentials.Devices.Common.VideoCodec.Cisco
+namespace UmdEssentials.Devices.Common.VideoCodec.Cisco
 {
     // Helper Classes for Proerties
     public abstract class ValueProperty
@@ -262,9 +262,7 @@ namespace PepperDash.Essentials.Devices.Common.VideoCodec.Cisco
                 get
                 {
                     if (!string.IsNullOrEmpty(Value))
-                    {
                         return Convert.ToUInt16(Value);
-                    }
                     else
                         return -1;
                 }

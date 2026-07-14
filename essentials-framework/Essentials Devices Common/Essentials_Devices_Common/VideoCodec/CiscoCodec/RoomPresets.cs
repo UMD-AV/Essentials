@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using PepperDash.Essentials.Core.Presets;
+using UmdEssentials.Core.Presets;
 
-namespace PepperDash.Essentials.Devices.Common.VideoCodec
+namespace UmdEssentials.Devices.Common.VideoCodec
 {
     /// <summary>
     /// Interface for camera presets

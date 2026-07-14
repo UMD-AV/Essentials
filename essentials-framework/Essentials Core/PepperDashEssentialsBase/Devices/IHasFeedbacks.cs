@@ -3,7 +3,7 @@ using System.Linq;
 using Crestron.SimplSharp.Reflection;
 using PepperDash.Core;
 
-namespace PepperDash.Essentials.Core
+namespace UmdEssentials.Core
 {
     public interface IHasFeedback : IKeyed
     {
@@ -51,11 +51,13 @@ namespace PepperDash.Essentials.Core
                     }
 
                     Debug.Console(0, "{0,-12} {1, -25} {2}", type,
-                        (string.IsNullOrEmpty(f.Key) ? "-no key-" : f.Key), val);
+                        string.IsNullOrEmpty(f.Key) ? "-no key-" : f.Key, val);
                 }
             }
             else
+            {
                 Debug.Console(0, source, "No available outputs:");
+            }
         }
     }
 }

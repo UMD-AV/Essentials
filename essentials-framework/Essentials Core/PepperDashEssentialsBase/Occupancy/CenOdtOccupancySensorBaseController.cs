@@ -5,10 +5,10 @@ using Crestron.SimplSharpPro.DeviceSupport;
 using Crestron.SimplSharpPro.GeneralIO;
 using Newtonsoft.Json;
 using PepperDash.Core;
-using PepperDash.Essentials.Core.Config;
-using PepperDash.Essentials.Core.Bridges;
+using UmdEssentials.Core.Bridges;
+using UmdEssentials.Core.Config;
 
-namespace PepperDash.Essentials.Core
+namespace UmdEssentials.Core
 {
     [Description("Wrapper class for CEN-ODT-C-POE")]
     [ConfigSnippet(
@@ -140,16 +140,10 @@ namespace PepperDash.Essentials.Core
             {
                 OccSensor.OnlineStatusChange += (o, a) =>
                 {
-                    if (a.DeviceOnLine)
-                    {
-                        ApplySettingsToSensorFromConfig();
-                    }
+                    if (a.DeviceOnLine) ApplySettingsToSensorFromConfig();
                 };
 
-                if (OccSensor.IsOnline)
-                {
-                    ApplySettingsToSensorFromConfig();
-                }
+                if (OccSensor.IsOnline) ApplySettingsToSensorFromConfig();
             });
         }
 
@@ -160,76 +154,42 @@ namespace PepperDash.Essentials.Core
         {
             Debug.Console(1, this, "Checking config for settings to apply");
 
-            if (PropertiesConfig.EnablePir != null)
-            {
-                SetPirEnable((bool)PropertiesConfig.EnablePir);
-            }
+            if (PropertiesConfig.EnablePir != null) SetPirEnable((bool)PropertiesConfig.EnablePir);
 
-            if (PropertiesConfig.EnableLedFlash != null)
-            {
-                SetLedFlashEnable((bool)PropertiesConfig.EnableLedFlash);
-            }
+            if (PropertiesConfig.EnableLedFlash != null) SetLedFlashEnable((bool)PropertiesConfig.EnableLedFlash);
 
-            if (PropertiesConfig.RemoteTimeout != null)
-            {
-                SetRemoteTimeout((ushort)PropertiesConfig.RemoteTimeout);
-            }
+            if (PropertiesConfig.RemoteTimeout != null) SetRemoteTimeout((ushort)PropertiesConfig.RemoteTimeout);
 
             if (PropertiesConfig.ShortTimeoutState != null)
-            {
                 SetShortTimeoutState((bool)PropertiesConfig.ShortTimeoutState);
-            }
 
-            if (PropertiesConfig.EnableRawStates != null)
-            {
-                EnableRawStates((bool)PropertiesConfig.EnableRawStates);
-            }
+            if (PropertiesConfig.EnableRawStates != null) EnableRawStates((bool)PropertiesConfig.EnableRawStates);
 
             if (PropertiesConfig.InternalPhotoSensorMinChange != null)
-            {
                 SetInternalPhotoSensorMinChange((ushort)PropertiesConfig.InternalPhotoSensorMinChange);
-            }
 
-            if (PropertiesConfig.EnableUsA != null)
-            {
-                SetUsAEnable((bool)PropertiesConfig.EnableUsA);
-            }
+            if (PropertiesConfig.EnableUsA != null) SetUsAEnable((bool)PropertiesConfig.EnableUsA);
 
-            if (PropertiesConfig.EnableUsB != null)
-            {
-                SetUsBEnable((bool)PropertiesConfig.EnableUsB);
-            }
+            if (PropertiesConfig.EnableUsB != null) SetUsBEnable((bool)PropertiesConfig.EnableUsB);
 
             if (PropertiesConfig.OrWhenVacatedState != null)
-            {
                 SetOrWhenVacatedState((bool)PropertiesConfig.OrWhenVacatedState);
-            }
 
             if (PropertiesConfig.AndWhenVacatedState != null)
-            {
                 SetAndWhenVacatedState((bool)PropertiesConfig.AndWhenVacatedState);
-            }
 
             // TODO [ ] feature/cenoodtcpoe-sensor-sensitivity-configuration
             if (PropertiesConfig.UsSensitivityOccupied != null)
-            {
                 SetUsSensitivityOccupied((ushort)PropertiesConfig.UsSensitivityOccupied);
-            }
 
             if (PropertiesConfig.UsSensitivityVacant != null)
-            {
                 SetUsSensitivityVacant((ushort)PropertiesConfig.UsSensitivityVacant);
-            }
 
             if (PropertiesConfig.PirSensitivityOccupied != null)
-            {
                 SetPirSensitivityOccupied((ushort)PropertiesConfig.PirSensitivityOccupied);
-            }
 
             if (PropertiesConfig.PirSensitivityVacant != null)
-            {
                 SetPirSensitivityVacant((ushort)PropertiesConfig.PirSensitivityVacant);
-            }
         }
 
         /// <summary>
@@ -260,36 +220,60 @@ namespace PepperDash.Essentials.Core
         {
             Debug.Console(2, this, "PoEOccupancySensorChange  EventId: {0}", args.EventId);
 
-            if (args.EventId == Crestron.SimplSharpPro.GeneralIO.GlsOccupancySensorBase.RoomOccupiedFeedbackEventId
-                || args.EventId == Crestron.SimplSharpPro.GeneralIO.GlsOccupancySensorBase.RoomVacantFeedbackEventId)
+            if (args.EventId == GlsOccupancySensorBase.RoomOccupiedFeedbackEventId
+                || args.EventId == GlsOccupancySensorBase.RoomVacantFeedbackEventId)
             {
                 Debug.Console(1, this, "Occupancy State: {0}", OccSensor.OccupancyDetectedFeedback.BoolValue);
                 RoomIsOccupiedFeedback.FireUpdate();
             }
             else if (args.EventId == GlsOccupancySensorBase.TimeoutFeedbackEventId)
+            {
                 CurrentTimeoutFeedback.FireUpdate();
+            }
             else if (args.EventId == GlsOccupancySensorBase.TimeoutLocalFeedbackEventId)
+            {
                 RemoteTimeoutFeedback.FireUpdate();
+            }
             else if (args.EventId == GlsOccupancySensorBase.GraceOccupancyDetectedFeedbackEventId)
+            {
                 GraceOccupancyDetectedFeedback.FireUpdate();
+            }
             else if (args.EventId == GlsOccupancySensorBase.RawOccupancyFeedbackEventId)
+            {
                 RawOccupancyFeedback.FireUpdate();
+            }
             else if (args.EventId == GlsOccupancySensorBase.InternalPhotoSensorValueFeedbackEventId)
+            {
                 InternalPhotoSensorValue.FireUpdate();
+            }
             else if (args.EventId == GlsOccupancySensorBase.ExternalPhotoSensorValueFeedbackEventId)
+            {
                 ExternalPhotoSensorValue.FireUpdate();
+            }
             else if (args.EventId == GlsOccupancySensorBase.AndWhenVacatedFeedbackEventId)
+            {
                 AndWhenVacatedFeedback.FireUpdate();
+            }
             else if (args.EventId == GlsOccupancySensorBase.OrWhenVacatedFeedbackEventId)
+            {
                 OrWhenVacatedFeedback.FireUpdate();
+            }
             else if (args.EventId == GlsOccupancySensorBase.UsAEnabledFeedbackEventId)
+            {
                 UltrasonicAEnabledFeedback.FireUpdate();
+            }
             else if (args.EventId == GlsOccupancySensorBase.UsBEnabledFeedbackEventId)
+            {
                 UltrasonicBEnabledFeedback.FireUpdate();
+            }
             else if (args.EventId == GlsOccupancySensorBase.UsSensitivityInOccupiedStateFeedbackEventId)
+            {
                 UltrasonicSensitivityInOccupiedStateFeedback.FireUpdate();
+            }
             else if (args.EventId == GlsOccupancySensorBase.UsSensitivityInVacantStateFeedbackEventId)
+            {
                 UltrasonicSensitivityInVacantStateFeedback.FireUpdate();
+            }
         }
 
         public void SetTestMode(bool mode)
@@ -302,7 +286,9 @@ namespace PepperDash.Essentials.Core
         public void SetTestOccupiedState(bool state)
         {
             if (!InTestMode)
+            {
                 Debug.Console(1, "Mock mode not enabled");
+            }
             else
             {
                 TestRoomIsOccupiedFeedback = state;
@@ -332,13 +318,9 @@ namespace PepperDash.Essentials.Core
         public void SetPirEnable(bool state)
         {
             if (state)
-            {
                 OccSensor.EnablePassiveInfraredSensor();
-            }
             else
-            {
                 OccSensor.DisablePassiveInfraredSensor();
-            }
         }
 
         /// <summary>
@@ -348,13 +330,9 @@ namespace PepperDash.Essentials.Core
         public void SetLedFlashEnable(bool state)
         {
             if (state)
-            {
                 OccSensor.EnableLedFlash();
-            }
             else
-            {
                 OccSensor.DisableLedFlash();
-            }
         }
 
         /// <summary>
@@ -364,117 +342,85 @@ namespace PepperDash.Essentials.Core
         public void SetShortTimeoutState(bool state)
         {
             if (state)
-            {
                 OccSensor.EnableShortTimeout();
-            }
             else
-            {
                 OccSensor.DisableShortTimeout();
-            }
         }
 
         public void IncrementPirSensitivityInOccupiedState(bool pressRelease)
         {
             if ((int)OccSensor.PassiveInfraredSensorSensitivityInOccupiedStateFeedback != 3)
-            {
                 OccSensor.PassiveInfraredSensorSensitivityInOccupiedState =
                     OccSensor.PassiveInfraredSensorSensitivityInOccupiedStateFeedback + 1;
-            }
         }
 
         public void DecrementPirSensitivityInOccupiedState(bool pressRelease)
         {
             if ((int)OccSensor.PassiveInfraredSensorSensitivityInOccupiedStateFeedback != 0)
-            {
                 OccSensor.PassiveInfraredSensorSensitivityInOccupiedState =
                     OccSensor.PassiveInfraredSensorSensitivityInOccupiedStateFeedback - 1;
-            }
         }
 
         public void IncrementPirSensitivityInVacantState(bool pressRelease)
         {
             if ((int)OccSensor.PassiveInfraredSensorSensitivityInVacantStateFeedback != 3)
-            {
                 OccSensor.PassiveInfraredSensorSensitivityInVacantState =
                     OccSensor.PassiveInfraredSensorSensitivityInVacantStateFeedback + 1;
-            }
         }
 
         public void DecrementPirSensitivityInVacantState(bool pressRelease)
         {
             if ((int)OccSensor.PassiveInfraredSensorSensitivityInVacantStateFeedback != 0)
-            {
                 OccSensor.PassiveInfraredSensorSensitivityInVacantState =
                     OccSensor.PassiveInfraredSensorSensitivityInVacantStateFeedback - 1;
-            }
         }
 
         public void IncrementUsSensitivityInOccupiedState(bool pressRelease)
         {
             if ((int)OccSensor.UltrasonicSensorSensitivityInOccupiedStateFeedback < 3)
-            {
                 OccSensor.UltrasonicSensorSensitivityInOccupiedState =
                     OccSensor.UltrasonicSensorSensitivityInOccupiedStateFeedback + 1;
-            }
             else if ((int)OccSensor.UltrasonicSensorSensitivityInOccupiedStateFeedback > 4)
-            {
                 OccSensor.UltrasonicSensorSensitivityInOccupiedState =
                     OccSensor.UltrasonicSensorSensitivityInOccupiedStateFeedback - 1;
-            }
             else if ((int)OccSensor.UltrasonicSensorSensitivityInOccupiedStateFeedback == 4)
-            {
                 OccSensor.UltrasonicSensorSensitivityInOccupiedState = 0;
-            }
         }
 
         public void DecrementUsSensitivityInOccupiedState(bool pressRelease)
         {
             if ((int)OccSensor.UltrasonicSensorSensitivityInOccupiedStateFeedback > 0
                 && (int)OccSensor.UltrasonicSensorSensitivityInOccupiedStateFeedback < 4)
-            {
                 OccSensor.UltrasonicSensorSensitivityInOccupiedState =
                     OccSensor.UltrasonicSensorSensitivityInOccupiedStateFeedback - 1;
-            }
             else if ((int)OccSensor.UltrasonicSensorSensitivityInOccupiedStateFeedback > 3
                      && (int)OccSensor.UltrasonicSensorSensitivityInOccupiedStateFeedback < 7)
-            {
                 OccSensor.UltrasonicSensorSensitivityInOccupiedState =
                     OccSensor.UltrasonicSensorSensitivityInOccupiedStateFeedback + 1;
-            }
         }
 
         public void IncrementUsSensitivityInVacantState(bool pressRelease)
         {
             if ((int)OccSensor.UltrasonicSensorSensitivityInVacantStateFeedback < 3)
-            {
                 OccSensor.UltrasonicSensorSensitivityInVacantState =
                     OccSensor.UltrasonicSensorSensitivityInVacantStateFeedback + 1;
-            }
             else if ((int)OccSensor.UltrasonicSensorSensitivityInVacantStateFeedback > 4)
-            {
                 OccSensor.UltrasonicSensorSensitivityInVacantState =
                     OccSensor.UltrasonicSensorSensitivityInVacantStateFeedback - 1;
-            }
             else if ((int)OccSensor.UltrasonicSensorSensitivityInVacantStateFeedback == 4)
-            {
                 OccSensor.UltrasonicSensorSensitivityInVacantState = 0;
-            }
         }
 
         public void DecrementUsSensitivityInVacantState(bool pressRelease)
         {
             if ((int)OccSensor.UltrasonicSensorSensitivityInVacantStateFeedback > 0
                 && (int)OccSensor.UltrasonicSensorSensitivityInVacantStateFeedback < 4)
-            {
                 OccSensor.UltrasonicSensorSensitivityInVacantState =
                     OccSensor.UltrasonicSensorSensitivityInVacantStateFeedback - 1;
-            }
             else if ((int)OccSensor.UltrasonicSensorSensitivityInVacantStateFeedback > 3
                      && (int)OccSensor.UltrasonicSensorSensitivityInVacantStateFeedback < 7)
-            {
                 OccSensor.UltrasonicSensorSensitivityInVacantState =
                     OccSensor.UltrasonicSensorSensitivityInVacantStateFeedback + 1;
-            }
         }
 
         public void ForceOccupied()
@@ -490,9 +436,7 @@ namespace PepperDash.Essentials.Core
         public void EnableRawStates(bool state)
         {
             if (state)
-            {
                 OccSensor.EnableRawStates();
-            }
             else
                 OccSensor.DisableRawStates();
         }
@@ -513,10 +457,7 @@ namespace PepperDash.Essentials.Core
         /// <param name="state"></param>
         public void SetOrWhenVacatedState(bool state)
         {
-            if (state)
-            {
-                OccSensor.OrWhenVacated();
-            }
+            if (state) OccSensor.OrWhenVacated();
         }
 
         /// <summary>
@@ -525,10 +466,7 @@ namespace PepperDash.Essentials.Core
         /// <param name="state"></param>
         public void SetAndWhenVacatedState(bool state)
         {
-            if (state)
-            {
-                OccSensor.AndWhenVacated();
-            }
+            if (state) OccSensor.AndWhenVacated();
         }
 
         /// <summary>
@@ -538,13 +476,9 @@ namespace PepperDash.Essentials.Core
         public void SetUsAEnable(bool state)
         {
             if (state)
-            {
                 OccSensor.EnableUltrasonicSensorSideA();
-            }
             else
-            {
                 OccSensor.DisableUltrasonicSensorSideA();
-            }
         }
 
 
@@ -555,13 +489,9 @@ namespace PepperDash.Essentials.Core
         public void SetUsBEnable(bool state)
         {
             if (state)
-            {
                 OccSensor.EnableUltrasonicSensorSideB();
-            }
             else
-            {
                 OccSensor.DisableUltrasonicSensorSideB();
-            }
         }
 
         /// <summary>
@@ -663,14 +593,10 @@ namespace PepperDash.Essentials.Core
                 joinMap = JsonConvert.DeserializeObject<CenOdtOccupancySensorBaseJoinMap>(joinMapSerialized);
 
             if (bridge != null)
-            {
                 bridge.AddJoinMap(Key, joinMap);
-            }
             else
-            {
                 Debug.Console(0, this,
                     "Please update config to use 'eiscapiadvanced' to get all join map features for this device.");
-            }
 
             Debug.Console(1, occController, "Linking to Trilist '{0}'", trilist.ID.ToString("X"));
 
@@ -680,9 +606,7 @@ namespace PepperDash.Essentials.Core
             trilist.OnlineStatusChange += new Crestron.SimplSharpPro.OnlineStatusChangeEventHandler((d, args) =>
                 {
                     if (args.DeviceOnLine)
-                    {
                         trilist.StringInput[joinMap.Name.JoinNumber].StringValue = occController.Name;
-                    }
                 }
             );
 
@@ -798,7 +722,7 @@ namespace PepperDash.Essentials.Core
         {
             public CenOdtOccupancySensorBaseControllerFactory()
             {
-                TypeNames = new List<string>() { "cenodtcpoe", "cenodtocc" };
+                TypeNames = new List<string> { "cenodtcpoe", "cenodtocc" };
             }
 
             public override EssentialsDevice BuildDevice(DeviceConfig dc)

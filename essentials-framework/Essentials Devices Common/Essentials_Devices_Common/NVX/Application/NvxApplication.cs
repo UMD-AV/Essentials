@@ -14,8 +14,8 @@ using NvxEpi.Application.Services;
 using NvxEpi.Devices;
 using NvxEpi.Extensions;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
-using PepperDash.Essentials.Core.Bridges;
+using UmdEssentials.Core;
+using UmdEssentials.Core.Bridges;
 
 namespace NvxEpi.Application
 {

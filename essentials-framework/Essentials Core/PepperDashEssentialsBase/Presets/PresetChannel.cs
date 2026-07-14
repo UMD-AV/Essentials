@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using Newtonsoft.Json;
 
-namespace PepperDash.Essentials.Core.Presets
+namespace UmdEssentials.Core.Presets
 {
     public class PresetChannel
     {

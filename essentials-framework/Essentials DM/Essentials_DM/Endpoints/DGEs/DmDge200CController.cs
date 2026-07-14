@@ -2,11 +2,11 @@
 using Crestron.SimplSharpPro.UI;
 using Newtonsoft.Json;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
-using PepperDash.Essentials.Core.Config;
+using UmdEssentials.Core;
+using UmdEssentials.Core.Config;
 
 
-namespace PepperDash.Essentials.DM.Endpoints.DGEs
+namespace UmdEssentials.DM.Endpoints.DGEs
 {
     /// <summary>
     /// Wrapper class for DGE-100 and DM-DGE-200-C
@@ -47,7 +47,7 @@ namespace PepperDash.Essentials.DM.Endpoints.DGEs
         {
             public DmDge200CControllerFactory()
             {
-                TypeNames = new List<string>() { "dmdge200c" };
+                TypeNames = new List<string> { "dmdge200c" };
             }
 
             public override EssentialsDevice BuildDevice(DeviceConfig dc)

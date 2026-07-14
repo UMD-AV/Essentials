@@ -1,7 +1,7 @@
 ﻿using PepperDash.Core;
 using Newtonsoft.Json;
 
-namespace PepperDash.Essentials.DM.Endpoints.DGEs
+namespace UmdEssentials.DM.Endpoints.DGEs
 {
     public class DgePropertiesConfig
     {

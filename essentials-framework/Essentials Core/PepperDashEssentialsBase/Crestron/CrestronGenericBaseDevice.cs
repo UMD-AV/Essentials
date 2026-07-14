@@ -2,9 +2,9 @@
 using Crestron.SimplSharpPro;
 using Crestron.SimplSharpPro.DeviceSupport;
 using PepperDash.Core;
-using PepperDash.Essentials.Core.Bridges;
+using UmdEssentials.Core.Bridges;
 
-namespace PepperDash.Essentials.Core
+namespace UmdEssentials.Core
 {
     /// <summary>
     /// A bridge class to cover the basic features of GenericBase hardware
@@ -79,10 +79,8 @@ namespace PepperDash.Essentials.Core
                 {
                     eDeviceRegistrationUnRegistrationResponse response = Hardware.RegisterWithLogging(Key);
                     if (response != eDeviceRegistrationUnRegistrationResponse.Success)
-                    {
                         //Debug.Console(0, this, "ERROR: Cannot register Crestron device: {0}", response);
                         return false;
-                    }
                 }
 
                 IsRegistered.FireUpdate();
@@ -100,10 +98,7 @@ namespace PepperDash.Essentials.Core
                 });
             }
 
-            foreach (Feedback f in Feedbacks)
-            {
-                f.FireUpdate();
-            }
+            foreach (Feedback f in Feedbacks) f.FireUpdate();
 
             Hardware.OnlineStatusChange += Hardware_OnlineStatusChange;
             CommunicationMonitor.Start();
@@ -137,10 +132,7 @@ namespace PepperDash.Essentials.Core
             {
                 if (f == null) continue;
 
-                if (!Feedbacks.Contains(f))
-                {
-                    Feedbacks.Add(f);
-                }
+                if (!Feedbacks.Contains(f)) Feedbacks.Add(f);
             }
         }
 
@@ -149,15 +141,11 @@ namespace PepperDash.Essentials.Core
             Debug.Console(2, this, "OnlineStatusChange Event.  Online = {0}", args.DeviceOnLine);
 
             if (!Hardware.Registered)
-            {
                 return; // protects in cases where device has been unregistered and feedbacks would attempt to access null sigs.
-            }
 
             foreach (Feedback feedback in Feedbacks)
-            {
                 if (feedback != null)
                     feedback.FireUpdate();
-            }
         }
 
         #region IStatusMonitor Members

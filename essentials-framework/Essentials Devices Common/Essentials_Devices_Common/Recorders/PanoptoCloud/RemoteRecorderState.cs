@@ -1,4 +1,4 @@
-namespace PepperDash.Essentials.PanoptoCloud
+namespace UmdEssentials.PanoptoCloud
 {
     public enum RemoteRecorderState
     {
@@ -9,6 +9,6 @@ namespace PepperDash.Essentials.PanoptoCloud
         Faulted = 4,
         Disconnected = 5,
         Blocked = 6,
-        Unknown = 7,
+        Unknown = 7
     }
 }

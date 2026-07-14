@@ -7,7 +7,7 @@ using Crestron.SimplSharp.CrestronXml.Serialization;
 using Crestron.SimplSharp;
 using Crestron.SimplSharpPro;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
+using UmdEssentials.Core;
 
 namespace DynFusion
 {
@@ -43,10 +43,7 @@ namespace DynFusion
             private set
             {
                 _currentMeeting = value;
-                if (CurrentMeetingChanged != null)
-                {
-                    CurrentMeetingChanged(this, EventArgs.Empty);
-                }
+                if (CurrentMeetingChanged != null) CurrentMeetingChanged(this, EventArgs.Empty);
 
                 if (MeetingInProgressChanged != null)
                 {
@@ -64,10 +61,7 @@ namespace DynFusion
             private set
             {
                 _nextMeeting = value;
-                if (NextMeetingChanged != null)
-                {
-                    NextMeetingChanged(this, EventArgs.Empty);
-                }
+                if (NextMeetingChanged != null) NextMeetingChanged(this, EventArgs.Empty);
             }
         }
 
@@ -128,10 +122,7 @@ namespace DynFusion
         {
             Debug.Console(1, this, "FusionSymbolStatusChange {0}", e.DeviceOnLine);
             fusionOnline = e.DeviceOnLine;
-            if (fusionOnline)
-            {
-                GetPushSchedule();
-            }
+            if (fusionOnline) GetPushSchedule();
         }
 
         private void GetPushSchedule()
@@ -199,7 +190,7 @@ namespace DynFusion
                 {
                     //Check for the current meeting
                     //Valid if the meeting starts in 20 minutes or is currently active
-                    if (DateTime.Now >= (e.dtStart - TimeSpan.FromMinutes(20)) && DateTime.Now <= e.dtEnd &&
+                    if (DateTime.Now >= e.dtStart - TimeSpan.FromMinutes(20) && DateTime.Now <= e.dtEnd &&
                         (_currentMeetingTemp == null || _currentMeetingTemp.dtStart > e.dtStart))
                     {
                         _currentMeetingTemp = e;
@@ -220,7 +211,7 @@ namespace DynFusion
                     if (CurrentMeeting != null)
                         CurrentMeeting = null;
                 }
-                else if (CurrentMeeting == null || (_currentMeetingTemp.MeetingID != CurrentMeeting.MeetingID))
+                else if (CurrentMeeting == null || _currentMeetingTemp.MeetingID != CurrentMeeting.MeetingID)
                 {
                     CurrentMeeting = _currentMeetingTemp;
                 }
@@ -230,7 +221,7 @@ namespace DynFusion
                     if (NextMeeting != null)
                         NextMeeting = null;
                 }
-                else if (NextMeeting == null || (_nextMeetingTemp.MeetingID != NextMeeting.MeetingID))
+                else if (NextMeeting == null || _nextMeetingTemp.MeetingID != NextMeeting.MeetingID)
                 {
                     NextMeeting = _nextMeetingTemp;
                 }
@@ -250,10 +241,7 @@ namespace DynFusion
                 DateTime now = DateTime.Now;
                 DateTime oneAM = DateTime.Today.AddHours(1);
 
-                if (now >= oneAM)
-                {
-                    oneAM = oneAM.AddDays(1);
-                }
+                if (now >= oneAM) oneAM = oneAM.AddDays(1);
 
                 int timeUntilOneAM = (int)(oneAM - now).TotalMilliseconds;
                 getScheduleTimer.Reset(timeUntilOneAM + 60000);
@@ -364,7 +352,6 @@ namespace DynFusion
                                     XmlElement parameters = actionResponse["Parameters"];
 
                                     foreach (XmlElement parameter in parameters)
-                                    {
                                         if (parameter.HasAttributes)
                                         {
                                             XmlAttributeCollection attributes = parameter.Attributes;
@@ -390,7 +377,6 @@ namespace DynFusion
                                                 }
                                             }
                                         }
-                                    }
                                 }
 
                                 break;
@@ -403,7 +389,6 @@ namespace DynFusion
                                     XmlElement parameters = actionResponse["Parameters"];
 
                                     foreach (XmlElement parameter in parameters)
-                                    {
                                         if (parameter.HasAttributes)
                                         {
                                             XmlAttributeCollection attributes = parameter.Attributes;
@@ -411,13 +396,10 @@ namespace DynFusion
                                             if (attributes["ID"].Value == "MeetingID" ||
                                                 attributes["ID"].Value == "InstanceID" ||
                                                 attributes["ID"].Value == "Status")
-                                            {
                                                 if (attributes["Value"].Value != null)
                                                 {
                                                 }
-                                            }
                                         }
-                                    }
                                 }
 
                                 break;
@@ -428,9 +410,7 @@ namespace DynFusion
 
                 if (args.Sig == _DynFusion.FusionSymbol.ExtenderRoomViewSchedulingDataReservedSigs.CreateResponse ||
                     args.Sig == _DynFusion.FusionSymbol.ExtenderRoomViewSchedulingDataReservedSigs.RemoveMeeting)
-                {
                     GetRoomSchedule();
-                }
             }
             catch (Exception e)
             {
@@ -473,9 +453,7 @@ namespace DynFusion
                                 XmlElement action = response["Action"];
 
                                 if (action.OuterXml.IndexOf("RequestSchedule", StringComparison.Ordinal) > -1)
-                                {
                                     GetRoomSchedule();
-                                }
 
                                 break;
                             }
@@ -495,7 +473,6 @@ namespace DynFusion
                                 if (eventStack.Count > 0)
                                 {
                                     for (ushort i = 0; i < eventStack.Count; i++)
-                                    {
                                         try
                                         {
                                             Debug.Console(1, this,
@@ -506,9 +483,7 @@ namespace DynFusion
 
                                             if (newEvent.dtStart.Date > DateTime.Today ||
                                                 newEvent.dtEnd.Date < DateTime.Today)
-                                            {
                                                 continue;
-                                            }
 
                                             _scheduleResponse.Events.Add(newEvent);
                                         }
@@ -518,7 +493,6 @@ namespace DynFusion
                                                 string.Format("Exception deserializing xml for event {0}: {1}", i,
                                                     ex.Message));
                                         }
-                                    }
 
                                     Debug.Console(1, this, "Deserializing xml complete");
                                 }
@@ -587,9 +561,7 @@ namespace DynFusion
 
                 if (args.Sig == _DynFusion.FusionSymbol.ExtenderRoomViewSchedulingDataReservedSigs.CreateResponse ||
                     args.Sig == _DynFusion.FusionSymbol.ExtenderRoomViewSchedulingDataReservedSigs.RemoveMeeting)
-                {
                     GetRoomSchedule();
-                }
             }
 
             catch (Exception e)
@@ -599,7 +571,7 @@ namespace DynFusion
         }
 
         public override void LinkToApi(Crestron.SimplSharpPro.DeviceSupport.BasicTriList trilist, uint joinStart,
-            string joinMapKey, PepperDash.Essentials.Core.Bridges.EiscApiAdvanced bridge)
+            string joinMapKey, UmdEssentials.Core.Bridges.EiscApiAdvanced bridge)
         {
             try
             {
@@ -610,33 +582,29 @@ namespace DynFusion
                     trilist.BooleanInput[joinMap.PushNotificationRegistered.JoinNumber]);
 
 
-                _DynFusion.RoomInformationUpdated += ((s, e) =>
+                _DynFusion.RoomInformationUpdated += (s, e) =>
                 {
                     trilist.StringInput[joinMap.RoomID.JoinNumber].StringValue = _DynFusion.RoomInformation.ID;
                     trilist.StringInput[joinMap.RoomLocation.JoinNumber].StringValue =
                         _DynFusion.RoomInformation.Location;
-                });
+                };
 
-                MeetingInProgressChanged += ((s, e) =>
+                MeetingInProgressChanged += (s, e) =>
                 {
                     ushort meetingCount = 0;
                     if (_scheduleResponse != null)
-                    {
                         foreach (Event meeting in _scheduleResponse.Events)
                         {
                             trilist.BooleanInput[joinMap.MeetingInProgress.JoinNumber + meetingCount].BoolValue =
                                 meeting.isInProgress;
                             meetingCount++;
                         }
-                    }
 
                     for (ushort i = meetingCount; i < 20; i++)
-                    {
                         trilist.BooleanInput[joinMap.MeetingInProgress.JoinNumber + meetingCount].BoolValue = false;
-                    }
-                });
+                };
 
-                CurrentMeetingChanged += ((s, e) =>
+                CurrentMeetingChanged += (s, e) =>
                 {
                     try
                     {
@@ -644,15 +612,11 @@ namespace DynFusion
                         if (CurrentMeeting != null)
                         {
                             if (CurrentMeeting.Organizer.Length > 0)
-                            {
                                 trilist.StringInput[joinMap.CurrentMeetingOrganizer.JoinNumber].StringValue =
                                     CurrentMeeting.Organizer;
-                            }
                             else
-                            {
                                 trilist.StringInput[joinMap.CurrentMeetingOrganizer.JoinNumber].StringValue =
                                     CurrentMeeting.OrganizerSMTP;
-                            }
 
                             trilist.StringInput[joinMap.CurrentMeetingSubject.JoinNumber].StringValue =
                                 CurrentMeeting.Subject;
@@ -691,8 +655,8 @@ namespace DynFusion
                     {
                         Debug.Console(0, this, Debug.ErrorLogLevel.Error, ex.Message);
                     }
-                });
-                NextMeetingChanged += ((s, e) =>
+                };
+                NextMeetingChanged += (s, e) =>
                 {
                     try
                     {
@@ -700,15 +664,11 @@ namespace DynFusion
                         if (NextMeeting != null)
                         {
                             if (NextMeeting.Organizer.Length > 0)
-                            {
                                 trilist.StringInput[joinMap.NextMeetingOrganizer.JoinNumber].StringValue =
                                     NextMeeting.Organizer;
-                            }
                             else
-                            {
                                 trilist.StringInput[joinMap.NextMeetingOrganizer.JoinNumber].StringValue =
                                     NextMeeting.OrganizerSMTP;
-                            }
 
                             trilist.StringInput[joinMap.NextMeetingOrganizer.JoinNumber].StringValue =
                                 NextMeeting.Organizer;
@@ -746,30 +706,25 @@ namespace DynFusion
                     {
                         Debug.Console(0, this, Debug.ErrorLogLevel.Error, ex.Message);
                     }
-                });
+                };
 
-                ScheduleChanged += ((s, e) =>
+                ScheduleChanged += (s, e) =>
                 {
                     try
                     {
                         Debug.Console(1, this, "ScheduleChanged");
                         ushort meetingCount = 0;
                         if (_scheduleResponse != null)
-                        {
                             foreach (Event meeting in _scheduleResponse.Events)
                             {
                                 trilist.StringInput[joinMap.MeetingSubject.JoinNumber + meetingCount].StringValue =
                                     meeting.Subject;
                                 if (meeting.Organizer.Length > 0)
-                                {
                                     trilist.StringInput[joinMap.MeetingOrganizer.JoinNumber + meetingCount]
                                         .StringValue = meeting.Organizer;
-                                }
                                 else
-                                {
                                     trilist.StringInput[joinMap.MeetingOrganizer.JoinNumber + meetingCount]
                                         .StringValue = meeting.OrganizerSMTP;
-                                }
 
                                 trilist.StringInput[joinMap.MeetingTime.JoinNumber + meetingCount].StringValue =
                                     meeting.StartTime + " - " + meeting.EndTime;
@@ -777,7 +732,6 @@ namespace DynFusion
                                     meeting.isInProgress;
                                 meetingCount++;
                             }
-                        }
 
                         for (ushort i = meetingCount; i < 20; i++)
                         {
@@ -791,7 +745,7 @@ namespace DynFusion
                     {
                         Debug.Console(0, this, Debug.ErrorLogLevel.Error, ex.Message);
                     }
-                });
+                };
             }
             catch (Exception ex)
             {
@@ -933,13 +887,9 @@ namespace DynFusion
                 double minutes = timeSpan.Minutes;
                 double minutesRounded = Math.Round(minutes);
                 if (hours > 0)
-                {
                     duration = string.Format("{0} Hours {1} Minutes", hours, minutesRounded);
-                }
                 else
-                {
                     duration = string.Format("{0} Minutes", minutesRounded);
-                }
 
                 return duration;
             }
@@ -951,13 +901,9 @@ namespace DynFusion
             {
                 DateTime timeMarker;
                 if (dtStart <= DateTime.Now)
-                {
                     timeMarker = dtEnd;
-                }
                 else
-                {
                     timeMarker = dtStart;
-                }
 
                 double totalMinutes = timeMarker.Subtract(DateTime.Now).TotalMinutes;
                 if (totalMinutes >= 0)
@@ -975,44 +921,27 @@ namespace DynFusion
 
                 DateTime timeMarker;
                 if (GetInProgress())
-                {
                     timeMarker = dtEnd;
-                }
                 else
-                {
                     timeMarker = dtStart;
-                }
 
                 string hourTag = "";
                 string minTag;
                 int hours = timeMarker.Subtract(DateTime.Now).Hours;
                 int minutes = timeMarker.Subtract(DateTime.Now).Minutes;
                 if (hours > 1)
-                {
                     hourTag = "Hours";
-                }
-                else if (hours == 1)
-                {
-                    hourTag = "Hour";
-                }
+                else if (hours == 1) hourTag = "Hour";
 
                 if (minutes == 1)
-                {
                     minTag = "Minute";
-                }
                 else
-                {
                     minTag = "Minutes";
-                }
 
                 if (hourTag.Length == 0)
-                {
                     remainingTimeString = string.Format("{0} {1}", minutes, minTag);
-                }
                 else
-                {
                     remainingTimeString = string.Format("{0} {1} {2} {3}", hours, hourTag, minutes, minTag);
-                }
 
                 return remainingTimeString;
             }

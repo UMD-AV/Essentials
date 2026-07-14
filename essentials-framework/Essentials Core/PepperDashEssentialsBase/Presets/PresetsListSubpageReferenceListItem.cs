@@ -2,7 +2,7 @@
 using PepperDash.Core;
 
 
-namespace PepperDash.Essentials.Core.Presets
+namespace UmdEssentials.Core.Presets
 {
     public class PresetsListSubpageReferenceListItem : SubpageReferenceListItem
     {

@@ -1,7 +1,7 @@
 ﻿using Crestron.SimplSharpPro;
 using Crestron.SimplSharpPro.ThreeSeriesCards;
 
-namespace PepperDash.Essentials.Core.CrestronIO.Cards
+namespace UmdEssentials.Core.CrestronIO.Cards
 {
     public class C3Ry16Controller : C3CardControllerBase, IRelayPorts
     {

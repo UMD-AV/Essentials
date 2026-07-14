@@ -1,8 +1,8 @@
 ﻿using Crestron.SimplSharpPro;
 using Crestron.SimplSharpPro.Fusion;
-using PepperDash.Essentials.Core;
+using UmdEssentials.Core;
 using PepperDash.Core;
-using PepperDash.Essentials.Devices.Displays;
+using UmdEssentials.Devices.Displays;
 
 namespace DynFusion.Assets
 {
@@ -41,10 +41,7 @@ namespace DynFusion.Assets
             }
 
             TwoWayDisplayBase displayBase = _device as TwoWayDisplayBase;
-            if (displayBase != null)
-            {
-                displayBase.PowerIsOnFeedback.LinkInputSig(_asset.PowerOn.InputSig);
-            }
+            if (displayBase != null) displayBase.PowerIsOnFeedback.LinkInputSig(_asset.PowerOn.InputSig);
 
             IHasLampHours lampHours = _device as IHasLampHours;
             if (lampHours != null)
@@ -57,10 +54,7 @@ namespace DynFusion.Assets
 
         public override void FusionAssetStateChange(FusionAssetStateEventArgs args)
         {
-            if (args.UserConfigurableAssetDetailIndex != _assetNumber)
-            {
-                return;
-            }
+            if (args.UserConfigurableAssetDetailIndex != _assetNumber) return;
 
             Debug.Console(1, this, "Display static asset state change {0} received EventID {1} Index {2}", Name,
                 args.EventId, args.UserConfigurableAssetDetailIndex);
@@ -80,10 +74,8 @@ namespace DynFusion.Assets
                 {
                     BooleanSigData sigDetails = args.UserConfiguredSigDetail as BooleanSigData;
                     if (sigDetails != null)
-                    {
                         Debug.Console(1, this, string.Format("StaticAsset: {0} Bool Change Join:{1} Name:{2} Value:{3}",
                             _asset.ParamAssetName, sigDetails.Number, sigDetails.Name, sigDetails.OutputSig.BoolValue));
-                    }
 
                     break;
                 }
@@ -91,12 +83,10 @@ namespace DynFusion.Assets
                 {
                     UShortSigData sigDetails = args.UserConfiguredSigDetail as UShortSigData;
                     if (sigDetails != null)
-                    {
                         Debug.Console(1, this, string.Format(
                             "StaticAsset: {0} UShort Change Join:{1} Name:{2} Value:{3}",
                             _asset.ParamAssetName, sigDetails.Number, sigDetails.Name,
                             sigDetails.OutputSig.UShortValue));
-                    }
 
                     break;
                 }
@@ -104,12 +94,10 @@ namespace DynFusion.Assets
                 {
                     StringSigData sigDetails = args.UserConfiguredSigDetail as StringSigData;
                     if (sigDetails != null)
-                    {
                         Debug.Console(1, this, string.Format(
                             "StaticAsset: {0} String Change Join:{1} Name:{2} Value:{3}",
                             _asset.ParamAssetName, sigDetails.Number, sigDetails.Name,
                             sigDetails.OutputSig.StringValue));
-                    }
 
                     break;
                 }

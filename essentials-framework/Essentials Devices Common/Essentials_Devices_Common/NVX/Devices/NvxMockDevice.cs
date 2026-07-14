@@ -12,10 +12,10 @@ using NvxEpi.Services.Bridge;
 using NvxEpi.Services.Feedback;
 using NvxEpi.Services.InputSwitching;
 using PepperDash.Core;
-using PepperDash.Essentials.Core;
-using PepperDash.Essentials.Core.Bridges;
-using PepperDash.Essentials.Core.Config;
-using Feedback = PepperDash.Essentials.Core.Feedback;
+using UmdEssentials.Core;
+using UmdEssentials.Core.Bridges;
+using UmdEssentials.Core.Config;
+using Feedback = UmdEssentials.Core.Feedback;
 
 namespace NvxEpi.Devices
 {
@@ -224,10 +224,7 @@ namespace NvxEpi.Devices
 
         public void SetStreamUrlMock(string url)
         {
-            if (url == "")
-            {
-                url = Key;
-            }
+            if (url == "") url = Key;
 
             if (url.Equals(_streamUrl))
                 return;
@@ -237,13 +234,9 @@ namespace NvxEpi.Devices
             StreamUrl.FireUpdate();
 
             if (IsTransmitter)
-            {
                 foreach (IStreamWithHardware rx in DeviceManager.AllDevices.OfType<IStreamWithHardware>()
                              .Where(x => !x.IsTransmitter && x.StreamUrl.StringValue.Equals(oldUrl)))
-                {
                     rx.RouteStream(this);
-                }
-            }
         }
 
         public void LinkToApi(BasicTriList trilist, uint joinStart, string joinMapKey, EiscApiAdvanced bridge)

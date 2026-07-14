@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace PepperDash.Essentials.EpiphanPearl
+namespace UmdEssentials.EpiphanPearl
 {
     public class EpiphanPearlControllerConfiguration
     {

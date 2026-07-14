@@ -8,7 +8,7 @@ using Crestron.SimplSharpPro;
 using PepperDash.Core;
 
 
-namespace PepperDash.Essentials.Core
+namespace UmdEssentials.Core
 {
     public static class DeviceManager
     {
@@ -74,7 +74,6 @@ namespace PepperDash.Essentials.Core
                 // PreActivate all devices
                 Debug.Console(0, "****PreActivation starting...****");
                 foreach (IKeyed d in Devices.Values)
-                {
                     try
                     {
                         if (d is Device)
@@ -85,14 +84,12 @@ namespace PepperDash.Essentials.Core
                         Debug.Console(0, d, "ERROR: Device {1} PreActivation failure: {0}", e.Message, d.Key);
                         Debug.Console(1, d, "Stack Trace: {0}", e.StackTrace);
                     }
-                }
 
                 Debug.Console(0, "****PreActivation complete****");
                 Debug.Console(0, "****Activation starting...****");
 
                 // Activate all devices
                 foreach (IKeyed d in Devices.Values)
-                {
                     try
                     {
                         if (d is Device)
@@ -103,14 +100,12 @@ namespace PepperDash.Essentials.Core
                         Debug.Console(0, d, "ERROR: Device {1} Activation failure: {0}", e.Message, d.Key);
                         Debug.Console(1, d, "Stack Trace: {0}", e.StackTrace);
                     }
-                }
 
                 Debug.Console(0, "****Activation complete****");
                 Debug.Console(0, "****PostActivation starting...****");
 
                 // PostActivate all devices
                 foreach (IKeyed d in Devices.Values)
-                {
                     try
                     {
                         if (d is Device)
@@ -121,7 +116,6 @@ namespace PepperDash.Essentials.Core
                         Debug.Console(0, d, "ERROR: Device {1} PostActivation failure: {0}", e.Message, d.Key);
                         Debug.Console(1, d, "Stack Trace: {0}", e.StackTrace);
                     }
-                }
 
                 Debug.Console(0, "****PostActivation complete****");
 
@@ -136,19 +130,13 @@ namespace PepperDash.Essentials.Core
         private static void OnAllDevicesActivated()
         {
             EventHandler<EventArgs> handler = AllDevicesActivated;
-            if (handler != null)
-            {
-                handler(null, new EventArgs());
-            }
+            if (handler != null) handler(null, new EventArgs());
         }
 
         private static void OnAllDevicesRegistered()
         {
             EventHandler<EventArgs> handler = AllDevicesRegistered;
-            if (handler != null)
-            {
-                handler(null, new EventArgs());
-            }
+            if (handler != null) handler(null, new EventArgs());
         }
 
         /// <summary>
@@ -159,10 +147,7 @@ namespace PepperDash.Essentials.Core
             try
             {
                 DeviceCriticalSection.Enter();
-                foreach (Device d in Devices.Values.OfType<Device>())
-                {
-                    d.Deactivate();
-                }
+                foreach (Device d in Devices.Values.OfType<Device>()) d.Deactivate();
             }
             finally
             {
@@ -206,10 +191,8 @@ namespace PepperDash.Essentials.Core
         {
             StringBuilder sb = new StringBuilder();
             foreach (ICommunicationMonitor dev in Devices.Values.OfType<ICommunicationMonitor>())
-            {
                 sb.Append(string.Format("{0}: {1}\r", dev,
                     dev.CommunicationMonitor.Status));
-            }
 
             CrestronConsole.ConsoleCommandResponse(sb.ToString());
         }
@@ -265,7 +248,6 @@ namespace PepperDash.Essentials.Core
                 }
 
                 foreach (IKeyed dev in devicesToAdd)
-                {
                     try
                     {
                         Devices.Add(dev.Key, dev);
@@ -275,7 +257,6 @@ namespace PepperDash.Essentials.Core
                         Debug.Console(0, "Error adding device with key {0} to Device Manager: {1}\r\nStack Trace: {2}",
                             dev.Key, ex.Message, ex.StackTrace);
                     }
-                }
             }
             finally
             {
@@ -354,25 +335,20 @@ namespace PepperDash.Essentials.Core
 
             if (device == null) return;
             RoutingPortCollection<RoutingInputPort> inputPorts =
-                ((device as IRoutingInputs) != null) ? (device as IRoutingInputs).InputPorts : null;
+                device as IRoutingInputs != null ? (device as IRoutingInputs).InputPorts : null;
             RoutingPortCollection<RoutingOutputPort> outputPorts =
-                ((device as IRoutingOutputs) != null) ? (device as IRoutingOutputs).OutputPorts : null;
+                device as IRoutingOutputs != null ? (device as IRoutingOutputs).OutputPorts : null;
             if (inputPorts != null)
             {
                 Debug.Console(0, "Device {0} has {1} Input Ports:", s, inputPorts.Count);
-                foreach (RoutingInputPort routingInputPort in inputPorts)
-                {
-                    Debug.Console(0, "{0}", routingInputPort.Key);
-                }
+                foreach (RoutingInputPort routingInputPort in inputPorts) Debug.Console(0, "{0}", routingInputPort.Key);
             }
 
             if (outputPorts != null)
             {
                 Debug.Console(0, "Device {0} has {1} Output Ports:", s, outputPorts.Count);
                 foreach (RoutingOutputPort routingOutputPort in outputPorts)
-                {
                     Debug.Console(0, "{0}", routingOutputPort.Key);
-                }
             }
         }
 
@@ -398,10 +374,7 @@ namespace PepperDash.Essentials.Core
 
             string timeout = string.Empty;
 
-            if (args.Length >= 3)
-            {
-                timeout = args[2];
-            }
+            if (args.Length >= 3) timeout = args[2];
 
             IStreamDebugging device = GetDeviceForKey(deviceKey) as IStreamDebugging;
 
@@ -458,9 +431,7 @@ namespace PepperDash.Essentials.Core
                 IStreamDebugging streamDevice = device as IStreamDebugging;
 
                 if (streamDevice != null)
-                {
                     streamDevice.StreamDebugging.SetDebuggingWithDefaultTimeout(eStreamDebuggingSetting.Off);
-                }
             }
         }
     }

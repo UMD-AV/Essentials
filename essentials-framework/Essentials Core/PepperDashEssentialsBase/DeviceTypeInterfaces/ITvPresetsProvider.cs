@@ -1,6 +1,6 @@
-﻿using PepperDash.Essentials.Core.Presets;
+﻿using UmdEssentials.Core.Presets;
 
-namespace PepperDash.Essentials.Core.DeviceTypeInterfaces
+namespace UmdEssentials.Core.DeviceTypeInterfaces
 {
     public interface ITvPresetsProvider
     {

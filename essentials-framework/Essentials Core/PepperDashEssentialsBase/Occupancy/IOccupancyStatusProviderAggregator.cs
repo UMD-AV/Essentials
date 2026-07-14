@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using PepperDash.Core;
-using PepperDash.Essentials.Core.Config;
+using UmdEssentials.Core.Config;
 
-namespace PepperDash.Essentials.Core
+namespace UmdEssentials.Core
 {
     /// <summary>
     /// Aggregates the RoomIsOccupied feedbacks of one or more IOccupancyStatusProvider objects
@@ -30,10 +30,7 @@ namespace PepperDash.Essentials.Core
         {
             AddPostActivationAction(() =>
             {
-                if (config.DeviceKeys.Count == 0)
-                {
-                    return;
-                }
+                if (config.DeviceKeys.Count == 0) return;
 
                 foreach (string deviceKey in config.DeviceKeys)
                 {

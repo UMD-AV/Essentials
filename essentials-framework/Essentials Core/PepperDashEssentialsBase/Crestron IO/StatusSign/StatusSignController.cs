@@ -5,10 +5,10 @@ using Crestron.SimplSharpPro.DeviceSupport;
 using Crestron.SimplSharpPro.GeneralIO;
 using Newtonsoft.Json;
 using PepperDash.Core;
-using PepperDash.Essentials.Core.Bridges;
-using PepperDash.Essentials.Core.Config;
+using UmdEssentials.Core.Bridges;
+using UmdEssentials.Core.Config;
 
-namespace PepperDash.Essentials.Core.CrestronIO
+namespace UmdEssentials.Core.CrestronIO
 {
     [Description("Wrapper class for the Crestron StatusSign device")]
     public class StatusSignController : CrestronGenericBridgeableBaseDevice
@@ -33,20 +33,17 @@ namespace PepperDash.Essentials.Core.CrestronIO
                 RegisterCrestronGenericBase(_device);
 
                 RedLedEnabledFeedback =
-                    new BoolFeedback(
-                        () =>
-                            _device.Leds[(uint)StatusSign.Led.eLedColor.Red]
-                                .ControlFeedback.BoolValue);
+                    new BoolFeedback(() =>
+                        _device.Leds[(uint)StatusSign.Led.eLedColor.Red]
+                            .ControlFeedback.BoolValue);
                 GreenLedEnabledFeedback =
-                    new BoolFeedback(
-                        () =>
-                            _device.Leds[(uint)StatusSign.Led.eLedColor.Green]
-                                .ControlFeedback.BoolValue);
+                    new BoolFeedback(() =>
+                        _device.Leds[(uint)StatusSign.Led.eLedColor.Green]
+                            .ControlFeedback.BoolValue);
                 BlueLedEnabledFeedback =
-                    new BoolFeedback(
-                        () =>
-                            _device.Leds[(uint)StatusSign.Led.eLedColor.Blue]
-                                .ControlFeedback.BoolValue);
+                    new BoolFeedback(() =>
+                        _device.Leds[(uint)StatusSign.Led.eLedColor.Blue]
+                            .ControlFeedback.BoolValue);
 
                 RedLedBrightnessFeedback =
                     new IntFeedback(() => (int)_device.Leds[(uint)StatusSign.Led.eLedColor.Red].BrightnessFeedback);
@@ -126,14 +123,10 @@ namespace PepperDash.Essentials.Core.CrestronIO
                 joinMap = JsonConvert.DeserializeObject<StatusSignControllerJoinMap>(joinMapSerialized);
 
             if (bridge != null)
-            {
                 bridge.AddJoinMap(Key, joinMap);
-            }
             else
-            {
                 Debug.Console(0, this,
                     "Please update config to use 'eiscapiadvanced' to get all join map features for this device.");
-            }
 
             Debug.Console(1, this, "Linking to Trilist '{0}'", trilist.ID.ToString("X"));
 
@@ -211,7 +204,7 @@ namespace PepperDash.Essentials.Core.CrestronIO
         {
             public StatusSignControllerFactory()
             {
-                TypeNames = new List<string>() { "statussign" };
+                TypeNames = new List<string> { "statussign" };
             }
 
             public override EssentialsDevice BuildDevice(DeviceConfig dc)

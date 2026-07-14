@@ -1,6 +1,6 @@
 ﻿using PepperDash.Core;
 
-namespace PepperDash.Essentials.Devices.Common
+namespace UmdEssentials.Devices.Common
 {
     public class SetTopBoxPropertiesConfig
     {

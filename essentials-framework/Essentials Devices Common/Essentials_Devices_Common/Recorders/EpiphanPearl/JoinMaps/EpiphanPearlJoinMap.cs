@@ -1,7 +1,7 @@
 ﻿using System;
-using PepperDash.Essentials.Core;
+using UmdEssentials.Core;
 
-namespace PepperDash.Essentials.EpiphanPearl.JoinMaps
+namespace UmdEssentials.EpiphanPearl.JoinMaps
 {
     public class EpiphanPearlJoinMap : JoinMapBaseAdvanced
     {
@@ -482,6 +482,7 @@ namespace PepperDash.Essentials.EpiphanPearl.JoinMaps
                 JoinType = eJoinType.Serial,
                 Description = "Camera2 URL"
             });
+
         [JoinName("ContentUrlRtsp")] public JoinDataComplete ContentUrlRtsp = new JoinDataComplete(
             new JoinData
             {

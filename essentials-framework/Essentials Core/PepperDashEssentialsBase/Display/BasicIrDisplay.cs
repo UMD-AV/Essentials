@@ -4,11 +4,11 @@ using Crestron.SimplSharp;
 using Crestron.SimplSharpPro;
 using Crestron.SimplSharpPro.DeviceSupport;
 using PepperDash.Core;
-using PepperDash.Essentials.Core.Config;
-using PepperDash.Essentials.Core.Bridges;
-using PepperDash.Essentials.Core.Routing;
+using UmdEssentials.Core.Bridges;
+using UmdEssentials.Core.Config;
+using UmdEssentials.Core.Routing;
 
-namespace PepperDash.Essentials.Core
+namespace UmdEssentials.Core
 {
     [Description("Wrapper class for a Basic IR Display")]
     public class BasicIrDisplay : DisplayBase, IBasicVolumeControls, IBridgeAdvanced
@@ -59,7 +59,7 @@ namespace PepperDash.Essentials.Core
                 new RoutingInputPort(RoutingPortNames.CompositeIn, eRoutingSignalType.Audio | eRoutingSignalType.Video,
                     eRoutingPortConnectionType.Hdmi, new Action(Video1), this, false),
                 new RoutingInputPort(RoutingPortNames.AntennaIn, eRoutingSignalType.Audio | eRoutingSignalType.Video,
-                    eRoutingPortConnectionType.Hdmi, new Action(Antenna), this, false),
+                    eRoutingPortConnectionType.Hdmi, new Action(Antenna), this, false)
             });
         }
 
@@ -194,7 +194,7 @@ namespace PepperDash.Essentials.Core
     {
         public BasicIrDisplayFactory()
         {
-            TypeNames = new List<string>() { "basicirdisplay" };
+            TypeNames = new List<string> { "basicirdisplay" };
         }
 
         public override EssentialsDevice BuildDevice(DeviceConfig dc)
