@@ -14,7 +14,7 @@ namespace UmdEssentials.Devices.Common.DynFusion.StaticAssets
             _asset.AssetUsage.AddSigToRVIFile = false;
             _asset.PowerOn.AddSigToRVIFile = false;
             _asset.PowerOff.AddSigToRVIFile = false;
-            _asset.AssetError.AddSigToRVIFile = true;
+            _asset.AssetError.AddSigToRVIFile = false;
             _asset.Connected.AddSigToRVIFile = true;
 
             _asset.Connected.InputSig.BoolValue = true;

@@ -264,7 +264,7 @@ namespace DynFusion
                         }
 
                         ShureMxaDevice shureMxaDevice = device as ShureMxaDevice;
-                        if (micDevice != null)
+                        if (shureMxaDevice != null)
                         {
                             uint num = GetNextAvailableAssetNumber(FusionSymbol);
                             string name = shureMxaDevice.Name;
