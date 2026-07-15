@@ -6,10 +6,10 @@ using UmdEssentials.Devices.Common.Microphones;
 
 namespace UmdEssentials.Devices.Common.DynFusion.StaticAssets
 {
-    public class MicBatteryStaticAsset : StaticAsset
+    public class WirelessMicStaticAsset : StaticAsset
     {
-        public MicBatteryStaticAsset(string name, WirelessMic battery, uint assetNumber, FusionRoom symbol) :
-            base(name, name + "-Asset", assetNumber, "Mic Battery", symbol)
+        public WirelessMicStaticAsset(string name, WirelessMic wirelessMic, uint assetNumber, FusionRoom symbol) :
+            base(name, name + "-Asset", assetNumber, "Wireless Mic", symbol)
         {
             _asset.AssetUsage.AddSigToRVIFile = false;
             _asset.PowerOn.AddSigToRVIFile = false;
@@ -18,38 +18,42 @@ namespace UmdEssentials.Devices.Common.DynFusion.StaticAssets
             _asset.Connected.AddSigToRVIFile = true;
 
             _asset.Connected.InputSig.BoolValue = true;
-            battery.ErrorStringFeedback.LinkInputSig(_asset.AssetError.InputSig);
+            wirelessMic.ErrorStringFeedback.LinkInputSig(_asset.AssetError.InputSig);
 
-            _asset.ParamMake.Value = "Shure";
-            _asset.ParamModel.Value = "Battery";
+            _asset.ParamMake.Value = wirelessMic.Model;
+            _asset.ParamModel.Value = "Mic";
 
-            //Battery Present
-            _asset.AddSig(eSigType.Bool, 1, "Mic Battery - Present", eSigIoMask.InputSigOnly);
-            battery.OnDockFeedback.LinkInputSig(_asset.FusionGenericAssetDigitalsAsset1.BooleanInput[50]);
+            //Battery On Dock
+            _asset.AddSig(eSigType.Bool, 1, "Mic - On Dock", eSigIoMask.InputSigOnly);
+            wirelessMic.OnDockFeedback.LinkInputSig(_asset.FusionGenericAssetDigitalsAsset1.BooleanInput[50]);
+
+            //Mic in use
+            _asset.AddSig(eSigType.Bool, 2, "Mic - In Use", eSigIoMask.InputSigOnly);
+            wirelessMic.MicrophoneInUseFeedback.LinkInputSig(_asset.FusionGenericAssetDigitalsAsset1.BooleanInput[51]);
 
             //Battery Error Int
-            _asset.AddSig(eSigType.UShort, 1, "Mic Battery - Error", eSigIoMask.InputSigOnly);
-            battery.BatteryErrorAnalogFeedback.LinkInputSig(_asset.FusionGenericAssetAnalogsAsset2.UShortInput[50]);
+            _asset.AddSig(eSigType.UShort, 1, "Mic - Error", eSigIoMask.InputSigOnly);
+            wirelessMic.BatteryErrorAnalogFeedback.LinkInputSig(_asset.FusionGenericAssetAnalogsAsset2.UShortInput[50]);
 
             //Battery % Health
-            _asset.AddSig(eSigType.UShort, 2, "Mic Battery - % Health", eSigIoMask.InputSigOnly);
-            battery.PercentHealthFeedback.LinkInputSig(_asset.FusionGenericAssetAnalogsAsset2.UShortInput[51]);
+            _asset.AddSig(eSigType.UShort, 2, "Mic - % Health", eSigIoMask.InputSigOnly);
+            wirelessMic.PercentHealthFeedback.LinkInputSig(_asset.FusionGenericAssetAnalogsAsset2.UShortInput[51]);
 
             //Battery Temp
-            _asset.AddSig(eSigType.UShort, 3, "Mic Battery - Temp F", eSigIoMask.InputSigOnly);
-            battery.TemperatureFFeedback.LinkInputSig(_asset.FusionGenericAssetAnalogsAsset2.UShortInput[52]);
+            _asset.AddSig(eSigType.UShort, 3, "Mic - Temp F", eSigIoMask.InputSigOnly);
+            wirelessMic.TemperatureFFeedback.LinkInputSig(_asset.FusionGenericAssetAnalogsAsset2.UShortInput[52]);
 
             //Battery % Charge
-            _asset.AddSig(eSigType.UShort, 4, "Mic Battery - % Charge", eSigIoMask.InputSigOnly);
-            battery.PercentChargeFeedback.LinkInputSig(_asset.FusionGenericAssetAnalogsAsset2.UShortInput[53]);
+            _asset.AddSig(eSigType.UShort, 4, "Mic - % Charge", eSigIoMask.InputSigOnly);
+            wirelessMic.PercentChargeFeedback.LinkInputSig(_asset.FusionGenericAssetAnalogsAsset2.UShortInput[53]);
 
             //Battery State
-            _asset.AddSig(eSigType.String, 1, "Mic Battery - State", eSigIoMask.InputSigOnly);
-            battery.StateFeedback.LinkInputSig(_asset.FusionGenericAssetSerialsAsset3.StringInput[50]);
+            _asset.AddSig(eSigType.String, 1, "Mic - State", eSigIoMask.InputSigOnly);
+            wirelessMic.StateFeedback.LinkInputSig(_asset.FusionGenericAssetSerialsAsset3.StringInput[50]);
 
             //Battery Error String
-            _asset.AddSig(eSigType.String, 2, "Mic Battery - Error Text", eSigIoMask.InputSigOnly);
-            battery.ErrorStringFeedback.LinkInputSig(_asset.FusionGenericAssetSerialsAsset3.StringInput[51]);
+            _asset.AddSig(eSigType.String, 2, "Mic - Error Text", eSigIoMask.InputSigOnly);
+            wirelessMic.ErrorStringFeedback.LinkInputSig(_asset.FusionGenericAssetSerialsAsset3.StringInput[51]);
         }
 
         public override void FusionAssetStateChange(FusionAssetStateEventArgs args)

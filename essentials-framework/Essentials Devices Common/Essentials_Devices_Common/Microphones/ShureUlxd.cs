@@ -113,7 +113,7 @@ namespace UmdEssentials.Devices.Common.Microphones
             ushort i = 0;
             while (i < config.MicKeys.Length)
             {
-                Microphones[i] = new WirelessMic(config.MicKeys[i], string.Format("{0}-{1}", name, i + 1), false)
+                Microphones[i] = new WirelessMic(config.MicKeys[i], string.Format("{0} {1}", name, i + 1), false)
                 {
                     Model = "Shure Tx",
                     IsOnline = true
@@ -134,7 +134,7 @@ namespace UmdEssentials.Devices.Common.Microphones
 
             while (i < UlxdSize)
             {
-                Microphones[i] = new WirelessMic(Key + "-wmic" + i + 1, string.Format("{0}-{1}", name, i + 1), false)
+                Microphones[i] = new WirelessMic(Key + "-wmic" + i + 1, string.Format("{0} {1}", name, i + 1), false)
                 {
                     Model = "Shure Tx",
                     IsOnline = true

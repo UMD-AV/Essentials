@@ -19,6 +19,7 @@ namespace UmdEssentials.Devices.Common.Microphones
         public readonly WirelessMic[] Microphones;
         private CTimer _pollTimer;
         private ushort _pollCount;
+        private bool _subscribed;
 
         /// <summary>
         ///     Device constructor
@@ -40,7 +41,7 @@ namespace UmdEssentials.Devices.Common.Microphones
             ushort i = 0;
             while (i < config.MicKeys.Length)
             {
-                Microphones[i] = new WirelessMic(config.MicKeys[i], string.Format("{0}-{1}", name, i + 1), true)
+                Microphones[i] = new WirelessMic(config.MicKeys[i], string.Format("{0} {1}", name, i + 1), true)
                 {
                     Model = "Catchbox",
                     IsOnline = true
@@ -61,7 +62,7 @@ namespace UmdEssentials.Devices.Common.Microphones
 
             while (i < CatchboxSize)
             {
-                Microphones[i] = new WirelessMic(Key + "-tx" + i + 1, string.Format("{0}-{1}", name, i + 1), true)
+                Microphones[i] = new WirelessMic(Key + "-tx" + i + 1, string.Format("{0} {1}", name, i + 1), true)
                 {
                     Model = "Catchbox",
                     IsOnline = true
@@ -77,6 +78,10 @@ namespace UmdEssentials.Devices.Common.Microphones
             }
 
             _commsMonitor = new ManualCommunicationMonitor(this, 70000, 180000);
+            _commsMonitor.StatusChange += (o, args) =>
+            {
+                if (args.Status == MonitorStatus.IsOk) Subscribe();
+            };
             _comms.TextReceived += Handle_TextReceived;
             _comms.UpdateConnectionStatus += socket_ConnectionChange;
             SocketStatusFeedback = new IntFeedback(() => (int)_comms.ClientStatus);
@@ -244,6 +249,11 @@ namespace UmdEssentials.Devices.Common.Microphones
                 microphone.PercentCharge = battery;
                 Debug.Console(1, this, "Catchbox feedback: tx {0} battery {1}%", txNumber, battery);
             }
+            else
+            {
+                microphone.PercentCharge = 255;
+                Debug.Console(1, this, "Could not get catchbox feedback: tx {0} battery%", txNumber);
+            }
 
             string channelName = GetStringValue(device, "name");
             if (channelName != null)
@@ -332,9 +342,7 @@ namespace UmdEssentials.Devices.Common.Microphones
                     _pollCount++;
                 }
 
-                if (_commsMonitor.IsOnlineFeedback.BoolValue)
-                    return;
-                Subscribe();
+                if (!_subscribed) Subscribe();
             }
             catch (Exception e)
             {
@@ -377,6 +385,7 @@ namespace UmdEssentials.Devices.Common.Microphones
             }
 
             GetMicData();
+            _subscribed = true;
         }
 
         /// <summary>

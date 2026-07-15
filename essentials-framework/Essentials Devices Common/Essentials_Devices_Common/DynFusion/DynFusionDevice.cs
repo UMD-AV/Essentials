@@ -112,7 +112,7 @@ namespace DynFusion
                         CrestronEnvironment.EthernetEventHandler +=
                             CrestronEnvironment_EthernetEventHandler;
 
-                        // Create Custom Atributes 
+                        // Create Custom Attributes 
                         if (customAttrConfig.CustomAttributes.DigitalAttributes != null)
                             foreach (DynFusionAttributeBase att in customAttrConfig.CustomAttributes.DigitalAttributes)
                             {
@@ -253,63 +253,23 @@ namespace DynFusion
                             continue;
                         }
 
-                        ShureSbcDevice sbcDevice =
-                            device as ShureSbcDevice;
-                        if (sbcDevice != null)
+                        WirelessMic micDevice = device as WirelessMic;
+                        if (micDevice != null)
                         {
-                            for (uint i = 1; i <= sbcDevice.SbcSize; i++)
-                            {
-                                uint num = GetNextAvailableAssetNumber(FusionSymbol);
-                                string name = string.Format("{0} - Battery {1}", sbcDevice.Name, i);
-                                StaticAssets.Add(num,
-                                    new MicBatteryStaticAsset(name, sbcDevice.Microphones[i - 1], num, FusionSymbol));
-                            }
-
+                            uint num = GetNextAvailableAssetNumber(FusionSymbol);
+                            string name = micDevice.Name;
+                            StaticAssets.Add(num,
+                                new WirelessMicStaticAsset(name, micDevice, num, FusionSymbol));
                             continue;
                         }
 
-                        ShureUlxdDevice ulxdDevice =
-                            device as ShureUlxdDevice;
-                        if (ulxdDevice != null)
+                        ShureMxaDevice shureMxaDevice = device as ShureMxaDevice;
+                        if (micDevice != null)
                         {
-                            for (uint i = 1; i <= ulxdDevice.UlxdSize; i++)
-                            {
-                                uint num = GetNextAvailableAssetNumber(FusionSymbol);
-                                string name = string.Format("{0} - Microphone {1}", ulxdDevice.Name, i);
-                                StaticAssets.Add(num,
-                                    new MicStaticAsset(name, ulxdDevice.Microphones[i - 1], num, FusionSymbol));
-                            }
-
-                            continue;
-                        }
-
-                        ShureMxwapxd2Device mxwapxd2Device = device as ShureMxwapxd2Device;
-                        if (mxwapxd2Device != null)
-                        {
-                            for (uint i = 1; i <= mxwapxd2Device.Mxwapxd2Size; i++)
-                            {
-                                uint num = GetNextAvailableAssetNumber(FusionSymbol);
-                                string name = string.Format("{0} - Mxw Tx {1}", mxwapxd2Device.Name, i);
-                                StaticAssets.Add(num,
-                                    new MxwTxStaticAsset(name, mxwapxd2Device.Microphones[i - 1], num,
-                                        FusionSymbol));
-                            }
-
-                            continue;
-                        }
-
-                        CatchboxDevice catchboxDevice = device as CatchboxDevice;
-                        if (catchboxDevice != null)
-                        {
-                            for (uint i = 1; i <= catchboxDevice.CatchboxSize; i++)
-                            {
-                                uint num = GetNextAvailableAssetNumber(FusionSymbol);
-                                string name = string.Format("{0} - Catchbox {1}", catchboxDevice.Name, i);
-                                StaticAssets.Add(num,
-                                    new MxwTxStaticAsset(name, catchboxDevice.Microphones[i - 1], num,
-                                        FusionSymbol));
-                            }
-
+                            uint num = GetNextAvailableAssetNumber(FusionSymbol);
+                            string name = shureMxaDevice.Name;
+                            StaticAssets.Add(num,
+                                new ShureMxaStaticAsset(name, shureMxaDevice, num, FusionSymbol));
                             continue;
                         }
                     }

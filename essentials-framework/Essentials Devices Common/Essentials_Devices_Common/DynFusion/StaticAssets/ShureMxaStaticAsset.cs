@@ -6,45 +6,32 @@ using UmdEssentials.Devices.Common.Microphones;
 
 namespace UmdEssentials.Devices.Common.DynFusion.StaticAssets
 {
-    public class CatchboxStaticAsset : StaticAsset
+    public class ShureMxaStaticAsset : StaticAsset
     {
-        public CatchboxStaticAsset(string name, WirelessMic tx, uint assetNumber, FusionRoom symbol) :
-            base(name, name + "-Asset", assetNumber, "Catchbox", symbol)
+        public ShureMxaStaticAsset(string name, ShureMxaDevice shureMic, uint assetNumber, FusionRoom symbol) :
+            base(name, name + "-Asset", assetNumber, "Shure Mic", symbol)
         {
             _asset.AssetUsage.AddSigToRVIFile = false;
             _asset.PowerOn.AddSigToRVIFile = false;
             _asset.PowerOff.AddSigToRVIFile = false;
-            _asset.AssetError.AddSigToRVIFile = false;
+            _asset.AssetError.AddSigToRVIFile = true;
             _asset.Connected.AddSigToRVIFile = true;
 
             _asset.Connected.InputSig.BoolValue = true;
 
-            _asset.ParamMake.Value = "Catchbox";
-            _asset.ParamModel.Value = "Cube";
+            _asset.ParamMake.Value = "Shure";
+            _asset.ParamModel.Value = "Mic";
 
-            //Battery Present
-            _asset.AddSig(eSigType.Bool, 1, "Mic Battery - Present", eSigIoMask.InputSigOnly);
-            tx.OnDockFeedback.LinkInputSig(_asset.FusionGenericAssetDigitalsAsset1.BooleanInput[50]);
-
-            //Battery % Health
-            _asset.AddSig(eSigType.UShort, 2, "Mic Battery - % Health", eSigIoMask.InputSigOnly);
-            tx.PercentHealthFeedback.LinkInputSig(_asset.FusionGenericAssetAnalogsAsset2.UShortInput[51]);
-
-            //Battery % Charge
-            _asset.AddSig(eSigType.UShort, 4, "Mic Battery - % Charge", eSigIoMask.InputSigOnly);
-            tx.PercentChargeFeedback.LinkInputSig(_asset.FusionGenericAssetAnalogsAsset2.UShortInput[53]);
-
-            //Microphone In Use
-            _asset.AddSig(eSigType.Bool, 2, "Microphone - In Use", eSigIoMask.InputSigOnly);
-            tx.MicrophoneInUseFeedback.LinkInputSig(_asset.FusionGenericAssetDigitalsAsset1.BooleanInput[50]);
+            //Mic in use
+            _asset.AddSig(eSigType.Bool, 2, "Mic - In Use", eSigIoMask.InputSigOnly);
+            shureMic.MicrophoneInUseFeedback.LinkInputSig(_asset.FusionGenericAssetDigitalsAsset1.BooleanInput[51]);
         }
 
         public override void FusionAssetStateChange(FusionAssetStateEventArgs args)
         {
             if (args.UserConfigurableAssetDetailIndex != _assetNumber) return;
 
-            Debug.Console(1, this, "Catchbox battery static asset state change {0} received EventID {1} Index {2}",
-                Name,
+            Debug.Console(1, this, "Mic battery static asset state change {0} received EventID {1} Index {2}", Name,
                 args.EventId, args.UserConfigurableAssetDetailIndex);
             switch (args.EventId)
             {
