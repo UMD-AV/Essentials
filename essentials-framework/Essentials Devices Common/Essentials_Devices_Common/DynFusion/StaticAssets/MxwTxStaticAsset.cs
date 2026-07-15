@@ -33,6 +33,10 @@ namespace UmdEssentials.Devices.Common.DynFusion.StaticAssets
             //Battery % Charge
             _asset.AddSig(eSigType.UShort, 4, "Mic Battery - % Charge", eSigIoMask.InputSigOnly);
             tx.PercentChargeFeedback.LinkInputSig(_asset.FusionGenericAssetAnalogsAsset2.UShortInput[53]);
+
+            //Microphone In Use
+            _asset.AddSig(eSigType.Bool, 2, "Microphone - In Use", eSigIoMask.InputSigOnly);
+            tx.MicrophoneInUseFeedback.LinkInputSig(_asset.FusionGenericAssetDigitalsAsset1.BooleanInput[50]);
         }
 
         public override void FusionAssetStateChange(FusionAssetStateEventArgs args)

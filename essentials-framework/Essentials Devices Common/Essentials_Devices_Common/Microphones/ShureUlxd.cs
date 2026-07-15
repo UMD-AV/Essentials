@@ -109,12 +109,14 @@ namespace UmdEssentials.Devices.Common.Microphones
             DeviceModelFeedback = new StringFeedback(() => DeviceModel);
             DeviceFirmwareVersionFeedback = new StringFeedback(() => DeviceFirmwareVersion);
             UlxdSize = 4;
-            Microphones = new WirelessMic[config.MicKeys.Length];
-            for (ushort i = 0; i < config.MicKeys.Length; i++)
+            Microphones = new WirelessMic[UlxdSize];
+            ushort i = 0;
+            while (i < config.MicKeys.Length)
             {
-                Microphones[i] = new WirelessMic(config.MicKeys[i], config.MicKeys[i])
+                Microphones[i] = new WirelessMic(config.MicKeys[i], string.Format("{0}-{1}", name, i + 1), false)
                 {
-                    Model = "Shure Tx"
+                    Model = "Shure Tx",
+                    IsOnline = true
                 };
                 try
                 {
@@ -126,6 +128,18 @@ namespace UmdEssentials.Devices.Common.Microphones
                         config.MicKeys[i],
                         e.Message);
                 }
+
+                i++;
+            }
+
+            while (i < UlxdSize)
+            {
+                Microphones[i] = new WirelessMic(Key + "-wmic" + i + 1, string.Format("{0}-{1}", name, i + 1), false)
+                {
+                    Model = "Shure Tx",
+                    IsOnline = true
+                };
+                i++;
             }
 
             _comms = comms;
@@ -189,7 +203,7 @@ namespace UmdEssentials.Devices.Common.Microphones
 
             if (string.IsNullOrEmpty(command)) return;
 
-            Debug.Console(0, this, "ProcessLinereceived: index-'{0}' | command-'{1} | state-'{2}'", indexString,
+            Debug.Console(2, this, "ProcessLinereceived: index-'{0}' | command-'{1} | state-'{2}'", indexString,
                 command, state);
 
             switch (command)
@@ -200,19 +214,19 @@ namespace UmdEssentials.Devices.Common.Microphones
                 case "TX_TYPE":
                 {
                     int index = Convert.ToInt16(indexString) - 1;
-                    if (index >= 0 && index < 4)
+                    if (index >= 0 && index < UlxdSize)
                     {
                         if (state.Length == 0 || state == "UNKN")
                         {
                             Microphones[index].Model = "";
                             Microphones[index].State = state;
-                            Microphones[index].MicrophonePresent = false;
+                            Microphones[index].MicrophoneInUse = false;
                         }
                         else
                         {
                             Microphones[index].Model = state;
                             Microphones[index].State = state;
-                            Microphones[index].MicrophonePresent = true;
+                            Microphones[index].MicrophoneInUse = true;
                         }
                     }
 
@@ -225,7 +239,7 @@ namespace UmdEssentials.Devices.Common.Microphones
                 case "BATT_CHARGE":
                 {
                     int index = Convert.ToInt16(indexString) - 1;
-                    if (index >= 0 && index < 4)
+                    if (index >= 0 && index < UlxdSize)
                     {
                         short stateInt = Convert.ToInt16(state);
                         if (stateInt >= 0 && stateInt <= 100)
@@ -242,7 +256,7 @@ namespace UmdEssentials.Devices.Common.Microphones
                 case "BATT_HEALTH":
                 {
                     int index = Convert.ToInt16(indexString) - 1;
-                    if (index >= 0 && index < 4)
+                    if (index >= 0 && index < UlxdSize)
                     {
                         short stateInt = Convert.ToInt16(state);
                         if (stateInt >= 0 && stateInt <= 100)
@@ -259,7 +273,7 @@ namespace UmdEssentials.Devices.Common.Microphones
                 case "BATT_TEMP_F":
                 {
                     int index = Convert.ToInt16(indexString) - 1;
-                    if (index >= 0 && index < 4)
+                    if (index >= 0 && index < UlxdSize)
                     {
                         short stateInt = Convert.ToInt16(state);
                         if (stateInt >= 0 && stateInt <= 253)
@@ -278,7 +292,7 @@ namespace UmdEssentials.Devices.Common.Microphones
                 {
                     int index = Convert.ToInt16(indexString) - 1;
                     ushort stateInt = Convert.ToUInt16(state);
-                    if (index >= 0 && index < 4) Microphones[index].Runtime = stateInt;
+                    if (index >= 0 && index < UlxdSize) Microphones[index].Runtime = stateInt;
 
                     break;
                 }
@@ -306,7 +320,7 @@ namespace UmdEssentials.Devices.Common.Microphones
                 case "FW_VER":
                 {
                     DeviceFirmwareVersion = state;
-                    for (ushort i = 0; i < 4; i++) Microphones[i].DeviceFirmwareVersion = state;
+                    for (ushort i = 0; i < UlxdSize; i++) Microphones[i].DeviceFirmwareVersion = state;
                     break;
                 }
                 default:
@@ -345,7 +359,7 @@ namespace UmdEssentials.Devices.Common.Microphones
         /// </remarks>
         public void Poll()
         {
-            SendText("GET 0 ALL");
+            SendText("GET 0 TX_TYPE");
         }
 
         #endregion Polls
@@ -385,7 +399,7 @@ namespace UmdEssentials.Devices.Common.Microphones
                 for (ushort i = 0; i < 4; i++)
                 {
                     ushort index = i;
-                    Microphones[index].MicrophonePresentFeedback
+                    Microphones[index].MicrophoneInUseFeedback
                         .LinkInputSig(trilist.BooleanInput[joinMap.MicrophonePresent.JoinNumber + index]);
                     Microphones[index].PercentChargeFeedback
                         .LinkInputSig(trilist.UShortInput[joinMap.PercentCharge.JoinNumber + index]);
@@ -428,7 +442,7 @@ namespace UmdEssentials.Devices.Common.Microphones
 
             for (ushort i = 0; i < 4; i++)
             {
-                Microphones[i].MicrophonePresentFeedback.FireUpdate();
+                Microphones[i].MicrophoneInUseFeedback.FireUpdate();
                 Microphones[i].PercentChargeFeedback.FireUpdate();
                 Microphones[i].PercentHealthFeedback.FireUpdate();
                 Microphones[i].TemperatureFFeedback.FireUpdate();

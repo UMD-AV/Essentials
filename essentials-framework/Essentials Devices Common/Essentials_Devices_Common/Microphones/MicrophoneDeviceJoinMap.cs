@@ -50,7 +50,7 @@ namespace UmdEssentials.Devices.Common.Microphones
                 JoinType = eJoinType.Digital
             });
 
-        [JoinName("IsWireless")] public JoinDataComplete IsWireless = new JoinDataComplete(
+        [JoinName("IsBattery")] public JoinDataComplete IsBattery = new JoinDataComplete(
             new JoinData
             {
                 JoinNumber = 4,
@@ -85,6 +85,19 @@ namespace UmdEssentials.Devices.Common.Microphones
             new JoinMetadata
             {
                 Description = "Device is a wireless mic and has link",
+                JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                JoinType = eJoinType.Digital
+            });
+
+        [JoinName("IsWireless")] public JoinDataComplete IsWireless = new JoinDataComplete(
+            new JoinData
+            {
+                JoinNumber = 7,
+                JoinSpan = 1
+            },
+            new JoinMetadata
+            {
+                Description = "Device is a wireless mic type (disable monitoring)",
                 JoinCapabilities = eJoinCapabilities.ToSIMPL,
                 JoinType = eJoinType.Digital
             });

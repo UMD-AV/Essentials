@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
-using Crestron.SimplSharp;
 using Crestron.SimplSharpPro.DeviceSupport;
 using PepperDash.Core;
 using UmdEssentials.Core;
@@ -127,13 +126,14 @@ namespace UmdEssentials.Devices.Common.Microphones
             ErrorFeedback = new StringFeedback(() => DeviceError);
 
             SbcSize = 8;
-            Microphones = new ShureSbcBattery[config.MicKeys.Length];
+            Microphones = new ShureSbcBattery[SbcSize];
             ushort i = 0;
             while (i < config.MicKeys.Length)
             {
-                Microphones[i] = new ShureSbcBattery(config.MicKeys[i], config.MicKeys[i])
+                Microphones[i] = new ShureSbcBattery(config.MicKeys[i], string.Format("{0} Slot {1}", name, i + 1))
                 {
-                    Model = "Shure Battery"
+                    Model = "Shure Battery",
+                    IsOnline = true
                 };
                 try
                 {
@@ -151,10 +151,12 @@ namespace UmdEssentials.Devices.Common.Microphones
 
             while (i < SbcSize)
             {
-                Microphones[i] = new ShureSbcBattery(Key + "-battery" + i + 1, Key + "-battery" + i + 1)
-                {
-                    Model = "Shure Battery"
-                };
+                Microphones[i] =
+                    new ShureSbcBattery(Key + "-battery" + i + 1, string.Format("{0} Slot {1}", name, i + 1))
+                    {
+                        Model = "Shure Battery",
+                        IsOnline = true
+                    };
                 i++;
             }
 
@@ -471,7 +473,7 @@ namespace UmdEssentials.Devices.Common.Microphones
         }
 
         public ShureSbcBattery(string key, string name)
-            : base(key, name)
+            : base(key, name, true)
         {
             Model = "Shure Battery";
         }
@@ -484,11 +486,6 @@ namespace UmdEssentials.Devices.Common.Microphones
                 OnDock = value;
                 if (!value) PercentHealth = 0;
             }
-        }
-
-        public BoolFeedback BatteryPresentFeedback
-        {
-            get { return OnDockFeedback; }
         }
 
         public int BatteryError

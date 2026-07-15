@@ -36,12 +36,14 @@ namespace UmdEssentials.Devices.Common.Microphones
             DeviceModelFeedback = new StringFeedback(() => DeviceModel);
             DeviceFirmwareVersionFeedback = new StringFeedback(() => DeviceFirmwareVersion);
             CatchboxSize = 4;
-            Microphones = new WirelessMic[config.MicKeys.Length];
-            for (ushort i = 0; i < config.MicKeys.Length; i++)
+            Microphones = new WirelessMic[CatchboxSize];
+            ushort i = 0;
+            while (i < config.MicKeys.Length)
             {
-                Microphones[i] = new WirelessMic(config.MicKeys[i], config.MicKeys[i])
+                Microphones[i] = new WirelessMic(config.MicKeys[i], string.Format("{0}-{1}", name, i + 1), true)
                 {
-                    Model = "Catchbox"
+                    Model = "Catchbox",
+                    IsOnline = true
                 };
                 try
                 {
@@ -53,6 +55,18 @@ namespace UmdEssentials.Devices.Common.Microphones
                         config.MicKeys[i],
                         e.Message);
                 }
+
+                i++;
+            }
+
+            while (i < CatchboxSize)
+            {
+                Microphones[i] = new WirelessMic(Key + "-tx" + i + 1, string.Format("{0}-{1}", name, i + 1), true)
+                {
+                    Model = "Catchbox",
+                    IsOnline = true
+                };
+                i++;
             }
 
             _comms = (GenericUdpServer)comms;
@@ -63,10 +77,6 @@ namespace UmdEssentials.Devices.Common.Microphones
             }
 
             _commsMonitor = new ManualCommunicationMonitor(this, 70000, 180000);
-            _commsMonitor.StatusChange += (sender, args) =>
-            {
-                foreach (WirelessMic mic in Microphones) mic.IsOnline = args.Status == MonitorStatus.IsOk;
-            };
             _comms.TextReceived += Handle_TextReceived;
             _comms.UpdateConnectionStatus += socket_ConnectionChange;
             SocketStatusFeedback = new IntFeedback(() => (int)_comms.ClientStatus);
@@ -145,7 +155,7 @@ namespace UmdEssentials.Devices.Common.Microphones
                 JObject response = JObject.Parse(text);
                 int error;
                 if (TryGetIntValue(response, "error", out error) && error != 0)
-                    Debug.Console(0, this, "Catchbox feedback error {0}: {1}", error, text);
+                    Debug.Console(1, this, "Catchbox feedback error {0}: {1}", error, text);
 
                 if (response["subscribe"] != null) Debug.Console(2, this, "Catchbox subscription feedback: {0}", text);
                 if (response["rx"] != null) ProcessRxFeedback(response["rx"] as JObject);

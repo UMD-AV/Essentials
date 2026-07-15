@@ -24,9 +24,9 @@ namespace UmdEssentials.Devices.Common.DynFusion.StaticAssets
 
             mic.ModelFeedback.OutputChange += ModelFeedback_OutputChange;
 
-            //Microphone Present
-            _asset.AddSig(eSigType.Bool, 1, "Microphone - Present", eSigIoMask.InputSigOnly);
-            mic.MicrophonePresentFeedback.LinkInputSig(_asset.FusionGenericAssetDigitalsAsset1.BooleanInput[50]);
+            //Microphone In Use
+            _asset.AddSig(eSigType.Bool, 2, "Microphone - In Use", eSigIoMask.InputSigOnly);
+            mic.MicrophoneInUseFeedback.LinkInputSig(_asset.FusionGenericAssetDigitalsAsset1.BooleanInput[50]);
 
             //Microphone Runtime Minutes
             _asset.AddSig(eSigType.UShort, 1, "Microphone - Runtime Minutes", eSigIoMask.InputSigOnly);

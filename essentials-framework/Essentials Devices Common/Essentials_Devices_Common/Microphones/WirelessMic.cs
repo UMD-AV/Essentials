@@ -18,18 +18,18 @@ namespace UmdEssentials.Devices.Common.Microphones
 
     public class WirelessMic : EssentialsBridgeableDevice, IHasMuteControlWithFeedback
     {
-        public WirelessMic(string key, string name) : base(key, name)
+        public WirelessMic(string key, string name, bool isBattery) : base(key, name)
         {
             _name = name;
             _isOnline = false;
-            _isWireless = true;
+            _isBattery = isBattery;
             _runtime = 65535;
 
             IsOnlineFeedback = new BoolFeedback(() => IsOnline);
             MuteFeedback = new BoolFeedback(() => MuteState);
-            IsWirelessFeedback = new BoolFeedback(() => IsWireless);
+            IsBatteryFeedback = new BoolFeedback(() => IsBattery);
             OnDockFeedback = new BoolFeedback(() => OnDock);
-            MicrophonePresentFeedback = new BoolFeedback(() => MicrophonePresent);
+            MicrophoneInUseFeedback = new BoolFeedback(() => MicrophoneInUse);
             PercentChargeFeedback = new IntFeedback(() => PercentCharge);
             PercentHealthFeedback = new IntFeedback(() => PercentHealth);
             TemperatureFFeedback = new IntFeedback(() => TemperatureF);
@@ -77,22 +77,22 @@ namespace UmdEssentials.Devices.Common.Microphones
         /// </summary>
         public BoolFeedback MuteFeedback { get; private set; }
 
-        private bool _isWireless;
+        private bool _isBattery;
 
-        public bool IsWireless
+        public bool IsBattery
         {
-            get { return _isWireless; }
+            get { return _isBattery; }
             set
             {
-                _isWireless = value;
-                IsWirelessFeedback.FireUpdate();
+                _isBattery = value;
+                IsBatteryFeedback.FireUpdate();
             }
         }
 
         /// <summary>
         ///     Device is a wireless microphone feedback
         /// </summary>
-        public BoolFeedback IsWirelessFeedback { get; private set; }
+        public BoolFeedback IsBatteryFeedback { get; private set; }
 
         private bool _onDock;
 
@@ -111,22 +111,22 @@ namespace UmdEssentials.Devices.Common.Microphones
         /// </summary>
         public BoolFeedback OnDockFeedback { get; private set; }
 
-        private bool _microphonePresent;
+        private bool _microphoneInUse;
 
-        public bool MicrophonePresent
+        public bool MicrophoneInUse
         {
-            get { return _microphonePresent; }
+            get { return _microphoneInUse; }
             set
             {
-                _microphonePresent = value;
-                MicrophonePresentFeedback.FireUpdate();
+                _microphoneInUse = value;
+                MicrophoneInUseFeedback.FireUpdate();
             }
         }
 
         /// <summary>
         ///     Microphone present feedback
         /// </summary>
-        public BoolFeedback MicrophonePresentFeedback { get; private set; }
+        public BoolFeedback MicrophoneInUseFeedback { get; private set; }
 
         private LinkStates _linkState;
 
@@ -138,7 +138,7 @@ namespace UmdEssentials.Devices.Common.Microphones
                 _linkState = value;
                 State = GetLinkStateName(value);
                 OnDock = value == LinkStates.Charging;
-                MicrophonePresent = value == LinkStates.Charging || value == LinkStates.Connected;
+                MicrophoneInUse = value == LinkStates.Connected;
                 LinkStateFeedback.FireUpdate();
             }
         }
@@ -308,10 +308,10 @@ namespace UmdEssentials.Devices.Common.Microphones
         public void FireUpdate()
         {
             IsOnlineFeedback.FireUpdate();
-            IsWirelessFeedback.FireUpdate();
+            IsBatteryFeedback.FireUpdate();
             OnDockFeedback.FireUpdate();
             MuteFeedback.FireUpdate();
-            MicrophonePresentFeedback.FireUpdate();
+            MicrophoneInUseFeedback.FireUpdate();
             PercentChargeFeedback.FireUpdate();
             PercentHealthFeedback.FireUpdate();
             TemperatureFFeedback.FireUpdate();
@@ -323,25 +323,6 @@ namespace UmdEssentials.Devices.Common.Microphones
             ErrorStringFeedback.FireUpdate();
             StateFeedback.FireUpdate();
             DeviceFirmwareVersionFeedback.FireUpdate();
-        }
-
-        public void CopyStatusFrom(WirelessMic source)
-        {
-            if (source == null) return;
-
-            IsOnline = source.IsOnline;
-            MuteState = source.MuteState;
-            IsWireless = source.IsWireless;
-            MicrophonePresent = source.MicrophonePresent;
-            PercentCharge = source.PercentCharge;
-            PercentHealth = source.PercentHealth;
-            TemperatureF = source.TemperatureF;
-            BatteryErrorAnalog = source.BatteryErrorAnalog;
-            Runtime = source.Runtime;
-            Model = source.Model;
-            ErrorString = source.ErrorString;
-            State = source.State;
-            DeviceFirmwareVersion = source.DeviceFirmwareVersion;
         }
 
         private void UpdateFeedbacks()
@@ -388,13 +369,15 @@ namespace UmdEssentials.Devices.Common.Microphones
 
                 //trilist.SetSigTrueAction(joinMap.DeviceAudioMuteOn.JoinNumber, SetDeviceAudioMuteOn);
                 //trilist.SetSigTrueAction(joinMap.DeviceAudioMuteOff.JoinNumber, SetDeviceAudioMuteOff);
+
+                trilist.BooleanInput[joinMap.IsWireless.JoinNumber].BoolValue = true;
                 MuteFeedback.LinkInputSig(trilist.BooleanInput[joinMap.DeviceAudioMuteOn.JoinNumber]);
                 MuteFeedback.LinkComplementInputSig(
                     trilist.BooleanInput[joinMap.DeviceAudioMuteOff.JoinNumber]);
 
-                IsWirelessFeedback.LinkInputSig(trilist.BooleanInput[joinMap.IsWireless.JoinNumber]);
+                IsBatteryFeedback.LinkInputSig(trilist.BooleanInput[joinMap.IsBattery.JoinNumber]);
                 OnDockFeedback.LinkInputSig(trilist.BooleanInput[joinMap.OnDock.JoinNumber]);
-                MicrophonePresentFeedback.LinkInputSig(trilist.BooleanInput[joinMap.IsPresent.JoinNumber]);
+                MicrophoneInUseFeedback.LinkInputSig(trilist.BooleanInput[joinMap.IsPresent.JoinNumber]);
 
                 PercentChargeFeedback.LinkInputSig(trilist.UShortInput[joinMap.PercentCharge.JoinNumber]);
                 PercentHealthFeedback.LinkInputSig(trilist.UShortInput[joinMap.PercentHealth.JoinNumber]);

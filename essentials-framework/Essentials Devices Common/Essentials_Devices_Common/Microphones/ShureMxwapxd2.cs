@@ -101,12 +101,14 @@ namespace UmdEssentials.Devices.Common.Microphones
             DeviceFirmwareVersionFeedback = new StringFeedback(() => DeviceFirmwareVersion);
             DeviceModelFeedback = new StringFeedback(() => DeviceModel);
             Mxwapxd2Size = 2;
-            Microphones = new WirelessMic[config.MicKeys.Length];
-            for (ushort i = 0; i < config.MicKeys.Length; i++)
+            Microphones = new WirelessMic[Mxwapxd2Size];
+            ushort i = 0;
+            while (i < config.MicKeys.Length)
             {
-                Microphones[i] = new WirelessMic(config.MicKeys[i], config.MicKeys[i])
+                Microphones[i] = new WirelessMic(config.MicKeys[i], string.Format("{0} Slot {1}", name, i + 1), true)
                 {
-                    Model = "Shure Mxw Tx"
+                    Model = "Shure Mxw Tx",
+                    IsOnline = true
                 };
                 try
                 {
@@ -118,6 +120,18 @@ namespace UmdEssentials.Devices.Common.Microphones
                         config.MicKeys[i],
                         e.Message);
                 }
+
+                i++;
+            }
+
+            while (i < Mxwapxd2Size)
+            {
+                Microphones[i] = new WirelessMic(Key + "-tx" + i + 1, string.Format("{0} Slot {1}", name, i + 1), true)
+                {
+                    Model = "Shure Mxw Tx",
+                    IsOnline = true
+                };
+                i++;
             }
 
             _comms = comms;
@@ -125,10 +139,6 @@ namespace UmdEssentials.Devices.Common.Microphones
                 { IncludeDelimiter = true };
             _commsGather.LineReceived += Handle_LineReceived;
             _commsMonitor = new GenericCommunicationMonitor(this, _comms, 30000, 180000, 300000, Poll);
-            _commsMonitor.StatusChange += (sender, args) =>
-            {
-                foreach (WirelessMic mic in Microphones) mic.IsOnline = args.Status == MonitorStatus.IsOk;
-            };
             _commsQueue = new GenericQueue(key + "-queue");
 
             ISocketStatus socket = _comms as ISocketStatus;

@@ -64,6 +64,7 @@ namespace UmdEssentials.Devices.Common.Microphones
             MuteFeedback = new BoolFeedback(() => MuteState);
             DeviceMuteStatusLedStateFeedback = new BoolFeedback(() => DeviceMuteStatusLedState);
             ExternalSwitchStateFeedback = new BoolFeedback(() => ExternalSwitchState);
+            MicrophoneInUseFeedback = new BoolFeedback(() => MicrophoneInUse);
 
             // analog feedbacks
             LedMutedColorNumberFeedback = new IntFeedback(() => (int)LedMutedColorNumber);
@@ -642,6 +643,8 @@ namespace UmdEssentials.Devices.Common.Microphones
             {
                 _deviceMuteStatusLedState = value;
                 DeviceMuteStatusLedStateFeedback.FireUpdate();
+                _microphoneInUse = !value;
+                MicrophoneInUseFeedback.FireUpdate();
             }
         }
 
@@ -945,6 +948,23 @@ namespace UmdEssentials.Devices.Common.Microphones
 
         #endregion
 
+        private bool _microphoneInUse;
+
+        public bool MicrophoneInUse
+        {
+            get { return _microphoneInUse; }
+            set
+            {
+                _microphoneInUse = value;
+                MicrophoneInUseFeedback.FireUpdate();
+            }
+        }
+
+        /// <summary>
+        ///     Microphone present feedback
+        /// </summary>
+        public BoolFeedback MicrophoneInUseFeedback { get; private set; }
+
 
         #region Device Info
 
@@ -1071,6 +1091,7 @@ namespace UmdEssentials.Devices.Common.Microphones
                 trilist.BooleanInput[joinMap.DeviceAudioMuteOff.JoinNumber]);
 
             // device information feedback
+            MicrophoneInUseFeedback.LinkInputSig(trilist.BooleanInput[joinMap.IsPresent.JoinNumber]);
             DeviceModelFeedback.LinkInputSig(trilist.StringInput[joinMap.Model.JoinNumber]);
             DeviceFirmwareVersionFeedback.LinkInputSig(trilist.StringInput[joinMap.DeviceFirmwareVersion.JoinNumber]);
             DeviceErrorFeedback.LinkInputSig(trilist.StringInput[joinMap.ErrorString.JoinNumber]);
@@ -1094,6 +1115,7 @@ namespace UmdEssentials.Devices.Common.Microphones
             DeviceMuteStatusLedStateFeedback.FireUpdate();
             DeviceErrorFeedback.FireUpdate();
             ExternalSwitchStateFeedback.FireUpdate();
+            MicrophoneInUseFeedback.FireUpdate();
 
             LedMutedColorNumberFeedback.FireUpdate();
             LedUnmutedColorNumberFeedback.FireUpdate();
