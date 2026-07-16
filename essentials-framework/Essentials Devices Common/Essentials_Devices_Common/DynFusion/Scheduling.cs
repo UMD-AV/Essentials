@@ -268,7 +268,7 @@ namespace DynFusion
                 {
                     if (_DynFusion.RoomInformation != null)
                     {
-                        string roomID = _DynFusion.RoomInformation.ID;
+                        string roomID = _DynFusion.RoomInformation.Id;
                         string RFCTime = string.Format("{0:s}", DateTime.Now);
 
 
@@ -584,7 +584,7 @@ namespace DynFusion
 
                 _DynFusion.RoomInformationUpdated += (s, e) =>
                 {
-                    trilist.StringInput[joinMap.RoomID.JoinNumber].StringValue = _DynFusion.RoomInformation.ID;
+                    trilist.StringInput[joinMap.RoomID.JoinNumber].StringValue = _DynFusion.RoomInformation.Id;
                     trilist.StringInput[joinMap.RoomLocation.JoinNumber].StringValue =
                         _DynFusion.RoomInformation.Location;
                 };

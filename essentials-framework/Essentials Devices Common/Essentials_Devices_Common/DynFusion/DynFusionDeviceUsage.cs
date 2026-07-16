@@ -7,21 +7,18 @@ namespace DynFusion
 {
     public class DynFusionDeviceUsage : EssentialsDevice
     {
-        public Dictionary<uint, UsageInfo> deviceUsageInfo = new Dictionary<uint, UsageInfo>();
-        public Dictionary<uint, UsageInfo> displayUsageInfo = new Dictionary<uint, UsageInfo>();
-        public Dictionary<uint, UsageInfo> sourceUsageInfo = new Dictionary<uint, UsageInfo>();
-        public Dictionary<string, UsageInfo> usageInfoDict = new Dictionary<string, UsageInfo>();
+        public Dictionary<string, UsageInfo> UsageInfoDict = new Dictionary<string, UsageInfo>();
 
 
-        public int usageMinThreshold = 1;
-        private DynFusionDevice _DynFusionDevice;
+        public int UsageMinThreshold = 1;
+        private readonly DynFusionDevice _dynFusionDevice;
 
-        public DynFusionDeviceUsage(string key, DynFusionDevice DynFusionInstance)
+        public DynFusionDeviceUsage(string key, DynFusionDevice dynFusionInstance)
             : base(key, key)
         {
             try
             {
-                _DynFusionDevice = DynFusionInstance;
+                _dynFusionDevice = dynFusionInstance;
             }
             catch (Exception ex)
             {
@@ -33,13 +30,13 @@ namespace DynFusion
         {
             try
             {
-                UsageInfo NewDev = new UsageInfo();
-                NewDev.name = name;
-                NewDev.type = type;
-                NewDev.usageType = UsageType.Device;
-                NewDev.joinNumber = (ushort)deviceNumber;
+                UsageInfo newDev = new UsageInfo();
+                newDev.Name = name;
+                newDev.Type = type;
+                newDev.UsageType = UsageType.Device;
+                newDev.JoinNumber = (ushort)deviceNumber;
                 string key = string.Format("DEV:{0}", deviceNumber);
-                usageInfoDict.Add(key, NewDev);
+                UsageInfoDict.Add(key, newDev);
 
                 Debug.Console(1, this, string.Format("DynFusionDeviceUsage Created Device key: {0}", key));
             }
@@ -53,14 +50,14 @@ namespace DynFusion
         {
             try
             {
-                UsageInfo NewDisp = new UsageInfo();
-                NewDisp.name = name;
-                NewDisp.type = "Display";
-                NewDisp.sourceNumber = 0;
-                NewDisp.usageType = UsageType.Display;
-                NewDisp.joinNumber = (ushort)deviceNumber;
+                UsageInfo newDisp = new UsageInfo();
+                newDisp.Name = name;
+                newDisp.Type = "Display";
+                newDisp.SourceNumber = 0;
+                newDisp.UsageType = UsageType.Display;
+                newDisp.JoinNumber = (ushort)deviceNumber;
                 string key = string.Format("DISP:{0}", deviceNumber);
-                usageInfoDict.Add(key, NewDisp);
+                UsageInfoDict.Add(key, newDisp);
                 Debug.Console(1, this, string.Format("DynFusionDeviceUsage Created Display key: {0}", key));
             }
             catch (Exception x)
@@ -73,13 +70,13 @@ namespace DynFusion
         {
             try
             {
-                UsageInfo NewSource = new UsageInfo();
-                NewSource.name = name;
-                NewSource.type = type;
-                NewSource.sourceNumber = sourceNumber;
-                NewSource.usageType = UsageType.Source;
+                UsageInfo newSource = new UsageInfo();
+                newSource.Name = name;
+                newSource.Type = type;
+                newSource.SourceNumber = sourceNumber;
+                newSource.UsageType = UsageType.Source;
                 string key = string.Format("SRC:{0}", sourceNumber);
-                usageInfoDict.Add(key, NewSource);
+                UsageInfoDict.Add(key, newSource);
                 Debug.Console(1, this, "DynFusionDeviceUsage Created Source key: {0}", key);
             }
             catch (Exception ex)
@@ -97,26 +94,26 @@ namespace DynFusion
                 StopDevice(key);
         }
 
-        public void changeSource(ushort disp, ushort source)
+        public void ChangeSource(ushort disp, ushort source)
         {
             try
             {
                 string dispKey = string.Format("DISP:{0}", disp);
                 Debug.Console(1, this, "DynFusionDeviceUsage Change Source {0}", dispKey);
-                if (usageInfoDict.ContainsKey(dispKey))
+                if (UsageInfoDict.ContainsKey(dispKey))
                 {
                     Debug.Console(1, this,
                         "DynFusionDeviceUsage Change Source dispKey: {0}, LastSource: {1} New Source: {2}", dispKey,
-                        usageInfoDict[dispKey].sourceNumber, source);
+                        UsageInfoDict[dispKey].SourceNumber, source);
                     // get last source
-                    uint lastSourceNumber = usageInfoDict[dispKey].sourceNumber;
+                    uint lastSourceNumber = UsageInfoDict[dispKey].SourceNumber;
 
                     // Start new Device
                     if (lastSourceNumber > 0 && source > 0)
                     {
                         string newSourceKey = string.Format("SRC:{0}", source);
                         StartDevice(newSourceKey);
-                        usageInfoDict[dispKey].sourceNumber = (uint)source;
+                        UsageInfoDict[dispKey].SourceNumber = source;
                     }
                     //Start new device && display
                     else if (lastSourceNumber == 0 && source > 0)
@@ -124,23 +121,23 @@ namespace DynFusion
                         string newSourceKey = string.Format("SRC:{0}", source);
                         StartDevice(dispKey);
                         StartDevice(newSourceKey);
-                        usageInfoDict[dispKey].sourceNumber = (uint)source;
+                        UsageInfoDict[dispKey].SourceNumber = source;
                     }
                     // Stop display
                     else if (lastSourceNumber > 0 && source == 0)
                     {
-                        usageInfoDict[dispKey].sourceNumber = (uint)source;
+                        UsageInfoDict[dispKey].SourceNumber = source;
                         StopDevice(dispKey);
                     }
 
                     if (lastSourceNumber > 0)
                     {
                         bool onlySource = true;
-                        foreach (KeyValuePair<string, UsageInfo> entry in usageInfoDict)
+                        foreach (KeyValuePair<string, UsageInfo> entry in UsageInfoDict)
                             //Debug.Console(1,this, "DynFusionDeviceUsage Change Source dictEntry: {0}", entry.Key);
                             if (entry.Key.Contains("DISP"))
                                 //Debug.Console(1,this, "DynFusionDeviceUsage Change Source dictEntry Display - Source #: {0}", entry.Value.sourceNumber);
-                                if (entry.Value.sourceNumber == lastSourceNumber)
+                                if (entry.Value.SourceNumber == lastSourceNumber)
                                 {
                                     onlySource = false;
                                     break;
@@ -162,60 +159,55 @@ namespace DynFusion
 
         public void StartDevice(string key)
         {
-            if (usageInfoDict.ContainsKey(key))
-                usageInfoDict[key].startTime = DateTime.Now;
+            UsageInfo value;
+            if (UsageInfoDict.TryGetValue(key, out value))
+                value.StartTime = DateTime.Now;
             else
                 Debug.Console(1, this, "DynFusionDeviceUsage no device number {0}", key);
         }
 
         public void StopDevice(string key)
         {
-            if (usageInfoDict.ContainsKey(key))
+            if (UsageInfoDict.ContainsKey(key))
             {
-                if (usageInfoDict[key].startTime != null)
+                int minUsed = (int)(DateTime.Now - UsageInfoDict[key].StartTime).TotalMinutes;
+                if (minUsed >= UsageMinThreshold)
                 {
-                    int minUsed = (int)(DateTime.Now - usageInfoDict[key].startTime).TotalMinutes;
-                    if (minUsed >= usageMinThreshold)
-                    {
-                        string usageString = string.Format("USAGE||{0}||{1}||TIME||{2}||{3}||-||{4}||-||{5}||{6}||",
-                            DateTime.Now.ToString("yyyy-MM-dd"),
-                            DateTime.Now.ToString("HH:mm:ss"),
-                            usageInfoDict[key].type,
-                            usageInfoDict[key].name,
-                            minUsed,
-                            "",
-                            "");
-                        _DynFusionDevice.FusionSymbol.DeviceUsage.InputSig.StringValue = usageString;
-                        Debug.Console(1, this, "DynFusionDeviceUsage message \n{0}", usageString);
-                    }
-                    else
-                    {
-                        Debug.Console(1, this, "DynFusionDeviceUsage did not pass threshord {0}", key);
-                    }
+                    string usageString = string.Format(
+                        "USAGE||{0:yyyy-MM-dd}||{1:HH:mm:ss}||TIME||{2}||{3}||-||{4}||-||{5}||{6}||", DateTime.Now,
+                        DateTime.Now,
+                        UsageInfoDict[key].Type,
+                        UsageInfoDict[key].Name,
+                        minUsed,
+                        "",
+                        "");
+                    _dynFusionDevice.FusionSymbol.DeviceUsage.InputSig.StringValue = usageString;
+                    Debug.Console(1, this, "DynFusionDeviceUsage message \n{0}", usageString);
                 }
                 else
                 {
-                    Debug.Console(1, this, "DynFusionDeviceUsage no device number with Start time {0}", key);
+                    Debug.Console(1, this, "DynFusionDeviceUsage did not pass threshord {0}", key);
                 }
             }
         }
 
         public void NameDevice(ushort deviceNumber, string name)
         {
-            if (deviceUsageInfo.ContainsKey(deviceNumber))
-                deviceUsageInfo[deviceNumber].name = name;
+            UsageInfo value;
+            if (UsageInfoDict.TryGetValue(string.Format("DEV:{0}", deviceNumber), out value))
+                value.Name = name;
             else
                 Debug.Console(1, this, "DynFusionDeviceUsage no device number {0}", deviceNumber);
         }
 
         public class UsageInfo
         {
-            public DateTime startTime;
-            public string name;
-            public string type;
-            public uint sourceNumber;
-            public UsageType usageType;
-            public ushort joinNumber;
+            public DateTime StartTime;
+            public string Name;
+            public string Type;
+            public uint SourceNumber;
+            public UsageType UsageType;
+            public ushort JoinNumber;
         }
 
         public enum UsageType : int

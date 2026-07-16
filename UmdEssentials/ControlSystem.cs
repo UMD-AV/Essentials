@@ -419,7 +419,7 @@ namespace UmdEssentials
                     DynFusion.DynFusionDevice fusionDev = newDev as DynFusion.DynFusionDevice;
                     if (fusionDev != null)
                     {
-                        fusionDev.customResourceConfig = Encoding.GetEncoding(28591)
+                        fusionDev.CustomResourceConfig = Encoding.GetEncoding(28591)
                             .GetString(Properties.Resources.dynFusionCustomAttributes, 0,
                                 Properties.Resources.dynFusionCustomAttributes.Length);
                         Debug.Console(0, "Got fusion embedded resource file");
