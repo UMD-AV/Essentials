@@ -321,14 +321,19 @@
         "name": "Lights 02 - Error"
       },
       {
+        "joinNumber": 130,
+        "rwType": "R",
+        "name": "Number Of Mic Batteries - Live"
+      },
+      {
         "joinNumber": 131,
         "rwType": "R",
-        "name": "Number Of Mic Batteries - Error"
+        "name": "Number Of Mic Batteries - Morning"
       },
       {
         "joinNumber": 132,
         "rwType": "R",
-        "name": "Number Of Mic Batteries"
+        "name": "Number Of Mic Batteries - Evening"
       },
       {
         "joinNumber": 201,
