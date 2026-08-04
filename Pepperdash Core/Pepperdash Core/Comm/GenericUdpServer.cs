@@ -147,9 +147,7 @@ namespace PepperDash.Core
             // Re-enable the server if the link comes back up and the status should be connected
             if (ethernetEventArgs.EthernetEventType == eEthernetEventType.LinkUp
                 && IsConnected)
-            {
                 Connect();
-            }
         }
 
         /// <summary>
@@ -170,10 +168,7 @@ namespace PepperDash.Core
         /// </summary>
         public void Connect()
         {
-            if (Server == null)
-            {
-                Server = new UDPServer();
-            }
+            if (Server == null) Server = new UDPServer();
 
             if (string.IsNullOrEmpty(Hostname))
             {
@@ -183,10 +178,8 @@ namespace PepperDash.Core
 
             if (Port < 1 || Port > 65535)
             {
-                {
-                    Debug.Console(1, Debug.ErrorLogLevel.Warning, "GenericUdpServer '{0}': Invalid port", Key);
-                    return;
-                }
+                Debug.Console(1, Debug.ErrorLogLevel.Warning, "GenericUdpServer '{0}': Invalid port", Key);
+                return;
             }
 
             SocketErrorCodes status = Server.EnableUDPServer(Hostname, Port);
@@ -233,8 +226,26 @@ namespace PepperDash.Core
                 if (numBytes <= 0)
                     return;
 
-                string sourceIp = Server.IPAddressLastMessageReceivedFrom;
-                int sourcePort = Server.IPPortLastMessageReceivedFrom;
+                string sourceIp;
+                try
+                {
+                    sourceIp = Server.IPAddressLastMessageReceivedFrom;
+                }
+                catch
+                {
+                    sourceIp = "";
+                }
+
+                int sourcePort;
+                try
+                {
+                    sourcePort = Server.IPPortLastMessageReceivedFrom;
+                }
+                catch
+                {
+                    sourcePort = 0;
+                }
+
                 byte[] bytes = server.IncomingDataBuffer.Take(numBytes).ToArray();
                 string str = Encoding.GetEncoding(28591).GetString(bytes, 0, bytes.Length);
 
@@ -247,10 +258,8 @@ namespace PepperDash.Core
                 if (bytesHandler != null)
                 {
                     if (StreamDebugging.RxStreamDebuggingIsEnabled)
-                    {
                         Debug.Console(0, this, "Received {1} bytes: '{0}'", ComTextHelper.GetEscapedText(bytes),
                             bytes.Length);
-                    }
 
                     bytesHandler(this, new GenericCommMethodReceiveBytesArgs(bytes));
                 }
@@ -280,10 +289,7 @@ namespace PepperDash.Core
         /// <param name="text"></param>
         public void SendText(string text)
         {
-            if (!IsConnected)
-            {
-                Connect();
-            }
+            if (!IsConnected) Connect();
 
             byte[] bytes = Encoding.GetEncoding(28591).GetBytes(text);
 
@@ -303,10 +309,7 @@ namespace PepperDash.Core
         /// <param name="bytes"></param>
         public void SendBytes(byte[] bytes)
         {
-            if (!IsConnected)
-            {
-                Connect();
-            }
+            if (!IsConnected) Connect();
 
             if (StreamDebugging.TxStreamDebuggingIsEnabled)
                 Debug.Console(0, this, "Sending {0} bytes: '{1}'", bytes.Length, ComTextHelper.GetEscapedText(bytes));

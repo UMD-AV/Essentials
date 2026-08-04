@@ -180,7 +180,7 @@ namespace UmdEssentials.EpiphanPearl
                 string.Format("/channels/{0}/preview?resolution=480", channel), _previewApi);
 
             url = string.Format("https://{0}.av.umd.edu/cws/preview/{1}.jpg", EthernetHelper.LanHelper.Hostname, name);
-            urlRtsp = string.Format("rtsp://{0}.av.umd.edu:{1}/stream.sdp", EthernetHelper.LanHelper.Hostname,
+            urlRtsp = string.Format("rtsp://{0}:{1}/stream.sdp", _devProperties.Host,
                 553 + int.Parse(channel));
             return preview;
         }
