@@ -149,9 +149,33 @@ namespace UmdEssentials.EpiphanPearl
             _camera1Channel = _devProperties.camera1Channel ?? "";
             _camera2Channel = _devProperties.camera2Channel ?? "";
 
-            _contentPreview = SetupPreview(_contentChannel, "contentPreview", out _contentUrl, out _contentUrlRtsp);
-            _camera1Preview = SetupPreview(_camera1Channel, "camera1Preview", out _camera1Url, out _camera1UrlRtsp);
-            _camera2Preview = SetupPreview(_camera2Channel, "camera2Preview", out _camera2Url, out _camera2UrlRtsp);
+            try
+            {
+                _contentPreview = SetupPreview(_contentChannel, "contentPreview", out _contentUrl, out _contentUrlRtsp);
+            }
+            catch (Exception e)
+            {
+                Debug.Console(0, this, "Exception making content preview: {0}", e.Message);
+            }
+
+            try
+            {
+                _camera1Preview = SetupPreview(_camera1Channel, "camera1Preview", out _camera1Url, out _camera1UrlRtsp);
+            }
+            catch (Exception e)
+            {
+                Debug.Console(0, this, "Exception making camera 1 preview: {0}", e.Message);
+            }
+
+            try
+            {
+                _camera2Preview = SetupPreview(_camera2Channel, "camera2Preview", out _camera2Url, out _camera2UrlRtsp);
+            }
+            catch (Exception e)
+            {
+                Debug.Console(0, this, "Exception making camera 2 preview: {0}", e.Message);
+            }
+
 
             _previewApi.Register();
 
@@ -179,9 +203,11 @@ namespace UmdEssentials.EpiphanPearl
             VideoPreview preview = new VideoPreview(_client, name,
                 string.Format("/channels/{0}/preview?resolution=480", channel), _previewApi);
 
-            url = string.Format("https://{0}.av.umd.edu/cws/preview/{1}.jpg", EthernetHelper.LanHelper.Hostname, name);
+            url = string.Format("https://{0}.av.umd.edu/cws/preview/{1}.jpg", EthernetHelper.LanHelper.Hostname,
+                name);
             urlRtsp = string.Format("rtsp://{0}:{1}/stream.sdp", _devProperties.Host,
                 553 + int.Parse(channel));
+
             return preview;
         }
 
@@ -370,11 +396,11 @@ namespace UmdEssentials.EpiphanPearl
 
             trilist.SetStringSigAction(joinMap.HdmiOutputSource.JoinNumber, SetHdmiOutputSource);
             trilist.SetStringSigAction(joinMap.ContentLayout.JoinNumber,
-                (layout) => SetLayout(ushort.Parse(_contentLayout), layout));
+                (layout) => SetLayout(_contentChannel, layout));
             trilist.SetStringSigAction(joinMap.Camera1Layout.JoinNumber,
-                (layout) => SetLayout(ushort.Parse(_camera1Layout), layout));
+                (layout) => SetLayout(_camera1Channel, layout));
             trilist.SetStringSigAction(joinMap.Camera2Layout.JoinNumber,
-                (layout) => SetLayout(ushort.Parse(_camera2Layout), layout));
+                (layout) => SetLayout(_camera2Channel, layout));
 
             CommunicationMonitor.IsOnlineFeedback.LinkInputSig(trilist.BooleanInput[joinMap.RecorderOnline.JoinNumber]);
 
@@ -639,9 +665,9 @@ namespace UmdEssentials.EpiphanPearl
         /// <summary>
         /// Change the layout on a channel
         /// </summary>
-        public void SetLayout(int channel, string layout)
+        public void SetLayout(string channel, string layout)
         {
-            if (layout.Length < 1 || channel < 1)
+            if (layout.Length < 1 || channel.Length < 1)
                 return;
 
             string path = string.Format("/channels/{0}/layouts/active", channel);

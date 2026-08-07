@@ -43,7 +43,7 @@ namespace UmdEssentials.EpiphanPearl.Utilities
 
             _previewPollTimer = new CTimer(PreviewPoll, Timeout.Infinite);
 
-            Debug.Console(1, this, "VideoPreview created. ImageUrl={0}, Route={1}",
+            Debug.Console(1, this, "VideoPreview created. ImageUrl={0}",
                 _imageUrl);
         }
 
