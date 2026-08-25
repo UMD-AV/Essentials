@@ -89,12 +89,12 @@ namespace UmdEssentials.EpiphanPearl
                 if (value)
                 {
                     StartVUMeterPoll();
-                    if (_contentPreview != null)
+                    /*if (_contentPreview != null)
                         _contentPreview.EnablePreview();
                     if (_camera1Preview != null)
                         _camera1Preview.EnablePreview();
                     if (_camera2Preview != null)
-                        _camera2Preview.EnablePreview();
+                        _camera2Preview.EnablePreview();*/
                 }
                 else
                 {
@@ -923,7 +923,7 @@ namespace UmdEssentials.EpiphanPearl
             }
             finally
             {
-                if (_enableVuMeterFeedback) _vuMeterPollTimer.Reset(200);
+                if (_enableVuMeterFeedback) _vuMeterPollTimer.Reset(100);
             }
         }
 
