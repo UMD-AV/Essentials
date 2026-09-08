@@ -688,8 +688,9 @@ namespace DynFusion
                 if (item.Number >= slotNum)
                     slotNum = item.Number + 1;
 
-            //Skip odd slots as these seem to be causing issues
-            if (slotNum % 2 == 0) slotNum++;
+            // Skip RVI odd slots and known-problem RVI slot 36.
+            while (slotNum % 2 == 0 || slotNum + 1 == 36)
+                slotNum++;
 
             Debug.Console(1, string.Format("Next available fusion asset number is: {0}", slotNum));
 
